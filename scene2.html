@@ -19,13 +19,11 @@
         padding: 0;
         box-sizing: border-box;
       }
-
       body {
         background: #000;
         overflow: hidden;
         font-family: "EB Garamond", Georgia, serif;
         cursor: none;
-        /* Commence invisible → fade-in depuis scène 1 */
         opacity: 0;
         animation: page-fadein 1.2s ease 0.2s forwards;
       }
@@ -38,7 +36,6 @@
         }
       }
 
-      /* ── CURSEUR ── */
       #cursor {
         position: fixed;
         width: 14px;
@@ -61,7 +58,6 @@
         border-radius: 50%;
       }
 
-      /* ── LOADING ── */
       #loading {
         position: fixed;
         inset: 0;
@@ -99,7 +95,6 @@
         transition: width 0.35s ease;
       }
 
-      /* ── COUCHES ── */
       #stars {
         position: fixed;
         inset: 0;
@@ -111,8 +106,6 @@
         inset: 0;
         z-index: 1;
       }
-
-      /* Vignette identique scène 1 → cohérence visuelle */
       #vignette {
         position: fixed;
         inset: 0;
@@ -126,7 +119,6 @@
         );
       }
 
-      /* ── TOP UI ── */
       #top-logo {
         position: fixed;
         top: 26px;
@@ -143,7 +135,6 @@
       #top-logo.show {
         opacity: 1;
       }
-
       #health-bar {
         position: fixed;
         top: 26px;
@@ -175,7 +166,6 @@
         background: linear-gradient(90deg, #ff3333, #ffaa33, #00ff88);
       }
 
-      /* ── PANEL DIALOGUE ── */
       #panel {
         position: fixed;
         bottom: 0;
@@ -203,7 +193,6 @@
       .sep.show {
         width: min(660px, 92vw);
       }
-
       #text-box {
         max-width: 700px;
         width: 100%;
@@ -222,8 +211,6 @@
         opacity: 1;
         transform: translateY(0);
       }
-
-      /* Speaker + barres voix */
       #speaker-row {
         display: flex;
         align-items: center;
@@ -293,7 +280,6 @@
           opacity: 1;
         }
       }
-
       #dialogue {
         font-family: "EB Garamond", serif;
         font-size: clamp(14px, 1.85vw, 17px);
@@ -308,7 +294,6 @@
       #dialogue::-webkit-scrollbar {
         display: none;
       }
-
       #tw-cur {
         display: inline-block;
         width: 2px;
@@ -328,7 +313,6 @@
         }
       }
 
-      /* ── FORMULAIRE NOM ── */
       #name-form {
         max-width: 700px;
         width: 100%;
@@ -391,7 +375,6 @@
         box-shadow: 0 0 16px rgba(0, 255, 136, 0.18);
       }
 
-      /* ── BOUTONS CHOIX ── */
       #choices {
         max-width: 700px;
         width: 100%;
@@ -438,7 +421,6 @@
         color: rgba(255, 125, 85, 0.88);
       }
 
-      /* ── ÉCRAN NON ── */
       #no-screen {
         position: fixed;
         inset: 0;
@@ -488,7 +470,6 @@
         border-color: var(--g);
       }
 
-      /* ── FLASH + RIDEAU ── */
       #flash {
         position: fixed;
         inset: 0;
@@ -501,10 +482,32 @@
       #flash.on {
         opacity: 1;
       }
+
+      /* ══ TRANSITION CANVAS — zoom into Earth ══ */
+      #trans-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 450;
+        pointer-events: none;
+        opacity: 0;
+        display: none;
+      }
+
+      /* ══ FLASH VERT AVEUGLANT ══ */
+      #green-flash {
+        position: fixed;
+        inset: 0;
+        z-index: 480;
+        background: #00ff88;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.08s;
+      }
+
       #curtain {
         position: fixed;
         inset: 0;
-        z-index: 400;
+        z-index: 500;
         background: #000;
         opacity: 0;
         pointer-events: none;
@@ -514,7 +517,6 @@
         opacity: 1;
       }
 
-      /* ── AUDIO ── */
       #audio-btn {
         position: fixed;
         bottom: 20px;
@@ -534,45 +536,33 @@
   </head>
   <body>
     <div id="cursor"></div>
-
-    <!-- Loading -->
     <div id="loading">
       <div id="ld-label">CHARGEMENT DE LA TERRE...</div>
       <div id="ld-track"><div id="ld-fill"></div></div>
     </div>
-
-    <!-- Étoiles -->
     <canvas id="stars"></canvas>
-
-    <!-- Globe -->
     <div id="c3d"></div>
-
-    <!-- Vignette -->
     <div id="vignette"></div>
-
-    <!-- Top UI -->
     <div id="top-logo">G A Ï A</div>
     <div id="health-bar">
       <div class="hb-lbl">VITALITÉ DE GAÏA</div>
       <div class="hb-track"><div class="hb-fill"></div></div>
     </div>
 
-    <!-- Panel dialogue -->
     <div id="panel">
       <div class="sep" id="p-sep"></div>
       <div id="text-box">
         <div id="speaker-row">
-          <span id="speaker-name">G A Ï A</span>
-          <span id="vbars">
-            <span class="vb"></span><span class="vb"></span>
-            <span class="vb"></span><span class="vb"></span>
-            <span class="vb"></span><span class="vb"></span>
-          </span>
+          <span id="speaker-name">G A Ï A</span
+          ><span id="vbars"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
         </div>
         <div id="dialogue"></div>
         <span id="tw-cur"></span>
       </div>
-
       <div id="name-form">
         <div id="name-lbl">▸ Entrez votre nom, Gardien</div>
         <input
@@ -585,7 +575,6 @@
         />
         <button id="name-submit" onclick="submitName()">Confirmer →</button>
       </div>
-
       <div id="choices">
         <button class="cbtn" id="btn-yes" onclick="chooseYes()">
           ❤ &nbsp;Oui, je suis prêt
@@ -596,7 +585,6 @@
       </div>
     </div>
 
-    <!-- Écran NON -->
     <div id="no-screen">
       <div id="no-inner">
         <div id="no-text">
@@ -608,36 +596,27 @@
     </div>
 
     <div id="flash"></div>
+    <!-- Transition zoom canvas -->
+    <canvas id="trans-canvas"></canvas>
+    <!-- Blinding green flash -->
+    <div id="green-flash"></div>
     <div id="curtain"></div>
     <div id="audio-btn" onclick="toggleMute()">🔊 SON</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-      /* ══════════════════════════════════════════════════
-   GAÏA — SCÈNE 2
-   Corrections :
-   - Battement cœur volume réduit (×0.55)
-   - Voix GAÏA : pitch .65, rate .72 → triste, brisée
-   - Atmosphère identique scène 1
-   - Transition page fade-in depuis scène 1
-   ══════════════════════════════════════════════════ */
-
-      // ── CURSEUR ───────────────────────────────────
       const cur = document.getElementById("cursor");
       document.addEventListener("mousemove", (e) => {
         cur.style.left = e.clientX + "px";
         cur.style.top = e.clientY + "px";
       });
 
-      // ── AUDIO ─────────────────────────────────────
       let audioCtx = null,
         isMuted = false;
-
       function initAudio() {
         if (audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
-
       function getMaster() {
         if (!audioCtx) return null;
         if (!window._m2) {
@@ -652,7 +631,6 @@
         }
         return window._m2;
       }
-
       function makeReverb(dur = 3.5, decay = 2.5) {
         if (!audioCtx) return null;
         const sr = audioCtx.sampleRate,
@@ -667,8 +645,6 @@
         cv.buffer = buf;
         return cv;
       }
-
-      // Drone spatial (même que scène 1 → continuité sonore)
       function playDrone() {
         if (!audioCtx || isMuted) return;
         const m = getMaster(),
@@ -689,29 +665,7 @@
           g.connect(m);
           o.start();
         });
-        const nb = audioCtx.createBuffer(
-          1,
-          audioCtx.sampleRate * 4,
-          audioCtx.sampleRate
-        );
-        const nd = nb.getChannelData(0);
-        for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-        const ns = audioCtx.createBufferSource();
-        ns.buffer = nb;
-        ns.loop = true;
-        const nf = audioCtx.createBiquadFilter();
-        nf.type = "bandpass";
-        nf.frequency.value = 300;
-        nf.Q.value = 0.18;
-        const ng = audioCtx.createGain();
-        ng.gain.setValueAtTime(0, audioCtx.currentTime);
-        ng.gain.linearRampToValueAtTime(0.012, audioCtx.currentTime + 4);
-        ns.connect(nf);
-        nf.connect(ng);
-        ng.connect(rv);
-        ns.start();
       }
-
       function playZoomSound() {
         if (!audioCtx || isMuted) return;
         const m = getMaster(),
@@ -734,13 +688,12 @@
           o.stop(audioCtx.currentTime + 2.2);
         });
       }
-
       function playChime() {
         if (!audioCtx || isMuted) return;
         const m = getMaster(),
           rv = makeReverb(2.5, 1.8);
         rv.connect(m);
-        [261.6, 329.6, 392.0, 523.3, 659.3].forEach((f, i) => {
+        [261.6, 329.6, 392, 523.3, 659.3].forEach((f, i) => {
           setTimeout(() => {
             if (!audioCtx || isMuted) return;
             const o = audioCtx.createOscillator(),
@@ -760,13 +713,12 @@
           }, i * 90);
         });
       }
-
       function playFinalChime() {
         if (!audioCtx || isMuted) return;
         const m = getMaster(),
           rv = makeReverb(5, 3);
         rv.connect(m);
-        [130.8, 174.6, 196.0, 261.6, 392.0].forEach((f, i) => {
+        [130.8, 174.6, 196, 261.6, 392].forEach((f, i) => {
           setTimeout(() => {
             if (!audioCtx || isMuted) return;
             const o = audioCtx.createOscillator(),
@@ -786,6 +738,56 @@
         });
       }
 
+      // ══ ASPIRATION SOUND — crescendo de peur ══
+      function playAbsorptionSound() {
+        if (!audioCtx || isMuted) return;
+        const m = getMaster(),
+          rv = makeReverb(4, 3);
+        rv.connect(m);
+        // Grondement montant (peur)
+        const o = audioCtx.createOscillator(),
+          g = audioCtx.createGain();
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(40, audioCtx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 5);
+        g.gain.setValueAtTime(0, audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0.055, audioCtx.currentTime + 1);
+        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 5.5);
+        const filt = audioCtx.createBiquadFilter();
+        filt.type = "bandpass";
+        filt.frequency.value = 150;
+        o.connect(filt);
+        filt.connect(g);
+        g.connect(rv);
+        g.connect(m);
+        o.start();
+        o.stop(audioCtx.currentTime + 5.5);
+        // Vent de terreur
+        const nb = audioCtx.createBuffer(
+          1,
+          audioCtx.sampleRate * 6,
+          audioCtx.sampleRate
+        );
+        const nd = nb.getChannelData(0);
+        for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+        const ns = audioCtx.createBufferSource();
+        ns.buffer = nb;
+        ns.loop = true;
+        const nf = audioCtx.createBiquadFilter();
+        nf.type = "bandpass";
+        nf.frequency.value = 600;
+        nf.Q.value = 0.3;
+        const ng = audioCtx.createGain();
+        ng.gain.setValueAtTime(0, audioCtx.currentTime);
+        ng.gain.linearRampToValueAtTime(0.09, audioCtx.currentTime + 2);
+        ng.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 5.5);
+        ns.connect(nf);
+        nf.connect(ng);
+        ng.connect(m);
+        ns.start();
+        ns.stop(audioCtx.currentTime + 5.5);
+      }
+
       function toggleMute() {
         isMuted = !isMuted;
         document.getElementById("audio-btn").textContent = isMuted
@@ -793,74 +795,49 @@
           : "🔊 SON";
         if (!audioCtx) return;
         isMuted ? audioCtx.suspend() : audioCtx.resume();
-        if (isMuted) {
-          window.speechSynthesis && window.speechSynthesis.cancel();
-          document.getElementById("vbars").classList.remove("on");
-        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
       }
 
-      // ══════════════════════════════════════════════
-      // VOIX GAÏA — ÉMOTIONNELLE, TRISTE, BRISÉE
-      // pitch .65 = voix profonde brisée
-      // rate .72  = débit lent, pesant
-      // Les pauses (...) dans le texte = pauses naturelles
-      // ══════════════════════════════════════════════
       const synth = window.speechSynthesis;
       let currentUtt = null,
         typeIv = null;
-
       function getGaiaVoice() {
         const voices = synth ? synth.getVoices() : [];
         if (!voices.length) return null;
-        const candidates = [
+        return (
           voices.find(
             (v) =>
               v.lang === "fr-FR" &&
               /Marie|Amélie|Hortense|Lea|Julie|Audrey/i.test(v.name)
-          ),
-          voices.find((v) => v.lang === "fr-FR"),
-          voices.find((v) => v.lang.startsWith("fr")),
-          voices.find(
-            (v) =>
-              v.lang.startsWith("en") &&
-              /female|samantha|victoria|karen/i.test(v.name)
-          ),
-          voices[0],
-        ];
-        return candidates.find(Boolean) || null;
+          ) ||
+          voices.find((v) => v.lang === "fr-FR") ||
+          voices.find((v) => v.lang.startsWith("fr")) ||
+          voices[0]
+        );
       }
-
       function speakSync(text, onWord, onDone) {
         if (!synth) {
           if (onDone) onDone();
           return;
         }
         synth.cancel();
-
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = "fr-FR";
-        // ── PARAMÈTRES ÉMOTIONNELS ──
-        // pitch .65  → voix grave, lourde de tristesse
-        // rate  .72  → lent, chaque mot pèse
-        // volume .88 → légèrement en retrait, intimiste
         utter.rate = 0.72;
         utter.pitch = 0.65;
         utter.volume = isMuted ? 0 : 0.88;
-
-        const setVoice = () => {
+        const sv = () => {
           const v = getGaiaVoice();
           if (v) utter.voice = v;
         };
-        if (synth.getVoices().length) setVoice();
-        else synth.addEventListener("voiceschanged", setVoice, { once: true });
-
+        synth.getVoices().length
+          ? sv()
+          : synth.addEventListener("voiceschanged", sv, { once: true });
         utter.onstart = () =>
           document.getElementById("vbars").classList.add("on");
-
         utter.onboundary = (e) => {
           if (e.name === "word" && onWord) onWord(e.charIndex + e.charLength);
         };
-
         utter.onend = () => {
           document.getElementById("vbars").classList.remove("on");
           if (onDone) onDone();
@@ -869,22 +846,18 @@
           document.getElementById("vbars").classList.remove("on");
           if (onDone) onDone();
         };
-
         currentUtt = utter;
         synth.speak(utter);
       }
-
       function speakAndType(text, onDone) {
-        const el = document.getElementById("dialogue");
-        const twc = document.getElementById("tw-cur");
+        const el = document.getElementById("dialogue"),
+          twc = document.getElementById("tw-cur");
         el.textContent = "";
         twc.style.display = "inline-block";
-
         let displayed = 0,
           target = 0,
           voiceDone = false;
-
-        function advanceToTarget() {
+        function adv() {
           if (displayed >= text.length) {
             twc.style.display = "none";
             if (voiceDone && onDone) setTimeout(onDone, 500);
@@ -903,12 +876,11 @@
             }, 20);
           }
         }
-
         speakSync(
           text,
-          (charIdx) => {
-            target = Math.min(charIdx, text.length);
-            advanceToTarget();
+          (ci) => {
+            target = Math.min(ci, text.length);
+            adv();
           },
           () => {
             voiceDone = true;
@@ -927,8 +899,6 @@
             }, 18);
           }
         );
-
-        // Fallback typewriter si voix non disponible
         setTimeout(() => {
           if (
             displayed === 0 &&
@@ -948,7 +918,6 @@
           }
         }, 1500);
       }
-
       function stopVoice() {
         if (synth) synth.cancel();
         if (typeIv) {
@@ -958,7 +927,6 @@
         document.getElementById("vbars").classList.remove("on");
       }
 
-      // ── ÉTOILES ───────────────────────────────────
       function initStars() {
         const c = document.getElementById("stars");
         c.width = innerWidth;
@@ -968,8 +936,8 @@
         ctx.fillRect(0, 0, c.width, c.height);
         for (let i = 0; i < 300; i++) {
           const x = Math.random() * c.width,
-            y = Math.random() * c.height;
-          const r = Math.random() * 1.05,
+            y = Math.random() * c.height,
+            r = Math.random() * 1.05,
             o = Math.random() * 0.6 + 0.1;
           ctx.beginPath();
           ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -978,17 +946,14 @@
         }
       }
 
-      // ── THREE.JS — IDENTIQUE SCÈNE 1 ──────────────
       let scene, camera, renderer, earth, clouds, clock;
       let sc = 0.001,
         scTarget = 0,
-        op = 0;
-      let camZ = 3.6,
+        op = 0,
+        camZ = 3.6,
         camZTarget = 3.6;
-
       function initThree() {
         scene = new THREE.Scene();
-        // FOV identique scène 1 → continuité visuelle
         camera = new THREE.PerspectiveCamera(
           48,
           innerWidth / innerHeight,
@@ -996,19 +961,16 @@
           1000
         );
         camera.position.z = camZ;
-
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(innerWidth, innerHeight);
         renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
         renderer.setClearColor(0x000000, 0);
         document.getElementById("c3d").appendChild(renderer.domElement);
         clock = new THREE.Clock();
-
         const loader = new THREE.TextureLoader();
         const BASE =
           "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/";
         let loaded = 0;
-
         function onLoad() {
           loaded++;
           document.getElementById("ld-fill").style.width =
@@ -1023,7 +985,6 @@
             }, 400);
           }
         }
-
         const tE = loader.load(
           BASE + "earth_atmos_2048.jpg",
           onLoad,
@@ -1048,8 +1009,6 @@
           undefined,
           onLoad
         );
-
-        // Globe Terre — identique scène 1
         earth = new THREE.Mesh(
           new THREE.SphereGeometry(1, 64, 64),
           new THREE.MeshPhongMaterial({
@@ -1065,7 +1024,6 @@
         earth.scale.set(0.001, 0.001, 0.001);
         earth.rotation.y = -0.3;
         scene.add(earth);
-
         clouds = new THREE.Mesh(
           new THREE.SphereGeometry(1.009, 64, 64),
           new THREE.MeshPhongMaterial({
@@ -1077,12 +1035,10 @@
         );
         clouds.scale.set(0.001, 0.001, 0.001);
         scene.add(clouds);
-
-        // ══ ATMOSPHÈRE IDENTIQUE SCÈNE 1 ══
         const atmMat = new THREE.ShaderMaterial({
           uniforms: { uOp: { value: 0 } },
-          vertexShader: `varying vec3 vN,vP; void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-          fragmentShader: `uniform float uOp; varying vec3 vN,vP; void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),7.0);gl_FragColor=vec4(.10,.46,.90,fr*.30*uOp);}`,
+          vertexShader: `varying vec3 vN,vP;void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+          fragmentShader: `uniform float uOp;varying vec3 vN,vP;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),7.0);gl_FragColor=vec4(.10,.46,.90,fr*.30*uOp);}`,
           transparent: true,
           side: THREE.BackSide,
           depthWrite: false,
@@ -1095,11 +1051,10 @@
         atm.scale.set(0.001, 0.001, 0.001);
         atm.name = "atm";
         scene.add(atm);
-
         const glowMat = new THREE.ShaderMaterial({
           uniforms: { uOp: { value: 0 }, uT: { value: 0 } },
-          vertexShader: `varying vec3 vN,vP; void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-          fragmentShader: `uniform float uOp,uT; varying vec3 vN,vP; void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),9.0);float p=sin(uT*.7)*.03+.97;gl_FragColor=vec4(0.,1.,.52,fr*.10*p*uOp);}`,
+          vertexShader: `varying vec3 vN,vP;void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+          fragmentShader: `uniform float uOp,uT;varying vec3 vN,vP;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),9.0);float p=sin(uT*.7)*.03+.97;gl_FragColor=vec4(0.,1.,.52,fr*.10*p*uOp);}`,
           transparent: true,
           side: THREE.BackSide,
           depthWrite: false,
@@ -1112,29 +1067,23 @@
         glow.scale.set(0.001, 0.001, 0.001);
         glow.name = "glow";
         scene.add(glow);
-
-        // Lumières identiques scène 1
         const sun = new THREE.DirectionalLight(0xfff2d8, 1.8);
         sun.position.set(5, 2, 4);
         scene.add(sun);
         scene.add(new THREE.AmbientLight(0x080c14, 0.4));
-        const rim = new THREE.DirectionalLight(0x0a1a44, 0.15);
-        rim.position.set(-4, -1, -3);
-        scene.add(rim);
-
         window.addEventListener("resize", () => {
           camera.aspect = innerWidth / innerHeight;
           camera.updateProjectionMatrix();
           renderer.setSize(innerWidth, innerHeight);
         });
-
         animate();
       }
 
+      // ══ ZOOM INTO EARTH TRANSITION ══
+      let isZooming = false;
       function animate() {
         requestAnimationFrame(animate);
         const t = clock.getElapsedTime();
-
         if (scTarget > 0) {
           sc += (scTarget - sc) * 0.02;
           op = Math.min(op + 0.006, 1);
@@ -1150,53 +1099,35 @@
             }
           });
         }
-
         camZ += (camZTarget - camZ) * 0.014;
         camera.position.z = camZ;
-
         if (earth) earth.rotation.y = t * 0.06;
         if (clouds) clouds.rotation.y = t * 0.076;
-
         const glow = scene.getObjectByName("glow");
         if (glow) glow.material.uniforms.uT.value = t;
-
         camera.position.x = Math.sin(t * 0.028) * 0.06;
         camera.position.y = Math.sin(t * 0.018) * 0.03;
         camera.lookAt(0, 0, 0);
         renderer.render(scene, camera);
       }
 
-      // ── SÉQUENCE ──────────────────────────────────
       function startSequence() {
         initAudio();
         playDrone();
         playZoomSound();
-
         document.getElementById("top-logo").classList.add("show");
         setTimeout(
           () => document.getElementById("health-bar").classList.add("show"),
           700
         );
-
-        // Terre apparaît puis zoom
         scTarget = 1.0;
         setTimeout(() => {
           camZTarget = 2.1;
         }, 900);
-
-        // Dialogue 1 — voix émotionnelle + texte
         setTimeout(() => {
           document.getElementById("p-sep").classList.add("show");
           document.getElementById("text-box").classList.add("show");
-
-          // ── TEXTE AVEC PAUSES ÉMOTIONNELLES ──
-          // Les "..." créent des pauses naturelles dans la synthèse
-          const d1 = `Êtes-vous prêt... à entrer dans mon corps ?
-À voir avec mes yeux...
-À ressentir... avec mon cœur ?
-
-Dites-moi votre nom... Gardien.`;
-
+          const d1 = `Êtes-vous prêt... à entrer dans mon corps ?\nÀ voir avec mes yeux...\nÀ ressentir... avec mon cœur ?\n\nDites-moi votre nom... Gardien.`;
           speakAndType(d1, () => {
             document.getElementById("name-form").classList.add("show");
             setTimeout(
@@ -1207,7 +1138,6 @@ Dites-moi votre nom... Gardien.`;
         }, 4200);
       }
 
-      // ── SOUMETTRE NOM ─────────────────────────────
       function submitName() {
         const v = document.getElementById("name-input").value.trim();
         if (!v) {
@@ -1231,7 +1161,6 @@ Dites-moi votre nom... Gardien.`;
           showDialogue2(v);
         }, 700);
       }
-
       document.addEventListener("keydown", (e) => {
         if (
           e.key === "Enter" &&
@@ -1240,71 +1169,133 @@ Dites-moi votre nom... Gardien.`;
           submitName();
       });
 
-      // ── DIALOGUE 2 — émotionnel, texte avec pauses ─
       function showDialogue2(name) {
-        // Pauses (...) pour renforcer l'émotion dans la synthèse vocale
-        const d2 = `${name}... Quel beau nom.
-Écoute-moi... s'il te plaît.
-
-Je suis un organisme vivant... comme toi.
-J'ai un cœur... qui pompait l'énergie.
-Des poumons... qui respiraient avec les forêts.
-Un système immunitaire... qui me défendait.
-Des cicatrices... partout sur mon corps.
-Un réseau neuronal... qui reliait tout.
-Et un subconscient... plein de secrets et de douleur.
-
-Tu vas traverser ces six parties de moi.
-Tu découvriras... ce qui me faisait vivre.
-Ce qui me tue...
-Et ce qui pourrait encore... me sauver.
-
-Mais je dois te prévenir...
-Plus tu avanceras... plus tu ressentiras ma douleur.
-
-Es-tu assez fort... pour porter ce fardeau ?`;
-
+        const d2 = `${name}... Quel beau nom.\nÉcoute-moi... s'il te plaît.\n\nJe suis un organisme vivant... comme toi.\nJ'ai un cœur... qui pompait l'énergie.\nDes poumons... qui respiraient avec les forêts.\nUn système immunitaire... qui me défendait.\nDes cicatrices... partout sur mon corps.\nUn réseau neuronal... qui reliait tout.\nEt un subconscient... plein de secrets et de douleur.\n\nTu vas traverser ces six parties de moi.\nTu découvriras... ce qui me faisait vivre.\nCe qui me tue...\nEt ce qui pourrait encore... me sauver.\n\nMais je dois te prévenir...\nPlus tu avanceras... plus tu ressentiras ma douleur.\n\nEs-tu assez fort... pour porter ce fardeau ?`;
         speakAndType(d2, () => {
           document.getElementById("choices").classList.add("show");
         });
       }
 
-      // ── OUI ───────────────────────────────────────
       function chooseYes() {
         const name = window._playerName || "Gardien";
-
         stopVoice();
         playFinalChime();
         document.getElementById("choices").classList.remove("show");
-        camZTarget = 0.1;
+        // Hide UI panels
+        document.getElementById("p-sep").classList.remove("show");
+        document.getElementById("text-box").style.transition = "opacity .8s";
+        document.getElementById("text-box").style.opacity = "0";
+        document.getElementById("health-bar").style.opacity = "0";
+        document.getElementById("top-logo").style.opacity = "0";
 
-        const farewell = `Alors... entrons ensemble. Bienvenue... dans mon monde... ${name}.`;
-        setTimeout(() => {
-          document.getElementById("dialogue").textContent = "";
-          speakAndType(farewell, null);
-        }, 300);
-
-        // Fade audio + rideau
-        setTimeout(() => {
-          if (audioCtx && window._m2) {
-            const g = audioCtx.createGain();
-            window._m2.disconnect();
-            window._m2.connect(g);
-            g.connect(audioCtx.destination);
-            g.gain.setValueAtTime(1, audioCtx.currentTime);
-            g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.6);
-          }
-          document.getElementById("curtain").classList.add("show");
-          setTimeout(() => {
-            try {
-              localStorage.setItem("gaiaPlayerName", name);
-            } catch (e) {}
-            window.location.href = "scene3.html";
-          }, 2200);
-        }, 4200);
+        // Start zoom into earth
+        setTimeout(() => startEarthZoomTransition(name), 600);
       }
 
-      // ── NON ───────────────────────────────────────
+      // ══════════════════════════════════════════════════════════
+      // EARTH ZOOM TRANSITION — cinematic zoom then absorption
+      // ══════════════════════════════════════════════════════════
+      function startEarthZoomTransition(name) {
+        playAbsorptionSound();
+
+        // Phase 1: aggressive zoom toward earth
+        camZTarget = 0.0; // zoom camera super close
+
+        // Phase 2: canvas overlay zoom into the planet surface
+        const tc = document.getElementById("trans-canvas");
+        tc.width = innerWidth;
+        tc.height = innerHeight;
+        tc.style.display = "block";
+        tc.style.opacity = "1";
+        const ctx = tc.getContext("2d");
+        let zoomT = 0;
+        let zoomFrame = 0;
+        const totalFrames = 120;
+
+        function drawZoom() {
+          zoomFrame++;
+          zoomT = zoomFrame / totalFrames;
+          ctx.clearRect(0, 0, tc.width, tc.height);
+          const cx = tc.width / 2,
+            cy = tc.height / 2;
+          // Radial dark vignette that grows inward
+          const rad = Math.max(tc.width, tc.height) * (1 - zoomT * 0.85);
+          const gd = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+          gd.addColorStop(0, "rgba(0,0,0,0)");
+          gd.addColorStop(0.55, "rgba(0,0,0,0)");
+          gd.addColorStop(1, "rgba(0,0,0,1)");
+          ctx.fillStyle = gd;
+          ctx.fillRect(0, 0, tc.width, tc.height);
+
+          // Speed lines from center
+          if (zoomT > 0.3) {
+            const lineAlpha = Math.min((zoomT - 0.3) * 2, 0.7);
+            for (let i = 0; i < 32; i++) {
+              const angle = (i / 32) * Math.PI * 2;
+              const len = rad * 0.8 * zoomT;
+              ctx.beginPath();
+              ctx.moveTo(
+                cx + Math.cos(angle) * rad * 0.25,
+                cy + Math.sin(angle) * rad * 0.25
+              );
+              ctx.lineTo(
+                cx + Math.cos(angle) * len,
+                cy + Math.sin(angle) * len
+              );
+              ctx.strokeStyle = `rgba(0,255,136,${lineAlpha * 0.25})`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+          // Green atmospheric rim
+          if (zoomT > 0.5) {
+            const rimAlpha = (zoomT - 0.5) * 2 * 0.6;
+            const rimGd = ctx.createRadialGradient(
+              cx,
+              cy,
+              rad * 0.5,
+              cx,
+              cy,
+              rad * 0.8
+            );
+            rimGd.addColorStop(0, `rgba(0,255,136,0)`);
+            rimGd.addColorStop(0.7, `rgba(0,80,40,${rimAlpha * 0.3})`);
+            rimGd.addColorStop(1, `rgba(0,255,80,${rimAlpha * 0.5})`);
+            ctx.fillStyle = rimGd;
+            ctx.fillRect(0, 0, tc.width, tc.height);
+          }
+
+          if (zoomFrame < totalFrames) {
+            requestAnimationFrame(drawZoom);
+          } else {
+            // Blinding flash then go to scene 3
+            triggerEntryFlash(name);
+          }
+        }
+        requestAnimationFrame(drawZoom);
+      }
+
+      function triggerEntryFlash(name) {
+        const gf = document.getElementById("green-flash");
+        // Flash white then green
+        gf.style.background = "#ffffff";
+        gf.style.opacity = "1";
+        setTimeout(() => {
+          gf.style.background = "#00ff88";
+          gf.style.transition = "opacity .15s";
+          setTimeout(() => {
+            gf.style.transition = "opacity .6s";
+            gf.style.opacity = "0";
+            setTimeout(() => {
+              try {
+                localStorage.setItem("gaiaPlayerName", name);
+              } catch (e) {}
+              window.location.href = "scene3.html";
+            }, 700);
+          }, 180);
+        }, 60);
+      }
+
       function chooseNo() {
         document.getElementById("no-screen").classList.add("show");
       }
@@ -1312,7 +1303,6 @@ Es-tu assez fort... pour porter ce fardeau ?`;
         document.getElementById("no-screen").classList.remove("show");
       }
 
-      // ── INIT ──────────────────────────────────────
       initStars();
       initThree();
     </script>
