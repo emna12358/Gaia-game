@@ -25,6 +25,17 @@
         overflow: hidden;
         font-family: "EB Garamond", Georgia, serif;
         cursor: none;
+        /* Commence invisible → fade-in depuis scène 1 */
+        opacity: 0;
+        animation: page-fadein 1.2s ease 0.2s forwards;
+      }
+      @keyframes page-fadein {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
 
       /* ── CURSEUR ── */
@@ -32,7 +43,7 @@
         position: fixed;
         width: 14px;
         height: 14px;
-        border: 1px solid rgba(0, 255, 136, 0.7);
+        border: 1px solid rgba(0, 255, 136, 0.72);
         border-radius: 50%;
         pointer-events: none;
         z-index: 9999;
@@ -61,7 +72,7 @@
         align-items: center;
         justify-content: center;
         gap: 18px;
-        transition: opacity 1.2s ease;
+        transition: opacity 1.4s ease;
       }
       #loading.hide {
         opacity: 0;
@@ -88,7 +99,7 @@
         transition: width 0.35s ease;
       }
 
-      /* ── BACKGROUNDS ── */
+      /* ── COUCHES ── */
       #stars {
         position: fixed;
         inset: 0;
@@ -101,17 +112,17 @@
         z-index: 1;
       }
 
-      /* Vignette subtile — juste sur les bords */
+      /* Vignette identique scène 1 → cohérence visuelle */
       #vignette {
         position: fixed;
         inset: 0;
         z-index: 3;
         pointer-events: none;
         background: radial-gradient(
-          ellipse 75% 75% at 50% 46%,
-          transparent 42%,
-          rgba(0, 0, 0, 0.42) 68%,
-          rgba(0, 0, 0, 0.88) 100%
+          ellipse 80% 80% at 50% 50%,
+          transparent 38%,
+          rgba(0, 0, 0, 0.32) 65%,
+          rgba(0, 0, 0, 0.8) 100%
         );
       }
 
@@ -196,11 +207,12 @@
       #text-box {
         max-width: 700px;
         width: 100%;
-        background: rgba(0, 5, 2, 0.84);
+        background: rgba(0, 4, 2, 0.83);
         border: 1px solid rgba(0, 255, 136, 0.11);
         backdrop-filter: blur(22px);
         border-radius: 2px;
         padding: 22px 32px 18px;
+        box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
         opacity: 0;
         transform: translateY(12px);
         transition: opacity 0.9s ease, transform 0.9s ease;
@@ -211,7 +223,7 @@
         transform: translateY(0);
       }
 
-      /* Ligne speaker + barres voix */
+      /* Speaker + barres voix */
       #speaker-row {
         display: flex;
         align-items: center;
@@ -224,8 +236,6 @@
         letter-spacing: 0.42em;
         color: rgba(0, 255, 136, 0.38);
       }
-
-      /* Barres vocales — visibles quand GAÏA parle */
       #vbars {
         display: flex;
         align-items: flex-end;
@@ -242,7 +252,7 @@
         border-radius: 1px;
         background: var(--gd);
         transform-origin: bottom;
-        animation: vb-idle 1.2s ease-in-out infinite alternate;
+        animation: vb-anim 1s ease-in-out infinite alternate;
       }
       .vb:nth-child(1) {
         height: 3px;
@@ -273,10 +283,10 @@
         animation-duration: 0.5s;
         animation-delay: 0.04s;
       }
-      @keyframes vb-idle {
+      @keyframes vb-anim {
         from {
-          transform: scaleY(0.25);
-          opacity: 0.7;
+          transform: scaleY(0.2);
+          opacity: 0.6;
         }
         to {
           transform: scaleY(1);
@@ -284,7 +294,6 @@
         }
       }
 
-      /* Texte dialogue */
       #dialogue {
         font-family: "EB Garamond", serif;
         font-size: clamp(14px, 1.85vw, 17px);
@@ -294,12 +303,12 @@
         max-height: 190px;
         overflow-y: auto;
         scrollbar-width: none;
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
       }
       #dialogue::-webkit-scrollbar {
         display: none;
       }
 
-      /* Curseur typewriter */
       #tw-cur {
         display: inline-block;
         width: 2px;
@@ -484,7 +493,7 @@
         position: fixed;
         inset: 0;
         z-index: 250;
-        background: rgba(0, 255, 136, 0.05);
+        background: rgba(0, 255, 136, 0.04);
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.2s;
@@ -499,13 +508,13 @@
         background: #000;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 2s ease;
+        transition: opacity 1.8s ease;
       }
       #curtain.show {
         opacity: 1;
       }
 
-      /* ── AUDIO HINT ── */
+      /* ── AUDIO ── */
       #audio-btn {
         position: fixed;
         bottom: 20px;
@@ -532,7 +541,7 @@
       <div id="ld-track"><div id="ld-fill"></div></div>
     </div>
 
-    <!-- Fond étoiles -->
+    <!-- Étoiles -->
     <canvas id="stars"></canvas>
 
     <!-- Globe -->
@@ -604,271 +613,175 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-      /* ═══════════════════════════════════════════════════
-   GAÏA — SCÈNE 2 v4
-   • Vraie Terre NASA, bien proportionnée
-   • Zéro œil
-   • Voix GAÏA + texte PARFAITEMENT synchronisés
-     via Web Speech API boundary events
-   • Audio ambiant amélioré
-   ═══════════════════════════════════════════════════ */
+      /* ══════════════════════════════════════════════════
+   GAÏA — SCÈNE 2
+   Corrections :
+   - Battement cœur volume réduit (×0.55)
+   - Voix GAÏA : pitch .65, rate .72 → triste, brisée
+   - Atmosphère identique scène 1
+   - Transition page fade-in depuis scène 1
+   ══════════════════════════════════════════════════ */
 
-      // ════════════════════════════════════════════
-      // 1. CURSEUR
-      // ════════════════════════════════════════════
+      // ── CURSEUR ───────────────────────────────────
       const cur = document.getElementById("cursor");
       document.addEventListener("mousemove", (e) => {
         cur.style.left = e.clientX + "px";
         cur.style.top = e.clientY + "px";
       });
 
-      // ════════════════════════════════════════════
-      // 2. AUDIO SYSTEM — ambiance spatiale riche
-      // ════════════════════════════════════════════
-      let audioCtx = null;
-      let isMuted = false;
-      let heartIv = null;
-      let droneNodes = [];
+      // ── AUDIO ─────────────────────────────────────
+      let audioCtx = null,
+        isMuted = false;
 
       function initAudio() {
         if (audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
 
-      // ── Master compressor (tout passe dedans) ──
       function getMaster() {
         if (!audioCtx) return null;
-        if (!window._master) {
-          const comp = audioCtx.createDynamicsCompressor();
-          comp.threshold.value = -18;
-          comp.knee.value = 8;
-          comp.ratio.value = 3;
-          comp.attack.value = 0.003;
-          comp.release.value = 0.25;
-          comp.connect(audioCtx.destination);
-          window._master = comp;
+        if (!window._m2) {
+          const c = audioCtx.createDynamicsCompressor();
+          c.threshold.value = -20;
+          c.knee.value = 8;
+          c.ratio.value = 3;
+          c.attack.value = 0.003;
+          c.release.value = 0.25;
+          c.connect(audioCtx.destination);
+          window._m2 = c;
         }
-        return window._master;
+        return window._m2;
       }
 
-      // ── Reverb synthétique (convolution simple) ──
-      function makeReverb(duration = 3.5, decay = 2.5) {
+      function makeReverb(dur = 3.5, decay = 2.5) {
         if (!audioCtx) return null;
-        const sr = audioCtx.sampleRate;
-        const len = sr * duration;
+        const sr = audioCtx.sampleRate,
+          len = sr * dur;
         const buf = audioCtx.createBuffer(2, len, sr);
         for (let c = 0; c < 2; c++) {
           const d = buf.getChannelData(c);
-          for (let i = 0; i < len; i++) {
+          for (let i = 0; i < len; i++)
             d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
-          }
         }
-        const conv = audioCtx.createConvolver();
-        conv.buffer = buf;
-        return conv;
+        const cv = audioCtx.createConvolver();
+        cv.buffer = buf;
+        return cv;
       }
 
-      // ── Drone spatial — couches multiples ─────────
+      // Drone spatial (même que scène 1 → continuité sonore)
       function playDrone() {
         if (!audioCtx || isMuted) return;
-        const master = getMaster();
-        const reverb = makeReverb(4, 2.8);
-        reverb.connect(master);
-
-        // Fondamentale + harmoniques + battement
-        const freqs = [36, 54, 72, 108, 36.15]; // léger battement sur le dernier
-        const vols = [0.04, 0.025, 0.015, 0.008, 0.03];
-        const types = ["sine", "sine", "sine", "sine", "sine"];
-
-        freqs.forEach((freq, i) => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          const filt = audioCtx.createBiquadFilter();
-
-          osc.type = types[i];
-          osc.frequency.value = freq;
-          filt.type = "lowpass";
-          filt.frequency.value = 400;
-
-          gain.gain.setValueAtTime(0, audioCtx.currentTime);
-          gain.gain.linearRampToValueAtTime(
-            vols[i],
-            audioCtx.currentTime + 4 + i * 0.5
+        const m = getMaster(),
+          rv = makeReverb(4, 2.8);
+        rv.connect(m);
+        [36, 54, 72, 36.1].forEach((f, i) => {
+          const o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          o.type = "sine";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(
+            [0.03, 0.018, 0.01, 0.022][i],
+            audioCtx.currentTime + 3 + i * 0.3
           );
-
-          osc.connect(filt);
-          filt.connect(gain);
-          gain.connect(reverb);
-          gain.connect(master); // signal direct + reverb
-          osc.start();
-          droneNodes.push({ osc, gain });
+          o.connect(g);
+          g.connect(rv);
+          g.connect(m);
+          o.start();
         });
-
-        // Pad texturé (bruit filtré comme vent stellaire)
-        const noiseLen = audioCtx.sampleRate * 4;
-        const noiseBuf = audioCtx.createBuffer(
+        const nb = audioCtx.createBuffer(
           1,
-          noiseLen,
+          audioCtx.sampleRate * 4,
           audioCtx.sampleRate
         );
-        const nd = noiseBuf.getChannelData(0);
-        for (let i = 0; i < noiseLen; i++) nd[i] = Math.random() * 2 - 1;
-
-        const nSrc = audioCtx.createBufferSource();
-        nSrc.buffer = noiseBuf;
-        nSrc.loop = true;
-
-        const nFilt1 = audioCtx.createBiquadFilter();
-        nFilt1.type = "bandpass";
-        nFilt1.frequency.value = 280;
-        nFilt1.Q.value = 0.18;
-
-        const nFilt2 = audioCtx.createBiquadFilter();
-        nFilt2.type = "lowpass";
-        nFilt2.frequency.value = 500;
-
-        const nGain = audioCtx.createGain();
-        nGain.gain.setValueAtTime(0, audioCtx.currentTime);
-        nGain.gain.linearRampToValueAtTime(0.018, audioCtx.currentTime + 5);
-
-        nSrc.connect(nFilt1);
-        nFilt1.connect(nFilt2);
-        nFilt2.connect(nGain);
-        nGain.connect(reverb);
-        nSrc.start();
+        const nd = nb.getChannelData(0);
+        for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+        const ns = audioCtx.createBufferSource();
+        ns.buffer = nb;
+        ns.loop = true;
+        const nf = audioCtx.createBiquadFilter();
+        nf.type = "bandpass";
+        nf.frequency.value = 300;
+        nf.Q.value = 0.18;
+        const ng = audioCtx.createGain();
+        ng.gain.setValueAtTime(0, audioCtx.currentTime);
+        ng.gain.linearRampToValueAtTime(0.012, audioCtx.currentTime + 4);
+        ns.connect(nf);
+        nf.connect(ng);
+        ng.connect(rv);
+        ns.start();
       }
 
-      // ── Battement de cœur profond ─────────────────
-      function playHeart() {
-        if (!audioCtx || isMuted) return;
-        const master = getMaster();
-
-        function beat() {
-          if (!audioCtx || isMuted) return;
-
-          // Thump 1 — grave avec distorsion douce
-          function thump(freq, vol, dur, delay) {
-            setTimeout(() => {
-              if (!audioCtx || isMuted) return;
-              const osc = audioCtx.createOscillator();
-              const gain = audioCtx.createGain();
-              const dist = audioCtx.createWaveShaper();
-
-              // Courbe de distorsion douce
-              const curve = new Float32Array(256);
-              for (let i = 0; i < 256; i++) {
-                const x = (i * 2) / 256 - 1;
-                curve[i] = ((Math.PI + 80) * x) / (Math.PI + 80 * Math.abs(x));
-              }
-              dist.curve = curve;
-
-              osc.type = "sine";
-              osc.frequency.value = freq;
-              // Portamento vers le bas (effet organique)
-              osc.frequency.setValueAtTime(freq * 1.2, audioCtx.currentTime);
-              osc.frequency.exponentialRampToValueAtTime(
-                freq * 0.85,
-                audioCtx.currentTime + dur * 0.4
-              );
-
-              gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-              gain.gain.exponentialRampToValueAtTime(
-                0.001,
-                audioCtx.currentTime + dur
-              );
-
-              osc.connect(dist);
-              dist.connect(gain);
-              gain.connect(master);
-              osc.start();
-              osc.stop(audioCtx.currentTime + dur);
-            }, delay);
-          }
-
-          thump(52, 0.55, 0.35, 0); // lub
-          thump(44, 0.32, 0.28, 230); // dub
-        }
-
-        beat();
-        heartIv = setInterval(beat, 1350);
-      }
-
-      // ── Son d'apparition / zoom Terre ─────────────
       function playZoomSound() {
         if (!audioCtx || isMuted) return;
-        const master = getMaster();
-        const reverb = makeReverb(3, 2);
-        reverb.connect(master);
-
-        // Swoosh grave vers le haut
-        [40, 60, 90].forEach((start, i) => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(start, audioCtx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(
-            start * 3.5,
+        const m = getMaster(),
+          rv = makeReverb(3, 2);
+        rv.connect(m);
+        [40, 60, 90].forEach((s, i) => {
+          const o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          o.type = "sine";
+          o.frequency.setValueAtTime(s, audioCtx.currentTime);
+          o.frequency.exponentialRampToValueAtTime(
+            s * 3.5,
             audioCtx.currentTime + 1.8
           );
-          gain.gain.setValueAtTime(0.08 - i * 0.02, audioCtx.currentTime);
-          gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.2);
-          osc.connect(gain);
-          gain.connect(reverb);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 2.2);
+          g.gain.setValueAtTime(0.07 - i * 0.018, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.2);
+          o.connect(g);
+          g.connect(rv);
+          o.start();
+          o.stop(audioCtx.currentTime + 2.2);
         });
       }
 
-      // ── Carillon confirmation ────────────────────
       function playChime() {
         if (!audioCtx || isMuted) return;
-        const master = getMaster();
-        const reverb = makeReverb(2.5, 1.8);
-        reverb.connect(master);
-
+        const m = getMaster(),
+          rv = makeReverb(2.5, 1.8);
+        rv.connect(m);
         [261.6, 329.6, 392.0, 523.3, 659.3].forEach((f, i) => {
           setTimeout(() => {
             if (!audioCtx || isMuted) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = i < 3 ? "triangle" : "sine";
-            osc.frequency.value = f;
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(
+            const o = audioCtx.createOscillator(),
+              g = audioCtx.createGain();
+            o.type = i < 3 ? "triangle" : "sine";
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.09, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(
               0.001,
               audioCtx.currentTime + 1.6
             );
-            osc.connect(gain);
-            gain.connect(reverb);
-            gain.connect(master);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 1.6);
+            o.connect(g);
+            g.connect(rv);
+            g.connect(m);
+            o.start();
+            o.stop(audioCtx.currentTime + 1.6);
           }, i * 90);
         });
       }
 
-      // ── Carillon final (plus solennel) ───────────
       function playFinalChime() {
         if (!audioCtx || isMuted) return;
-        const master = getMaster();
-        const reverb = makeReverb(5, 3);
-        reverb.connect(master);
+        const m = getMaster(),
+          rv = makeReverb(5, 3);
+        rv.connect(m);
         [130.8, 174.6, 196.0, 261.6, 392.0].forEach((f, i) => {
           setTimeout(() => {
             if (!audioCtx || isMuted) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = "sine";
-            osc.frequency.value = f;
-            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(
+            const o = audioCtx.createOscillator(),
+              g = audioCtx.createGain();
+            o.type = "sine";
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.11, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(
               0.001,
               audioCtx.currentTime + 2.5
             );
-            osc.connect(gain);
-            gain.connect(reverb);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 2.5);
+            o.connect(g);
+            g.connect(rv);
+            o.start();
+            o.stop(audioCtx.currentTime + 2.5);
           }, i * 140);
         });
       }
@@ -886,24 +799,19 @@
         }
       }
 
-      // ════════════════════════════════════════════
-      // 3. VOIX GAÏA — synchronisation PARFAITE
-      //    Principe : on découpe le texte en segments
-      //    courts. Pour chaque segment on déclenche
-      //    une utterance ET on tape les caractères
-      //    au même rythme. Les boundary events de
-      //    SpeechSynthesis donnent la position exacte
-      //    du mot prononcé → on affiche jusqu'à là.
-      // ════════════════════════════════════════════
+      // ══════════════════════════════════════════════
+      // VOIX GAÏA — ÉMOTIONNELLE, TRISTE, BRISÉE
+      // pitch .65 = voix profonde brisée
+      // rate .72  = débit lent, pesant
+      // Les pauses (...) dans le texte = pauses naturelles
+      // ══════════════════════════════════════════════
       const synth = window.speechSynthesis;
-      let currentUtt = null;
-      let typeIv = null;
+      let currentUtt = null,
+        typeIv = null;
 
       function getGaiaVoice() {
         const voices = synth ? synth.getVoices() : [];
         if (!voices.length) return null;
-
-        // Ordre de préférence : voix FR native, puis FR quelconque, puis EN féminine
         const candidates = [
           voices.find(
             (v) =>
@@ -922,12 +830,6 @@
         return candidates.find(Boolean) || null;
       }
 
-      /*
-       * speakSync(text, onWordIndex, onDone)
-       * - Lance la synthèse vocale
-       * - Appelle onWordIndex(charIndex) à chaque mot prononcé
-       * - Appelle onDone quand terminé
-       */
       function speakSync(text, onWord, onDone) {
         if (!synth) {
           if (onDone) onDone();
@@ -937,9 +839,13 @@
 
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = "fr-FR";
-        utter.rate = 0.8; // lente et grave
-        utter.pitch = 0.72; // très profonde
-        utter.volume = isMuted ? 0 : 0.92;
+        // ── PARAMÈTRES ÉMOTIONNELS ──
+        // pitch .65  → voix grave, lourde de tristesse
+        // rate  .72  → lent, chaque mot pèse
+        // volume .88 → légèrement en retrait, intimiste
+        utter.rate = 0.72;
+        utter.pitch = 0.65;
+        utter.volume = isMuted ? 0 : 0.88;
 
         const setVoice = () => {
           const v = getGaiaVoice();
@@ -948,16 +854,11 @@
         if (synth.getVoices().length) setVoice();
         else synth.addEventListener("voiceschanged", setVoice, { once: true });
 
-        // Barres vocales
-        utter.onstart = () => {
+        utter.onstart = () =>
           document.getElementById("vbars").classList.add("on");
-        };
 
-        // boundary : fired à chaque mot — donne charIndex exact
         utter.onboundary = (e) => {
-          if (e.name === "word" && onWord) {
-            onWord(e.charIndex + e.charLength);
-          }
+          if (e.name === "word" && onWord) onWord(e.charIndex + e.charLength);
         };
 
         utter.onend = () => {
@@ -973,25 +874,16 @@
         synth.speak(utter);
       }
 
-      /*
-       * speakAndType(text, onDone)
-       *
-       * MÉCANISME DE SYNCHRONISATION :
-       * • La voix lance speakSync → reçoit charIndex de chaque mot
-       * • Le typewriter affiche les caractères jusqu'au charIndex reçu
-       * • Si la voix n'est pas disponible → fallback typewriter seul
-       */
       function speakAndType(text, onDone) {
         const el = document.getElementById("dialogue");
         const twc = document.getElementById("tw-cur");
         el.textContent = "";
         twc.style.display = "inline-block";
 
-        let displayed = 0; // nb caractères affichés
-        let target = 0; // nb caractères cibles (depuis boundary)
-        let voiceDone = false;
+        let displayed = 0,
+          target = 0,
+          voiceDone = false;
 
-        // ── Mode avec voix (boundary sync) ──
         function advanceToTarget() {
           if (displayed >= text.length) {
             twc.style.display = "none";
@@ -999,7 +891,6 @@
             return;
           }
           if (displayed < target) {
-            // Révèle les caractères jusqu'à target, rapidement
             if (typeIv) clearInterval(typeIv);
             typeIv = setInterval(() => {
               if (displayed < target && displayed < text.length) {
@@ -1009,18 +900,16 @@
                 clearInterval(typeIv);
                 typeIv = null;
               }
-            }, 22); // rapide pour coller à la voix
+            }, 20);
           }
         }
 
         speakSync(
           text,
-          // onWord : reçoit la position du mot en cours
           (charIdx) => {
             target = Math.min(charIdx, text.length);
             advanceToTarget();
           },
-          // onDone : la voix a fini → afficher le reste
           () => {
             voiceDone = true;
             target = text.length;
@@ -1039,14 +928,12 @@
           }
         );
 
-        // ── Fallback : si la voix ne démarre pas dans 1.5s ──
-        // (certains navigateurs chargent les voix lentement)
+        // Fallback typewriter si voix non disponible
         setTimeout(() => {
           if (
             displayed === 0 &&
-            document.getElementById("vbars").classList.contains("on") === false
+            !document.getElementById("vbars").classList.contains("on")
           ) {
-            // Voix probablement non disponible → typewriter autonome
             if (typeIv) clearInterval(typeIv);
             typeIv = setInterval(() => {
               if (displayed < text.length) {
@@ -1057,7 +944,7 @@
                 twc.style.display = "none";
                 if (onDone) setTimeout(onDone, 500);
               }
-            }, 32);
+            }, 30);
           }
         }, 1500);
       }
@@ -1071,9 +958,7 @@
         document.getElementById("vbars").classList.remove("on");
       }
 
-      // ════════════════════════════════════════════
-      // 4. ÉTOILES
-      // ════════════════════════════════════════════
+      // ── ÉTOILES ───────────────────────────────────
       function initStars() {
         const c = document.getElementById("stars");
         c.width = innerWidth;
@@ -1082,10 +967,10 @@
         ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, c.width, c.height);
         for (let i = 0; i < 300; i++) {
-          const x = Math.random() * c.width;
-          const y = Math.random() * c.height;
-          const r = Math.random() * 1.05;
-          const o = Math.random() * 0.6 + 0.1;
+          const x = Math.random() * c.width,
+            y = Math.random() * c.height;
+          const r = Math.random() * 1.05,
+            o = Math.random() * 0.6 + 0.1;
           ctx.beginPath();
           ctx.arc(x, y, r, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(255,255,255,${o})`;
@@ -1093,9 +978,7 @@
         }
       }
 
-      // ════════════════════════════════════════════
-      // 5. THREE.JS — Vraie Terre NASA bien cadrée
-      // ════════════════════════════════════════════
+      // ── THREE.JS — IDENTIQUE SCÈNE 1 ──────────────
       let scene, camera, renderer, earth, clouds, clock;
       let sc = 0.001,
         scTarget = 0,
@@ -1105,10 +988,9 @@
 
       function initThree() {
         scene = new THREE.Scene();
-
-        // FOV 42° + camZ 3.6 → globe occupe ~35% hauteur écran, bien centré
+        // FOV identique scène 1 → continuité visuelle
         camera = new THREE.PerspectiveCamera(
-          42,
+          48,
           innerWidth / innerHeight,
           0.1,
           1000
@@ -1120,7 +1002,6 @@
         renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
         renderer.setClearColor(0x000000, 0);
         document.getElementById("c3d").appendChild(renderer.domElement);
-
         clock = new THREE.Clock();
 
         const loader = new THREE.TextureLoader();
@@ -1138,7 +1019,7 @@
               setTimeout(() => {
                 document.getElementById("loading").style.display = "none";
                 startSequence();
-              }, 1200);
+              }, 1400);
             }, 400);
           }
         }
@@ -1168,15 +1049,15 @@
           onLoad
         );
 
-        // ── Globe Terre réaliste ──
+        // Globe Terre — identique scène 1
         earth = new THREE.Mesh(
           new THREE.SphereGeometry(1, 64, 64),
           new THREE.MeshPhongMaterial({
             map: tE,
             normalMap: tN,
             specularMap: tS,
-            specular: new THREE.Color(0x112820),
-            shininess: 16,
+            specular: new THREE.Color(0x1a3025),
+            shininess: 18,
             transparent: true,
             opacity: 0,
           })
@@ -1185,7 +1066,6 @@
         earth.rotation.y = -0.3;
         scene.add(earth);
 
-        // ── Nuages ──
         clouds = new THREE.Mesh(
           new THREE.SphereGeometry(1.009, 64, 64),
           new THREE.MeshPhongMaterial({
@@ -1198,78 +1078,48 @@
         clouds.scale.set(0.001, 0.001, 0.001);
         scene.add(clouds);
 
-        // ── Atmosphère bleue fine et réaliste ──
-        // rayon 1.08 seulement → couche très mince sur le limbe
+        // ══ ATMOSPHÈRE IDENTIQUE SCÈNE 1 ══
         const atmMat = new THREE.ShaderMaterial({
           uniforms: { uOp: { value: 0 } },
-          vertexShader: `
-      varying vec3 vN,vP;
-      void main(){
-        vN=normalize(normalMatrix*normal);vP=position;
-        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);
-      }`,
-          fragmentShader: `
-      uniform float uOp; varying vec3 vN,vP;
-      void main(){
-        vec3 vd=normalize(cameraPosition-vP);
-        float fr=pow(1.-dot(vN,vd), 6.0);
-        gl_FragColor=vec4(.12,.48,.92, fr*.35*uOp);
-      }`,
+          vertexShader: `varying vec3 vN,vP; void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+          fragmentShader: `uniform float uOp; varying vec3 vN,vP; void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),7.0);gl_FragColor=vec4(.10,.46,.90,fr*.30*uOp);}`,
           transparent: true,
           side: THREE.BackSide,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         });
         const atm = new THREE.Mesh(
-          new THREE.SphereGeometry(1.08, 32, 32),
+          new THREE.SphereGeometry(1.06, 32, 32),
           atmMat
         );
         atm.scale.set(0.001, 0.001, 0.001);
         atm.name = "atm";
         scene.add(atm);
 
-        // ── Lueur verte GAÏA — ultra discrète, juste le bord ──
         const glowMat = new THREE.ShaderMaterial({
           uniforms: { uOp: { value: 0 }, uT: { value: 0 } },
-          vertexShader: `
-      varying vec3 vN,vP;
-      void main(){
-        vN=normalize(normalMatrix*normal);vP=position;
-        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);
-      }`,
-          fragmentShader: `
-      uniform float uOp,uT; varying vec3 vN,vP;
-      void main(){
-        vec3 vd=normalize(cameraPosition-vP);
-        float fr=pow(1.-dot(vN,vd), 8.0);
-        float p=sin(uT*.75)*.03+.97;
-        gl_FragColor=vec4(0.,1.,.52, fr*.12*p*uOp);
-      }`,
+          vertexShader: `varying vec3 vN,vP; void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+          fragmentShader: `uniform float uOp,uT; varying vec3 vN,vP; void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),9.0);float p=sin(uT*.7)*.03+.97;gl_FragColor=vec4(0.,1.,.52,fr*.10*p*uOp);}`,
           transparent: true,
           side: THREE.BackSide,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         });
         const glow = new THREE.Mesh(
-          new THREE.SphereGeometry(1.1, 32, 32),
+          new THREE.SphereGeometry(1.08, 32, 32),
           glowMat
         );
         glow.scale.set(0.001, 0.001, 0.001);
         glow.name = "glow";
         scene.add(glow);
 
-        // ── Lumières ──
-        // Soleil principal — lumière chaude venant d'un côté
-        const sun = new THREE.DirectionalLight(0xfff2d8, 1.9);
-        sun.position.set(5, 1.5, 3.5);
+        // Lumières identiques scène 1
+        const sun = new THREE.DirectionalLight(0xfff2d8, 1.8);
+        sun.position.set(5, 2, 4);
         scene.add(sun);
-
-        // Ambiance spatiale — très sombre, légèrement froide
-        scene.add(new THREE.AmbientLight(0x060a14, 0.4));
-
-        // Rim nuit — bord sombre de la Terre
-        const rim = new THREE.DirectionalLight(0x081840, 0.15);
-        rim.position.set(-4, -1, -2);
+        scene.add(new THREE.AmbientLight(0x080c14, 0.4));
+        const rim = new THREE.DirectionalLight(0x0a1a44, 0.15);
+        rim.position.set(-4, -1, -3);
         scene.add(rim);
 
         window.addEventListener("resize", () => {
@@ -1281,7 +1131,6 @@
         animate();
       }
 
-      // ─── BOUCLE D'ANIMATION ─────────────────────
       function animate() {
         requestAnimationFrame(animate);
         const t = clock.getElapsedTime();
@@ -1305,26 +1154,23 @@
         camZ += (camZTarget - camZ) * 0.014;
         camera.position.z = camZ;
 
-        if (earth) earth.rotation.y = t * 0.058;
-        if (clouds) clouds.rotation.y = t * 0.074;
+        if (earth) earth.rotation.y = t * 0.06;
+        if (clouds) clouds.rotation.y = t * 0.076;
 
         const glow = scene.getObjectByName("glow");
         if (glow) glow.material.uniforms.uT.value = t;
 
-        // Respiration douce de la caméra
         camera.position.x = Math.sin(t * 0.028) * 0.06;
         camera.position.y = Math.sin(t * 0.018) * 0.03;
         camera.lookAt(0, 0, 0);
-
         renderer.render(scene, camera);
       }
 
-      // ════════════════════════════════════════════
-      // 6. SÉQUENCE NARRATIVE
-      // ════════════════════════════════════════════
+      // ── SÉQUENCE ──────────────────────────────────
       function startSequence() {
         initAudio();
         playDrone();
+        playZoomSound();
 
         document.getElementById("top-logo").classList.add("show");
         setTimeout(
@@ -1332,30 +1178,24 @@
           700
         );
 
-        // Terre apparaît
+        // Terre apparaît puis zoom
         scTarget = 1.0;
-        playZoomSound();
-
-        // Zoom progressif vers la Terre
         setTimeout(() => {
-          camZTarget = 2.0;
+          camZTarget = 2.1;
         }, 900);
 
-        // Battement de cœur démarre quand on est bien zoomé
-        setTimeout(() => {
-          playHeart();
-        }, 3200);
-
-        // Dialogue 1 — voix + texte synchronisés
+        // Dialogue 1 — voix émotionnelle + texte
         setTimeout(() => {
           document.getElementById("p-sep").classList.add("show");
           document.getElementById("text-box").classList.add("show");
 
-          const d1 = `Êtes-vous prêt à entrer dans mon corps...
+          // ── TEXTE AVEC PAUSES ÉMOTIONNELLES ──
+          // Les "..." créent des pauses naturelles dans la synthèse
+          const d1 = `Êtes-vous prêt... à entrer dans mon corps ?
 À voir avec mes yeux...
-À ressentir avec mon cœur ?
+À ressentir... avec mon cœur ?
 
-Dites-moi votre nom, Gardien...`;
+Dites-moi votre nom... Gardien.`;
 
           speakAndType(d1, () => {
             document.getElementById("name-form").classList.add("show");
@@ -1367,7 +1207,7 @@ Dites-moi votre nom, Gardien...`;
         }, 4200);
       }
 
-      // ─── SOUMETTRE NOM ───────────────────────────
+      // ── SOUMETTRE NOM ─────────────────────────────
       function submitName() {
         const v = document.getElementById("name-input").value.trim();
         if (!v) {
@@ -1377,19 +1217,15 @@ Dites-moi votre nom, Gardien...`;
           return;
         }
         window._playerName = v;
-
         stopVoice();
         document.getElementById("name-form").classList.remove("show");
-
         document.getElementById("flash").classList.add("on");
         setTimeout(
           () => document.getElementById("flash").classList.remove("on"),
           220
         );
         playChime();
-
-        camZTarget = 1.85;
-
+        camZTarget = 1.9;
         setTimeout(() => {
           document.getElementById("dialogue").textContent = "";
           showDialogue2(v);
@@ -1400,54 +1236,64 @@ Dites-moi votre nom, Gardien...`;
         if (
           e.key === "Enter" &&
           document.getElementById("name-form").classList.contains("show")
-        ) {
+        )
           submitName();
-        }
       });
 
-      // ─── DIALOGUE 2 ──────────────────────────────
+      // ── DIALOGUE 2 — émotionnel, texte avec pauses ─
       function showDialogue2(name) {
-        const d2 = `${name}... Un beau nom. Écoutez-moi attentivement.
+        // Pauses (...) pour renforcer l'émotion dans la synthèse vocale
+        const d2 = `${name}... Quel beau nom.
+Écoute-moi... s'il te plaît.
 
-Mon corps est un organisme vivant.
-Comme vous, j'ai un cœur qui pompe l'énergie.
-Des poumons qui respirent grâce aux forêts.
-Un système immunitaire qui combat les maladies.
-Des cicatrices de mes blessures passées.
-Un réseau neuronal qui connecte tout.
-Et un subconscient où reposent mes secrets.
+Je suis un organisme vivant... comme toi.
+J'ai un cœur... qui pompait l'énergie.
+Des poumons... qui respiraient avec les forêts.
+Un système immunitaire... qui me défendait.
+Des cicatrices... partout sur mon corps.
+Un réseau neuronal... qui reliait tout.
+Et un subconscient... plein de secrets et de douleur.
 
-Vous allez voyager à travers ces 6 systèmes.
-Dans chacun, vous découvrirez ce qui me fait vivre,
-ce qui me tue, et ce qui peut me sauver.
+Tu vas traverser ces six parties de moi.
+Tu découvriras... ce qui me faisait vivre.
+Ce qui me tue...
+Et ce qui pourrait encore... me sauver.
 
-Mais attention...
-Plus vous avancez, plus vous ressentirez ma douleur.
+Mais je dois te prévenir...
+Plus tu avanceras... plus tu ressentiras ma douleur.
 
-Êtes-vous assez fort pour porter ce fardeau ?`;
+Es-tu assez fort... pour porter ce fardeau ?`;
 
         speakAndType(d2, () => {
           document.getElementById("choices").classList.add("show");
         });
       }
 
-      // ─── OUI ─────────────────────────────────────
+      // ── OUI ───────────────────────────────────────
       function chooseYes() {
         const name = window._playerName || "Gardien";
-        if (heartIv) clearInterval(heartIv);
+
         stopVoice();
         playFinalChime();
-
         document.getElementById("choices").classList.remove("show");
         camZTarget = 0.1;
 
-        const farewell = `Alors... Entrons. Bienvenue dans mon monde, ${name}.`;
+        const farewell = `Alors... entrons ensemble. Bienvenue... dans mon monde... ${name}.`;
         setTimeout(() => {
           document.getElementById("dialogue").textContent = "";
           speakAndType(farewell, null);
         }, 300);
 
+        // Fade audio + rideau
         setTimeout(() => {
+          if (audioCtx && window._m2) {
+            const g = audioCtx.createGain();
+            window._m2.disconnect();
+            window._m2.connect(g);
+            g.connect(audioCtx.destination);
+            g.gain.setValueAtTime(1, audioCtx.currentTime);
+            g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.6);
+          }
           document.getElementById("curtain").classList.add("show");
           setTimeout(() => {
             try {
@@ -1458,7 +1304,7 @@ Plus vous avancez, plus vous ressentirez ma douleur.
         }, 4200);
       }
 
-      // ─── NON ─────────────────────────────────────
+      // ── NON ───────────────────────────────────────
       function chooseNo() {
         document.getElementById("no-screen").classList.add("show");
       }
@@ -1466,7 +1312,7 @@ Plus vous avancez, plus vous ressentirez ma douleur.
         document.getElementById("no-screen").classList.remove("show");
       }
 
-      // ─── INIT ────────────────────────────────────
+      // ── INIT ──────────────────────────────────────
       initStars();
       initThree();
     </script>
