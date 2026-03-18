@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GAÏA — Le Gardien de la Terre</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #000;
+        overflow: hidden;
+        font-family: "Courier New", monospace;
+        cursor: none;
+      }
+
+      /* Canvas Three.js */
+      #canvas-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
+      }
+
+      /* Overlay texte */
+      #overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+
+      /* Ligne décorative */
+      .line-separator {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #00ff88, transparent);
+        margin: 18px auto;
+        transition: width 1.5s ease;
+      }
+      .line-separator.visible {
+        width: 420px;
+      }
+
+      /* Bloc texte GAÏA */
+      #gaia-text-box {
+        max-width: 600px;
+        text-align: center;
+        padding: 32px 40px;
+        border: 1px solid rgba(0, 255, 136, 0.15);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        border-radius: 4px;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 1s ease, transform 1s ease;
+      }
+      #gaia-text-box.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      #typewriter {
+        color: #a8ffcc;
+        font-size: 15px;
+        line-height: 2;
+        letter-spacing: 0.08em;
+        text-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
+        white-space: pre-wrap;
+        min-height: 320px;
+      }
+
+      /* Curseur typewriter */
+      #cursor {
+        display: inline-block;
+        width: 2px;
+        height: 16px;
+        background: #00ff88;
+        margin-left: 2px;
+        vertical-align: middle;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* Bouton continuer */
+      #btn-continue {
+        margin-top: 28px;
+        padding: 12px 40px;
+        background: transparent;
+        border: 1px solid #00ff88;
+        color: #00ff88;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.8s ease, background 0.3s ease,
+          box-shadow 0.3s ease;
+        pointer-events: none;
+      }
+      #btn-continue.visible {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #btn-continue:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+      }
+
+      /* Titre GAIA en haut */
+      #title-gaia {
+        position: fixed;
+        top: 36px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        font-size: 11px;
+        letter-spacing: 0.5em;
+        color: rgba(0, 255, 136, 0.4);
+        text-transform: uppercase;
+        opacity: 0;
+        transition: opacity 2s ease;
+      }
+      #title-gaia.visible {
+        opacity: 1;
+      }
+
+      /* Particules VFX background */
+      #vfx-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      /* Indicateur audio */
+      #audio-hint {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        z-index: 30;
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        color: rgba(0, 255, 136, 0.35);
+        cursor: pointer;
+        pointer-events: all;
+        transition: color 0.3s;
+      }
+      #audio-hint:hover {
+        color: rgba(0, 255, 136, 0.8);
+      }
+
+      /* Écran de démarrage (click to start) */
+      #start-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 100;
+        background: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: opacity 1.5s ease;
+      }
+      #start-screen.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #start-logo {
+        font-size: 64px;
+        color: #00ff88;
+        text-shadow: 0 0 60px rgba(0, 255, 136, 0.6),
+          0 0 120px rgba(0, 255, 136, 0.3);
+        letter-spacing: 0.3em;
+        animation: pulse-logo 2s ease-in-out infinite;
+      }
+      @keyframes pulse-logo {
+        0%,
+        100% {
+          text-shadow: 0 0 40px rgba(0, 255, 136, 0.5),
+            0 0 80px rgba(0, 255, 136, 0.2);
+        }
+        50% {
+          text-shadow: 0 0 80px rgba(0, 255, 136, 0.9),
+            0 0 160px rgba(0, 255, 136, 0.5);
+        }
+      }
+      #start-hint {
+        margin-top: 48px;
+        font-size: 11px;
+        letter-spacing: 0.4em;
+        color: rgba(0, 255, 136, 0.5);
+        animation: fade-hint 1.5s ease-in-out infinite;
+      }
+      @keyframes fade-hint {
+        0%,
+        100% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Écran démarrage -->
+    <div id="start-screen" onclick="startExperience()">
+      <div id="start-logo">GAÏA</div>
+      <div id="start-hint">CLIQUEZ POUR COMMENCER</div>
+    </div>
+
+    <!-- Canvas 3D Three.js -->
+    <div id="canvas-container"></div>
+
+    <!-- Canvas particules 2D -->
+    <canvas id="vfx-canvas"></canvas>
+
+    <!-- Titre flottant -->
+    <div id="title-gaia">G A Ï A — G A R D I E N D E L A T E R R E</div>
+
+    <!-- Overlay principal -->
+    <div id="overlay">
+      <div class="line-separator" id="sep-top"></div>
+      <div id="gaia-text-box">
+        <div id="typewriter"></div>
+        <span id="cursor"></span>
+        <button id="btn-continue" onclick="goToScene2()">
+          ▶ &nbsp; Devenir le Gardien
+        </button>
+      </div>
+      <div class="line-separator" id="sep-bot"></div>
+    </div>
+
+    <!-- Indicateur audio -->
+    <div id="audio-hint" onclick="toggleMute()">🔊 SON</div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- LIBRAIRIES CDN (100% gratuites)                -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+
+    <script>
+      /* ═══════════════════════════════════════
+   GAÏA — SCÈNE 1 : Introduction
+   Three.js r128 + Howler.js 2.2.3
+   ═══════════════════════════════════════ */
+
+      // ── AUDIO SYNTHÉTIQUE (pas de fichier externe requis) ──────────────
+      let audioCtx = null;
+      let heartbeatInterval = null;
+      let windNode = null;
+      let isMuted = false;
+
+      function initAudio() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      function playWind() {
+        if (!audioCtx || isMuted) return;
+        const bufferSize = audioCtx.sampleRate * 3;
+        const buffer = audioCtx.createBuffer(
+          1,
+          bufferSize,
+          audioCtx.sampleRate
+        );
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.value = 400;
+        filter.Q.value = 0.3;
+        const gain = audioCtx.createGain();
+        gain.gain.value = 0.04;
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        source.start();
+        windNode = { source, gain };
+        // Fade in vent
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 3);
+      }
+
+      function playHeartbeat() {
+        if (!audioCtx || isMuted) return;
+        function beat() {
+          if (!audioCtx || isMuted) return;
+          // Thump 1
+          const osc1 = audioCtx.createOscillator();
+          const g1 = audioCtx.createGain();
+          osc1.type = "sine";
+          osc1.frequency.value = 60;
+          g1.gain.setValueAtTime(0.5, audioCtx.currentTime);
+          g1.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 0.25
+          );
+          osc1.connect(g1);
+          g1.connect(audioCtx.destination);
+          osc1.start();
+          osc1.stop(audioCtx.currentTime + 0.25);
+          // Thump 2 (décalé)
+          setTimeout(() => {
+            if (!audioCtx || isMuted) return;
+            const osc2 = audioCtx.createOscillator();
+            const g2 = audioCtx.createGain();
+            osc2.type = "sine";
+            osc2.frequency.value = 55;
+            g2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            g2.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 0.2
+            );
+            osc2.connect(g2);
+            g2.connect(audioCtx.destination);
+            osc2.start();
+            osc2.stop(audioCtx.currentTime + 0.2);
+          }, 200);
+        }
+        beat();
+        heartbeatInterval = setInterval(beat, 1200);
+      }
+
+      function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("audio-hint").textContent = isMuted
+          ? "🔇 MUET"
+          : "🔊 SON";
+        if (audioCtx) {
+          audioCtx.suspend &&
+            (isMuted ? audioCtx.suspend() : audioCtx.resume());
+        }
+      }
+
+      // ── THREE.JS — GLOBE HOLOGRAPHIQUE ────────────────────────────────
+      let scene, camera, renderer, globe, atmosphere, particles;
+      let clock, particleSystem;
+      let glowMesh;
+
+      function initThree() {
+        // Scène
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+
+        // Caméra
+        camera = new THREE.PerspectiveCamera(
+          60,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        camera.position.z = 3.5;
+
+        // Renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        document
+          .getElementById("canvas-container")
+          .appendChild(renderer.domElement);
+
+        clock = new THREE.Clock();
+
+        // ── GLOBE PRINCIPAL ──────────────────────────────────────────────
+        const globeGeo = new THREE.SphereGeometry(1, 64, 64);
+
+        // Shader holographique custom
+        const globeMat = new THREE.ShaderMaterial({
+          uniforms: {
+            uTime: { value: 0 },
+            uOpacity: { value: 0 },
+          },
+          vertexShader: `
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      void main() {
+        vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+        vPosition = position;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+          fragmentShader: `
+      uniform float uTime;
+      uniform float uOpacity;
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+
+      float grid(vec2 uv, float res) {
+        vec2 g = abs(fract(uv * res - 0.5) - 0.5) / fwidth(uv * res);
+        return 1.0 - min(min(g.x, g.y), 1.0);
+      }
+
+      void main() {
+        // Grille holographique
+        float g1 = grid(vUv, 18.0) * 0.6;
+        float g2 = grid(vUv, 6.0) * 0.4;
+
+        // Fresnel (bord lumineux)
+        vec3 viewDir = normalize(cameraPosition - vPosition);
+        float fresnel = pow(1.0 - dot(vNormal, viewDir), 2.5);
+
+        // Scan lines animées
+        float scan = sin(vUv.y * 80.0 + uTime * 2.0) * 0.04 + 0.96;
+
+        // Continents simulés (noise simplifié)
+        float lat = vUv.y * 3.14159;
+        float lon = vUv.x * 6.28318;
+        float n = sin(lat * 4.0 + uTime * 0.1) * cos(lon * 3.0 + uTime * 0.05) * 0.3 + 0.7;
+
+        vec3 col = vec3(0.0, 1.0, 0.53); // vert GAÏA
+        col = mix(col * 0.3, col, g1 + g2 + fresnel * 0.5);
+        col *= scan * n;
+        col += vec3(fresnel * 0.2, fresnel * 0.6, fresnel * 0.4);
+
+        gl_FragColor = vec4(col, (g1 + g2 * 0.5 + fresnel * 0.8) * uOpacity);
+      }
+    `,
+          transparent: true,
+          side: THREE.FrontSide,
+          depthWrite: false,
+        });
+
+        globe = new THREE.Mesh(globeGeo, globeMat);
+        globe.scale.set(0.001, 0.001, 0.001); // commence minuscule
+        scene.add(globe);
+
+        // ── ATMOSPHÈRE (halo externe) ────────────────────────────────────
+        const atmGeo = new THREE.SphereGeometry(1.18, 32, 32);
+        const atmMat = new THREE.ShaderMaterial({
+          uniforms: {
+            uTime: { value: 0 },
+            uOpacity: { value: 0 },
+          },
+          vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vPosition = position;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+          fragmentShader: `
+      uniform float uTime;
+      uniform float uOpacity;
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      void main() {
+        vec3 viewDir = normalize(cameraPosition - vPosition);
+        float fresnel = pow(1.0 - dot(vNormal, viewDir), 3.0);
+        float pulse = sin(uTime * 1.5) * 0.1 + 0.9;
+        vec3 col = vec3(0.0, 0.8, 0.4) * fresnel * pulse;
+        gl_FragColor = vec4(col, fresnel * 0.4 * uOpacity);
+      }
+    `,
+          transparent: true,
+          side: THREE.BackSide,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        });
+        atmosphere = new THREE.Mesh(atmGeo, atmMat);
+        scene.add(atmosphere);
+
+        // ── ANNEAU ÉQUATORIAL ─────────────────────────────────────────────
+        const ringGeo = new THREE.TorusGeometry(1.35, 0.003, 8, 120);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: 0x00ff88,
+          transparent: true,
+          opacity: 0,
+          blending: THREE.AdditiveBlending,
+        });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2;
+        ring.name = "ring";
+        scene.add(ring);
+
+        // ── PARTICULES ORBITALES ──────────────────────────────────────────
+        const pCount = 1500;
+        const pGeo = new THREE.BufferGeometry();
+        const pPos = new Float32Array(pCount * 3);
+        const pCol = new Float32Array(pCount * 3);
+        const pSizes = new Float32Array(pCount);
+
+        for (let i = 0; i < pCount; i++) {
+          const phi = Math.acos(-1 + (2 * i) / pCount);
+          const theta = Math.sqrt(pCount * Math.PI) * phi;
+          const r = 1.6 + Math.random() * 1.2;
+          pPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+          pPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+          pPos[i * 3 + 2] = r * Math.cos(phi);
+          pCol[i * 3] = 0;
+          pCol[i * 3 + 1] = 0.7 + Math.random() * 0.3;
+          pCol[i * 3 + 2] = 0.4 + Math.random() * 0.3;
+          pSizes[i] = Math.random() * 3 + 1;
+        }
+
+        pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+        pGeo.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
+        pGeo.setAttribute("size", new THREE.BufferAttribute(pSizes, 1));
+
+        const pMat = new THREE.ShaderMaterial({
+          uniforms: { uOpacity: { value: 0 }, uTime: { value: 0 } },
+          vertexShader: `
+      attribute float size;
+      attribute vec3 color;
+      varying vec3 vColor;
+      uniform float uTime;
+      void main() {
+        vColor = color;
+        vec3 pos = position;
+        float angle = uTime * 0.08 + pos.y * 0.1;
+        float r = length(pos.xz);
+        pos.x = cos(angle) * r - sin(angle) * pos.z;
+        pos.z = sin(angle) * r + cos(angle) * pos.z;
+        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+        gl_PointSize = size * (200.0 / -mvPosition.z);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+          fragmentShader: `
+      uniform float uOpacity;
+      varying vec3 vColor;
+      void main() {
+        float d = length(gl_PointCoord - 0.5) * 2.0;
+        float alpha = 1.0 - smoothstep(0.5, 1.0, d);
+        gl_FragColor = vec4(vColor, alpha * uOpacity);
+      }
+    `,
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          vertexColors: true,
+        });
+
+        particleSystem = new THREE.Points(pGeo, pMat);
+        scene.add(particleSystem);
+
+        // ── LUMIÈRES ──────────────────────────────────────────────────────
+        const ambientLight = new THREE.AmbientLight(0x003311, 0.5);
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0x00ff88, 1.5, 10);
+        pointLight.position.set(3, 2, 3);
+        scene.add(pointLight);
+
+        // Resize
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+      }
+
+      // ── ANIMATION LOOP ────────────────────────────────────────────────
+      let globeAppeared = false;
+      let globeScale = 0.001;
+      let globeTargetScale = 0;
+      let globeOpacity = 0;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const t = clock.getElapsedTime();
+
+        // Rotation globe
+        if (globe) {
+          globe.rotation.y = t * 0.12;
+          globe.material.uniforms.uTime.value = t;
+          atmosphere.material.uniforms.uTime.value = t;
+
+          // Animation apparition globe
+          if (globeTargetScale > 0) {
+            globeScale += (globeTargetScale - globeScale) * 0.025;
+            globe.scale.set(globeScale, globeScale, globeScale);
+            atmosphere.scale.set(globeScale, globeScale, globeScale);
+
+            globeOpacity = Math.min(globeOpacity + 0.008, 1);
+            globe.material.uniforms.uOpacity.value = globeOpacity;
+            atmosphere.material.uniforms.uOpacity.value = globeOpacity;
+
+            // Anneau
+            const ringObj = scene.getObjectByName("ring");
+            if (ringObj)
+              ringObj.material.opacity = Math.min(globeOpacity * 0.6, 0.6);
+
+            if (particleSystem) {
+              particleSystem.material.uniforms.uOpacity.value = Math.min(
+                globeOpacity * 0.8,
+                0.8
+              );
+              particleSystem.material.uniforms.uTime.value = t;
+            }
+          }
+        }
+
+        // Rotation caméra lente
+        camera.position.x = Math.sin(t * 0.05) * 0.3;
+        camera.position.y = Math.sin(t * 0.03) * 0.15;
+        camera.lookAt(0, 0, 0);
+
+        renderer.render(scene, camera);
+      }
+
+      // ── CANVAS VFX 2D (particules fond) ──────────────────────────────
+      const vfxCanvas = document.getElementById("vfx-canvas");
+      const vfxCtx = vfxCanvas.getContext("2d");
+      let vfxParticles = [];
+
+      function initVFX() {
+        vfxCanvas.width = window.innerWidth;
+        vfxCanvas.height = window.innerHeight;
+
+        for (let i = 0; i < 120; i++) {
+          vfxParticles.push({
+            x: Math.random() * vfxCanvas.width,
+            y: Math.random() * vfxCanvas.height,
+            r: Math.random() * 1.5 + 0.3,
+            speed: Math.random() * 0.3 + 0.1,
+            opacity: Math.random() * 0.5 + 0.1,
+            drift: (Math.random() - 0.5) * 0.4,
+          });
+        }
+        animateVFX();
+      }
+
+      function animateVFX() {
+        requestAnimationFrame(animateVFX);
+        vfxCtx.clearRect(0, 0, vfxCanvas.width, vfxCanvas.height);
+
+        vfxParticles.forEach((p) => {
+          p.y -= p.speed;
+          p.x += p.drift;
+          if (p.y < 0) {
+            p.y = vfxCanvas.height;
+            p.x = Math.random() * vfxCanvas.width;
+          }
+
+          vfxCtx.beginPath();
+          vfxCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          vfxCtx.fillStyle = `rgba(0, 255, 136, ${p.opacity})`;
+          vfxCtx.fill();
+        });
+      }
+
+      // ── TEXTE TYPEWRITER ─────────────────────────────────────────────
+      const gaiaText = `"Depuis 4,5 milliards d'années, je veille.
+Je suis le berceau de toute vie.
+Je suis océans, forêts, montagnes, déserts.
+Je suis... GAÏA.
+
+Mais aujourd'hui, je souffre.
+Mon cœur bat trop vite.
+Mes poumons peinent à respirer.
+Mon corps est blessé, empoisonné.
+
+J'ai besoin... d'un Gardien.
+Quelqu'un qui ose entrer en moi.
+Voir ce que je ressens.
+Comprendre ce qui me tue.
+Et m'aider à guérir.
+
+Ce Gardien... C'est VOUS."`;
+
+      let typeIndex = 0;
+      let typeTimer = null;
+
+      function startTypewriter() {
+        const el = document.getElementById("typewriter");
+        el.textContent = "";
+
+        // Affiche le bloc texte
+        const box = document.getElementById("gaia-text-box");
+        box.classList.add("visible");
+
+        // Séparateurs
+        setTimeout(() => {
+          document.getElementById("sep-top").classList.add("visible");
+          document.getElementById("sep-bot").classList.add("visible");
+        }, 300);
+
+        // Titre
+        document.getElementById("title-gaia").classList.add("visible");
+
+        typeIndex = 0;
+        typeTimer = setInterval(() => {
+          if (typeIndex < gaiaText.length) {
+            el.textContent += gaiaText[typeIndex];
+            typeIndex++;
+            // Scroll auto
+            el.scrollTop = el.scrollHeight;
+          } else {
+            clearInterval(typeTimer);
+            // Masquer curseur, afficher bouton
+            document.getElementById("cursor").style.display = "none";
+            setTimeout(() => {
+              document.getElementById("btn-continue").classList.add("visible");
+            }, 800);
+          }
+        }, 45); // vitesse frappe (ms par caractère)
+      }
+
+      // ── SÉQUENCE DE DÉMARRAGE ─────────────────────────────────────────
+      function startExperience() {
+        initAudio();
+        playWind();
+
+        const startScreen = document.getElementById("start-screen");
+        startScreen.classList.add("fade-out");
+
+        setTimeout(() => {
+          startScreen.style.display = "none";
+
+          // Apparition globe après 1.5s
+          setTimeout(() => {
+            globeTargetScale = 1.0;
+
+            // Battement de cœur après 2s
+            setTimeout(() => {
+              playHeartbeat();
+            }, 2000);
+
+            // Texte après 3.5s
+            setTimeout(() => {
+              startTypewriter();
+            }, 3500);
+          }, 1500);
+        }, 1500);
+      }
+
+      // ── TRANSITION SCÈNE 2 ────────────────────────────────────────────
+      function goToScene2() {
+        // Fade out + transition (prête pour la prochaine scène)
+        document.body.style.transition = "opacity 1.5s ease";
+        document.body.style.opacity = "0";
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+
+        setTimeout(() => {
+          // 🔜 Ici vous chargerez scene2.html
+          document.body.innerHTML = `
+      <div style="
+        display:flex; align-items:center; justify-content:center;
+        height:100vh; background:#000;
+        font-family:'Courier New',monospace;
+        color:#00ff88; font-size:14px; letter-spacing:0.3em;
+      ">
+        ▶ SCÈNE 2 — À VENIR...
+      </div>
+    `;
+          document.body.style.opacity = "1";
+        }, 1500);
+      }
+
+      // ── INIT ──────────────────────────────────────────────────────────
+      initThree();
+      initVFX();
+    </script>
+  </body>
+</html>
