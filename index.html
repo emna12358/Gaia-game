@@ -4,37 +4,198 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GAÏA — Le Gardien de la Terre</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;1,400&display=swap"
+      rel="stylesheet"
+    />
     <style>
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
-
       body {
         background: #000;
         overflow: hidden;
-        font-family: "Courier New", monospace;
+        font-family: "EB Garamond", Georgia, serif;
         cursor: none;
       }
 
-      /* Canvas Three.js */
-      #canvas-container {
+      #cursor {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 1;
+        width: 16px;
+        height: 16px;
+        border: 1px solid rgba(0, 255, 136, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+      }
+      #cursor::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: #00ff88;
+        border-radius: 50%;
       }
 
-      /* Overlay texte */
+      #canvas-container {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+      }
+      #stars-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
+      #vfx-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      #vignette {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse at center,
+          transparent 30%,
+          rgba(0, 0, 0, 0.45) 65%,
+          rgba(0, 0, 0, 0.85) 100%
+        );
+      }
+
+      /* LOADING */
+      #loading {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        transition: opacity 1.2s ease;
+      }
+      #loading.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #loading-label {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.45em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      #loading-track {
+        width: 220px;
+        height: 2px;
+        background: rgba(0, 255, 136, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      #loading-fill {
+        height: 100%;
+        width: 0%;
+        background: #00ff88;
+        border-radius: 2px;
+        transition: width 0.4s ease;
+      }
+
+      /* ÉCRAN DÉMARRAGE */
+      #start-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: opacity 1.8s ease;
+      }
+      #start-screen.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #start-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(48px, 9vw, 90px);
+        font-weight: 600;
+        color: #00ff88;
+        letter-spacing: 0.4em;
+        animation: glow-pulse 2.5s ease-in-out infinite;
+      }
+      @keyframes glow-pulse {
+        0%,
+        100% {
+          text-shadow: 0 0 30px rgba(0, 255, 136, 0.5),
+            0 0 70px rgba(0, 255, 136, 0.2);
+        }
+        50% {
+          text-shadow: 0 0 70px rgba(0, 255, 136, 0.95),
+            0 0 140px rgba(0, 255, 136, 0.5), 0 0 220px rgba(0, 255, 136, 0.2);
+        }
+      }
+      #start-sub {
+        margin-top: 10px;
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.5em;
+        color: rgba(0, 255, 136, 0.3);
+      }
+      #start-hint {
+        margin-top: 60px;
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.45em;
+        color: rgba(0, 255, 136, 0.45);
+        animation: hint-blink 2s ease-in-out infinite;
+      }
+      @keyframes hint-blink {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 0.95;
+        }
+      }
+
+      /* TOP LOGO */
+      #top-logo {
+        position: fixed;
+        top: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.55em;
+        color: rgba(0, 255, 136, 0.28);
+        opacity: 0;
+        transition: opacity 2.5s ease;
+      }
+      #top-logo.show {
+        opacity: 1;
+      }
+
+      /* OVERLAY TEXTE */
       #overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
+        inset: 0;
         z-index: 10;
         display: flex;
         flex-direction: column;
@@ -42,55 +203,64 @@
         justify-content: center;
         pointer-events: none;
       }
-
-      /* Ligne décorative */
-      .line-separator {
+      .sep {
         width: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent, #00ff88, transparent);
-        margin: 18px auto;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.55),
+          transparent
+        );
+        margin: 14px auto;
         transition: width 1.5s ease;
       }
-      .line-separator.visible {
-        width: 420px;
+      .sep.show {
+        width: min(500px, 82vw);
       }
 
-      /* Bloc texte GAÏA */
-      #gaia-text-box {
+      #text-box {
         max-width: 600px;
-        text-align: center;
-        padding: 32px 40px;
-        border: 1px solid rgba(0, 255, 136, 0.15);
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(8px);
-        border-radius: 4px;
+        width: 90%;
+        padding: 28px 38px 24px;
+        background: rgba(0, 5, 3, 0.76);
+        border: 1px solid rgba(0, 255, 136, 0.12);
+        backdrop-filter: blur(16px);
+        border-radius: 2px;
         opacity: 0;
         transform: translateY(20px);
-        transition: opacity 1s ease, transform 1s ease;
+        transition: opacity 1.1s ease, transform 1.1s ease;
+        pointer-events: all;
       }
-      #gaia-text-box.visible {
+      #text-box.show {
         opacity: 1;
         transform: translateY(0);
       }
 
-      #typewriter {
-        color: #a8ffcc;
-        font-size: 15px;
-        line-height: 2;
-        letter-spacing: 0.08em;
-        text-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
-        white-space: pre-wrap;
-        min-height: 320px;
+      #speaker-tag {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.45em;
+        color: rgba(0, 255, 136, 0.4);
+        margin-bottom: 14px;
       }
 
-      /* Curseur typewriter */
-      #cursor {
+      #typewriter {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(14px, 1.9vw, 17px);
+        line-height: 2.05;
+        color: #c4edda;
+        white-space: pre-wrap;
+        min-height: 260px;
+      }
+
+      #tw-cur {
         display: inline-block;
         width: 2px;
-        height: 16px;
+        height: 15px;
         background: #00ff88;
-        margin-left: 2px;
         vertical-align: middle;
+        margin-left: 2px;
         animation: blink 0.8s step-end infinite;
       }
       @keyframes blink {
@@ -103,585 +273,463 @@
         }
       }
 
-      /* Bouton continuer */
       #btn-continue {
-        margin-top: 28px;
-        padding: 12px 40px;
+        margin-top: 22px;
+        padding: 11px 36px;
         background: transparent;
-        border: 1px solid #00ff88;
-        color: #00ff88;
-        font-family: "Courier New", monospace;
-        font-size: 13px;
-        letter-spacing: 0.2em;
+        border: 1px solid rgba(0, 255, 136, 0.4);
+        color: rgba(0, 255, 136, 0.75);
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.3em;
         text-transform: uppercase;
         cursor: pointer;
         opacity: 0;
-        transition: opacity 0.8s ease, background 0.3s ease,
-          box-shadow 0.3s ease;
         pointer-events: none;
+        transition: opacity 0.9s ease, background 0.3s, box-shadow 0.3s;
       }
-      #btn-continue.visible {
+      #btn-continue.show {
         opacity: 1;
         pointer-events: all;
       }
       #btn-continue:hover {
-        background: rgba(0, 255, 136, 0.1);
-        box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        background: rgba(0, 255, 136, 0.07);
+        box-shadow: 0 0 24px rgba(0, 255, 136, 0.22);
       }
 
-      /* Titre GAIA en haut */
-      #title-gaia {
-        position: fixed;
-        top: 36px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 20;
-        font-size: 11px;
-        letter-spacing: 0.5em;
-        color: rgba(0, 255, 136, 0.4);
-        text-transform: uppercase;
-        opacity: 0;
-        transition: opacity 2s ease;
-      }
-      #title-gaia.visible {
-        opacity: 1;
-      }
-
-      /* Particules VFX background */
-      #vfx-canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 2;
-        pointer-events: none;
-      }
-
-      /* Indicateur audio */
       #audio-hint {
         position: fixed;
-        bottom: 28px;
-        right: 28px;
+        bottom: 22px;
+        right: 22px;
         z-index: 30;
-        font-size: 10px;
-        letter-spacing: 0.15em;
-        color: rgba(0, 255, 136, 0.35);
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.28);
         cursor: pointer;
-        pointer-events: all;
         transition: color 0.3s;
       }
       #audio-hint:hover {
-        color: rgba(0, 255, 136, 0.8);
-      }
-
-      /* Écran de démarrage (click to start) */
-      #start-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 100;
-        background: #000;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: opacity 1.5s ease;
-      }
-      #start-screen.fade-out {
-        opacity: 0;
-        pointer-events: none;
-      }
-      #start-logo {
-        font-size: 64px;
-        color: #00ff88;
-        text-shadow: 0 0 60px rgba(0, 255, 136, 0.6),
-          0 0 120px rgba(0, 255, 136, 0.3);
-        letter-spacing: 0.3em;
-        animation: pulse-logo 2s ease-in-out infinite;
-      }
-      @keyframes pulse-logo {
-        0%,
-        100% {
-          text-shadow: 0 0 40px rgba(0, 255, 136, 0.5),
-            0 0 80px rgba(0, 255, 136, 0.2);
-        }
-        50% {
-          text-shadow: 0 0 80px rgba(0, 255, 136, 0.9),
-            0 0 160px rgba(0, 255, 136, 0.5);
-        }
-      }
-      #start-hint {
-        margin-top: 48px;
-        font-size: 11px;
-        letter-spacing: 0.4em;
-        color: rgba(0, 255, 136, 0.5);
-        animation: fade-hint 1.5s ease-in-out infinite;
-      }
-      @keyframes fade-hint {
-        0%,
-        100% {
-          opacity: 0.4;
-        }
-        50% {
-          opacity: 1;
-        }
+        color: rgba(0, 255, 136, 0.7);
       }
     </style>
   </head>
   <body>
-    <!-- Écran démarrage -->
-    <div id="start-screen" onclick="startExperience()">
-      <div id="start-logo">GAÏA</div>
-      <div id="start-hint">CLIQUEZ POUR COMMENCER</div>
+    <!-- Loading -->
+    <div id="loading">
+      <div id="loading-label">CHARGEMENT DE LA TERRE...</div>
+      <div id="loading-track"><div id="loading-fill"></div></div>
     </div>
 
-    <!-- Canvas 3D Three.js -->
+    <!-- Curseur -->
+    <div id="cursor"></div>
+
+    <!-- Fond étoiles -->
+    <canvas id="stars-canvas"></canvas>
+
+    <!-- Globe 3D -->
     <div id="canvas-container"></div>
 
-    <!-- Canvas particules 2D -->
+    <!-- Particules -->
     <canvas id="vfx-canvas"></canvas>
 
-    <!-- Titre flottant -->
-    <div id="title-gaia">G A Ï A — G A R D I E N D E L A T E R R E</div>
+    <!-- Vignette -->
+    <div id="vignette"></div>
 
-    <!-- Overlay principal -->
-    <div id="overlay">
-      <div class="line-separator" id="sep-top"></div>
-      <div id="gaia-text-box">
-        <div id="typewriter"></div>
-        <span id="cursor"></span>
-        <button id="btn-continue" onclick="goToScene2()">
-          ▶ &nbsp; Devenir le Gardien
-        </button>
-      </div>
-      <div class="line-separator" id="sep-bot"></div>
+    <!-- Logo -->
+    <div id="top-logo">G A Ï A — G A R D I E N D E L A T E R R E</div>
+
+    <!-- Start -->
+    <div id="start-screen" onclick="startExperience()">
+      <div id="start-title">GAÏA</div>
+      <div id="start-sub">LE GARDIEN DE LA TERRE</div>
+      <div id="start-hint">— CLIQUEZ POUR COMMENCER —</div>
     </div>
 
-    <!-- Indicateur audio -->
+    <!-- Texte -->
+    <div id="overlay">
+      <div class="sep" id="sep-top"></div>
+      <div id="text-box">
+        <div id="speaker-tag">G A Ï A</div>
+        <div id="typewriter"></div>
+        <span id="tw-cur"></span>
+        <button id="btn-continue" onclick="goToScene2()">
+          ▶ &nbsp;Devenir le Gardien
+        </button>
+      </div>
+      <div class="sep" id="sep-bot"></div>
+    </div>
+
+    <!-- Audio -->
     <div id="audio-hint" onclick="toggleMute()">🔊 SON</div>
 
-    <!-- ═══════════════════════════════════════════════ -->
-    <!-- LIBRAIRIES CDN (100% gratuites)                -->
-    <!-- ═══════════════════════════════════════════════ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
-
     <script>
       /* ═══════════════════════════════════════
-   GAÏA — SCÈNE 1 : Introduction
-   Three.js r128 + Howler.js 2.2.3
+   GAÏA — SCÈNE 1 — Vraie Terre 3D
    ═══════════════════════════════════════ */
 
-      // ── AUDIO SYNTHÉTIQUE (pas de fichier externe requis) ──────────────
-      let audioCtx = null;
-      let heartbeatInterval = null;
-      let windNode = null;
-      let isMuted = false;
+      // ── CURSEUR
+      const cur = document.getElementById("cursor");
+      document.addEventListener("mousemove", (e) => {
+        cur.style.left = e.clientX + "px";
+        cur.style.top = e.clientY + "px";
+      });
+
+      // ── AUDIO
+      let audioCtx = null,
+        isMuted = false,
+        heartInterval = null;
 
       function initAudio() {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
-
       function playWind() {
         if (!audioCtx || isMuted) return;
-        const bufferSize = audioCtx.sampleRate * 3;
-        const buffer = audioCtx.createBuffer(
+        const buf = audioCtx.createBuffer(
           1,
-          bufferSize,
+          audioCtx.sampleRate * 4,
           audioCtx.sampleRate
         );
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-        const source = audioCtx.createBufferSource();
-        source.buffer = buffer;
-        source.loop = true;
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = "bandpass";
-        filter.frequency.value = 400;
-        filter.Q.value = 0.3;
-        const gain = audioCtx.createGain();
-        gain.gain.value = 0.04;
-        source.connect(filter);
-        filter.connect(gain);
-        gain.connect(audioCtx.destination);
-        source.start();
-        windNode = { source, gain };
-        // Fade in vent
-        gain.gain.setValueAtTime(0, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 3);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        const src = audioCtx.createBufferSource();
+        src.buffer = buf;
+        src.loop = true;
+        const f = audioCtx.createBiquadFilter();
+        f.type = "bandpass";
+        f.frequency.value = 340;
+        f.Q.value = 0.22;
+        const g = audioCtx.createGain();
+        g.gain.value = 0;
+        src.connect(f);
+        f.connect(g);
+        g.connect(audioCtx.destination);
+        src.start();
+        g.gain.linearRampToValueAtTime(0.032, audioCtx.currentTime + 4);
       }
-
       function playHeartbeat() {
         if (!audioCtx || isMuted) return;
         function beat() {
           if (!audioCtx || isMuted) return;
-          // Thump 1
-          const osc1 = audioCtx.createOscillator();
-          const g1 = audioCtx.createGain();
-          osc1.type = "sine";
-          osc1.frequency.value = 60;
-          g1.gain.setValueAtTime(0.5, audioCtx.currentTime);
+          const o1 = audioCtx.createOscillator(),
+            g1 = audioCtx.createGain();
+          o1.type = "sine";
+          o1.frequency.value = 58;
+          g1.gain.setValueAtTime(0.42, audioCtx.currentTime);
           g1.gain.exponentialRampToValueAtTime(
             0.001,
-            audioCtx.currentTime + 0.25
+            audioCtx.currentTime + 0.28
           );
-          osc1.connect(g1);
+          o1.connect(g1);
           g1.connect(audioCtx.destination);
-          osc1.start();
-          osc1.stop(audioCtx.currentTime + 0.25);
-          // Thump 2 (décalé)
+          o1.start();
+          o1.stop(audioCtx.currentTime + 0.28);
           setTimeout(() => {
             if (!audioCtx || isMuted) return;
-            const osc2 = audioCtx.createOscillator();
-            const g2 = audioCtx.createGain();
-            osc2.type = "sine";
-            osc2.frequency.value = 55;
-            g2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            const o2 = audioCtx.createOscillator(),
+              g2 = audioCtx.createGain();
+            o2.type = "sine";
+            o2.frequency.value = 52;
+            g2.gain.setValueAtTime(0.26, audioCtx.currentTime);
             g2.gain.exponentialRampToValueAtTime(
               0.001,
-              audioCtx.currentTime + 0.2
+              audioCtx.currentTime + 0.22
             );
-            osc2.connect(g2);
+            o2.connect(g2);
             g2.connect(audioCtx.destination);
-            osc2.start();
-            osc2.stop(audioCtx.currentTime + 0.2);
-          }, 200);
+            o2.start();
+            o2.stop(audioCtx.currentTime + 0.22);
+          }, 210);
         }
         beat();
-        heartbeatInterval = setInterval(beat, 1200);
+        heartInterval = setInterval(beat, 1300);
       }
-
       function toggleMute() {
         isMuted = !isMuted;
         document.getElementById("audio-hint").textContent = isMuted
           ? "🔇 MUET"
           : "🔊 SON";
-        if (audioCtx) {
-          audioCtx.suspend &&
-            (isMuted ? audioCtx.suspend() : audioCtx.resume());
+        if (audioCtx) isMuted ? audioCtx.suspend() : audioCtx.resume();
+      }
+
+      // ── ÉTOILES
+      function initStars() {
+        const c = document.getElementById("stars-canvas");
+        c.width = innerWidth;
+        c.height = innerHeight;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, c.width, c.height);
+        for (let i = 0; i < 350; i++) {
+          const x = Math.random() * c.width,
+            y = Math.random() * c.height;
+          const r = Math.random() * 1.1,
+            o = Math.random() * 0.65 + 0.1;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,255,255,${o})`;
+          ctx.fill();
         }
       }
 
-      // ── THREE.JS — GLOBE HOLOGRAPHIQUE ────────────────────────────────
-      let scene, camera, renderer, globe, atmosphere, particles;
-      let clock, particleSystem;
-      let glowMesh;
+      // ── VFX particules
+      function initVFX() {
+        const c = document.getElementById("vfx-canvas");
+        c.width = innerWidth;
+        c.height = innerHeight;
+        const ctx = c.getContext("2d");
+        const pts = Array.from({ length: 60 }, () => ({
+          x: Math.random() * c.width,
+          y: Math.random() * c.height,
+          r: Math.random() * 0.8 + 0.2,
+          s: Math.random() * 0.18 + 0.06,
+          o: Math.random() * 0.28 + 0.04,
+          d: (Math.random() - 0.5) * 0.22,
+        }));
+        (function frame() {
+          requestAnimationFrame(frame);
+          ctx.clearRect(0, 0, c.width, c.height);
+          pts.forEach((p) => {
+            p.y -= p.s;
+            p.x += p.d;
+            if (p.y < 0) {
+              p.y = c.height;
+              p.x = Math.random() * c.width;
+            }
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(0,255,136,${p.o})`;
+            ctx.fill();
+          });
+        })();
+      }
+
+      // ── THREE.JS
+      let scene, camera, renderer, earth, clouds, clock;
+      let sc = 0.001,
+        scTarget = 0,
+        op = 0;
 
       function initThree() {
-        // Scène
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x000000);
-
-        // Caméra
         camera = new THREE.PerspectiveCamera(
-          60,
-          window.innerWidth / window.innerHeight,
+          50,
+          innerWidth / innerHeight,
           0.1,
           1000
         );
-        camera.position.z = 3.5;
+        camera.position.z = 3.2;
 
-        // Renderer
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = true;
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
         document
           .getElementById("canvas-container")
           .appendChild(renderer.domElement);
-
         clock = new THREE.Clock();
 
-        // ── GLOBE PRINCIPAL ──────────────────────────────────────────────
-        const globeGeo = new THREE.SphereGeometry(1, 64, 64);
+        const loader = new THREE.TextureLoader();
+        let loaded = 0;
+        function onLoad() {
+          loaded++;
+          document.getElementById("loading-fill").style.width =
+            Math.round((loaded / 4) * 100) + "%";
+          if (loaded >= 4) {
+            setTimeout(() => {
+              document.getElementById("loading").classList.add("hide");
+              setTimeout(
+                () =>
+                  (document.getElementById("loading").style.display = "none"),
+                1200
+              );
+            }, 400);
+          }
+        }
 
-        // Shader holographique custom
-        const globeMat = new THREE.ShaderMaterial({
-          uniforms: {
-            uTime: { value: 0 },
-            uOpacity: { value: 0 },
-          },
-          vertexShader: `
-      varying vec2 vUv;
-      varying vec3 vNormal;
-      varying vec3 vPosition;
-      void main() {
-        vUv = uv;
-        vNormal = normalize(normalMatrix * normal);
-        vPosition = position;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-          fragmentShader: `
-      uniform float uTime;
-      uniform float uOpacity;
-      varying vec2 vUv;
-      varying vec3 vNormal;
-      varying vec3 vPosition;
+        // Textures NASA via Three.js official CDN (domaine public)
+        const BASE =
+          "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/";
 
-      float grid(vec2 uv, float res) {
-        vec2 g = abs(fract(uv * res - 0.5) - 0.5) / fwidth(uv * res);
-        return 1.0 - min(min(g.x, g.y), 1.0);
-      }
+        const earthTex = loader.load(
+          BASE + "earth_atmos_2048.jpg",
+          onLoad,
+          undefined,
+          onLoad
+        );
+        const normalTex = loader.load(
+          BASE + "earth_normal_2048.jpg",
+          onLoad,
+          undefined,
+          onLoad
+        );
+        const specTex = loader.load(
+          BASE + "earth_specular_2048.jpg",
+          onLoad,
+          undefined,
+          onLoad
+        );
+        const cloudTex = loader.load(
+          BASE + "earth_clouds_1024.png",
+          onLoad,
+          undefined,
+          onLoad
+        );
 
-      void main() {
-        // Grille holographique
-        float g1 = grid(vUv, 18.0) * 0.6;
-        float g2 = grid(vUv, 6.0) * 0.4;
+        // Globe Terre réaliste
+        earth = new THREE.Mesh(
+          new THREE.SphereGeometry(1, 64, 64),
+          new THREE.MeshPhongMaterial({
+            map: earthTex,
+            normalMap: normalTex,
+            specularMap: specTex,
+            specular: new THREE.Color(0x224433),
+            shininess: 22,
+            transparent: true,
+            opacity: 0,
+          })
+        );
+        earth.scale.set(0.001, 0.001, 0.001);
+        earth.rotation.y = -0.4;
+        scene.add(earth);
 
-        // Fresnel (bord lumineux)
-        vec3 viewDir = normalize(cameraPosition - vPosition);
-        float fresnel = pow(1.0 - dot(vNormal, viewDir), 2.5);
+        // Nuages
+        clouds = new THREE.Mesh(
+          new THREE.SphereGeometry(1.009, 64, 64),
+          new THREE.MeshPhongMaterial({
+            map: cloudTex,
+            transparent: true,
+            opacity: 0,
+            depthWrite: false,
+          })
+        );
+        clouds.scale.set(0.001, 0.001, 0.001);
+        scene.add(clouds);
 
-        // Scan lines animées
-        float scan = sin(vUv.y * 80.0 + uTime * 2.0) * 0.04 + 0.96;
-
-        // Continents simulés (noise simplifié)
-        float lat = vUv.y * 3.14159;
-        float lon = vUv.x * 6.28318;
-        float n = sin(lat * 4.0 + uTime * 0.1) * cos(lon * 3.0 + uTime * 0.05) * 0.3 + 0.7;
-
-        vec3 col = vec3(0.0, 1.0, 0.53); // vert GAÏA
-        col = mix(col * 0.3, col, g1 + g2 + fresnel * 0.5);
-        col *= scan * n;
-        col += vec3(fresnel * 0.2, fresnel * 0.6, fresnel * 0.4);
-
-        gl_FragColor = vec4(col, (g1 + g2 * 0.5 + fresnel * 0.8) * uOpacity);
-      }
-    `,
-          transparent: true,
-          side: THREE.FrontSide,
-          depthWrite: false,
-        });
-
-        globe = new THREE.Mesh(globeGeo, globeMat);
-        globe.scale.set(0.001, 0.001, 0.001); // commence minuscule
-        scene.add(globe);
-
-        // ── ATMOSPHÈRE (halo externe) ────────────────────────────────────
-        const atmGeo = new THREE.SphereGeometry(1.18, 32, 32);
+        // Atmosphère bleue (couche extérieure)
         const atmMat = new THREE.ShaderMaterial({
-          uniforms: {
-            uTime: { value: 0 },
-            uOpacity: { value: 0 },
-          },
-          vertexShader: `
-      varying vec3 vNormal;
-      varying vec3 vPosition;
-      void main() {
-        vNormal = normalize(normalMatrix * normal);
-        vPosition = position;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-          fragmentShader: `
-      uniform float uTime;
-      uniform float uOpacity;
-      varying vec3 vNormal;
-      varying vec3 vPosition;
-      void main() {
-        vec3 viewDir = normalize(cameraPosition - vPosition);
-        float fresnel = pow(1.0 - dot(vNormal, viewDir), 3.0);
-        float pulse = sin(uTime * 1.5) * 0.1 + 0.9;
-        vec3 col = vec3(0.0, 0.8, 0.4) * fresnel * pulse;
-        gl_FragColor = vec4(col, fresnel * 0.4 * uOpacity);
-      }
-    `,
+          uniforms: { uOp: { value: 0 } },
+          vertexShader: `varying vec3 vN,vP; void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+          fragmentShader: `uniform float uOp; varying vec3 vN,vP; void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),4.);gl_FragColor=vec4(.08,.5,1.,fr*.5*uOp);}`,
           transparent: true,
           side: THREE.BackSide,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         });
-        atmosphere = new THREE.Mesh(atmGeo, atmMat);
-        scene.add(atmosphere);
+        const atm = new THREE.Mesh(
+          new THREE.SphereGeometry(1.18, 32, 32),
+          atmMat
+        );
+        atm.scale.set(0.001, 0.001, 0.001);
+        atm.name = "atm";
+        scene.add(atm);
 
-        // ── ANNEAU ÉQUATORIAL ─────────────────────────────────────────────
-        const ringGeo = new THREE.TorusGeometry(1.35, 0.003, 8, 120);
-        const ringMat = new THREE.MeshBasicMaterial({
-          color: 0x00ff88,
+        // Lueur verte GAÏA (par dessus l'atmo)
+        const glowMat = new THREE.ShaderMaterial({
+          uniforms: { uOp: { value: 0 }, uT: { value: 0 } },
+          vertexShader: `varying vec3 vN,vP; void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+          fragmentShader: `uniform float uOp,uT; varying vec3 vN,vP; void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),5.);float p=sin(uT*.8)*.05+.95;gl_FragColor=vec4(0.,1.,.52,fr*.22*p*uOp);}`,
           transparent: true,
-          opacity: 0,
+          side: THREE.BackSide,
+          depthWrite: false,
           blending: THREE.AdditiveBlending,
         });
-        const ring = new THREE.Mesh(ringGeo, ringMat);
-        ring.rotation.x = Math.PI / 2;
-        ring.name = "ring";
-        scene.add(ring);
+        const glow = new THREE.Mesh(
+          new THREE.SphereGeometry(1.28, 32, 32),
+          glowMat
+        );
+        glow.scale.set(0.001, 0.001, 0.001);
+        glow.name = "glow";
+        scene.add(glow);
 
-        // ── PARTICULES ORBITALES ──────────────────────────────────────────
-        const pCount = 1500;
+        // Lumières
+        const sun = new THREE.DirectionalLight(0xfff4e0, 1.7);
+        sun.position.set(5, 2, 4);
+        scene.add(sun);
+        scene.add(new THREE.AmbientLight(0x111122, 0.35));
+        const rim = new THREE.DirectionalLight(0x1133bb, 0.25);
+        rim.position.set(-4, -1, -3);
+        scene.add(rim);
+
+        // Particules orbitales
         const pGeo = new THREE.BufferGeometry();
-        const pPos = new Float32Array(pCount * 3);
-        const pCol = new Float32Array(pCount * 3);
-        const pSizes = new Float32Array(pCount);
-
-        for (let i = 0; i < pCount; i++) {
-          const phi = Math.acos(-1 + (2 * i) / pCount);
-          const theta = Math.sqrt(pCount * Math.PI) * phi;
-          const r = 1.6 + Math.random() * 1.2;
-          pPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-          pPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-          pPos[i * 3 + 2] = r * Math.cos(phi);
-          pCol[i * 3] = 0;
-          pCol[i * 3 + 1] = 0.7 + Math.random() * 0.3;
-          pCol[i * 3 + 2] = 0.4 + Math.random() * 0.3;
-          pSizes[i] = Math.random() * 3 + 1;
+        const N = 700,
+          pP = new Float32Array(N * 3),
+          pC = new Float32Array(N * 3),
+          pS = new Float32Array(N);
+        for (let i = 0; i < N; i++) {
+          const phi = Math.acos(-1 + (2 * i) / N),
+            th = Math.sqrt(N * Math.PI) * phi;
+          const r = 1.8 + Math.random() * 1.3;
+          pP[i * 3] = r * Math.sin(phi) * Math.cos(th);
+          pP[i * 3 + 1] = r * Math.sin(phi) * Math.sin(th);
+          pP[i * 3 + 2] = r * Math.cos(phi);
+          pC[i * 3] = 0;
+          pC[i * 3 + 1] = 0.7 + Math.random() * 0.3;
+          pC[i * 3 + 2] = 0.4 + Math.random() * 0.3;
+          pS[i] = Math.random() * 2 + 0.4;
         }
-
-        pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
-        pGeo.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
-        pGeo.setAttribute("size", new THREE.BufferAttribute(pSizes, 1));
-
+        pGeo.setAttribute("position", new THREE.BufferAttribute(pP, 3));
+        pGeo.setAttribute("color", new THREE.BufferAttribute(pC, 3));
+        pGeo.setAttribute("size", new THREE.BufferAttribute(pS, 1));
         const pMat = new THREE.ShaderMaterial({
-          uniforms: { uOpacity: { value: 0 }, uTime: { value: 0 } },
-          vertexShader: `
-      attribute float size;
-      attribute vec3 color;
-      varying vec3 vColor;
-      uniform float uTime;
-      void main() {
-        vColor = color;
-        vec3 pos = position;
-        float angle = uTime * 0.08 + pos.y * 0.1;
-        float r = length(pos.xz);
-        pos.x = cos(angle) * r - sin(angle) * pos.z;
-        pos.z = sin(angle) * r + cos(angle) * pos.z;
-        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-        gl_PointSize = size * (200.0 / -mvPosition.z);
-        gl_Position = projectionMatrix * mvPosition;
-      }
-    `,
-          fragmentShader: `
-      uniform float uOpacity;
-      varying vec3 vColor;
-      void main() {
-        float d = length(gl_PointCoord - 0.5) * 2.0;
-        float alpha = 1.0 - smoothstep(0.5, 1.0, d);
-        gl_FragColor = vec4(vColor, alpha * uOpacity);
-      }
-    `,
+          uniforms: { uT: { value: 0 }, uOp: { value: 0 } },
+          vertexShader: `attribute float size;attribute vec3 color;varying vec3 vC;uniform float uT;void main(){vC=color;vec3 p=position;float a=uT*.05+p.y*.06;float r=length(p.xz);p.x=cos(a)*r-sin(a)*p.z;p.z=sin(a)*r+cos(a)*p.z;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(160./-mv.z);gl_Position=projectionMatrix*mv;}`,
+          fragmentShader: `uniform float uOp;varying vec3 vC;void main(){float d=length(gl_PointCoord-.5)*2.;float a=1.-smoothstep(.4,1.,d);gl_FragColor=vec4(vC,a*uOp);}`,
           transparent: true,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
           vertexColors: true,
         });
+        scene.add(new THREE.Points(pGeo, pMat));
+        window._pMat = pMat;
 
-        particleSystem = new THREE.Points(pGeo, pMat);
-        scene.add(particleSystem);
-
-        // ── LUMIÈRES ──────────────────────────────────────────────────────
-        const ambientLight = new THREE.AmbientLight(0x003311, 0.5);
-        scene.add(ambientLight);
-
-        const pointLight = new THREE.PointLight(0x00ff88, 1.5, 10);
-        pointLight.position.set(3, 2, 3);
-        scene.add(pointLight);
-
-        // Resize
         window.addEventListener("resize", () => {
-          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.aspect = innerWidth / innerHeight;
           camera.updateProjectionMatrix();
-          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.setSize(innerWidth, innerHeight);
         });
 
         animate();
       }
 
-      // ── ANIMATION LOOP ────────────────────────────────────────────────
-      let globeAppeared = false;
-      let globeScale = 0.001;
-      let globeTargetScale = 0;
-      let globeOpacity = 0;
-
       function animate() {
         requestAnimationFrame(animate);
         const t = clock.getElapsedTime();
 
-        // Rotation globe
-        if (globe) {
-          globe.rotation.y = t * 0.12;
-          globe.material.uniforms.uTime.value = t;
-          atmosphere.material.uniforms.uTime.value = t;
-
-          // Animation apparition globe
-          if (globeTargetScale > 0) {
-            globeScale += (globeTargetScale - globeScale) * 0.025;
-            globe.scale.set(globeScale, globeScale, globeScale);
-            atmosphere.scale.set(globeScale, globeScale, globeScale);
-
-            globeOpacity = Math.min(globeOpacity + 0.008, 1);
-            globe.material.uniforms.uOpacity.value = globeOpacity;
-            atmosphere.material.uniforms.uOpacity.value = globeOpacity;
-
-            // Anneau
-            const ringObj = scene.getObjectByName("ring");
-            if (ringObj)
-              ringObj.material.opacity = Math.min(globeOpacity * 0.6, 0.6);
-
-            if (particleSystem) {
-              particleSystem.material.uniforms.uOpacity.value = Math.min(
-                globeOpacity * 0.8,
-                0.8
-              );
-              particleSystem.material.uniforms.uTime.value = t;
+        if (scTarget > 0) {
+          sc += (scTarget - sc) * 0.022;
+          op = Math.min(op + 0.007, 1);
+          earth.scale.set(sc, sc, sc);
+          clouds.scale.set(sc, sc, sc);
+          earth.material.opacity = op;
+          clouds.material.opacity = Math.min(op * 0.72, 0.72);
+          ["atm", "glow"].forEach((n) => {
+            const o = scene.getObjectByName(n);
+            if (o) {
+              o.scale.set(sc, sc, sc);
+              o.material.uniforms.uOp.value = op;
             }
-          }
+          });
+          if (window._pMat)
+            window._pMat.uniforms.uOp.value = Math.min(op * 0.55, 0.55);
         }
 
-        // Rotation caméra lente
-        camera.position.x = Math.sin(t * 0.05) * 0.3;
-        camera.position.y = Math.sin(t * 0.03) * 0.15;
+        if (earth) earth.rotation.y = t * 0.072;
+        if (clouds) clouds.rotation.y = t * 0.092;
+
+        const glow = scene.getObjectByName("glow");
+        if (glow) glow.material.uniforms.uT.value = t;
+        if (window._pMat) window._pMat.uniforms.uT.value = t;
+
+        camera.position.x = Math.sin(t * 0.038) * 0.16;
+        camera.position.y = Math.sin(t * 0.022) * 0.07;
         camera.lookAt(0, 0, 0);
 
         renderer.render(scene, camera);
       }
 
-      // ── CANVAS VFX 2D (particules fond) ──────────────────────────────
-      const vfxCanvas = document.getElementById("vfx-canvas");
-      const vfxCtx = vfxCanvas.getContext("2d");
-      let vfxParticles = [];
-
-      function initVFX() {
-        vfxCanvas.width = window.innerWidth;
-        vfxCanvas.height = window.innerHeight;
-
-        for (let i = 0; i < 120; i++) {
-          vfxParticles.push({
-            x: Math.random() * vfxCanvas.width,
-            y: Math.random() * vfxCanvas.height,
-            r: Math.random() * 1.5 + 0.3,
-            speed: Math.random() * 0.3 + 0.1,
-            opacity: Math.random() * 0.5 + 0.1,
-            drift: (Math.random() - 0.5) * 0.4,
-          });
-        }
-        animateVFX();
-      }
-
-      function animateVFX() {
-        requestAnimationFrame(animateVFX);
-        vfxCtx.clearRect(0, 0, vfxCanvas.width, vfxCanvas.height);
-
-        vfxParticles.forEach((p) => {
-          p.y -= p.speed;
-          p.x += p.drift;
-          if (p.y < 0) {
-            p.y = vfxCanvas.height;
-            p.x = Math.random() * vfxCanvas.width;
-          }
-
-          vfxCtx.beginPath();
-          vfxCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          vfxCtx.fillStyle = `rgba(0, 255, 136, ${p.opacity})`;
-          vfxCtx.fill();
-        });
-      }
-
-      // ── TEXTE TYPEWRITER ─────────────────────────────────────────────
+      // ── TYPEWRITER
       const gaiaText = `"Depuis 4,5 milliards d'années, je veille.
 Je suis le berceau de toute vie.
 Je suis océans, forêts, montagnes, déserts.
@@ -700,98 +748,60 @@ Et m'aider à guérir.
 
 Ce Gardien... C'est VOUS."`;
 
-      let typeIndex = 0;
-      let typeTimer = null;
-
       function startTypewriter() {
+        document.getElementById("top-logo").classList.add("show");
+        document.getElementById("sep-top").classList.add("show");
+        document.getElementById("sep-bot").classList.add("show");
+        document.getElementById("text-box").classList.add("show");
         const el = document.getElementById("typewriter");
+        const c = document.getElementById("tw-cur");
         el.textContent = "";
-
-        // Affiche le bloc texte
-        const box = document.getElementById("gaia-text-box");
-        box.classList.add("visible");
-
-        // Séparateurs
-        setTimeout(() => {
-          document.getElementById("sep-top").classList.add("visible");
-          document.getElementById("sep-bot").classList.add("visible");
-        }, 300);
-
-        // Titre
-        document.getElementById("title-gaia").classList.add("visible");
-
-        typeIndex = 0;
-        typeTimer = setInterval(() => {
-          if (typeIndex < gaiaText.length) {
-            el.textContent += gaiaText[typeIndex];
-            typeIndex++;
-            // Scroll auto
-            el.scrollTop = el.scrollHeight;
+        c.style.display = "inline-block";
+        let i = 0;
+        const iv = setInterval(() => {
+          if (i < gaiaText.length) {
+            el.textContent += gaiaText[i++];
           } else {
-            clearInterval(typeTimer);
-            // Masquer curseur, afficher bouton
-            document.getElementById("cursor").style.display = "none";
-            setTimeout(() => {
-              document.getElementById("btn-continue").classList.add("visible");
-            }, 800);
+            clearInterval(iv);
+            c.style.display = "none";
+            setTimeout(
+              () =>
+                document.getElementById("btn-continue").classList.add("show"),
+              700
+            );
           }
-        }, 45); // vitesse frappe (ms par caractère)
+        }, 42);
       }
 
-      // ── SÉQUENCE DE DÉMARRAGE ─────────────────────────────────────────
       function startExperience() {
         initAudio();
         playWind();
-
-        const startScreen = document.getElementById("start-screen");
-        startScreen.classList.add("fade-out");
-
+        const ss = document.getElementById("start-screen");
+        ss.classList.add("fade-out");
+        setTimeout(() => (ss.style.display = "none"), 1800);
         setTimeout(() => {
-          startScreen.style.display = "none";
-
-          // Apparition globe après 1.5s
-          setTimeout(() => {
-            globeTargetScale = 1.0;
-
-            // Battement de cœur après 2s
-            setTimeout(() => {
-              playHeartbeat();
-            }, 2000);
-
-            // Texte après 3.5s
-            setTimeout(() => {
-              startTypewriter();
-            }, 3500);
-          }, 1500);
-        }, 1500);
+          scTarget = 1.0;
+        }, 1000);
+        setTimeout(() => {
+          playHeartbeat();
+        }, 3200);
+        setTimeout(() => {
+          startTypewriter();
+        }, 4000);
       }
 
-      // ── TRANSITION SCÈNE 2 ────────────────────────────────────────────
       function goToScene2() {
-        // Fade out + transition (prête pour la prochaine scène)
-        document.body.style.transition = "opacity 1.5s ease";
+        if (heartInterval) clearInterval(heartInterval);
+        document.body.style.transition = "opacity 1.8s ease";
         document.body.style.opacity = "0";
-        if (heartbeatInterval) clearInterval(heartbeatInterval);
-
         setTimeout(() => {
-          // 🔜 Ici vous chargerez scene2.html
-          document.body.innerHTML = `
-      <div style="
-        display:flex; align-items:center; justify-content:center;
-        height:100vh; background:#000;
-        font-family:'Courier New',monospace;
-        color:#00ff88; font-size:14px; letter-spacing:0.3em;
-      ">
-        ▶ SCÈNE 2 — À VENIR...
-      </div>
-    `;
-          document.body.style.opacity = "1";
-        }, 1500);
+          window.location.href = "scene2.html";
+        }, 1900);
       }
 
-      // ── INIT ──────────────────────────────────────────────────────────
-      initThree();
+      initStars();
       initVFX();
+      initThree();
     </script>
   </body>
 </html>
