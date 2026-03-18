@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GAÏA — Scène 2 : L'Éveil</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #00ff88;
+        --gd: #00cc66;
+        --soft: #d0f0e0;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #000;
+        overflow: hidden;
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+      }
+
+      /* ── CURSEUR ── */
+      #cursor {
+        position: fixed;
+        width: 14px;
+        height: 14px;
+        border: 1px solid rgba(0, 255, 136, 0.7);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+      }
+      #cursor::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--g);
+        border-radius: 50%;
+      }
+
+      /* ── LOADING ── */
+      #loading {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        background: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        transition: opacity 1.2s ease;
+      }
+      #loading.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #ld-label {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.45em;
+        color: rgba(0, 255, 136, 0.45);
+      }
+      #ld-track {
+        width: 200px;
+        height: 2px;
+        background: rgba(0, 255, 136, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      #ld-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--g);
+        border-radius: 2px;
+        transition: width 0.35s ease;
+      }
+
+      /* ── BACKGROUNDS ── */
+      #stars {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
+      #c3d {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+      }
+
+      /* Vignette subtile — juste sur les bords */
+      #vignette {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse 75% 75% at 50% 46%,
+          transparent 42%,
+          rgba(0, 0, 0, 0.42) 68%,
+          rgba(0, 0, 0, 0.88) 100%
+        );
+      }
+
+      /* ── TOP UI ── */
+      #top-logo {
+        position: fixed;
+        top: 26px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.55em;
+        color: rgba(0, 255, 136, 0.22);
+        opacity: 0;
+        transition: opacity 2s ease;
+      }
+      #top-logo.show {
+        opacity: 1;
+      }
+
+      #health-bar {
+        position: fixed;
+        top: 26px;
+        left: 28px;
+        z-index: 20;
+        opacity: 0;
+        transition: opacity 1.5s ease;
+      }
+      #health-bar.show {
+        opacity: 1;
+      }
+      .hb-lbl {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.3);
+        margin-bottom: 5px;
+      }
+      .hb-track {
+        width: 120px;
+        height: 2px;
+        background: rgba(0, 255, 136, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .hb-fill {
+        height: 100%;
+        width: 34%;
+        background: linear-gradient(90deg, #ff3333, #ffaa33, #00ff88);
+      }
+
+      /* ── PANEL DIALOGUE ── */
+      #panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        padding: 0 clamp(12px, 5vw, 80px) 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+      }
+      .sep {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.45),
+          transparent
+        );
+        margin-bottom: 14px;
+        transition: width 1.3s ease;
+      }
+      .sep.show {
+        width: min(660px, 92vw);
+      }
+
+      #text-box {
+        max-width: 700px;
+        width: 100%;
+        background: rgba(0, 5, 2, 0.84);
+        border: 1px solid rgba(0, 255, 136, 0.11);
+        backdrop-filter: blur(22px);
+        border-radius: 2px;
+        padding: 22px 32px 18px;
+        opacity: 0;
+        transform: translateY(12px);
+        transition: opacity 0.9s ease, transform 0.9s ease;
+        pointer-events: all;
+      }
+      #text-box.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Ligne speaker + barres voix */
+      #speaker-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      #speaker-name {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.38);
+      }
+
+      /* Barres vocales — visibles quand GAÏA parle */
+      #vbars {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 11px;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+      }
+      #vbars.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vb-idle 1.2s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.55s;
+        animation-delay: 0.05s;
+      }
+      .vb:nth-child(3) {
+        height: 5px;
+        animation-duration: 0.42s;
+        animation-delay: 0.1s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.6s;
+        animation-delay: 0.08s;
+      }
+      .vb:nth-child(5) {
+        height: 4px;
+        animation-duration: 0.45s;
+        animation-delay: 0.12s;
+      }
+      .vb:nth-child(6) {
+        height: 8px;
+        animation-duration: 0.5s;
+        animation-delay: 0.04s;
+      }
+      @keyframes vb-idle {
+        from {
+          transform: scaleY(0.25);
+          opacity: 0.7;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+
+      /* Texte dialogue */
+      #dialogue {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(14px, 1.85vw, 17px);
+        line-height: 2;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 190px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #dialogue::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Curseur typewriter */
+      #tw-cur {
+        display: inline-block;
+        width: 2px;
+        height: 15px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* ── FORMULAIRE NOM ── */
+      #name-form {
+        max-width: 700px;
+        width: 100%;
+        margin-top: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 11px;
+        opacity: 0;
+        transform: translateY(8px);
+        pointer-events: none;
+        transition: opacity 0.8s ease, transform 0.8s ease;
+      }
+      #name-form.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+      }
+      #name-lbl {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.4em;
+        color: rgba(0, 255, 136, 0.4);
+      }
+      #name-input {
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.38);
+        color: var(--g);
+        font-family: "Cinzel", serif;
+        font-size: 21px;
+        letter-spacing: 0.22em;
+        text-align: center;
+        width: 280px;
+        padding: 7px 10px;
+        outline: none;
+        caret-color: var(--g);
+        transition: border-color 0.3s;
+      }
+      #name-input::placeholder {
+        color: rgba(0, 255, 136, 0.14);
+      }
+      #name-input:focus {
+        border-color: var(--g);
+      }
+      #name-submit {
+        background: transparent;
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        color: rgba(0, 255, 136, 0.58);
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.35em;
+        padding: 9px 28px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #name-submit:hover {
+        border-color: var(--g);
+        color: var(--g);
+        box-shadow: 0 0 16px rgba(0, 255, 136, 0.18);
+      }
+
+      /* ── BOUTONS CHOIX ── */
+      #choices {
+        max-width: 700px;
+        width: 100%;
+        margin-top: 14px;
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        opacity: 0;
+        transform: translateY(8px);
+        pointer-events: none;
+        transition: opacity 0.8s ease, transform 0.8s ease;
+      }
+      #choices.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+      }
+      .cbtn {
+        flex: 1;
+        max-width: 240px;
+        padding: 14px 16px;
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        cursor: pointer;
+        background: transparent;
+        transition: all 0.35s;
+      }
+      #btn-yes {
+        border: 1px solid rgba(0, 255, 136, 0.4);
+        color: var(--g);
+      }
+      #btn-yes:hover {
+        background: rgba(0, 255, 136, 0.06);
+        box-shadow: 0 0 22px rgba(0, 255, 136, 0.2);
+      }
+      #btn-no {
+        border: 1px solid rgba(255, 80, 45, 0.25);
+        color: rgba(255, 105, 65, 0.58);
+      }
+      #btn-no:hover {
+        border-color: rgba(255, 80, 45, 0.5);
+        color: rgba(255, 125, 85, 0.88);
+      }
+
+      /* ── ÉCRAN NON ── */
+      #no-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 0, 0, 0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        transition: background 1s ease;
+      }
+      #no-screen.show {
+        background: rgba(0, 0, 0, 0.92);
+        pointer-events: all;
+      }
+      #no-inner {
+        text-align: center;
+        opacity: 0;
+        transform: scale(0.96);
+        transition: opacity 0.8s ease 0.4s, transform 0.8s ease 0.4s;
+      }
+      #no-screen.show #no-inner {
+        opacity: 1;
+        transform: scale(1);
+      }
+      #no-text {
+        font-family: "EB Garamond", serif;
+        font-style: italic;
+        font-size: clamp(17px, 2.5vw, 24px);
+        color: var(--soft);
+        line-height: 2.1;
+        margin-bottom: 30px;
+      }
+      #no-back {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.35em;
+        color: rgba(0, 255, 136, 0.38);
+        background: transparent;
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        padding: 9px 24px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #no-back:hover {
+        color: var(--g);
+        border-color: var(--g);
+      }
+
+      /* ── FLASH + RIDEAU ── */
+      #flash {
+        position: fixed;
+        inset: 0;
+        z-index: 250;
+        background: rgba(0, 255, 136, 0.05);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+      #flash.on {
+        opacity: 1;
+      }
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 400;
+        background: #000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 2s ease;
+      }
+      #curtain.show {
+        opacity: 1;
+      }
+
+      /* ── AUDIO HINT ── */
+      #audio-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 30;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.22);
+        cursor: pointer;
+        transition: color 0.3s;
+      }
+      #audio-btn:hover {
+        color: rgba(0, 255, 136, 0.65);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cursor"></div>
+
+    <!-- Loading -->
+    <div id="loading">
+      <div id="ld-label">CHARGEMENT DE LA TERRE...</div>
+      <div id="ld-track"><div id="ld-fill"></div></div>
+    </div>
+
+    <!-- Fond étoiles -->
+    <canvas id="stars"></canvas>
+
+    <!-- Globe -->
+    <div id="c3d"></div>
+
+    <!-- Vignette -->
+    <div id="vignette"></div>
+
+    <!-- Top UI -->
+    <div id="top-logo">G A Ï A</div>
+    <div id="health-bar">
+      <div class="hb-lbl">VITALITÉ DE GAÏA</div>
+      <div class="hb-track"><div class="hb-fill"></div></div>
+    </div>
+
+    <!-- Panel dialogue -->
+    <div id="panel">
+      <div class="sep" id="p-sep"></div>
+      <div id="text-box">
+        <div id="speaker-row">
+          <span id="speaker-name">G A Ï A</span>
+          <span id="vbars">
+            <span class="vb"></span><span class="vb"></span>
+            <span class="vb"></span><span class="vb"></span>
+            <span class="vb"></span><span class="vb"></span>
+          </span>
+        </div>
+        <div id="dialogue"></div>
+        <span id="tw-cur"></span>
+      </div>
+
+      <div id="name-form">
+        <div id="name-lbl">▸ Entrez votre nom, Gardien</div>
+        <input
+          id="name-input"
+          type="text"
+          placeholder="Votre nom..."
+          maxlength="22"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="name-submit" onclick="submitName()">Confirmer →</button>
+      </div>
+
+      <div id="choices">
+        <button class="cbtn" id="btn-yes" onclick="chooseYes()">
+          ❤ &nbsp;Oui, je suis prêt
+        </button>
+        <button class="cbtn" id="btn-no" onclick="chooseNo()">
+          ✗ &nbsp;Non, c'est trop
+        </button>
+      </div>
+    </div>
+
+    <!-- Écran NON -->
+    <div id="no-screen">
+      <div id="no-inner">
+        <div id="no-text">
+          "Je comprends...<br /><br />La Terre attend ceux<br />qui trouvent le
+          courage.<br /><br />Revenez quand vous serez prêt."
+        </div>
+        <button id="no-back" onclick="returnFromNo()">← Revenir</button>
+      </div>
+    </div>
+
+    <div id="flash"></div>
+    <div id="curtain"></div>
+    <div id="audio-btn" onclick="toggleMute()">🔊 SON</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      /* ═══════════════════════════════════════════════════
+   GAÏA — SCÈNE 2 v4
+   • Vraie Terre NASA, bien proportionnée
+   • Zéro œil
+   • Voix GAÏA + texte PARFAITEMENT synchronisés
+     via Web Speech API boundary events
+   • Audio ambiant amélioré
+   ═══════════════════════════════════════════════════ */
+
+      // ════════════════════════════════════════════
+      // 1. CURSEUR
+      // ════════════════════════════════════════════
+      const cur = document.getElementById("cursor");
+      document.addEventListener("mousemove", (e) => {
+        cur.style.left = e.clientX + "px";
+        cur.style.top = e.clientY + "px";
+      });
+
+      // ════════════════════════════════════════════
+      // 2. AUDIO SYSTEM — ambiance spatiale riche
+      // ════════════════════════════════════════════
+      let audioCtx = null;
+      let isMuted = false;
+      let heartIv = null;
+      let droneNodes = [];
+
+      function initAudio() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      // ── Master compressor (tout passe dedans) ──
+      function getMaster() {
+        if (!audioCtx) return null;
+        if (!window._master) {
+          const comp = audioCtx.createDynamicsCompressor();
+          comp.threshold.value = -18;
+          comp.knee.value = 8;
+          comp.ratio.value = 3;
+          comp.attack.value = 0.003;
+          comp.release.value = 0.25;
+          comp.connect(audioCtx.destination);
+          window._master = comp;
+        }
+        return window._master;
+      }
+
+      // ── Reverb synthétique (convolution simple) ──
+      function makeReverb(duration = 3.5, decay = 2.5) {
+        if (!audioCtx) return null;
+        const sr = audioCtx.sampleRate;
+        const len = sr * duration;
+        const buf = audioCtx.createBuffer(2, len, sr);
+        for (let c = 0; c < 2; c++) {
+          const d = buf.getChannelData(c);
+          for (let i = 0; i < len; i++) {
+            d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+          }
+        }
+        const conv = audioCtx.createConvolver();
+        conv.buffer = buf;
+        return conv;
+      }
+
+      // ── Drone spatial — couches multiples ─────────
+      function playDrone() {
+        if (!audioCtx || isMuted) return;
+        const master = getMaster();
+        const reverb = makeReverb(4, 2.8);
+        reverb.connect(master);
+
+        // Fondamentale + harmoniques + battement
+        const freqs = [36, 54, 72, 108, 36.15]; // léger battement sur le dernier
+        const vols = [0.04, 0.025, 0.015, 0.008, 0.03];
+        const types = ["sine", "sine", "sine", "sine", "sine"];
+
+        freqs.forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          const filt = audioCtx.createBiquadFilter();
+
+          osc.type = types[i];
+          osc.frequency.value = freq;
+          filt.type = "lowpass";
+          filt.frequency.value = 400;
+
+          gain.gain.setValueAtTime(0, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(
+            vols[i],
+            audioCtx.currentTime + 4 + i * 0.5
+          );
+
+          osc.connect(filt);
+          filt.connect(gain);
+          gain.connect(reverb);
+          gain.connect(master); // signal direct + reverb
+          osc.start();
+          droneNodes.push({ osc, gain });
+        });
+
+        // Pad texturé (bruit filtré comme vent stellaire)
+        const noiseLen = audioCtx.sampleRate * 4;
+        const noiseBuf = audioCtx.createBuffer(
+          1,
+          noiseLen,
+          audioCtx.sampleRate
+        );
+        const nd = noiseBuf.getChannelData(0);
+        for (let i = 0; i < noiseLen; i++) nd[i] = Math.random() * 2 - 1;
+
+        const nSrc = audioCtx.createBufferSource();
+        nSrc.buffer = noiseBuf;
+        nSrc.loop = true;
+
+        const nFilt1 = audioCtx.createBiquadFilter();
+        nFilt1.type = "bandpass";
+        nFilt1.frequency.value = 280;
+        nFilt1.Q.value = 0.18;
+
+        const nFilt2 = audioCtx.createBiquadFilter();
+        nFilt2.type = "lowpass";
+        nFilt2.frequency.value = 500;
+
+        const nGain = audioCtx.createGain();
+        nGain.gain.setValueAtTime(0, audioCtx.currentTime);
+        nGain.gain.linearRampToValueAtTime(0.018, audioCtx.currentTime + 5);
+
+        nSrc.connect(nFilt1);
+        nFilt1.connect(nFilt2);
+        nFilt2.connect(nGain);
+        nGain.connect(reverb);
+        nSrc.start();
+      }
+
+      // ── Battement de cœur profond ─────────────────
+      function playHeart() {
+        if (!audioCtx || isMuted) return;
+        const master = getMaster();
+
+        function beat() {
+          if (!audioCtx || isMuted) return;
+
+          // Thump 1 — grave avec distorsion douce
+          function thump(freq, vol, dur, delay) {
+            setTimeout(() => {
+              if (!audioCtx || isMuted) return;
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              const dist = audioCtx.createWaveShaper();
+
+              // Courbe de distorsion douce
+              const curve = new Float32Array(256);
+              for (let i = 0; i < 256; i++) {
+                const x = (i * 2) / 256 - 1;
+                curve[i] = ((Math.PI + 80) * x) / (Math.PI + 80 * Math.abs(x));
+              }
+              dist.curve = curve;
+
+              osc.type = "sine";
+              osc.frequency.value = freq;
+              // Portamento vers le bas (effet organique)
+              osc.frequency.setValueAtTime(freq * 1.2, audioCtx.currentTime);
+              osc.frequency.exponentialRampToValueAtTime(
+                freq * 0.85,
+                audioCtx.currentTime + dur * 0.4
+              );
+
+              gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(
+                0.001,
+                audioCtx.currentTime + dur
+              );
+
+              osc.connect(dist);
+              dist.connect(gain);
+              gain.connect(master);
+              osc.start();
+              osc.stop(audioCtx.currentTime + dur);
+            }, delay);
+          }
+
+          thump(52, 0.55, 0.35, 0); // lub
+          thump(44, 0.32, 0.28, 230); // dub
+        }
+
+        beat();
+        heartIv = setInterval(beat, 1350);
+      }
+
+      // ── Son d'apparition / zoom Terre ─────────────
+      function playZoomSound() {
+        if (!audioCtx || isMuted) return;
+        const master = getMaster();
+        const reverb = makeReverb(3, 2);
+        reverb.connect(master);
+
+        // Swoosh grave vers le haut
+        [40, 60, 90].forEach((start, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(start, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(
+            start * 3.5,
+            audioCtx.currentTime + 1.8
+          );
+          gain.gain.setValueAtTime(0.08 - i * 0.02, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.2);
+          osc.connect(gain);
+          gain.connect(reverb);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 2.2);
+        });
+      }
+
+      // ── Carillon confirmation ────────────────────
+      function playChime() {
+        if (!audioCtx || isMuted) return;
+        const master = getMaster();
+        const reverb = makeReverb(2.5, 1.8);
+        reverb.connect(master);
+
+        [261.6, 329.6, 392.0, 523.3, 659.3].forEach((f, i) => {
+          setTimeout(() => {
+            if (!audioCtx || isMuted) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = i < 3 ? "triangle" : "sine";
+            osc.frequency.value = f;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 1.6
+            );
+            osc.connect(gain);
+            gain.connect(reverb);
+            gain.connect(master);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1.6);
+          }, i * 90);
+        });
+      }
+
+      // ── Carillon final (plus solennel) ───────────
+      function playFinalChime() {
+        if (!audioCtx || isMuted) return;
+        const master = getMaster();
+        const reverb = makeReverb(5, 3);
+        reverb.connect(master);
+        [130.8, 174.6, 196.0, 261.6, 392.0].forEach((f, i) => {
+          setTimeout(() => {
+            if (!audioCtx || isMuted) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = f;
+            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 2.5
+            );
+            osc.connect(gain);
+            gain.connect(reverb);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 2.5);
+          }, i * 140);
+        });
+      }
+
+      function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("audio-btn").textContent = isMuted
+          ? "🔇 MUET"
+          : "🔊 SON";
+        if (!audioCtx) return;
+        isMuted ? audioCtx.suspend() : audioCtx.resume();
+        if (isMuted) {
+          window.speechSynthesis && window.speechSynthesis.cancel();
+          document.getElementById("vbars").classList.remove("on");
+        }
+      }
+
+      // ════════════════════════════════════════════
+      // 3. VOIX GAÏA — synchronisation PARFAITE
+      //    Principe : on découpe le texte en segments
+      //    courts. Pour chaque segment on déclenche
+      //    une utterance ET on tape les caractères
+      //    au même rythme. Les boundary events de
+      //    SpeechSynthesis donnent la position exacte
+      //    du mot prononcé → on affiche jusqu'à là.
+      // ════════════════════════════════════════════
+      const synth = window.speechSynthesis;
+      let currentUtt = null;
+      let typeIv = null;
+
+      function getGaiaVoice() {
+        const voices = synth ? synth.getVoices() : [];
+        if (!voices.length) return null;
+
+        // Ordre de préférence : voix FR native, puis FR quelconque, puis EN féminine
+        const candidates = [
+          voices.find(
+            (v) =>
+              v.lang === "fr-FR" &&
+              /Marie|Amélie|Hortense|Lea|Julie|Audrey/i.test(v.name)
+          ),
+          voices.find((v) => v.lang === "fr-FR"),
+          voices.find((v) => v.lang.startsWith("fr")),
+          voices.find(
+            (v) =>
+              v.lang.startsWith("en") &&
+              /female|samantha|victoria|karen/i.test(v.name)
+          ),
+          voices[0],
+        ];
+        return candidates.find(Boolean) || null;
+      }
+
+      /*
+       * speakSync(text, onWordIndex, onDone)
+       * - Lance la synthèse vocale
+       * - Appelle onWordIndex(charIndex) à chaque mot prononcé
+       * - Appelle onDone quand terminé
+       */
+      function speakSync(text, onWord, onDone) {
+        if (!synth) {
+          if (onDone) onDone();
+          return;
+        }
+        synth.cancel();
+
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "fr-FR";
+        utter.rate = 0.8; // lente et grave
+        utter.pitch = 0.72; // très profonde
+        utter.volume = isMuted ? 0 : 0.92;
+
+        const setVoice = () => {
+          const v = getGaiaVoice();
+          if (v) utter.voice = v;
+        };
+        if (synth.getVoices().length) setVoice();
+        else synth.addEventListener("voiceschanged", setVoice, { once: true });
+
+        // Barres vocales
+        utter.onstart = () => {
+          document.getElementById("vbars").classList.add("on");
+        };
+
+        // boundary : fired à chaque mot — donne charIndex exact
+        utter.onboundary = (e) => {
+          if (e.name === "word" && onWord) {
+            onWord(e.charIndex + e.charLength);
+          }
+        };
+
+        utter.onend = () => {
+          document.getElementById("vbars").classList.remove("on");
+          if (onDone) onDone();
+        };
+        utter.onerror = () => {
+          document.getElementById("vbars").classList.remove("on");
+          if (onDone) onDone();
+        };
+
+        currentUtt = utter;
+        synth.speak(utter);
+      }
+
+      /*
+       * speakAndType(text, onDone)
+       *
+       * MÉCANISME DE SYNCHRONISATION :
+       * • La voix lance speakSync → reçoit charIndex de chaque mot
+       * • Le typewriter affiche les caractères jusqu'au charIndex reçu
+       * • Si la voix n'est pas disponible → fallback typewriter seul
+       */
+      function speakAndType(text, onDone) {
+        const el = document.getElementById("dialogue");
+        const twc = document.getElementById("tw-cur");
+        el.textContent = "";
+        twc.style.display = "inline-block";
+
+        let displayed = 0; // nb caractères affichés
+        let target = 0; // nb caractères cibles (depuis boundary)
+        let voiceDone = false;
+
+        // ── Mode avec voix (boundary sync) ──
+        function advanceToTarget() {
+          if (displayed >= text.length) {
+            twc.style.display = "none";
+            if (voiceDone && onDone) setTimeout(onDone, 500);
+            return;
+          }
+          if (displayed < target) {
+            // Révèle les caractères jusqu'à target, rapidement
+            if (typeIv) clearInterval(typeIv);
+            typeIv = setInterval(() => {
+              if (displayed < target && displayed < text.length) {
+                el.textContent += text[displayed++];
+                el.scrollTop = el.scrollHeight;
+              } else {
+                clearInterval(typeIv);
+                typeIv = null;
+              }
+            }, 22); // rapide pour coller à la voix
+          }
+        }
+
+        speakSync(
+          text,
+          // onWord : reçoit la position du mot en cours
+          (charIdx) => {
+            target = Math.min(charIdx, text.length);
+            advanceToTarget();
+          },
+          // onDone : la voix a fini → afficher le reste
+          () => {
+            voiceDone = true;
+            target = text.length;
+            if (typeIv) clearInterval(typeIv);
+            typeIv = setInterval(() => {
+              if (displayed < text.length) {
+                el.textContent += text[displayed++];
+                el.scrollTop = el.scrollHeight;
+              } else {
+                clearInterval(typeIv);
+                typeIv = null;
+                twc.style.display = "none";
+                if (onDone) setTimeout(onDone, 500);
+              }
+            }, 18);
+          }
+        );
+
+        // ── Fallback : si la voix ne démarre pas dans 1.5s ──
+        // (certains navigateurs chargent les voix lentement)
+        setTimeout(() => {
+          if (
+            displayed === 0 &&
+            document.getElementById("vbars").classList.contains("on") === false
+          ) {
+            // Voix probablement non disponible → typewriter autonome
+            if (typeIv) clearInterval(typeIv);
+            typeIv = setInterval(() => {
+              if (displayed < text.length) {
+                el.textContent += text[displayed++];
+                el.scrollTop = el.scrollHeight;
+              } else {
+                clearInterval(typeIv);
+                twc.style.display = "none";
+                if (onDone) setTimeout(onDone, 500);
+              }
+            }, 32);
+          }
+        }, 1500);
+      }
+
+      function stopVoice() {
+        if (synth) synth.cancel();
+        if (typeIv) {
+          clearInterval(typeIv);
+          typeIv = null;
+        }
+        document.getElementById("vbars").classList.remove("on");
+      }
+
+      // ════════════════════════════════════════════
+      // 4. ÉTOILES
+      // ════════════════════════════════════════════
+      function initStars() {
+        const c = document.getElementById("stars");
+        c.width = innerWidth;
+        c.height = innerHeight;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, c.width, c.height);
+        for (let i = 0; i < 300; i++) {
+          const x = Math.random() * c.width;
+          const y = Math.random() * c.height;
+          const r = Math.random() * 1.05;
+          const o = Math.random() * 0.6 + 0.1;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,255,255,${o})`;
+          ctx.fill();
+        }
+      }
+
+      // ════════════════════════════════════════════
+      // 5. THREE.JS — Vraie Terre NASA bien cadrée
+      // ════════════════════════════════════════════
+      let scene, camera, renderer, earth, clouds, clock;
+      let sc = 0.001,
+        scTarget = 0,
+        op = 0;
+      let camZ = 3.6,
+        camZTarget = 3.6;
+
+      function initThree() {
+        scene = new THREE.Scene();
+
+        // FOV 42° + camZ 3.6 → globe occupe ~35% hauteur écran, bien centré
+        camera = new THREE.PerspectiveCamera(
+          42,
+          innerWidth / innerHeight,
+          0.1,
+          1000
+        );
+        camera.position.z = camZ;
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.setClearColor(0x000000, 0);
+        document.getElementById("c3d").appendChild(renderer.domElement);
+
+        clock = new THREE.Clock();
+
+        const loader = new THREE.TextureLoader();
+        const BASE =
+          "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/";
+        let loaded = 0;
+
+        function onLoad() {
+          loaded++;
+          document.getElementById("ld-fill").style.width =
+            Math.round((loaded / 4) * 100) + "%";
+          if (loaded >= 4) {
+            setTimeout(() => {
+              document.getElementById("loading").classList.add("hide");
+              setTimeout(() => {
+                document.getElementById("loading").style.display = "none";
+                startSequence();
+              }, 1200);
+            }, 400);
+          }
+        }
+
+        const tE = loader.load(
+          BASE + "earth_atmos_2048.jpg",
+          onLoad,
+          undefined,
+          onLoad
+        );
+        const tN = loader.load(
+          BASE + "earth_normal_2048.jpg",
+          onLoad,
+          undefined,
+          onLoad
+        );
+        const tS = loader.load(
+          BASE + "earth_specular_2048.jpg",
+          onLoad,
+          undefined,
+          onLoad
+        );
+        const tC = loader.load(
+          BASE + "earth_clouds_1024.png",
+          onLoad,
+          undefined,
+          onLoad
+        );
+
+        // ── Globe Terre réaliste ──
+        earth = new THREE.Mesh(
+          new THREE.SphereGeometry(1, 64, 64),
+          new THREE.MeshPhongMaterial({
+            map: tE,
+            normalMap: tN,
+            specularMap: tS,
+            specular: new THREE.Color(0x112820),
+            shininess: 16,
+            transparent: true,
+            opacity: 0,
+          })
+        );
+        earth.scale.set(0.001, 0.001, 0.001);
+        earth.rotation.y = -0.3;
+        scene.add(earth);
+
+        // ── Nuages ──
+        clouds = new THREE.Mesh(
+          new THREE.SphereGeometry(1.009, 64, 64),
+          new THREE.MeshPhongMaterial({
+            map: tC,
+            transparent: true,
+            opacity: 0,
+            depthWrite: false,
+          })
+        );
+        clouds.scale.set(0.001, 0.001, 0.001);
+        scene.add(clouds);
+
+        // ── Atmosphère bleue fine et réaliste ──
+        // rayon 1.08 seulement → couche très mince sur le limbe
+        const atmMat = new THREE.ShaderMaterial({
+          uniforms: { uOp: { value: 0 } },
+          vertexShader: `
+      varying vec3 vN,vP;
+      void main(){
+        vN=normalize(normalMatrix*normal);vP=position;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);
+      }`,
+          fragmentShader: `
+      uniform float uOp; varying vec3 vN,vP;
+      void main(){
+        vec3 vd=normalize(cameraPosition-vP);
+        float fr=pow(1.-dot(vN,vd), 6.0);
+        gl_FragColor=vec4(.12,.48,.92, fr*.35*uOp);
+      }`,
+          transparent: true,
+          side: THREE.BackSide,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        });
+        const atm = new THREE.Mesh(
+          new THREE.SphereGeometry(1.08, 32, 32),
+          atmMat
+        );
+        atm.scale.set(0.001, 0.001, 0.001);
+        atm.name = "atm";
+        scene.add(atm);
+
+        // ── Lueur verte GAÏA — ultra discrète, juste le bord ──
+        const glowMat = new THREE.ShaderMaterial({
+          uniforms: { uOp: { value: 0 }, uT: { value: 0 } },
+          vertexShader: `
+      varying vec3 vN,vP;
+      void main(){
+        vN=normalize(normalMatrix*normal);vP=position;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);
+      }`,
+          fragmentShader: `
+      uniform float uOp,uT; varying vec3 vN,vP;
+      void main(){
+        vec3 vd=normalize(cameraPosition-vP);
+        float fr=pow(1.-dot(vN,vd), 8.0);
+        float p=sin(uT*.75)*.03+.97;
+        gl_FragColor=vec4(0.,1.,.52, fr*.12*p*uOp);
+      }`,
+          transparent: true,
+          side: THREE.BackSide,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        });
+        const glow = new THREE.Mesh(
+          new THREE.SphereGeometry(1.1, 32, 32),
+          glowMat
+        );
+        glow.scale.set(0.001, 0.001, 0.001);
+        glow.name = "glow";
+        scene.add(glow);
+
+        // ── Lumières ──
+        // Soleil principal — lumière chaude venant d'un côté
+        const sun = new THREE.DirectionalLight(0xfff2d8, 1.9);
+        sun.position.set(5, 1.5, 3.5);
+        scene.add(sun);
+
+        // Ambiance spatiale — très sombre, légèrement froide
+        scene.add(new THREE.AmbientLight(0x060a14, 0.4));
+
+        // Rim nuit — bord sombre de la Terre
+        const rim = new THREE.DirectionalLight(0x081840, 0.15);
+        rim.position.set(-4, -1, -2);
+        scene.add(rim);
+
+        window.addEventListener("resize", () => {
+          camera.aspect = innerWidth / innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(innerWidth, innerHeight);
+        });
+
+        animate();
+      }
+
+      // ─── BOUCLE D'ANIMATION ─────────────────────
+      function animate() {
+        requestAnimationFrame(animate);
+        const t = clock.getElapsedTime();
+
+        if (scTarget > 0) {
+          sc += (scTarget - sc) * 0.02;
+          op = Math.min(op + 0.006, 1);
+          earth.scale.set(sc, sc, sc);
+          clouds.scale.set(sc, sc, sc);
+          earth.material.opacity = op;
+          clouds.material.opacity = Math.min(op * 0.68, 0.68);
+          ["atm", "glow"].forEach((n) => {
+            const o = scene.getObjectByName(n);
+            if (o) {
+              o.scale.set(sc, sc, sc);
+              o.material.uniforms.uOp.value = op;
+            }
+          });
+        }
+
+        camZ += (camZTarget - camZ) * 0.014;
+        camera.position.z = camZ;
+
+        if (earth) earth.rotation.y = t * 0.058;
+        if (clouds) clouds.rotation.y = t * 0.074;
+
+        const glow = scene.getObjectByName("glow");
+        if (glow) glow.material.uniforms.uT.value = t;
+
+        // Respiration douce de la caméra
+        camera.position.x = Math.sin(t * 0.028) * 0.06;
+        camera.position.y = Math.sin(t * 0.018) * 0.03;
+        camera.lookAt(0, 0, 0);
+
+        renderer.render(scene, camera);
+      }
+
+      // ════════════════════════════════════════════
+      // 6. SÉQUENCE NARRATIVE
+      // ════════════════════════════════════════════
+      function startSequence() {
+        initAudio();
+        playDrone();
+
+        document.getElementById("top-logo").classList.add("show");
+        setTimeout(
+          () => document.getElementById("health-bar").classList.add("show"),
+          700
+        );
+
+        // Terre apparaît
+        scTarget = 1.0;
+        playZoomSound();
+
+        // Zoom progressif vers la Terre
+        setTimeout(() => {
+          camZTarget = 2.0;
+        }, 900);
+
+        // Battement de cœur démarre quand on est bien zoomé
+        setTimeout(() => {
+          playHeart();
+        }, 3200);
+
+        // Dialogue 1 — voix + texte synchronisés
+        setTimeout(() => {
+          document.getElementById("p-sep").classList.add("show");
+          document.getElementById("text-box").classList.add("show");
+
+          const d1 = `Êtes-vous prêt à entrer dans mon corps...
+À voir avec mes yeux...
+À ressentir avec mon cœur ?
+
+Dites-moi votre nom, Gardien...`;
+
+          speakAndType(d1, () => {
+            document.getElementById("name-form").classList.add("show");
+            setTimeout(
+              () => document.getElementById("name-input").focus(),
+              300
+            );
+          });
+        }, 4200);
+      }
+
+      // ─── SOUMETTRE NOM ───────────────────────────
+      function submitName() {
+        const v = document.getElementById("name-input").value.trim();
+        if (!v) {
+          const inp = document.getElementById("name-input");
+          inp.style.borderColor = "rgba(255,55,25,.6)";
+          setTimeout(() => (inp.style.borderColor = ""), 1200);
+          return;
+        }
+        window._playerName = v;
+
+        stopVoice();
+        document.getElementById("name-form").classList.remove("show");
+
+        document.getElementById("flash").classList.add("on");
+        setTimeout(
+          () => document.getElementById("flash").classList.remove("on"),
+          220
+        );
+        playChime();
+
+        camZTarget = 1.85;
+
+        setTimeout(() => {
+          document.getElementById("dialogue").textContent = "";
+          showDialogue2(v);
+        }, 700);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (
+          e.key === "Enter" &&
+          document.getElementById("name-form").classList.contains("show")
+        ) {
+          submitName();
+        }
+      });
+
+      // ─── DIALOGUE 2 ──────────────────────────────
+      function showDialogue2(name) {
+        const d2 = `${name}... Un beau nom. Écoutez-moi attentivement.
+
+Mon corps est un organisme vivant.
+Comme vous, j'ai un cœur qui pompe l'énergie.
+Des poumons qui respirent grâce aux forêts.
+Un système immunitaire qui combat les maladies.
+Des cicatrices de mes blessures passées.
+Un réseau neuronal qui connecte tout.
+Et un subconscient où reposent mes secrets.
+
+Vous allez voyager à travers ces 6 systèmes.
+Dans chacun, vous découvrirez ce qui me fait vivre,
+ce qui me tue, et ce qui peut me sauver.
+
+Mais attention...
+Plus vous avancez, plus vous ressentirez ma douleur.
+
+Êtes-vous assez fort pour porter ce fardeau ?`;
+
+        speakAndType(d2, () => {
+          document.getElementById("choices").classList.add("show");
+        });
+      }
+
+      // ─── OUI ─────────────────────────────────────
+      function chooseYes() {
+        const name = window._playerName || "Gardien";
+        if (heartIv) clearInterval(heartIv);
+        stopVoice();
+        playFinalChime();
+
+        document.getElementById("choices").classList.remove("show");
+        camZTarget = 0.1;
+
+        const farewell = `Alors... Entrons. Bienvenue dans mon monde, ${name}.`;
+        setTimeout(() => {
+          document.getElementById("dialogue").textContent = "";
+          speakAndType(farewell, null);
+        }, 300);
+
+        setTimeout(() => {
+          document.getElementById("curtain").classList.add("show");
+          setTimeout(() => {
+            try {
+              localStorage.setItem("gaiaPlayerName", name);
+            } catch (e) {}
+            window.location.href = "scene3.html";
+          }, 2200);
+        }, 4200);
+      }
+
+      // ─── NON ─────────────────────────────────────
+      function chooseNo() {
+        document.getElementById("no-screen").classList.add("show");
+      }
+      function returnFromNo() {
+        document.getElementById("no-screen").classList.remove("show");
+      }
+
+      // ─── INIT ────────────────────────────────────
+      initStars();
+      initThree();
+    </script>
+  </body>
+</html>
