@@ -397,93 +397,9 @@
       }
 
       /* BADGE */
-      #badge {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0.9);
-        z-index: 40;
-        width: min(480px, 88vw);
-        background: rgba(0, 4, 2, 0.98);
-        border: 1px solid rgba(0, 255, 136, 0.25);
-        backdrop-filter: blur(30px);
-        border-radius: 4px;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.7s ease, transform 0.7s ease;
-      }
-      #badge.show {
+      #btn-enter-wrap.show {
         opacity: 1;
         pointer-events: all;
-        transform: translate(-50%, -50%) scale(1);
-      }
-      #bh {
-        padding: 18px 22px 14px;
-        border-bottom: 1px solid rgba(0, 255, 136, 0.12);
-      }
-      .bht {
-        font-family: "Cinzel", serif;
-        font-size: 9px;
-        letter-spacing: 0.35em;
-        color: rgba(0, 255, 136, 0.7);
-      }
-      #bb {
-        padding: 14px 22px 18px;
-      }
-      .br {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 8px;
-      }
-      .bi {
-        flex-shrink: 0;
-        font-size: 13px;
-        margin-top: 1px;
-      }
-      .bt {
-        font-family: "EB Garamond", serif;
-        font-size: 14px;
-        line-height: 1.55;
-        color: rgba(255, 255, 255, 0.72);
-      }
-      .bsep {
-        height: 1px;
-        background: rgba(0, 255, 136, 0.1);
-        margin: 10px 0;
-      }
-      .brl {
-        font-family: "Cinzel", serif;
-        font-size: 7px;
-        letter-spacing: 0.28em;
-        color: rgba(0, 255, 136, 0.38);
-        margin-bottom: 7px;
-      }
-      .bri {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        margin-bottom: 5px;
-        font-size: 13px;
-        color: rgba(255, 255, 255, 0.7);
-      }
-      #badge-btn {
-        display: block;
-        margin: 14px auto 0;
-        font-family: "Cinzel", serif;
-        font-size: 10px;
-        letter-spacing: 0.3em;
-        color: var(--redbright);
-        background: transparent;
-        border: 1px solid rgba(204, 17, 51, 0.55);
-        padding: 13px 40px;
-        cursor: pointer;
-        transition: all 0.3s;
-        border-radius: 2px;
-      }
-      #badge-btn:hover {
-        background: rgba(204, 17, 51, 0.1);
-        box-shadow: 0 0 40px rgba(204, 17, 51, 0.35);
       }
 
       /* VOIX */
@@ -774,41 +690,41 @@
       <button class="az-close" onclick="closeZoom()">← RETOUR</button>
     </div>
 
-    <!-- BADGE MISSION -->
-    <div id="badge">
-      <div id="bh">
-        <div class="bht">MISSION — RÉTABLIR LE FLUX ÉNERGÉTIQUE</div>
-      </div>
-      <div id="bb">
-        <div class="br">
-          <span class="bi">✅</span
-          ><span class="bt">Diagnostiquer le cœur de Gaïa</span>
-        </div>
-        <div class="br">
-          <span class="bi">⬜</span
-          ><span class="bt">Débloquer ses artères</span>
-        </div>
-        <div class="br">
-          <span class="bi">⬜</span
-          ><span class="bt">Comprendre les énergies fossiles</span>
-        </div>
-        <div class="br">
-          <span class="bi">⬜</span
-          ><span class="bt">Découvrir les alternatives vertes</span>
-        </div>
-        <div class="br">
-          <span class="bi">⬜</span
-          ><span class="bt">Simuler un futur énergétique</span>
-        </div>
-        <div class="bsep"></div>
-        <div class="brl">RÉCOMPENSES</div>
-        <div class="bri">🏆 Badge "Cardiologue de Gaïa"</div>
-        <div class="bri">🔓 Accès au Stage 2 — Poumons</div>
-        <div class="bri">💎 100 – 200 points selon performance</div>
-        <button id="badge-btn" onclick="enterHeart()">
-          🫀 ENTRER DANS LA CHAMBRE DU CŒUR
-        </button>
-      </div>
+    <!-- BOUTON ENTRER — centré, bien visible, apparaît après le discours -->
+    <div
+      id="btn-enter-wrap"
+      style="
+        position: fixed;
+        bottom: 50%;
+        left: 50%;
+        transform: translate(-50%, 50%);
+        z-index: 30;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.8s ease;
+        text-align: center;
+      "
+    >
+      <button
+        onclick="enterHeart()"
+        style="
+          font-family: 'Cinzel', serif;
+          font-size: 12px;
+          letter-spacing: 0.3em;
+          color: #ff2244;
+          background: rgba(0, 3, 1, 0.97);
+          border: 1px solid rgba(204, 17, 51, 0.7);
+          padding: 18px 52px;
+          cursor: pointer;
+          transition: all 0.35s;
+          border-radius: 3px;
+          box-shadow: 0 0 35px rgba(204, 17, 51, 0.25),
+            0 0 80px rgba(204, 17, 51, 0.1);
+          white-space: nowrap;
+        "
+      >
+        🫀 &nbsp;ENTRER DANS LA CHAMBRE DU CŒUR
+      </button>
     </div>
 
     <!-- VOIX -->
@@ -1122,8 +1038,8 @@
           syn.cancel();
           const u = new SpeechSynthesisUtterance(text);
           u.lang = "fr-FR";
-          u.rate = 0.7;
-          u.pitch = 0.62;
+          u.rate = 0.85;
+          u.pitch = 0.78;
           u.volume = 1.0; // voix GAÏA volume MAX
           const sv = () => {
             const v = gv();
@@ -1199,21 +1115,22 @@
       scene.add(heartGroup);
 
       // LUMIÈRES
-      scene.add(new THREE.AmbientLight(0x110004, 0.6));
-      const hrtL = new THREE.PointLight(0xff2244, 5, 25);
+      scene.add(new THREE.AmbientLight(0x220608, 0.85));
+      const hrtL = new THREE.PointLight(0xff2244, 2.5, 18);
       hrtL.position.set(0, 0, 2);
       heartGroup.add(hrtL);
-      const hrtL2 = new THREE.PointLight(0xff6600, 3, 18);
+      const hrtL2 = new THREE.PointLight(0xff6600, 1.5, 14);
       hrtL2.position.set(3, 4, 3);
       scene.add(hrtL2);
-      scene.add(
-        new THREE.DirectionalLight(0x441122, 0.5).position.set(-4, 6, 4)
-      );
-      const greenL = new THREE.PointLight(0x00ff88, 1.5, 16);
+      // Lumière directionnelle principale — révèle la forme 3D
+      const dirL = new THREE.DirectionalLight(0xfff0e0, 1.4);
+      dirL.position.set(-5, 7, 9);
+      scene.add(dirL);
+      const greenL = new THREE.PointLight(0x00ff88, 1.2, 13);
       greenL.position.set(-7, 3, 0);
       scene.add(greenL);
       // Rim light pour donner du volume
-      const rimL = new THREE.DirectionalLight(0xff1133, 0.4);
+      const rimL = new THREE.DirectionalLight(0xff1133, 0.25);
       rimL.position.set(0, -5, -8);
       scene.add(rimL);
 
@@ -1226,33 +1143,34 @@
         vertexShader: `
     uniform float uT,uBeat;
     varying vec3 vN,vP,vWP;varying vec2 vUv;
-    // Fonction de forme de coeur anatomique
     void main(){
       vUv=uv;
       vec3 p=position;
 
-      // ── FORME ANATOMIQUE ──
-      // Indentation septale en haut (sillon entre les deux ventricules)
+      // ── FORME ANATOMIQUE RÉALISTE ──
       float topY=p.y/4.5;
-      float topIndent=smoothstep(.55,1.,topY)*smoothstep(.5,.0,abs(p.x/4.5))*2.2;
+      // Indentation septale — sillon profond entre les 2 ventricules
+      float topIndent=smoothstep(.5,1.,topY)*smoothstep(.55,.0,abs(p.x/4.5))*2.4;
       p.y-=topIndent;
 
-      // Apex pointu en bas
-      float botY=clamp(-p.y/4.5,0.,1.);float botTaper=pow(botY,.6)*1.1;
-      p.x*=1.-botTaper*.35;p.z*=1.-botTaper*.35;
+      // Bosse du ventricule gauche (plus volumineux)
+      float lv=smoothstep(.0,1.,p.x/4.5)*smoothstep(.6,-.6,p.y/4.5)*.55;
+      p+=normalize(p)*lv;
 
-      // Légère asymétrie anatomique (ventricule gauche plus grand)
-      p.x+=smoothstep(-1.,1.,p.x)*.4;
+      // Apex pointu en bas
+      float botY=clamp(-p.y/4.5,0.,1.);
+      p.x*=1.-pow(botY,.7)*.38;p.z*=1.-pow(botY,.7)*.38;
+
+      // Asymétrie anatomique réaliste
+      p.x+=smoothstep(-1.,1.,p.x/4.5)*.5;
 
       // ── BATTEMENT ──
-      float beat=uBeat*(.22+sin(uT*1.4)*.05);
-      p+=normalize(p)*(beat+sin(p.y*2.2+uT*2.8)*.035);
+      float beat=uBeat*(.2+sin(uT*1.5)*.05);
+      p+=normalize(p)*(beat+sin(p.y*2.4+uT*2.6)*.03);
 
       // ── TEXTURE MUSCULAIRE ──
-      // Stries myocardiques (fibres musculaires)
-      float fibre=sin(p.x*6.+uT*.9)*sin(p.y*5.+uT*1.1)*sin(p.z*7.+uT*.7)*.038;
-      // Veines coronaires (sillons)
-      float coronV=sin(atan(p.z,p.x)*8.+uT*.15)*cos(p.y*.8)*.025;
+      float fibre=sin(p.x*7.+uT*.8)*sin(p.y*5.5+uT*1.)*sin(p.z*6.5+uT*.9)*.035;
+      float coronV=sin(atan(p.z,p.x)*9.+uT*.12)*cos(p.y*.9)*.022;
       p+=normalize(p)*(fibre+coronV);
 
       vN=normalize(normalMatrix*normal);vP=p;
@@ -1262,40 +1180,77 @@
         fragmentShader: `
     uniform float uT,uBeat;
     varying vec3 vN,vP,vWP;varying vec2 vUv;
+
+    // Fonction de veine — retourne largeur de veine à cette position UV
+    float veinLine(vec2 uv, vec2 start, vec2 dir, float len, float width){
+      vec2 toP=uv-start;float t=clamp(dot(toP,dir)/len,0.,1.);
+      vec2 closest=start+dir*t*len;
+      return smoothstep(width,width*.3,length(uv-closest));
+    }
+
     void main(){
       vec3 vd=normalize(cameraPosition-vWP);
       float NdotV=dot(vN,vd);
-      float fr=pow(1.-abs(NdotV),.6);
-
-      // Base couleur myocarde (rouge profond)
+      float fr=pow(1.-abs(NdotV),.55);
       float depth=clamp(NdotV,.0,1.);
-      vec3 deepRed=vec3(.55,.03,.05);
-      vec3 surfRed=vec3(.75,.07,.1);
-      vec3 baseCol=mix(deepRed,surfRed,depth);
 
-      // Stries musculaires — réseau fibres
-      float fibres=sin(vUv.x*35.+uT*.6)*sin(vUv.y*28.+uT*.45)*.1+.9;
-      float fibres2=cos(vUv.x*22.-uT*.4)*cos(vUv.y*18.+uT*.3)*.06+.94;
+      // ── BASE MYOCARDE ──
+      vec3 baseCol=mix(vec3(.5,.03,.05),vec3(.78,.08,.11),depth);
+
+      // Fibres musculaires
+      float fibres=sin(vUv.x*38.+uT*.55)*sin(vUv.y*30.+uT*.4)*.1+.9;
+      float fibres2=cos(vUv.x*24.-uT*.35)*cos(vUv.y*20.+uT*.28)*.06+.94;
       baseCol*=fibres*fibres2;
 
-      // Sillons inter-ventriculaires (lignes sombres)
-      float groove=smoothstep(.86,.92,abs(sin(vUv.x*3.14)))*smoothstep(.0,.3,vUv.y);
-      baseCol*=1.-groove*.45;
+      // Sillon inter-ventriculaire
+      float groove=smoothstep(.85,.93,abs(sin(vUv.x*3.14159)))*smoothstep(.0,.35,vUv.y);
+      baseCol*=1.-groove*.5;
 
-      // Reflets spéculaires (surface humide)
-      vec3 lightDir=normalize(vec3(1.,1.5,2.));
-      float spec=pow(max(0.,dot(reflect(-lightDir,vN),vd)),28.)*.55;
-      baseCol+=vec3(spec*.9,spec*.2,spec*.2);
+      // ── VEINES CORONAIRES VERTES (artères saines) ──
+      // Réseau de veines vertes fines — coronaire gauche + branches
+      vec2 uv=vUv;
+      // Artère coronaire gauche descendante (LAD)
+      float vLAD=veinLine(uv,vec2(.5,.72),normalize(vec2(.02,-.8)),.45,.018);
+      // Branches diagonales gauches
+      float vD1 =veinLine(uv,vec2(.52,.58),normalize(vec2(-.6,-.4)),.22,.012);
+      float vD2 =veinLine(uv,vec2(.53,.45),normalize(vec2(-.55,-.35)),.18,.010);
+      // Artère coronaire droite (RCA)
+      float vRCA=veinLine(uv,vec2(.5,.68),normalize(vec2(.7,-.5)),.38,.016);
+      // Branche marginale
+      float vMarg=veinLine(uv,vec2(.68,.5),normalize(vec2(.4,-.7)),.2,.010);
+      // Circonflexe
+      float vCX =veinLine(uv,vec2(.5,.65),normalize(vec2(-.8,-.3)),.3,.014);
+      float greenVeins=max(max(max(vLAD,vD1),max(vD2,vRCA)),max(vMarg,vCX));
+      // Pulsation verte synchronisée battement
+      float greenPulse=.6+sin(uT*2.2+vLAD*8.)*.4;
+      vec3 greenCol=vec3(0.,.88,.35)*greenPulse*(1.+uBeat*.3);
+      // Veines vertes fines et lumineuses
+      baseCol=mix(baseCol,greenCol,greenVeins*.78);
 
-      // Battement — surbrillance rouge
-      float beat=uBeat*.42;
-      baseCol+=vec3(beat*.7,beat*.06,beat*.04);
+      // ── VEINES NOIRES ÉPAISSES (artères fossiles bouchées) ──
+      // Plus larges, sombres, sans pulsation — obstruées
+      float vF1=veinLine(uv,vec2(.38,.65),normalize(vec2(.5,-.5)),.35,.038);
+      float vF2=veinLine(uv,vec2(.62,.6), normalize(vec2(-.4,-.6)),.3,.042);
+      float vF3=veinLine(uv,vec2(.45,.4), normalize(vec2(.3,-.8)),.25,.035);
+      float vF4=veinLine(uv,vec2(.55,.35),normalize(vec2(-.5,-.5)),.2,.040);
+      float blackVeins=max(max(vF1,vF2),max(vF3,vF4));
+      // Plaques de carbone — texture rugueuse sombre
+      float deposit=sin(uv.x*85.)*sin(uv.y*60.)*.08+.92;
+      vec3 blackCol=vec3(.06,.02,.02)*deposit;
+      baseCol=mix(baseCol,blackCol,blackVeins*.88);
+      // Léger halo rouge autour (inflammation)
+      float inflamm=blackVeins*(1.-blackVeins)*.9;
+      baseCol+=vec3(.25,.01,.0)*inflamm;
 
-      // Halo de bord (fresnel)
-      baseCol+=vec3(fr*(.3+uBeat*.5),fr*.04,fr*.02);
+      // ── REFLETS SPÉCULAIRES (surface humide) ──
+      vec3 lDir=normalize(vec3(1.2,1.8,2.5));
+      float spec=pow(max(0.,dot(reflect(-lDir,vN),vd)),32.)*.6;
+      baseCol+=vec3(spec*.88,spec*.18,spec*.18);
 
-      // Ombres profondes dans les sillons
-      baseCol*=(.7+depth*.3)*(1.-fr*.18);
+      // ── EFFETS BATTEMENT ──
+      baseCol+=vec3(uBeat*.38,uBeat*.04,uBeat*.03);
+      baseCol+=vec3(fr*(.28+uBeat*.48),fr*.04,fr*.02);
+      baseCol*=(.68+depth*.32)*(1.-fr*.16);
 
       gl_FragColor=vec4(clamp(baseCol,0.,1.),1.);
     }`,
@@ -1305,18 +1260,18 @@
       const heart = new THREE.Mesh(heartGeo, heartMat);
       heartGroup.add(heart);
 
-      // Halo atmosphérique
+      // Halo atmosphérique — réduit et plus subtil
       const haloMat = new THREE.ShaderMaterial({
         uniforms: { uT: { value: 0 } },
         vertexShader: `varying vec3 vN,vP;void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-        fragmentShader: `uniform float uT;varying vec3 vN,vP;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),4.);float p=sin(uT*2.)*.1+.9;gl_FragColor=vec4(.88,.04,.07,fr*.5*p);}`,
+        fragmentShader: `uniform float uT;varying vec3 vN,vP;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),5.5);float p=sin(uT*2.)*.08+.92;gl_FragColor=vec4(.75,.03,.06,fr*.28*p);}`,
         transparent: true,
         side: THREE.BackSide,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
       heartGroup.add(
-        new THREE.Mesh(new THREE.SphereGeometry(6, 28, 28), haloMat)
+        new THREE.Mesh(new THREE.SphereGeometry(5.5, 28, 28), haloMat)
       );
 
       // ── ARTÈRES ──
@@ -1636,10 +1591,10 @@
         heartGroup.rotation.x = rotX;
         heartGroup.rotation.y = rotY;
 
-        // Lumières pulsent
-        hrtL.intensity = 3 + beat * 6;
-        hrtL2.intensity = 1.5 + beat * 2.5;
-        greenL.intensity = 1.2 + Math.sin(t * 0.7) * 0.4;
+        // Lumières pulsent — doucement
+        hrtL.intensity = 1.8 + beat * 4;
+        hrtL2.intensity = 1.2 + beat * 1.8;
+        greenL.intensity = 1.0 + Math.sin(t * 0.7) * 0.3;
 
         // Artères
         artGroups.forEach((ag, i) => {
@@ -1711,12 +1666,12 @@
         camera.position.y = Math.sin(t * 0.025) * 0.25;
         camera.lookAt(0, 0, 0);
 
-        // Flash rouge battement
+        // Flash rouge battement — discret
         const bo = document.getElementById("bo");
         bo.style.background = `radial-gradient(ellipse at 50% 50%,rgba(${
-          195 + Math.floor(beat * 60)
-        },0,0,${beat * 0.28})0%,transparent 62%)`;
-        bo.style.opacity = beat > 0.08 ? "1" : "0";
+          180 + Math.floor(beat * 50)
+        },0,0,${beat * 0.18})0%,transparent 55%)`;
+        bo.style.opacity = beat > 0.12 ? "1" : "0";
 
         // BPM display
         const bd = Math.floor(bpmVal + Math.sin(t * 2) * 1.5);
@@ -1794,7 +1749,7 @@
       }
 
       // ══════════════════════════════════════════════════
-      // SÉQUENCE NARRATIVE COMPLÈTE
+      // SÉQUENCE NARRATIVE COMPLÈTE — CORRIGÉE
       // ══════════════════════════════════════════════════
       function startScene() {
         initAudio();
@@ -1808,7 +1763,6 @@
           document.getElementById("bpm-live").classList.add("show");
           document.getElementById("diag").classList.add("show");
         }, 1400);
-        // BPM monte légèrement
         let bpmTick = 0;
         const biv = setInterval(() => {
           bpmTick++;
@@ -1816,70 +1770,217 @@
           if (bpmTick > 25) clearInterval(biv);
         }, 500);
 
-        // Voix GAÏA — dialogue complet
         setTimeout(() => {
           const txt = `Sentez-vous cette douleur dans ma poitrine ?
-C'est mon cœur qui lutte pour pomper l'énergie.
+C est mon coeur qui lutte pour pomper l energie.
 
-Pendant 200 ans, j'ai brûlé du charbon, du pétrole, du gaz.
-Ces énergies noires obstruent mes artères.
+Pendant deux cents ans, j ai brule du charbon, du petrole, du gaz.
+Ces energies noires bouchent mes arteres.
 Mon sang ne circule plus correctement.
-Je m'étouffe de l'intérieur.
+Je m etouffe de l interieur.
 
-Regardez... ces artères noires autour de moi.
+Regardez. Ces arteres noires autour de moi.
 Des plaques de carbone partout.
 Elles ralentissent tout.
 
-Mais vous pouvez m'aider.
-Entrez dans mon système cardiovasculaire.
+Mais vous pouvez m aider.
+Entrez dans mon systeme cardiovasculaire.
 Explorez chaque partie.
 Comprenez comment je fonctionne.
-Et trouvez... un moyen de me guérir.`;
+Et trouvez un moyen de me guerir.`;
 
-          speak(txt, () => {
-            // Après le discours → badge
-            setTimeout(
-              () => document.getElementById("badge").classList.add("show"),
-              800
-            );
-          });
-
-          // Au mot "Regardez" (~8s) → zoom sur artère noire
-          setTimeout(() => {
-            camZTarget = 16; // zoom avant
-            setTimeout(() => showZoom(), 1200);
+          const regardezIdx = txt.indexOf("Regardez");
+          speakWithZoom(txt, regardezIdx, () => {
+            // ✅ CALLBACK : bouton entrer s'affiche après le discours
             setTimeout(() => {
-              camZTarget = 24;
-            }, 5000); // dezoom après
-          }, 9500);
+              const btn = document.getElementById("btn-enter-wrap");
+              if (btn) {
+                btn.style.opacity = "1";
+                btn.style.pointerEvents = "all";
+              }
+            }, 600);
+          });
         }, 2500);
       }
 
-      // ── ENTRER DANS LE CŒUR — Transition lumière ──
+      // ══════════════════════════════════════════════════
+      // speakWithZoom — CORRIGÉ : callback garanti
+      // ══════════════════════════════════════════════════
+      function speakWithZoom(text, zoomCharIdx, onDone) {
+        const el = document.getElementById("vtx"),
+          cu = document.getElementById("twc");
+        el.textContent = "";
+        cu.style.display = "inline-block";
+        document.getElementById("vs").classList.add("show");
+        document.getElementById("vbox").classList.add("show");
+
+        let disp = 0,
+          tgt = 0,
+          voiceDone = false,
+          zoomTriggered = false,
+          callbackCalled = false;
+
+        function callDone() {
+          if (callbackCalled) return;
+          callbackCalled = true;
+          cu.style.display = "none";
+          // Masquer le panel voix GAÏA
+          const vbox = document.getElementById("vbox");
+          const vs = document.getElementById("vs");
+          if (vbox) {
+            vbox.style.transition = "opacity .8s ease";
+            vbox.style.opacity = "0";
+            setTimeout(() => {
+              vbox.classList.remove("show");
+              vbox.style.opacity = "";
+              vbox.style.transition = "";
+            }, 800);
+          }
+          if (vs) vs.classList.remove("show");
+          if (onDone) setTimeout(onDone, 400);
+        }
+
+        function doZoom() {
+          if (zoomTriggered) return;
+          zoomTriggered = true;
+          triggerArteryZoom();
+        }
+
+        function tick() {
+          if (typeIv) clearInterval(typeIv);
+          typeIv = setInterval(() => {
+            if (disp < tgt && disp < text.length) {
+              el.textContent += text[disp++];
+              el.scrollTop = el.scrollHeight;
+              if (!zoomTriggered && disp >= zoomCharIdx) doZoom();
+            } else {
+              clearInterval(typeIv);
+              typeIv = null;
+              if (disp >= text.length && voiceDone) callDone();
+            }
+          }, 22);
+        }
+
+        // Fallback automatique : si voix pas disponible après 1.8s
+        let fallbackIv = null;
+        const fallbackTimer = setTimeout(() => {
+          if (
+            disp === 0 &&
+            !document.getElementById("vbr").classList.contains("on")
+          ) {
+            // Mode typewriter seul — fiable
+            voiceDone = true;
+            if (typeIv) clearInterval(typeIv);
+            let fi = 0;
+            fallbackIv = setInterval(() => {
+              if (fi < text.length) {
+                el.textContent += text[fi++];
+                el.scrollTop = el.scrollHeight;
+                if (!zoomTriggered && fi >= zoomCharIdx) doZoom();
+              } else {
+                clearInterval(fallbackIv);
+                callDone();
+              }
+            }, 30);
+          }
+        }, 1800);
+
+        if (syn && !isMuted) {
+          syn.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = "fr-FR";
+          u.rate = 0.85;
+          u.pitch = 0.78;
+          u.volume = 1.0;
+          const sv = () => {
+            const v = gv();
+            if (v) u.voice = v;
+          };
+          syn.getVoices().length
+            ? sv()
+            : syn.addEventListener("voiceschanged", sv, { once: true });
+
+          u.onstart = () => {
+            document.getElementById("vbr").classList.add("on");
+            clearTimeout(fallbackTimer); // voix ok, annuler fallback
+          };
+          u.onboundary = (e) => {
+            if (e.name === "word") {
+              tgt = Math.min(e.charIndex + e.charLength, text.length);
+              tick();
+              if (!zoomTriggered && e.charIndex >= zoomCharIdx) doZoom();
+            }
+          };
+          u.onend = () => {
+            document.getElementById("vbr").classList.remove("on");
+            voiceDone = true;
+            // Finir d'afficher le texte restant
+            tgt = text.length;
+            if (typeIv) clearInterval(typeIv);
+            typeIv = setInterval(() => {
+              if (disp < text.length) {
+                el.textContent += text[disp++];
+                el.scrollTop = el.scrollHeight;
+              } else {
+                clearInterval(typeIv);
+                callDone();
+              }
+            }, 18);
+          };
+          u.onerror = () => {
+            document.getElementById("vbr").classList.remove("on");
+            voiceDone = true;
+            tgt = text.length;
+            tick();
+            // Garantir le callback même en cas d'erreur
+            setTimeout(() => callDone(), 3000);
+          };
+          syn.speak(u);
+        }
+      }
+
+      // Zoom artère — déclenché exactement au mot "Regardez"
+      function triggerArteryZoom() {
+        camZTarget = 15;
+        setTimeout(() => {
+          showZoom();
+          setTimeout(() => {
+            camZTarget = 24;
+            setTimeout(() => closeZoom(), 3500);
+          }, 4500);
+        }, 800);
+      }
+
+      // ── ENTRER DANS LE CŒUR — Badge d'abord, puis transition lumière ──
       function enterHeart() {
+        // Masquer le bouton
+        const btn = document.getElementById("btn-enter-wrap");
+        if (btn) {
+          btn.style.opacity = "0";
+          btn.style.pointerEvents = "none";
+        }
+
+        // Stopper audio + voix
         if (_hbIv) clearInterval(_hbIv);
         if (syn) syn.cancel();
-        document.getElementById("badge").classList.remove("show");
 
-        // Zoom avant rapide
-        camZTarget = 2;
+        // Zoom avant cinématique
+        camZTarget = 4;
         autoRot = false;
 
-        // Lumière chaude qui monte du fond
+        // Lumière monte du fond
         const light = document.getElementById("transition-light");
         let la = 0;
         const lightIv = setInterval(() => {
-          la = Math.min(la + 0.04, 1);
+          la = Math.min(la + 0.025, 1);
           light.style.opacity = la;
-          if (la >= 1) {
-            clearInterval(lightIv);
-          }
+          if (la >= 1) clearInterval(lightIv);
         }, 16);
 
-        // Rideau
+        // Rideau noir + transition
         setTimeout(() => {
           const cu = document.getElementById("curtain");
-          cu.style.transition = "opacity 2s ease";
+          cu.style.transition = "opacity 2.2s ease";
           cu.classList.remove("gone");
           cu.style.opacity = "1";
           setTimeout(() => {
@@ -1888,7 +1989,7 @@ Et trouvez... un moyen de me guérir.`;
               localStorage.setItem("gaiaScore", (score + 100).toString());
             } catch (e) {}
             window.location.href = "scene5.html";
-          }, 2200);
+          }, 2400);
         }, 2000);
       }
 
