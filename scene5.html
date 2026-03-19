@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>GAÏA — Scène 5 : Chambre du Cœur</title>
+    <title>GAÏA — Scène 5 : Chambre Cardiovasculaire</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
       rel="stylesheet"
@@ -42,7 +42,6 @@
         }
       }
 
-      /* CURSEUR */
       #cur {
         position: fixed;
         width: 16px;
@@ -66,57 +65,58 @@
         border-radius: 50%;
       }
       #cur.aim {
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         border-color: #ff6688;
-        box-shadow: 0 0 14px #ff6688;
-        background: rgba(255, 102, 136, 0.05);
+        box-shadow: 0 0 18px #ff6688;
       }
-      #cur.aim::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 3px;
-        height: 14px;
-        background: rgba(255, 102, 136, 0.7);
+      #cur.aim::after {
+        width: 18px;
+        height: 2px;
+        border-radius: 0;
       }
 
-      /* CANVASES */
-      #c3d {
+      /* ── CANVASES : 3D plein écran, minimap taille fixe ── */
+      #c3d,
+      #smoke-canvas,
+      #particle-canvas {
         position: fixed;
-        inset: 0;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+      }
+      #c3d {
         z-index: 1;
       }
       #smoke-canvas {
-        position: fixed;
-        inset: 0;
         z-index: 2;
         pointer-events: none;
       }
       #particle-canvas {
-        position: fixed;
-        inset: 0;
         z-index: 3;
         pointer-events: none;
       }
+      /* FIX MINIMAP — jamais plein écran */
+      #mm-c {
+        position: static !important;
+        width: 120px !important;
+        height: 120px !important;
+        display: block;
+      }
 
-      /* VIGNETTE */
       #vig {
         position: fixed;
         inset: 0;
         z-index: 4;
         pointer-events: none;
         background: radial-gradient(
-          ellipse 90% 90% at 50% 50%,
-          transparent 20%,
-          rgba(0, 0, 0, 0.18) 55%,
-          rgba(0, 0, 0, 0.9) 100%
+          ellipse 80% 80% at 50%50%,
+          transparent 18%,
+          rgba(0, 0, 0, 0.15) 50%,
+          rgba(0, 0, 0, 0.92) 100%
         );
       }
-
-      /* OVERLAYS */
       #bo {
         position: fixed;
         inset: 0;
@@ -127,7 +127,7 @@
       #curtain {
         position: fixed;
         inset: 0;
-        z-index: 500;
+        z-index: 600;
         background: #000;
         opacity: 1;
         pointer-events: none;
@@ -135,16 +135,250 @@
       }
       #curtain.gone {
         opacity: 0;
-      }
-      #fl {
-        position: fixed;
-        inset: 0;
-        z-index: 6;
         pointer-events: none;
-        opacity: 0;
       }
 
-      /* ── HUD TOP ── */
+      /* ══ MISSION SCREEN ══ */
+      #mission-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 150;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 3, 1, 0.88);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+      }
+      #mission-screen.show {
+        opacity: 1;
+      }
+      .ms-box {
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        background: rgba(0, 8, 3, 0.96);
+        backdrop-filter: blur(20px);
+        border-radius: 4px;
+        padding: 32px 42px 28px;
+        max-width: 500px;
+        width: 88vw;
+        box-shadow: 0 0 60px rgba(0, 255, 136, 0.1);
+      }
+      .ms-top {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.45em;
+        color: rgba(0, 255, 136, 0.4);
+        margin-bottom: 4px;
+      }
+      .ms-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(13px, 2vw, 17px);
+        font-weight: 900;
+        letter-spacing: 0.2em;
+        color: var(--g);
+        margin-bottom: 18px;
+        text-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+      }
+      .ms-div {
+        height: 1px;
+        background: rgba(0, 255, 136, 0.14);
+        margin: 0 0 16px;
+      }
+      .ms-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.7vw, 16px);
+        color: rgba(255, 255, 255, 0.72);
+        line-height: 1.55;
+      }
+      .ms-ic {
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .ms-div2 {
+        height: 1px;
+        background: rgba(0, 255, 136, 0.07);
+        margin: 14px 0;
+      }
+      .ms-rtitle {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.35em;
+        color: rgba(0, 255, 136, 0.38);
+        margin-bottom: 8px;
+      }
+      .ms-rew {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 7px;
+        font-family: "EB Garamond", serif;
+        font-size: clamp(12px, 1.6vw, 15px);
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .ms-bar {
+        width: 100%;
+        height: 3px;
+        background: rgba(0, 255, 136, 0.1);
+        border-radius: 2px;
+        margin-top: 18px;
+        overflow: hidden;
+      }
+      .ms-bar-fill {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, var(--g), rgba(0, 255, 136, 0.3));
+        border-radius: 2px;
+        transition: width 0.05s linear;
+      }
+
+      /* ══ GUIDE SCREEN ══ */
+      #guide-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 140;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 2, 1, 0.82);
+        backdrop-filter: blur(8px);
+        opacity: 0;
+        transition: opacity 0.7s ease;
+        pointer-events: none;
+      }
+      #guide-screen.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .gs-wrap {
+        max-width: 700px;
+        width: 92vw;
+      }
+      .gs-header {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.45em;
+        color: rgba(204, 17, 51, 0.45);
+        text-align: center;
+        margin-bottom: 6px;
+      }
+      .gs-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(18px, 3vw, 26px);
+        font-weight: 900;
+        color: var(--rb);
+        letter-spacing: 0.15em;
+        text-align: center;
+        margin-bottom: 22px;
+        text-shadow: 0 0 30px rgba(255, 34, 68, 0.4);
+      }
+      .gs-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .gs-card {
+        background: rgba(0, 4, 2, 0.92);
+        border: 1px solid rgba(204, 17, 51, 0.16);
+        border-radius: 4px;
+        padding: 15px 16px;
+      }
+      .gs-ctitle {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.32em;
+        color: rgba(204, 17, 51, 0.5);
+        margin-bottom: 9px;
+      }
+      .gs-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin-bottom: 7px;
+        font-family: "EB Garamond", serif;
+        font-size: clamp(12px, 1.5vw, 14px);
+        color: rgba(255, 255, 255, 0.68);
+        line-height: 1.5;
+      }
+      .gs-key {
+        background: rgba(204, 17, 51, 0.13);
+        border: 1px solid rgba(204, 17, 51, 0.28);
+        padding: 2px 7px;
+        border-radius: 2px;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.12em;
+        color: rgba(255, 160, 160, 0.8);
+        flex-shrink: 0;
+      }
+      .gs-leg {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+      .gs-litem {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: "EB Garamond", serif;
+        font-size: clamp(11px, 1.4vw, 13px);
+        color: rgba(255, 255, 255, 0.58);
+      }
+      .gs-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .gs-btns {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      #gs-understand {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.28em;
+        color: rgba(255, 255, 255, 0.5);
+        background: rgba(0, 5, 2, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 11px 28px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 2px;
+      }
+      #gs-understand:hover {
+        border-color: rgba(255, 255, 255, 0.25);
+        color: rgba(255, 255, 255, 0.75);
+      }
+      #gs-play {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: var(--rb);
+        background: rgba(0, 3, 1, 0.97);
+        border: 1px solid rgba(204, 17, 51, 0.6);
+        padding: 12px 42px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 2px;
+        box-shadow: 0 0 28px rgba(204, 17, 51, 0.15);
+      }
+      #gs-play:hover {
+        background: rgba(204, 17, 51, 0.12);
+        box-shadow: 0 0 45px rgba(204, 17, 51, 0.4);
+      }
+
+      /* ══ HUD TOP ══ */
       #hud-top {
         position: fixed;
         top: 0;
@@ -181,7 +415,7 @@
         color: rgba(204, 17, 51, 0.4);
       }
 
-      /* ── BPM + TIMER (gauche) ── */
+      /* ══ LEFT STATS ══ */
       #left-stats {
         position: fixed;
         top: 52px;
@@ -193,7 +427,7 @@
       #left-stats.show {
         opacity: 1;
       }
-      .ls-block {
+      .ls-b {
         margin-bottom: 10px;
       }
       .ls-lbl {
@@ -213,12 +447,6 @@
         -webkit-text-fill-color: transparent;
         filter: drop-shadow(0 0 10px rgba(255, 34, 68, 0.5));
       }
-      .ls-val.green {
-        background: linear-gradient(135deg, #00ff88, #00aa44);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
-      }
       #timer-bar {
         width: 100px;
         height: 2px;
@@ -235,8 +463,8 @@
         transition: width 0.8s linear;
       }
 
-      /* ── ÉNERGIE VERTE (droite) ── */
-      #energy-panel {
+      /* ══ ENERGY ══ */
+      #ep {
         position: fixed;
         top: 52px;
         right: 24px;
@@ -250,7 +478,7 @@
         opacity: 0;
         transition: opacity 1s ease;
       }
-      #energy-panel.show {
+      #ep.show {
         opacity: 1;
       }
       .ep-title {
@@ -260,7 +488,7 @@
         color: rgba(0, 255, 136, 0.55);
         margin-bottom: 6px;
       }
-      .ep-bar-wrap {
+      .ep-bw {
         width: 100%;
         height: 10px;
         background: rgba(0, 255, 136, 0.08);
@@ -291,8 +519,8 @@
         margin-top: 2px;
       }
 
-      /* ── PLAQUES HUD (droite bas) ── */
-      #plaque-panel {
+      /* ══ PLAQUES HUD ══ */
+      #pp {
         position: fixed;
         top: 175px;
         right: 24px;
@@ -306,17 +534,17 @@
         opacity: 0;
         transition: opacity 0.8s ease;
       }
-      #plaque-panel.show {
+      #pp.show {
         opacity: 1;
       }
-      .pp-title {
+      .pp-t {
         font-family: "Cinzel", serif;
         font-size: 7px;
         letter-spacing: 0.32em;
         color: rgba(204, 17, 51, 0.5);
         margin-bottom: 8px;
       }
-      #plaque-dots {
+      #plq-dots {
         display: flex;
         flex-wrap: wrap;
         gap: 5px;
@@ -353,8 +581,8 @@
         margin-top: 6px;
       }
 
-      /* ── MINIMAP ── */
-      #minimap-wrap {
+      /* ══ MINIMAP ══ */
+      #mmw {
         position: fixed;
         bottom: 24px;
         right: 24px;
@@ -362,10 +590,10 @@
         opacity: 0;
         transition: opacity 0.8s ease;
       }
-      #minimap-wrap.show {
+      #mmw.show {
         opacity: 1;
       }
-      .mm-title {
+      .mm-t {
         font-family: "Cinzel", serif;
         font-size: 7px;
         letter-spacing: 0.28em;
@@ -373,99 +601,105 @@
         margin-bottom: 5px;
         text-align: center;
       }
-      #mm-canvas {
-        border-radius: 50%;
-        border: 1px solid rgba(204, 17, 51, 0.2);
-        display: block;
-      }
 
-      /* ── INSTRUCTIONS ── */
-      #instructions {
-        position: fixed;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 20;
-        width: min(640px, 92vw);
-        background: var(--ui);
-        border: 1px solid rgba(204, 17, 51, 0.16);
-        backdrop-filter: blur(18px);
-        border-radius: 3px;
-        padding: 14px 24px;
-        text-align: center;
-        opacity: 0;
-        transition: opacity 0.8s ease;
-      }
-      #instructions.show {
-        opacity: 1;
-      }
-      .ins-main {
-        font-family: "Cinzel", serif;
-        font-size: 9px;
-        letter-spacing: 0.3em;
-        color: rgba(255, 200, 180, 0.75);
-        margin-bottom: 4px;
-      }
-      .ins-sub {
-        font-family: "EB Garamond", serif;
-        font-size: 13px;
-        color: rgba(255, 255, 255, 0.45);
-      }
-      .ins-key {
-        display: inline-block;
-        background: rgba(204, 17, 51, 0.15);
-        border: 1px solid rgba(204, 17, 51, 0.3);
-        padding: 1px 6px;
-        border-radius: 2px;
-        font-family: "Cinzel", serif;
-        font-size: 9px;
-        letter-spacing: 0.15em;
-        color: rgba(255, 150, 150, 0.8);
-      }
-
-      /* ── HINT POINTER LOCK ── */
-      #lock-hint {
+      /* ══ CROSSHAIR ══ */
+      #xh {
         position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 25;
-        text-align: center;
-        opacity: 0;
-        transition: opacity 0.6s ease;
         pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
       }
-      #lock-hint.show {
+      #xh.show {
         opacity: 1;
       }
-      .lh-text {
-        font-family: "Cinzel", serif;
-        font-size: 12px;
-        letter-spacing: 0.35em;
-        color: rgba(204, 17, 51, 0.8);
-        padding: 16px 32px;
-        background: var(--ui);
-        border: 1px solid rgba(204, 17, 51, 0.3);
-        border-radius: 3px;
-        animation: pulse-border 2s ease infinite;
+      .xh-h {
+        position: absolute;
+        width: 18px;
+        height: 1.5px;
+        background: rgba(255, 102, 136, 0.7);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
       }
-      @keyframes pulse-border {
+      .xh-v {
+        position: absolute;
+        width: 1.5px;
+        height: 18px;
+        background: rgba(255, 102, 136, 0.7);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .xh-c {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #ff6688;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #aim-d {
+        position: fixed;
+        top: calc(50% + 24px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 26;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.3em;
+        color: rgba(255, 102, 136, 0.65);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        white-space: nowrap;
+      }
+      #aim-d.show {
+        opacity: 1;
+      }
+
+      /* ══ EXPLORE HINT — discret, pendant narration ══ */
+      #explore-hint {
+        position: fixed;
+        bottom: 130px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 26;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.35em;
+        color: rgba(204, 17, 51, 0.5);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+        white-space: nowrap;
+        animation: ehpulse 2.5s ease-in-out infinite;
+      }
+      #explore-hint.show {
+        opacity: 1;
+      }
+      @keyframes ehpulse {
         0%,
         100% {
-          box-shadow: 0 0 0 rgba(204, 17, 51, 0);
+          opacity: 0.35;
         }
         50% {
-          box-shadow: 0 0 20px rgba(204, 17, 51, 0.35);
+          opacity: 0.7;
         }
       }
 
-      /* ── VOIX GAÏA ── */
+      /* ══ VOIX GAÏA ══ */
       #vp {
         position: fixed;
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 25;
+        z-index: 35;
         width: min(720px, 92vw);
         padding: 0 0 20px;
         display: flex;
@@ -605,7 +839,7 @@
         }
       }
 
-      /* ── CRACK FX ── */
+      /* ══ CRACK FX ══ */
       #crack-fx {
         position: fixed;
         pointer-events: none;
@@ -636,7 +870,7 @@
         }
       }
 
-      /* ── ÉCRAN SUCCÈS ── */
+      /* ══ SUCCESS ══ */
       #success-screen {
         position: fixed;
         inset: 0;
@@ -658,9 +892,9 @@
       .ss-icon {
         font-size: 56px;
         margin-bottom: 12px;
-        animation: icon-float 3s ease-in-out infinite;
+        animation: ifloat 3s ease-in-out infinite;
       }
-      @keyframes icon-float {
+      @keyframes ifloat {
         0%,
         100% {
           transform: translateY(0);
@@ -685,7 +919,7 @@
         color: rgba(255, 255, 255, 0.55);
         margin-bottom: 16px;
       }
-      #ss-gaia-txt {
+      #ss-txt {
         font-family: "EB Garamond", serif;
         font-size: clamp(14px, 1.8vw, 18px);
         color: rgba(255, 255, 255, 0.72);
@@ -702,7 +936,7 @@
         filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.6));
         margin-bottom: 14px;
       }
-      .ss-badge-box {
+      .ss-badge {
         display: inline-flex;
         align-items: center;
         gap: 10px;
@@ -734,7 +968,7 @@
         box-shadow: 0 0 45px rgba(204, 17, 51, 0.4);
       }
 
-      /* ── ÉCRAN ÉCHEC ── */
+      /* ══ FAIL ══ */
       #fail-screen {
         position: fixed;
         inset: 0;
@@ -756,9 +990,9 @@
       .fs-icon {
         font-size: 50px;
         margin-bottom: 14px;
-        animation: shake 1.5s ease-in-out infinite;
+        animation: shk 1.5s ease-in-out infinite;
       }
-      @keyframes shake {
+      @keyframes shk {
         0%,
         100% {
           transform: translateX(0);
@@ -804,7 +1038,6 @@
         box-shadow: 0 0 40px rgba(204, 17, 51, 0.35);
       }
 
-      /* AUDIO */
       #ab {
         position: fixed;
         bottom: 18px;
@@ -826,78 +1059,176 @@
   </head>
   <body>
     <div id="cur"></div>
+
+    <!-- 3D toujours en fond -->
     <canvas id="c3d"></canvas>
     <canvas id="smoke-canvas"></canvas>
     <canvas id="particle-canvas"></canvas>
     <div id="vig"></div>
     <div id="bo"></div>
-    <div id="fl"></div>
 
-    <!-- HUD TOP -->
+    <!-- MISSION SCREEN -->
+    <div id="mission-screen">
+      <div class="ms-box">
+        <div class="ms-top">GAÏA — STAGE 1</div>
+        <div class="ms-title">MISSION : RÉTABLIR LE FLUX ÉNERGÉTIQUE</div>
+        <div class="ms-div"></div>
+        <div class="ms-item">
+          <span class="ms-ic">✅</span
+          ><span>Diagnostiquer le cœur de Gaïa</span>
+        </div>
+        <div class="ms-item">
+          <span class="ms-ic">✅</span
+          ><span>Débloquer les artères obstruées</span>
+        </div>
+        <div class="ms-item">
+          <span class="ms-ic">✅</span
+          ><span>Comprendre les énergies fossiles</span>
+        </div>
+        <div class="ms-item">
+          <span class="ms-ic">✅</span
+          ><span>Découvrir les alternatives vertes</span>
+        </div>
+        <div class="ms-item">
+          <span class="ms-ic">✅</span
+          ><span>Simuler un futur énergétique durable</span>
+        </div>
+        <div class="ms-div2"></div>
+        <div class="ms-rtitle">RÉCOMPENSES</div>
+        <div class="ms-rew">
+          <span>🏆</span><span>Badge "Cardiologue de Gaïa"</span>
+        </div>
+        <div class="ms-rew">
+          <span>🔓</span><span>Accès au Stage 2 — Poumons</span>
+        </div>
+        <div class="ms-rew">
+          <span>💎</span><span>100 à 200 points selon performance</span>
+        </div>
+        <div class="ms-bar"><div class="ms-bar-fill" id="ms-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- GUIDE SCREEN — apparaît APRÈS Gaïa -->
+    <div id="guide-screen">
+      <div class="gs-wrap">
+        <div class="gs-header">GAÏA — CHAMBRE CARDIOVASCULAIRE</div>
+        <div class="gs-title">GUIDE DU CARDIOLOGUE</div>
+        <div class="gs-cols">
+          <div class="gs-card">
+            <div class="gs-ctitle">CONTRÔLES</div>
+            <div class="gs-row">
+              <span class="gs-key">W A S D</span
+              ><span>Se déplacer dans la chambre</span>
+            </div>
+            <div class="gs-row">
+              <span class="gs-key">SOURIS</span
+              ><span>Regarder autour de vous</span>
+            </div>
+            <div class="gs-row">
+              <span class="gs-key">CLIC</span
+              ><span>Arracher une plaque noire</span>
+            </div>
+          </div>
+          <div class="gs-card">
+            <div class="gs-ctitle">OBJECTIF</div>
+            <div class="gs-row">
+              <span>🔴</span><span>10 plaques noires bloquent les artères</span>
+            </div>
+            <div class="gs-row">
+              <span>👁️</span><span>Certaines sont cachées dans les replis</span>
+            </div>
+            <div class="gs-row">
+              <span>⏱️</span><span>2 minutes avant arrêt cardiaque</span>
+            </div>
+          </div>
+        </div>
+        <div class="gs-card" style="margin-bottom: 14px">
+          <div class="gs-ctitle">TYPES DE PLAQUES</div>
+          <div class="gs-leg">
+            <div class="gs-litem">
+              <div
+                class="gs-dot"
+                style="background: #ff4444; box-shadow: 0 0 6px #ff4444"
+              ></div>
+              <span>🔴 Facile — grande, immobile</span>
+            </div>
+            <div class="gs-litem">
+              <div
+                class="gs-dot"
+                style="background: #ffaa33; box-shadow: 0 0 6px #ffaa33"
+              ></div>
+              <span>🟠 Moyen — se déplacent</span>
+            </div>
+            <div class="gs-litem">
+              <div
+                class="gs-dot"
+                style="background: #ff6644; box-shadow: 0 0 6px #ff8866"
+              ></div>
+              <span>🔥 Difficile — petites, cachées</span>
+            </div>
+          </div>
+        </div>
+        <div class="gs-btns">
+          <button id="gs-understand" onclick="closeGuide()">
+            ✓ &nbsp;J'AI COMPRIS
+          </button>
+          <button id="gs-play" onclick="launchGame()">🫀 &nbsp;JOUER</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUD -->
     <div id="hud-top">
       <div class="ht-l">G A Ï A</div>
       <div class="ht-c">C H A M B R E — C A R D I O V A S C U L A I R E</div>
       <div class="ht-r"><span id="sv">SCORE : 100</span></div>
     </div>
-
-    <!-- STATS GAUCHE -->
     <div id="left-stats">
-      <div class="ls-block">
+      <div class="ls-b">
         <div class="ls-lbl">BPM</div>
         <div class="ls-val" id="bpm-val">85</div>
       </div>
-      <div class="ls-block">
+      <div class="ls-b">
         <div class="ls-lbl">TIMER</div>
         <div class="ls-val" id="timer-val">2:00</div>
         <div id="timer-bar"><div id="timer-fill"></div></div>
       </div>
     </div>
-
-    <!-- ÉNERGIE VERTE -->
-    <div id="energy-panel">
+    <div id="ep">
       <div class="ep-title">ÉNERGIE VERTE DE GAÏA</div>
-      <div class="ep-bar-wrap"><div class="ep-fill" id="ep-fill"></div></div>
+      <div class="ep-bw"><div class="ep-fill" id="ep-fill"></div></div>
       <div class="ep-pct" id="ep-pct">38%</div>
       <div class="ep-sub">OBJECTIF : 80%</div>
     </div>
-
-    <!-- PLAQUES HUD -->
-    <div id="plaque-panel">
-      <div class="pp-title">
+    <div id="pp">
+      <div class="pp-t">
         PLAQUES À RETIRER — <span id="plq-count">10</span> / 10
       </div>
-      <div id="plaque-dots"></div>
-      <div class="pd-diff">🔴 Facile &nbsp; 🟠 Moyen &nbsp; 🔥 Difficile</div>
+      <div id="plq-dots"></div>
+      <div class="pd-diff">🔴 Facile &nbsp;🟠 Moyen &nbsp;🔥 Difficile</div>
+    </div>
+    <div id="mmw">
+      <div class="mm-t">LOCALISATION</div>
+      <canvas id="mm-c" width="120" height="120"></canvas>
     </div>
 
-    <!-- MINIMAP -->
-    <div id="minimap-wrap">
-      <div class="mm-title">LOCALISATION</div>
-      <canvas id="mm-canvas" width="120" height="120"></canvas>
+    <!-- CROSSHAIR -->
+    <div id="xh">
+      <div class="xh-h"></div>
+      <div class="xh-v"></div>
+      <div class="xh-c"></div>
     </div>
+    <div id="aim-d"></div>
+    <!-- Hint exploration pendant narration -->
+    <div id="explore-hint">CLIQUER · WASD POUR EXPLORER</div>
 
-    <!-- INSTRUCTIONS -->
-    <div id="instructions">
-      <div class="ins-main">MINI-JEU — ARRACHEZ LES PLAQUES NOIRES</div>
-      <div class="ins-sub">
-        <span class="ins-key">WASD</span> Déplacer &nbsp;·&nbsp;
-        <span class="ins-key">SOURIS</span> Regarder &nbsp;·&nbsp;
-        <span class="ins-key">CLIC GAUCHE</span> Arracher une plaque
-      </div>
-    </div>
-
-    <!-- HINT POINTER LOCK -->
-    <div id="lock-hint">
-      <div class="lh-text">🫀 &nbsp;CLIQUEZ POUR ENTRER DANS LA CHAMBRE</div>
-    </div>
-
-    <!-- VOIX GAÏA -->
+    <!-- VOIX -->
     <div id="vp">
       <div id="vs"></div>
       <div id="vbox">
         <div id="vsr">
-          <span id="vnm">G A Ï A</span>
-          <span id="vbr"
+          <span id="vnm">G A Ï A</span
+          ><span id="vbr"
             ><span class="vb"></span><span class="vb"></span
             ><span class="vb"></span><span class="vb"></span
             ><span class="vb"></span><span class="vb"></span
@@ -908,28 +1239,24 @@
       </div>
     </div>
 
-    <!-- CRACK FX -->
     <div id="crack-fx">CRACK !</div>
 
-    <!-- SUCCÈS -->
     <div id="success-screen">
       <div class="ss-icon">💚</div>
       <div class="ss-title">ARTÈRES DÉBLOQUÉES</div>
-      <div class="ss-bpm">85 BPM → 75 → 68 → 62 ✅</div>
-      <div id="ss-gaia-txt"></div>
+      <div class="ss-bpm">BPM stabilisé ✅</div>
+      <div id="ss-txt"></div>
       <div class="ss-pts" id="ss-pts">+150 POINTS</div>
-      <div class="ss-badge-box">🏆 &nbsp;ACHIEVEMENT : "Première Artère"</div>
+      <div class="ss-badge">🏆 &nbsp;BADGE : "Cardiologue de Gaïa"</div>
       <button id="ss-btn" onclick="goNext()">
         ▶ &nbsp;CONTINUER VERS LES POUMONS
       </button>
     </div>
-
-    <!-- ÉCHEC -->
     <div id="fail-screen">
       <div class="fs-icon">💔</div>
       <div class="fs-title">TEMPS ÉCOULÉ</div>
       <div class="fs-sub">
-        Le cœur n a pas tenu...<br />Reessayez pour sauver Gaia.
+        Le cœur n'a pas tenu...<br />Réessayez pour sauver Gaïa.
       </div>
       <button id="fs-btn" onclick="location.reload()">↺ &nbsp;RÉESSAYER</button>
     </div>
@@ -940,40 +1267,37 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
       "use strict";
-      /* ═══════════════════════════════════════════════════════════════════
-   GAÏA — SCÈNE 5 : CHAMBRE DU CŒUR
-   Chambre cardiaque 3D immersive avec déplacement libre,
-   mini-jeu 10 plaques, voix, minimap, effets VFX
-═══════════════════════════════════════════════════════════════════ */
+      // ═══════════════════════════════════════════════════════════════
+      // GAÏA — SCÈNE 5
+      // Séquence : mission(4s) → narration Gaïa + explore → guide → jouer
+      // FIXES : minimap fixe, pas de bouton plein écran, explore pendant narration
+      // ═══════════════════════════════════════════════════════════════
 
-      // ── STATE
       let isMuted = false,
         audioCtx = null,
         typeIv = null;
-      let phase = "intro"; // intro | playing | success | fail
+      // phase: 'mission'|'narration'|'guide'|'playing'|'success'|'fail'
+      let phase = "mission";
       let plaquesLeft = 10,
         energyPct = 38,
         bpmCurrent = 85;
       let timerSec = 120,
         timerIv = null;
-      let score = 100;
-      let pName = "Gardien";
+      let score = 100,
+        pName = "Gardien";
       try {
         pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
         score = parseInt(localStorage.getItem("gaiaScore") || "100");
       } catch (e) {}
       document.getElementById("sv").textContent = "SCORE : " + score;
 
-      // CURSEUR
       const $cur = document.getElementById("cur");
       document.addEventListener("mousemove", (e) => {
         $cur.style.left = e.clientX + "px";
         $cur.style.top = e.clientY + "px";
       });
 
-      // ══════════════════════════════════════════════════
-      // AUDIO
-      // ══════════════════════════════════════════════════
+      // ══ AUDIO ══
       function initAudio() {
         if (audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1007,7 +1331,6 @@
         return cv;
       }
 
-      // Ambiance chambre cardiaque
       function playAmbient() {
         if (!audioCtx || isMuted) return;
         const m = gm(),
@@ -1034,7 +1357,6 @@
         });
       }
 
-      // Battements cardiaques — volume bas, grave
       let _hbIv = null;
       function playHeartbeat(bpm) {
         if (!audioCtx || isMuted) return;
@@ -1044,7 +1366,6 @@
         r.connect(m);
         function beat() {
           if (!audioCtx || isMuted) return;
-          // LUB
           const o1 = audioCtx.createOscillator(),
             g1 = audioCtx.createGain();
           o1.type = "sine";
@@ -1063,7 +1384,6 @@
           g1.connect(m);
           o1.start();
           o1.stop(audioCtx.currentTime + 0.55);
-          // Sub
           const sb = audioCtx.createOscillator(),
             sg = audioCtx.createGain();
           sb.type = "sine";
@@ -1077,7 +1397,6 @@
           sg.connect(m);
           sb.start();
           sb.stop(audioCtx.currentTime + 0.35);
-          // DUB
           setTimeout(() => {
             if (!audioCtx || isMuted) return;
             const o2 = audioCtx.createOscillator(),
@@ -1103,13 +1422,11 @@
         _hbIv = setInterval(beat, Math.round(60000 / (bpm || 85)));
       }
 
-      // Son CRACK — plaque arrachée
       function playCrack() {
         if (!audioCtx || isMuted) return;
         const m = gm();
-        // Impact
-        const bl = Math.floor(audioCtx.sampleRate * 0.14);
-        const buf = audioCtx.createBuffer(1, bl, audioCtx.sampleRate);
+        const bl = Math.floor(audioCtx.sampleRate * 0.14),
+          buf = audioCtx.createBuffer(1, bl, audioCtx.sampleRate);
         const d = buf.getChannelData(0);
         for (let i = 0; i < bl; i++)
           d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bl, 1.2);
@@ -1127,7 +1444,6 @@
         g.connect(m);
         src.start();
         src.stop(audioCtx.currentTime + 0.16);
-        // Soupir de soulagement
         setTimeout(() => {
           if (!audioCtx || isMuted) return;
           const o = audioCtx.createOscillator(),
@@ -1149,7 +1465,6 @@
         }, 80);
       }
 
-      // Victoire
       function playVictory() {
         if (!audioCtx || isMuted) return;
         const m = gm(),
@@ -1187,9 +1502,7 @@
         if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
       }
 
-      // ══════════════════════════════════════════════════
-      // VOIX GAÏA
-      // ══════════════════════════════════════════════════
+      // ══ VOICE ══
       const syn = window.speechSynthesis;
       function gv() {
         const vs = syn ? syn.getVoices() : [];
@@ -1241,7 +1554,7 @@
           u.lang = "fr-FR";
           u.rate = 0.85;
           u.pitch = 0.78;
-          u.volume = 1.0;
+          u.volume = 1;
           const sv = () => {
             const v = gv();
             if (v) u.voice = v;
@@ -1309,14 +1622,14 @@
       c3d.width = innerWidth;
       c3d.height = innerHeight;
       const scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x090102, 0.055);
+      scene.fog = new THREE.FogExp2(0x0a0102, 0.11);
       const camera = new THREE.PerspectiveCamera(
-        78,
+        85,
         innerWidth / innerHeight,
-        0.05,
-        55
+        0.02,
+        20
       );
-      camera.position.set(0, 0, 0);
+      camera.position.set(0, 0.2, 0);
       const renderer = new THREE.WebGLRenderer({
         canvas: c3d,
         antialias: true,
@@ -1324,23 +1637,23 @@
       });
       renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
       renderer.setSize(innerWidth, innerHeight);
-      renderer.setClearColor(0x090102);
+      renderer.setClearColor(0x0a0102);
       const clock = new THREE.Clock();
 
-      // LUMIÈRES
-      scene.add(new THREE.AmbientLight(0x280408, 0.8));
-      const heartL = new THREE.PointLight(0xff2244, 2.5, 22);
-      heartL.position.set(0, 0, 0);
+      // Lumières
+      scene.add(new THREE.AmbientLight(0x280408, 1.2));
+      const heartL = new THREE.PointLight(0xff2244, 4, 10);
+      heartL.position.set(0, 0.5, 0);
       scene.add(heartL);
-      const heartL2 = new THREE.PointLight(0xff4400, 1.8, 16);
-      heartL2.position.set(2, -1, 3);
+      const heartL2 = new THREE.PointLight(0xff4400, 2.5, 8);
+      heartL2.position.set(1.5, -0.5, 1.5);
       scene.add(heartL2);
-      const greenL = new THREE.PointLight(0x00ff44, 1.8, 18);
-      greenL.position.set(-5, 2, 2);
+      const greenL = new THREE.PointLight(0x00ff44, 2.2, 10);
+      greenL.position.set(-2, 1, 1);
       scene.add(greenL);
-      scene.add(new THREE.HemisphereLight(0xff1122, 0x001a00, 0.45));
+      scene.add(new THREE.HemisphereLight(0xff1122, 0x001a00, 0.6));
 
-      // ── PAROI CHAMBRE CARDIAQUE (sphère inversée — on est à l'intérieur)
+      // Chambre (sphère intérieure)
       const chamberMat = new THREE.ShaderMaterial({
         uniforms: {
           uT: { value: 0 },
@@ -1349,115 +1662,116 @@
         },
         side: THREE.BackSide,
         vertexShader: `
-    uniform float uT,uBeat,uEnergy;
-    varying vec2 vUv;varying vec3 vN,vP;
-    void main(){
-      vUv=uv;vP=position;vN=normalize(normalMatrix*normal);
+    uniform float uT,uBeat,uEnergy;varying vec2 vUv;varying vec3 vN,vP;
+    void main(){vUv=uv;vP=position;vN=normalize(normalMatrix*normal);
       vec3 p=position;
-      // Battement : paroi pulse vers l'intérieur à chaque systole
-      float beat=uBeat*.1*(1.+sin(length(p)*.4+uT*.8)*.3);
-      p+=normalize(p)*(-beat);
-      // Trabécules (reliefs musculaires) — réseau tridimensionnel
-      float trab=sin(p.x*3.8+uT*.38)*sin(p.y*4.2+uT*.32)*sin(p.z*3.5+uT*.42)*.32;
-      float trab2=cos(p.x*6.2+uT*.22)*cos(p.y*5.8+uT*.28)*.14;
-      p+=normalize(p)*(trab+trab2);
-      gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
-    }`,
+      float beat=uBeat*.14*(1.+sin(length(p)*.5+uT*.9)*.35);p+=normalize(p)*(-beat);
+      float t1=sin(p.x*6.+uT*.4)*sin(p.y*7.+uT*.36)*sin(p.z*5.5+uT*.45)*.38;
+      float t2=cos(p.x*9.+uT*.28)*cos(p.y*8.5+uT*.32)*.18;
+      float t3=sin(p.x*12.+p.y*10.+uT*.2)*.08;
+      p+=normalize(p)*(t1+t2+t3);gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
         fragmentShader: `
-    uniform float uT,uBeat,uEnergy;
-    varying vec2 vUv;varying vec3 vN,vP;
+    uniform float uT,uBeat,uEnergy;varying vec2 vUv;varying vec3 vN,vP;
     void main(){
-      vec3 vd=normalize(cameraPosition-vP);
-      float NdV=dot(normalize(vP),vN);
-      // Myocarde rouge profond
-      vec3 col=mix(vec3(.42,.04,.07),vec3(.65,.09,.14),abs(NdV));
-      // Fibres musculaires (striations)
-      float f1=sin(vUv.x*42.+uT*.48)*sin(vUv.y*34.+uT*.38)*.09+.91;
-      float f2=cos(vUv.x*30.-uT*.28)*cos(vUv.y*24.+uT*.22)*.06+.94;
-      col*=f1*f2;
-      // Sillons inter-trabéculaires
-      float groove=smoothstep(.88,.96,sin(vUv.x*9.42)*sin(vUv.y*9.42));
-      col*=1.-groove*.5;
-      // Reflets humides
-      vec3 lD=normalize(vec3(1.,1.5,2.));
-      float spec=pow(max(0.,dot(reflect(-lD,vN),vd)),20.)*.35;
-      col+=vec3(spec*.75,spec*.12,spec*.12);
-      // Battement lumineux
-      col+=vec3(uBeat*.28,uBeat*.02,uBeat*.02);
-      // Lueur énergie verte qui monte sur les parois
-      col+=vec3(0.,uEnergy*.08,uEnergy*.04);
-      col*=(.65+abs(NdV)*.35);
-      gl_FragColor=vec4(clamp(col,0.,1.),1.);
-    }`,
+      vec3 vd=normalize(cameraPosition-vP);float NdV=abs(dot(normalize(vP),vN));
+      vec3 col=mix(vec3(.38,.038,.06),vec3(.58,.08,.12),NdV);
+      float str1=sin(vUv.x*48.+uT*.52)*sin(vUv.y*38.+uT*.42)*.07+.93;
+      float str2=cos(vUv.x*32.-uT*.3)*cos(vUv.y*26.+uT*.25)*.05+.95;
+      col*=str1*str2;
+      float groove=smoothstep(.85,.95,sin(vUv.x*11.)*sin(vUv.y*11.));
+      float groove2=smoothstep(.9,.98,cos(vUv.x*7.5)*cos(vUv.y*8.5));
+      col*=1.-groove*.6-groove2*.35;
+      vec3 lD=normalize(vec3(1.2,1.8,2.5));float spec=pow(max(0.,dot(reflect(-lD,vN),vd)),18.)*.45;
+      col+=vec3(spec*.8,spec*.1,spec*.12)+vec3(uBeat*.35,uBeat*.02,uBeat*.025);
+      float vein=smoothstep(.85,.98,sin(vUv.x*22.+uT*.15)*cos(vUv.y*18.+uT*.12));
+      col+=vec3(0.,uEnergy*.18,uEnergy*.08)*vein;
+      col*=(.6+NdV*.4);gl_FragColor=vec4(clamp(col,0.,1.),1.);}`,
         transparent: false,
       });
-      const chamberMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(16, 72, 72),
-        chamberMat
+      scene.add(
+        new THREE.Mesh(new THREE.SphereGeometry(9, 80, 80), chamberMat)
       );
-      scene.add(chamberMesh);
 
-      // ── ARTÈRES DANS LA CHAMBRE ──
-      // Vertes saines (fines, lumineuses) + Noires infectées (épaisses, sombres)
-      const ARTERY_DATA = [
-        // VERTES — saines, fines
+      // Couche trabéculaire interne
+      const innerMat = new THREE.ShaderMaterial({
+        uniforms: { uT: { value: 0 }, uBeat: { value: 0 } },
+        side: THREE.BackSide,
+        vertexShader: `uniform float uT,uBeat;varying vec3 vN,vP;varying vec2 vUv;void main(){vUv=uv;vN=normalize(normalMatrix*normal);vP=position;vec3 p=position;float beat=uBeat*.1;p+=normalize(p)*(-beat);float b=sin(p.x*14.+uT*.5)*sin(p.y*12.+uT*.45)*sin(p.z*10.+uT*.4)*.22+cos(p.x*18.+uT*.3)*cos(p.y*16.)*.1;p+=normalize(p)*b;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+        fragmentShader: `uniform float uT,uBeat;varying vec3 vN,vP;varying vec2 vUv;void main(){float f=sin(vUv.x*60.+uT*.55)*sin(vUv.y*55.)*.08+.92;float g=smoothstep(.88,.98,abs(sin(vUv.x*14.)*sin(vUv.y*14.)));vec3 col=vec3(.28,.03,.05)*f*(1.-g*.55);col+=vec3(uBeat*.2,0.,0.);gl_FragColor=vec4(col,1.);}`,
+        transparent: false,
+      });
+      scene.add(
+        new THREE.Mesh(new THREE.SphereGeometry(7.5, 64, 64), innerMat)
+      );
+
+      // Artères
+      const ART_DEF = [
         {
           pts: [
             [0, 0, 0],
-            [2, 3, -6],
-            [4, 5, -12],
-            [5, 4, -16],
+            [0.8, 1.2, -2.5],
+            [1.5, 2, -5],
+            [1.8, 1.6, -7],
           ],
-          r: 0.12,
+          r: 0.08,
           green: true,
         },
         {
           pts: [
             [0, 0, 0],
-            [-3, 2, -5],
-            [-5, 4, -11],
-            [-6, 3, -15],
+            [-0.9, 0.8, -2],
+            [-0.6, 1.8, -4.5],
+            [-0.4, 1.4, -6.5],
           ],
-          r: 0.1,
+          r: 0.07,
           green: true,
         },
         {
           pts: [
             [0, 0, 0],
-            [1, -3, -6],
-            [2, -5, -12],
-            [2, -4, -15],
+            [0.5, -1, -2.2],
+            [0.8, -2, -4.5],
+            [0.6, -1.5, -6],
           ],
-          r: 0.11,
+          r: 0.075,
           green: true,
         },
         {
           pts: [
             [0, 0, 0],
-            [-2, -2, -6],
-            [-4, -4, -11],
-            [-4, -3, -14],
+            [-0.6, -0.8, -2],
+            [-0.8, -1.6, -4],
+            [-0.7, -1.2, -5.8],
           ],
-          r: 0.09,
+          r: 0.065,
           green: true,
         },
-        // NOIRES — infectées, épaisses
         {
           pts: [
             [0, 0, 0],
-            [4, 1, -5],
-            [7, 2, -10],
-            [8, 1, -14],
+            [2.2, 0.4, -2],
+            [3.5, 0.8, -4.5],
+            [4.2, 0.6, -7],
           ],
-          r: 0.45,
+          r: 0.52,
           green: false,
         },
         {
           pts: [
             [0, 0, 0],
-            [-4, 1, -5],
-            [-7, 2, -10],
-            [-8, 1, -14],
+            [-2.2, 0.5, -2],
+            [-3.5, 0.8, -4.5],
+            [-4.2, 0.6, -7],
+          ],
+          r: 0.55,
+          green: false,
+        },
+        {
+          pts: [
+            [0, 0, 0],
+            [1.2, -1.2, -2.5],
+            [2, -2, -5],
+            [2.2, -1.8, -7],
           ],
           r: 0.48,
           green: false,
@@ -1465,44 +1779,46 @@
         {
           pts: [
             [0, 0, 0],
-            [2, -2, -5],
-            [4, -4, -10],
-            [4, -3, -13],
+            [-1.2, -1.4, -2.5],
+            [-2, -2.2, -5],
+            [-2.2, -2, -6.8],
           ],
-          r: 0.4,
+          r: 0.5,
           green: false,
         },
         {
           pts: [
             [0, 0, 0],
-            [-2, -3, -5],
-            [-4, -5, -10],
-            [-3, -4, -13],
+            [0.5, 2.8, -2],
+            [0.8, 4, -4],
+            [0.6, 3.8, -5.5],
           ],
           r: 0.42,
           green: false,
         },
+        {
+          pts: [
+            [0, 0, 0],
+            [-0.4, -2.6, -2],
+            [-0.6, -3.8, -4.2],
+            [-0.5, -3.6, -5.5],
+          ],
+          r: 0.38,
+          green: false,
+        },
       ];
-      const arteryMeshes = [];
-      ARTERY_DATA.forEach((def, i) => {
+      const artMeshes = [];
+      ART_DEF.forEach((def, i) => {
         const curve = new THREE.CatmullRomCurve3(
           def.pts.map((p) => new THREE.Vector3(...p))
         );
-        const geo = new THREE.TubeGeometry(curve, 28, def.r, 10, false);
+        const geo = new THREE.TubeGeometry(curve, 24, def.r, 10, false);
         let mat;
         if (def.green) {
           mat = new THREE.ShaderMaterial({
             uniforms: { uT: { value: 0 }, uPulse: { value: 0 } },
             vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-            fragmentShader: `uniform float uT,uPulse;varying vec2 vUv;
-        void main(){
-          float stripe=sin(vUv.x*40.-uT*3.+${i}.)*.08+.92;
-          vec3 col=vec3(.02,.72,.28)*stripe;
-          col+=vec3(0.,.18,.08)*uPulse;
-          float glow=smoothstep(.7,1.,sin(vUv.x*80.-uT*6.)*.5+.5)*.12;
-          col+=vec3(0.,glow*.9,glow*.4);
-          gl_FragColor=vec4(col,1.);
-        }`,
+            fragmentShader: `uniform float uT,uPulse;varying vec2 vUv;void main(){float s=sin(vUv.x*40.-uT*3.)*.08+.92;vec3 col=vec3(.02,.72,.28)*s+vec3(0.,.18,.08)*uPulse;float g=smoothstep(.7,1.,sin(vUv.x*80.-uT*6.)*.5+.5)*.12;col+=vec3(0.,g*.9,g*.4);gl_FragColor=vec4(col,1.);}`,
             transparent: false,
           });
           window["gMat" + i] = mat;
@@ -1510,93 +1826,35 @@
           mat = new THREE.ShaderMaterial({
             uniforms: { uT: { value: 0 }, uPulse: { value: 0 } },
             vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-            fragmentShader: `uniform float uT,uPulse;varying vec2 vUv;
-        void main(){
-          float dep=sin(vUv.x*55.+uT*.12)*sin(vUv.y*22.)*.1+.9;
-          float lyr=cos(vUv.x*38.)*sin(vUv.y*15.)*.07+.93;
-          vec3 col=vec3(.07,.025,.025)*dep*lyr;
-          float crack=step(.97,abs(sin(vUv.x*110.)*.5+.5));
-          col+=vec3(.22,.06,.04)*crack;
-          col+=vec3(.07,.01,.0)*uPulse;
-          gl_FragColor=vec4(col,1.);
-        }`,
+            fragmentShader: `uniform float uT,uPulse;varying vec2 vUv;void main(){float d=sin(vUv.x*55.+uT*.12)*sin(vUv.y*22.)*.1+.9;float l=cos(vUv.x*38.)*sin(vUv.y*15.)*.07+.93;vec3 col=vec3(.07,.025,.025)*d*l;float cr=step(.97,abs(sin(vUv.x*110.)*.5+.5));col+=vec3(.22,.06,.04)*cr+vec3(.07,.01,.0)*uPulse;gl_FragColor=vec4(col,1.);}`,
             transparent: false,
           });
           window["bMat" + i] = mat;
-          // Plaques de carbone sur les artères noires
-          [0.3, 0.55, 0.78].forEach((t) => {
-            const pos = curve.getPointAt(t);
-            const pg = new THREE.Mesh(
-              new THREE.SphereGeometry(def.r * 1.9, 10, 10),
-              new THREE.MeshPhongMaterial({
-                color: 0x080202,
-                emissive: new THREE.Color(0x110404),
-                shininess: 2,
-              })
-            );
-            pg.position.copy(pos);
-            scene.add(pg);
-          });
         }
         const mesh = new THREE.Mesh(geo, mat);
         scene.add(mesh);
-        arteryMeshes.push({ mesh, def, curve, mat, idx: i });
+        artMeshes.push({ mesh, def, curve, mat, idx: i });
       });
 
-      // ── 10 PLAQUES NOIRES INTERACTIVES ──
+      // Plaques
       const PLAQUE_DEFS = [
-        // Diff 1 — grosses, immobiles (r 0.6-0.7)
-        { p: [5, 1, -6], r: 0.68, d: 1 },
-        { p: [-5, 2, -5], r: 0.62, d: 1 },
-        { p: [2, -3, -7], r: 0.65, d: 1 },
-        // Diff 2 — moyennes, bougent lentement (r 0.4-0.45)
-        { p: [7, 2, -9], r: 0.44, d: 2, spd: 0.26 },
-        { p: [-6, -2, -8], r: 0.4, d: 2, spd: 0.3 },
-        { p: [3, 3, -10], r: 0.42, d: 2, spd: 0.28 },
-        { p: [-3, -3, -9], r: 0.45, d: 2, spd: 0.24 },
-        // Diff 3 — petites, rapides (r 0.24-0.28)
-        { p: [6, -1, -12], r: 0.27, d: 3, spd: 0.88 },
-        { p: [-5, 1, -11], r: 0.25, d: 3, spd: 0.95 },
-        { p: [1, -4, -13], r: 0.24, d: 3, spd: 0.85 },
+        { p: [3.5, 0.5, -3.5], r: 0.68, d: 1 },
+        { p: [-3.5, 0.6, -3.5], r: 0.62, d: 1 },
+        { p: [1.8, -2.5, -4], r: 0.65, d: 1 },
+        { p: [4.5, 1, -5.5], r: 0.44, d: 2, spd: 0.26 },
+        { p: [-4, -0.8, -5], r: 0.4, d: 2, spd: 0.3 },
+        { p: [2, 2.5, -5.5], r: 0.42, d: 2, spd: 0.28 },
+        { p: [-2, -2.5, -5], r: 0.45, d: 2, spd: 0.24 },
+        { p: [0.6, 3.8, -5], r: 0.27, d: 3, spd: 0.88 },
+        { p: [-0.5, -3.5, -5.2], r: 0.25, d: 3, spd: 0.95 },
+        { p: [4, -2, -6.5], r: 0.24, d: 3, spd: 0.82 },
       ];
-
       const PLAQUES = [];
       PLAQUE_DEFS.forEach((def, i) => {
         const mat = new THREE.ShaderMaterial({
           uniforms: { uT: { value: 0 }, uAlive: { value: 1 } },
-          vertexShader: `
-      uniform float uT,uAlive;
-      varying vec2 vUv;varying vec3 vN,vP;
-      void main(){
-        vUv=uv;vN=normalize(normalMatrix*normal);vP=position;
-        vec3 p=position;
-        // Pulsation organique
-        float pulse=sin(uT*2.6+${i}.*1.1)*.055;
-        p+=normal*pulse*uAlive;
-        gl_Position=projectionMatrix*modelViewMatrix*vec4(p*uAlive+(1.-uAlive)*p*.01,1.);
-      }`,
-          fragmentShader: `
-      uniform float uT,uAlive;
-      varying vec2 vUv;varying vec3 vN,vP;
-      void main(){
-        if(uAlive<.05)discard;
-        vec3 vd=normalize(cameraPosition-vP);
-        float fr=pow(1.-abs(dot(vN,vd)),.55);
-        // Surface carbone grumeleuse
-        float dep=sin(vUv.x*65.+uT*.1)*sin(vUv.y*50.)*.1+.9;
-        float lyr=cos(vUv.x*45.)*sin(vUv.y*38.)*.07+.93;
-        vec3 col=vec3(.08,.028,.028)*dep*lyr;
-        // Craquelures actives
-        float cr1=step(.965,abs(sin(vUv.x*130.)*.5+.5));
-        float cr2=step(.97, abs(sin(vUv.y*100.)*.5+.5));
-        col+=vec3(.28,.07,.05)*(cr1+cr2);
-        // Lueur rouge inflammation
-        float pulse=sin(uT*2.6+${i}.*1.1)*.15+.85;
-        col+=vec3(fr*.22,fr*.01,fr*.01)*pulse;
-        // Halo sombre
-        col*=(.72+abs(dot(vN,vd))*.28);
-        gl_FragColor=vec4(col,uAlive*.92+.08);
-      }`,
+          vertexShader: `uniform float uT,uAlive;varying vec2 vUv;varying vec3 vN,vP;void main(){vUv=uv;vN=normalize(normalMatrix*normal);vP=position;vec3 p=position;float pulse=sin(uT*2.6+${i}.*1.1)*.055;p+=normal*pulse*uAlive;gl_Position=projectionMatrix*modelViewMatrix*vec4(p*uAlive+(1.-uAlive)*p*.01,1.);}`,
+          fragmentShader: `uniform float uT,uAlive;varying vec2 vUv;varying vec3 vN,vP;void main(){if(uAlive<.05)discard;vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-abs(dot(vN,vd)),.55);float dep=sin(vUv.x*65.+uT*.1)*sin(vUv.y*50.)*.1+.9;float lyr=cos(vUv.x*45.)*sin(vUv.y*38.)*.07+.93;vec3 col=vec3(.08,.028,.028)*dep*lyr;float cr1=step(.965,abs(sin(vUv.x*130.)*.5+.5));float cr2=step(.97,abs(sin(vUv.y*100.)*.5+.5));col+=vec3(.28,.07,.05)*(cr1+cr2);float pulse=sin(uT*2.6+${i}.*1.1)*.15+.85;col+=vec3(fr*.22,fr*.01,fr*.01)*pulse;col*=(.72+abs(dot(vN,vd))*.28);gl_FragColor=vec4(col,uAlive*.92+.08);}`,
           transparent: true,
           depthWrite: false,
         });
@@ -1616,16 +1874,19 @@
         scene.add(mesh);
         PLAQUES.push(mesh);
       });
-
-      // Fond sphérique
+      PLAQUE_DEFS.filter((d) => d.d === 3).forEach((def) => {
+        const gl = new THREE.PointLight(0xff2200, 0.8, 2.5);
+        gl.position.set(...def.p);
+        scene.add(gl);
+      });
       scene.add(
         new THREE.Mesh(
-          new THREE.SphereGeometry(22, 16, 16),
+          new THREE.SphereGeometry(11, 12, 12),
           new THREE.MeshBasicMaterial({ color: 0x040001, side: THREE.BackSide })
         )
       );
 
-      // ── CANVAS 2D — Fumée + Particules
+      // Canvas 2D
       const smokeCanvas = document.getElementById("smoke-canvas");
       smokeCanvas.width = innerWidth;
       smokeCanvas.height = innerHeight;
@@ -1634,20 +1895,21 @@
       pCanvas.width = innerWidth;
       pCanvas.height = innerHeight;
       const pCtx = pCanvas.getContext("2d");
+      const smokeParts = [],
+        crackParts = [];
 
-      // Particules de fumée sur artères noires
-      const smokeParts = [];
       function spawnSmoke() {
-        if (Math.random() > 0.25) return;
-        // Projeter une position d'artère noire en 2D
-        const blackArts = [4, 5, 6, 7];
-        const ai = blackArts[Math.floor(Math.random() * blackArts.length)];
-        const ad = arteryMeshes[ai];
+        if (Math.random() > 0.22) return;
+        const ba = ART_DEF.map((a, i) => (a.green ? -1 : i)).filter(
+          (i) => i >= 0
+        );
+        const ai = ba[Math.floor(Math.random() * ba.length)];
+        const ad = artMeshes[ai];
         const pos3 = ad.curve.getPointAt(0.85 + Math.random() * 0.13);
         const v = pos3.clone().project(camera);
         if (v.z > 1) return;
-        const sx = (v.x * 0.5 + 0.5) * smokeCanvas.width;
-        const sy = (v.y * -0.5 + 0.5) * smokeCanvas.height;
+        const sx = (v.x * 0.5 + 0.5) * smokeCanvas.width,
+          sy = (v.y * -0.5 + 0.5) * smokeCanvas.height;
         smokeParts.push({
           x: sx,
           y: sy,
@@ -1660,14 +1922,10 @@
           rspd: (Math.random() - 0.5) * 0.04,
         });
       }
-
-      // Particules désintégration plaque
-      const crackParts = [];
       function spawnCrack(sx, sy) {
         for (let i = 0; i < 40; i++) {
           const ang = Math.random() * Math.PI * 2,
             spd = 2 + Math.random() * 9;
-          const hue = Math.floor(Math.random() * 40);
           crackParts.push({
             x: sx,
             y: sy,
@@ -1675,14 +1933,16 @@
             vy: Math.sin(ang) * spd,
             life: 1,
             size: 1.5 + Math.random() * 5,
-            col: `hsl(${hue},90%,${45 + Math.floor(Math.random() * 30)}%)`,
+            col: `hsl(${Math.floor(Math.random() * 40)},90%,${
+              45 + Math.floor(Math.random() * 30)
+            }%)`,
           });
         }
       }
 
-      // ── MINIMAP
-      const mmCanvas = document.getElementById("mm-canvas");
-      const mmCtx = mmCanvas.getContext("2d");
+      // Minimap
+      const mmCanvas = document.getElementById("mm-c"),
+        mmCtx = mmCanvas.getContext("2d");
       function drawMinimap() {
         const W = 120,
           H = 120,
@@ -1699,7 +1959,6 @@
         mmCtx.beginPath();
         mmCtx.arc(cx, cy, R, 0, Math.PI * 2);
         mmCtx.stroke();
-        // Grille
         mmCtx.strokeStyle = "rgba(204,17,51,.06)";
         mmCtx.lineWidth = 0.5;
         for (let i = 0; i < 4; i++) {
@@ -1708,12 +1967,11 @@
           mmCtx.arc(cx, cy, r, 0, Math.PI * 2);
           mmCtx.stroke();
         }
-        // Plaques
         PLAQUES.forEach((p) => {
           if (!p.userData.alive) return;
-          const scale = (R * 0.85) / 16;
-          const mx = cx + p.position.x * scale;
-          const my = cy + p.position.z * scale;
+          const sc = (R * 0.85) / 9;
+          const mx = cx + p.position.x * sc,
+            my = cy + p.position.z * sc;
           const col =
             p.userData.diff === 1
               ? "#ff4444"
@@ -1723,21 +1981,19 @@
           const r2 =
             p.userData.diff === 1 ? 5 : p.userData.diff === 2 ? 3.5 : 2.2;
           mmCtx.beginPath();
-          mmCtx.arc(mx, my, r2, 0, Math.PI * 2);
+          mmCtx.arc(
+            Math.max(4, Math.min(W - 4, mx)),
+            Math.max(4, Math.min(H - 4, my)),
+            r2,
+            0,
+            Math.PI * 2
+          );
           mmCtx.fillStyle = col;
           mmCtx.fill();
-          // Pulse sur minimap
-          mmCtx.beginPath();
-          mmCtx.arc(mx, my, r2 + 2, 0, Math.PI * 2);
-          mmCtx.strokeStyle = col.replace(")", ",0.4)").replace("rgb", "rgba");
-          mmCtx.lineWidth = 1;
-          mmCtx.stroke();
         });
-        // Joueur
-        const pScale = (R * 0.85) / 16;
-        const px = cx + camera.position.x * pScale;
-        const pz = cy + camera.position.z * pScale;
-        // Flèche direction
+        const sc = (R * 0.85) / 9;
+        const px = cx + camera.position.x * sc,
+          pz = cy + camera.position.z * sc;
         mmCtx.save();
         mmCtx.translate(px, pz);
         mmCtx.rotate(-yaw);
@@ -1752,9 +2008,8 @@
         mmCtx.restore();
       }
 
-      // ── DOTS HUD
       function buildDots() {
-        const c = document.getElementById("plaque-dots");
+        const c = document.getElementById("plq-dots");
         c.innerHTML = "";
         PLAQUE_DEFS.forEach((_, i) => {
           const d = document.createElement("div");
@@ -1764,14 +2019,12 @@
         });
       }
 
-      // ══════════════════════════════════════════════════
-      // DÉPLACEMENT JOUEUR — FPS complet
-      // ══════════════════════════════════════════════════
+      // ══ DÉPLACEMENT FPS ══
       const keys = {};
       let isLocked = false,
         yaw = 0,
         pitch = 0;
-      const BOUNDS = 13;
+      const BOUNDS = 7.5;
 
       document.addEventListener("keydown", (e) => {
         keys[e.code] = true;
@@ -1780,38 +2033,51 @@
         keys[e.code] = false;
       });
 
-      // Pointer lock
-      c3d.addEventListener("click", (e) => {
-        if (phase === "intro") return;
+      // Pointer lock — clic sur c3d
+      // Pendant narration/guide : exploration (pas de clic sur plaques)
+      // Pendant playing : exploration + clic plaques
+      c3d.addEventListener("click", () => {
+        if (phase === "mission") return;
         if (!isLocked) {
           c3d.requestPointerLock();
           return;
         }
         if (phase === "playing") handleClick();
+        // narration/guide : juste regarder, pas arracher
       });
+
       document.addEventListener("pointerlockchange", () => {
         isLocked = !!document.pointerLockElement;
         if (isLocked) {
           $cur.className = "aim";
-          document.getElementById("lock-hint").classList.remove("show");
+          document.getElementById("xh").classList.add("show");
+          document.getElementById("explore-hint").classList.remove("show");
         } else {
           $cur.className = "";
+          document.getElementById("xh").classList.remove("show");
+          // Réaffiche le hint si on est encore en narration
+          if (phase === "narration")
+            document.getElementById("explore-hint").classList.add("show");
         }
       });
+
+      // Souris : active pendant narration + guide + playing
       document.addEventListener("mousemove", (e) => {
-        if (!isLocked || phase !== "playing") return;
+        if (!isLocked) return;
+        if (phase === "mission") return;
         yaw -= e.movementX * 0.0022;
         pitch -= e.movementY * 0.0016;
         pitch = Math.max(-1.1, Math.min(1.1, pitch));
       });
 
       function moveCam(dt) {
-        if (!isLocked || phase !== "playing") return;
-        const spd = 4.2 * dt;
+        if (!isLocked) return;
+        if (phase === "mission") return;
+        const spd = 3.5 * dt;
         const sy = Math.sin(yaw),
-          cy = Math.cos(yaw);
-        const fw = [-sy, 0, -cy],
-          rt = [cy, 0, -sy];
+          cy2 = Math.cos(yaw);
+        const fw = [-sy, 0, -cy2],
+          rt = [cy2, 0, -sy];
         let mx = 0,
           mz = 0;
         if (keys["KeyW"] || keys["ArrowUp"]) {
@@ -1830,80 +2096,81 @@
           mx += rt[0];
           mz += rt[2];
         }
-        const nx = camera.position.x + mx * spd;
-        const nz = camera.position.z + mz * spd;
+        const nx = camera.position.x + mx * spd,
+          nz = camera.position.z + mz * spd;
         if (Math.abs(nx) < BOUNDS) camera.position.x = nx;
         if (Math.abs(nz) < BOUNDS) camera.position.z = nz;
-        camera.position.y = Math.max(-2, Math.min(2, camera.position.y));
+        camera.position.y = Math.max(-1.5, Math.min(2, camera.position.y));
         camera.rotation.order = "YXZ";
         camera.rotation.y = yaw;
         camera.rotation.x = pitch;
       }
 
-      // ── RAYCASTER — clic sur plaque
+      // Raycaster
       const raycaster = new THREE.Raycaster();
       function handleClick() {
+        if (phase !== "playing" || !isLocked) return;
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
         const alive = PLAQUES.filter((p) => p.userData.alive);
         const hits = raycaster.intersectObjects(alive);
-        if (!hits.length) return;
-        const hit = hits[0];
-        if (hit.distance > 8) return; // trop loin
-        destroyPlaque(hit.object);
+        if (!hits.length || hits[0].distance > 6) return;
+        destroyPlaque(hits[0].object);
+      }
+      function updateAimDist() {
+        if (!isLocked || phase !== "playing") {
+          document.getElementById("aim-d").classList.remove("show");
+          return;
+        }
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        const alive = PLAQUES.filter((p) => p.userData.alive);
+        const hits = raycaster.intersectObjects(alive);
+        const el = document.getElementById("aim-d");
+        if (hits.length && hits[0].distance <= 6) {
+          el.textContent = `${hits[0].distance.toFixed(1)}m — CLIQUEZ`;
+          el.classList.add("show");
+        } else el.classList.remove("show");
       }
 
       function destroyPlaque(mesh) {
         mesh.userData.alive = false;
         mesh.material.uniforms.uAlive.value = 0;
-        // Sons
         playCrack();
-        // Particules à l'écran (centre car pointer locked)
         spawnCrack(innerWidth / 2, innerHeight / 2);
-        // Feedback texte
         const fx = document.getElementById("crack-fx");
         fx.style.left = innerWidth / 2 + "px";
         fx.style.top = innerHeight / 2 + "px";
         fx.className = "";
         void fx.offsetWidth;
         fx.className = "pop";
-        // Dot
         const done = 10 - plaquesLeft;
         const dot = document.getElementById("pd-" + done);
         if (dot) dot.classList.add("done");
         plaquesLeft--;
         document.getElementById("plq-count").textContent = plaquesLeft;
-        // Énergie
         energyPct = Math.min(80, 38 + Math.floor((10 - plaquesLeft) * 4.2));
         document.getElementById("ep-fill").style.width = energyPct + "%";
         document.getElementById("ep-pct").textContent = energyPct + "%";
         chamberMat.uniforms.uEnergy.value = energyPct / 100;
-        // BPM descend
         bpmCurrent = Math.max(62, 85 - Math.floor((10 - plaquesLeft) * 2.3));
         document.getElementById("bpm-val").textContent = bpmCurrent;
-        // Relancer heartbeat avec BPM réduit
         playHeartbeat(bpmCurrent);
-        // Score
         const bonus =
           mesh.userData.diff === 1 ? 10 : mesh.userData.diff === 2 ? 15 : 25;
         score += bonus;
         document.getElementById("sv").textContent = "SCORE : " + score;
-        // Victoire ?
         if (plaquesLeft === 0) setTimeout(triggerSuccess, 900);
       }
 
-      // ══════════════════════════════════════════════════
-      // BOUCLE D'ANIMATION
-      // ══════════════════════════════════════════════════
+      // ══ BOUCLE ANIMATION ══
       let globalT = 0,
-        beatPhase = 0;
+        beatPhase = 0,
+        previewAngle = 0;
 
       function animate() {
         requestAnimationFrame(animate);
         const dt = Math.min(clock.getDelta(), 0.05);
         globalT += dt;
         const t = globalT;
-
-        // Battement
         const bInterval = 60 / bpmCurrent;
         beatPhase = (beatPhase + dt) % bInterval;
         const beat = Math.pow(
@@ -1911,45 +2178,37 @@
           0.5
         );
 
-        // Shader chambre
         chamberMat.uniforms.uT.value = t;
         chamberMat.uniforms.uBeat.value = beat;
         chamberMat.uniforms.uEnergy.value = energyPct / 100;
+        innerMat.uniforms.uT.value = t;
+        innerMat.uniforms.uBeat.value = beat;
 
-        // Lumières pulsent
-        heartL.intensity = 1.8 + beat * 3.5;
+        // Auto-rotation douce SEULEMENT pendant mission (avant que Gaïa parle)
+        if (phase === "mission") {
+          previewAngle += dt * 0.08;
+          camera.rotation.order = "YXZ";
+          camera.rotation.y = Math.sin(previewAngle) * 0.3;
+          camera.rotation.x = Math.sin(previewAngle * 0.6) * 0.06;
+        }
+
+        heartL.intensity = 2 + beat * 4.5;
         heartL.color.setRGB(0.94 + beat * 0.06, 0.04, 0.07);
-        heartL2.intensity = 1.2 + beat * 2;
+        heartL2.intensity = 1.5 + beat * 2.5;
         greenL.intensity =
           1.2 + (energyPct / 100) * 0.9 + Math.sin(t * 0.6) * 0.2;
 
-        // Rotation caméra légère si pas locked
-        if (!isLocked && phase === "intro") {
-          camera.rotation.y = Math.sin(t * 0.12) * 0.1;
-          camera.rotation.x = Math.sin(t * 0.08) * 0.04;
-        }
-
-        // Artères — animation shaders
-        arteryMeshes.forEach((a, i) => {
-          if (
-            a.def.green &&
-            window["gMat" + i] &&
-            window["gMat" + i].uniforms
-          ) {
+        artMeshes.forEach((a, i) => {
+          if (a.def.green && window["gMat" + i]?.uniforms) {
             window["gMat" + i].uniforms.uT.value = t;
             window["gMat" + i].uniforms.uPulse.value = beat * 0.5;
           }
-          if (
-            !a.def.green &&
-            window["bMat" + i] &&
-            window["bMat" + i].uniforms
-          ) {
+          if (!a.def.green && window["bMat" + i]?.uniforms) {
             window["bMat" + i].uniforms.uT.value = t;
             window["bMat" + i].uniforms.uPulse.value = beat * 0.2;
           }
         });
 
-        // Plaques — animation + mouvement
         PLAQUES.forEach((p) => {
           if (!p.userData.alive) {
             p.scale.setScalar(0);
@@ -1959,30 +2218,30 @@
           if (p.userData.speed > 0) {
             const sp = p.userData.speed,
               ph = p.userData.phase;
-            p.position.x = p.userData.basePos.x + Math.sin(t * sp + ph) * 1.5;
+            p.position.x = p.userData.basePos.x + Math.sin(t * sp + ph) * 1.2;
             p.position.y =
-              p.userData.basePos.y + Math.cos(t * sp * 1.2 + ph) * 1.0;
+              p.userData.basePos.y + Math.cos(t * sp * 1.2 + ph) * 0.8;
             p.position.z =
-              p.userData.basePos.z + Math.sin(t * sp * 0.8 + ph) * 0.6;
+              p.userData.basePos.z + Math.sin(t * sp * 0.8 + ph) * 0.5;
           }
           p.rotation.y = t * 0.3;
           p.rotation.x = t * 0.2;
         });
 
-        // Déplacement joueur
+        // Mouvement caméra (narration/guide/playing)
         moveCam(dt);
+        if (phase === "playing") updateAimDist();
 
-        // Flash battement
+        // Heartbeat overlay
         const bo = document.getElementById("bo");
         bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(${
           185 + Math.floor(beat * 55)
-        },0,0,${beat * 0.2})0%,transparent 58%)`;
+        },0,0,${beat * 0.22})0%,transparent 55%)`;
         bo.style.opacity = beat > 0.1 ? "1" : "0";
 
-        // Render 3D
         renderer.render(scene, camera);
 
-        // Fumée 2D
+        // Fumée
         if (phase === "playing") spawnSmoke();
         smokeCtx.clearRect(0, 0, smokeCanvas.width, smokeCanvas.height);
         for (let i = smokeParts.length - 1; i >= 0; i--) {
@@ -2016,8 +2275,6 @@
           smokeCtx.fill();
           smokeCtx.restore();
         }
-
-        // Particules CRACK 2D
         pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
         for (let i = crackParts.length - 1; i >= 0; i--) {
           const p = crackParts[i];
@@ -2036,7 +2293,6 @@
             .replace("hsl", "hsla")
             .replace(")", `,${p.life})`);
           pCtx.fill();
-          // Traîne lumineuse
           pCtx.beginPath();
           pCtx.moveTo(p.x, p.y);
           pCtx.lineTo(p.x - p.vx * 4, p.y - p.vy * 4);
@@ -2046,14 +2302,10 @@
           pCtx.lineWidth = p.size * 0.65;
           pCtx.stroke();
         }
-
-        // Minimap
         if (phase === "playing") drawMinimap();
       }
 
-      // ══════════════════════════════════════════════════
-      // SUCCÈS / ÉCHEC
-      // ══════════════════════════════════════════════════
+      // ══ SUCCÈS / ÉCHEC ══
       function triggerSuccess() {
         phase = "success";
         if (timerIv) clearInterval(timerIv);
@@ -2064,19 +2316,17 @@
         document.getElementById("sv").textContent = "SCORE : " + score;
         document.getElementById("ss-pts").textContent =
           "+" + (score - 100) + " POINTS";
-        // Texte voix succès
-        const gaiaTxt = `Oui... Je le sens ! L energie circule mieux. Mon rythme cardiaque ralentit. Merci ${pName}. Vous m avez soulagee. Mais ce n est qu un debut.`;
-        document.getElementById("ss-gaia-txt").textContent = gaiaTxt;
+        const gt = `Oui... Je le sens !\nMon énergie circule à nouveau.\nMerci ${pName}. Vous m'avez soulagée.\nMais ce n'est qu'un début.`;
+        document.getElementById("ss-txt").textContent = gt;
         setTimeout(() => {
           document.getElementById("success-screen").classList.add("show");
-          // Voix GAÏA
           if (syn && !isMuted) {
             syn.cancel();
-            const u = new SpeechSynthesisUtterance(gaiaTxt);
+            const u = new SpeechSynthesisUtterance(gt);
             u.lang = "fr-FR";
             u.rate = 0.88;
             u.pitch = 0.82;
-            u.volume = 1.0;
+            u.volume = 1;
             const sv = () => {
               const v = gv();
               if (v) u.voice = v;
@@ -2088,7 +2338,6 @@
           }
         }, 600);
       }
-
       function triggerFail() {
         phase = "fail";
         if (_hbIv) clearInterval(_hbIv);
@@ -2099,9 +2348,6 @@
         );
       }
 
-      // ══════════════════════════════════════════════════
-      // TIMER
-      // ══════════════════════════════════════════════════
       function startTimer() {
         timerIv = setInterval(() => {
           timerSec--;
@@ -2120,9 +2366,6 @@
         }, 1000);
       }
 
-      // ══════════════════════════════════════════════════
-      // TRANSITION + NEXT
-      // ══════════════════════════════════════════════════
       function goNext() {
         if (syn) syn.cancel();
         try {
@@ -2136,55 +2379,81 @@
         setTimeout(() => (window.location.href = "scene6.html"), 2200);
       }
 
-      // ══════════════════════════════════════════════════
-      // SÉQUENCE NARRATIVE
-      // ══════════════════════════════════════════════════
+      // ══ GUIDE ACTIONS ══
+      function closeGuide() {
+        // Ferme le guide sans lancer — le joueur peut continuer à explorer
+        const gs = document.getElementById("guide-screen");
+        gs.style.transition = "opacity .5s";
+        gs.style.opacity = "0";
+        setTimeout(() => (gs.style.display = "none"), 550);
+      }
+      function launchGame() {
+        const gs = document.getElementById("guide-screen");
+        gs.style.transition = "opacity .5s";
+        gs.style.opacity = "0";
+        setTimeout(() => (gs.style.display = "none"), 550);
+        phase = "playing";
+        document.getElementById("explore-hint").classList.remove("show");
+        document.getElementById("pp").classList.add("show");
+        document.getElementById("mmw").classList.add("show");
+        startTimer();
+      }
+
+      // ══ SÉQUENCE PRINCIPALE ══
       function startScene() {
         initAudio();
         playAmbient();
+
+        // Rideau s'ouvre
         const cu = document.getElementById("curtain");
         cu.style.transition = "opacity 1.4s ease";
         setTimeout(() => cu.classList.add("gone"), 100);
-        setTimeout(() => playHeartbeat(85), 900);
+
+        // HUD minimal dès le début
         setTimeout(() => {
           document.getElementById("hud-top").classList.add("show");
           document.getElementById("left-stats").classList.add("show");
-          document.getElementById("energy-panel").classList.add("show");
+          document.getElementById("ep").classList.add("show");
         }, 1300);
 
         buildDots();
+        setTimeout(() => playHeartbeat(85), 900);
 
-        // Discours 1
+        // STEP 1 : Mission screen 4s
+        const ms = document.getElementById("mission-screen");
+        ms.classList.add("show");
+        const fill = document.getElementById("ms-fill");
+        let pct = 100;
+        const msIv = setInterval(() => {
+          pct -= 100 / 80;
+          fill.style.width = Math.max(0, pct) + "%";
+          if (pct <= 0) clearInterval(msIv);
+        }, 50);
         setTimeout(() => {
-          speak(
-            `Voici le centre de tout. Mon coeur pompe l energie a travers mon corps. Comme le votre pompe le sang. Mais le mien a sept virgule neuf milliards de cellules a nourrir. Chaque humain, chaque machine, chaque ville. Tous demandent de l energie. Et pendant trop longtemps, cette energie venait de mes entrailles. Charbon, petrole, gaz. Regardez ce que ca a fait.`,
-            () => {
-              setTimeout(() => {
-                speak(
-                  `Ces plaques noires. Ce sont deux cents ans d erreurs. Aidez-moi a les retirer. Cliquez sur chacune. Arrachez-les de mes veines. Mais soyez rapide. Mon coeur ne tiendra pas longtemps.`,
-                  () => {
-                    hideVoice();
-                    setTimeout(startGame, 700);
-                  }
-                );
-              }, 500);
-            }
-          );
-        }, 2000);
+          ms.style.transition = "opacity .6s ease";
+          ms.style.opacity = "0";
+          setTimeout(() => {
+            ms.style.display = "none";
+            startNarration();
+          }, 650);
+        }, 4000);
       }
 
-      function startGame() {
-        phase = "playing";
-        document.getElementById("plaque-panel").classList.add("show");
-        document.getElementById("minimap-wrap").classList.add("show");
-        document.getElementById("instructions").classList.add("show");
-        document.getElementById("lock-hint").classList.add("show");
-        startTimer();
-        // Instructions disparaissent après 10s
-        setTimeout(
-          () =>
-            document.getElementById("instructions").classList.remove("show"),
-          10000
+      function startNarration() {
+        // STEP 2 : Gaïa parle, chambre visible, joueur peut explorer
+        phase = "narration";
+        document.getElementById("explore-hint").classList.add("show");
+        speak(
+          `Voici le centre de tout.\nMon cœur pompe l'énergie à travers mon corps.\nComme le vôtre pompe le sang.\nMais le mien a sept virgule neuf milliards de cellules à nourrir.\nChaque humain, chaque machine, chaque ville.\n\nCes plaques noires...\nCe sont deux cents ans d'erreurs.\nCharbon, pétrole, gaz.\n\nAidez-moi à les retirer.\nApprochez-vous de chacune.\nCliquez pour les arracher de mes veines.\nMais soyez rapide.\nMon cœur ne tiendra pas longtemps.`,
+          () => {
+            // STEP 3 : Guide après Gaïa
+            hideVoice();
+            document.getElementById("explore-hint").classList.remove("show");
+            setTimeout(() => {
+              phase = "guide";
+              document.getElementById("guide-screen").classList.add("show");
+            }, 600);
+          }
         );
       }
 
