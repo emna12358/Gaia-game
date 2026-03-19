@@ -700,43 +700,27 @@
         pointer-events: none;
         opacity: 0;
       }
-      #bt {
+      /* PULSE OVERLAY — remplace BOOM et EKG */
+      #pulse-overlay {
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 420;
-        font-family: "Cinzel", serif;
-        font-size: clamp(80px, 16vw, 190px);
-        font-weight: 900;
-        color: #ff2200;
-        letter-spacing: 0.06em;
-        opacity: 0;
-        pointer-events: none;
-        text-shadow: 0 0 80px rgba(255, 30, 0, 0.9),
-          0 0 200px rgba(255, 0, 0, 0.5);
-      }
-      #ek {
-        position: fixed;
-        bottom: 0;
-        left: 0;
+        inset: 0;
         z-index: 415;
         pointer-events: none;
         opacity: 0;
+        transition: opacity 0.05s;
       }
-      #ft {
+      #faint-text {
         position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 418;
         font-family: "Cinzel", serif;
-        font-size: clamp(14px, 2.5vw, 22px);
-        letter-spacing: 0.4em;
+        font-size: clamp(14px, 2.2vw, 20px);
+        letter-spacing: 0.5em;
         color: transparent;
         pointer-events: none;
         text-align: center;
-        text-shadow: 0 0 40px rgba(255, 0, 0, 0.8);
       }
       #ab {
         position: fixed;
@@ -768,9 +752,8 @@
     <div id="bf"></div>
     <div id="tl"></div>
     <div id="bo"></div>
-    <div id="bt"></div>
-    <div id="ft"></div>
-    <canvas id="ek"></canvas>
+    <div id="pulse-overlay"></div>
+    <div id="faint-text"></div>
 
     <div id="hud">
       <div id="top">
@@ -890,9 +873,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
       "use strict";
-      // ═══════════════════════════════════════════════════════════════════
-      // GAÏA — SCÈNE 3
-      // ═══════════════════════════════════════════════════════════════════
       let PHASE = "tunnel";
       let isMuted = false,
         audioCtx = null;
@@ -1099,6 +1079,7 @@
         ns.start();
         ns.stop(audioCtx.currentTime + 6);
       }
+
       function playBrain() {
         if (!audioCtx || isMuted) return;
         const m = gm(),
@@ -1202,6 +1183,7 @@
         setTimeout(pulse, 2500);
         setInterval(pulse, 3600);
       }
+
       function playChime(f) {
         if (!audioCtx || isMuted) return;
         const m = gm(),
@@ -1227,28 +1209,37 @@
         });
       }
 
-      // ── HEARTBEAT AUDIO — terrifying crescendo ──
+      // ══════════════════════════════════════════════════
+      // BATTEMENT CŒUR FORT — crescendo cinématique
+      // Remplace l'ancien startHeartbeat
+      // ══════════════════════════════════════════════════
       let _hb = null;
       function startHeartbeat() {
         if (!audioCtx || isMuted) return;
         const m = gm(),
-          r = rv(4, 2);
+          r = rv(5, 2.2);
         r.connect(m);
-        // Low terror drone
+
+        // Drone de terreur grave
         const dr = audioCtx.createOscillator(),
           dg = audioCtx.createGain();
         dr.type = "sawtooth";
-        dr.frequency.value = 28;
+        dr.frequency.value = 26;
         dg.gain.setValueAtTime(0, audioCtx.currentTime);
-        dg.gain.linearRampToValueAtTime(0.055, audioCtx.currentTime + 1.5);
-        dr.connect(dg);
+        dg.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 1.8);
+        const dFilt = audioCtx.createBiquadFilter();
+        dFilt.type = "lowpass";
+        dFilt.frequency.value = 120;
+        dr.connect(dFilt);
+        dFilt.connect(dg);
         dg.connect(m);
         dr.start();
         window._dr = { o: dr, g: dg };
-        // Blood whoosh
+
+        // Sang qui coule — bruit filtré
         const wb = audioCtx.createBuffer(
           1,
-          audioCtx.sampleRate * 8,
+          audioCtx.sampleRate * 10,
           audioCtx.sampleRate
         );
         const wd = wb.getChannelData(0);
@@ -1258,93 +1249,132 @@
         ws.loop = true;
         const wf = audioCtx.createBiquadFilter();
         wf.type = "bandpass";
-        wf.frequency.value = 200;
-        wf.Q.value = 0.5;
+        wf.frequency.value = 180;
+        wf.Q.value = 0.4;
         const wg = audioCtx.createGain();
         wg.gain.setValueAtTime(0, audioCtx.currentTime);
-        wg.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 2);
+        wg.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 2.5);
         ws.connect(wf);
         wf.connect(wg);
         wg.connect(m);
         ws.start();
         window._ws = { s: ws, g: wg };
-        let bpm = 50,
-          vol = 0.04,
+
+        let bpm = 48,
+          vol = 0.06,
           cnt = 0;
+
         function beat() {
           if (!audioCtx || isMuted) return;
           cnt++;
-          // THUMP 1
-          const o = audioCtx.createOscillator(),
-            g = audioCtx.createGain();
-          o.type = "sine";
-          o.frequency.setValueAtTime(85, audioCtx.currentTime);
-          o.frequency.exponentialRampToValueAtTime(
-            30,
-            audioCtx.currentTime + 0.45
+
+          // ── LUB — coup sourd, très grave, puissant ──
+          const o1 = audioCtx.createOscillator(),
+            g1 = audioCtx.createGain();
+          const dist1 = audioCtx.createWaveShaper();
+          const cv1 = new Float32Array(512);
+          for (let i = 0; i < 512; i++) {
+            const x = (i * 2) / 512 - 1;
+            cv1[i] = ((Math.PI + 200) * x) / (Math.PI + 200 * Math.abs(x));
+          }
+          dist1.curve = cv1;
+          o1.type = "sine";
+          o1.frequency.setValueAtTime(95, audioCtx.currentTime);
+          o1.frequency.exponentialRampToValueAtTime(
+            28,
+            audioCtx.currentTime + 0.55
           );
-          g.gain.setValueAtTime(vol, audioCtx.currentTime);
-          g.gain.exponentialRampToValueAtTime(
+          g1.gain.setValueAtTime(vol, audioCtx.currentTime);
+          g1.gain.exponentialRampToValueAtTime(
             0.001,
-            audioCtx.currentTime + 0.5
+            audioCtx.currentTime + 0.6
           );
-          o.connect(g);
-          g.connect(r);
-          g.connect(m);
-          o.start();
-          o.stop(audioCtx.currentTime + 0.52);
-          // THUMP 2 after short delay
+          o1.connect(dist1);
+          dist1.connect(g1);
+          g1.connect(r);
+          g1.connect(m);
+          o1.start();
+          o1.stop(audioCtx.currentTime + 0.65);
+
+          // Sub bass layer (very low thud)
+          const sb = audioCtx.createOscillator(),
+            sg = audioCtx.createGain();
+          sb.type = "sine";
+          sb.frequency.value = 30;
+          sg.gain.setValueAtTime(vol * 0.8, audioCtx.currentTime);
+          sg.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 0.4
+          );
+          sb.connect(sg);
+          sg.connect(m);
+          sb.start();
+          sb.stop(audioCtx.currentTime + 0.45);
+
+          // ── DUB — 2e battement légèrement décalé ──
           setTimeout(() => {
             if (!audioCtx || isMuted) return;
             const o2 = audioCtx.createOscillator(),
               g2 = audioCtx.createGain();
+            const dist2 = audioCtx.createWaveShaper();
+            const cv2 = new Float32Array(512);
+            for (let i = 0; i < 512; i++) {
+              const x = (i * 2) / 512 - 1;
+              cv2[i] = ((Math.PI + 150) * x) / (Math.PI + 150 * Math.abs(x));
+            }
+            dist2.curve = cv2;
             o2.type = "sine";
-            o2.frequency.setValueAtTime(62, audioCtx.currentTime);
+            o2.frequency.setValueAtTime(72, audioCtx.currentTime);
             o2.frequency.exponentialRampToValueAtTime(
-              28,
-              audioCtx.currentTime + 0.3
+              24,
+              audioCtx.currentTime + 0.38
             );
-            g2.gain.setValueAtTime(vol * 0.6, audioCtx.currentTime);
+            g2.gain.setValueAtTime(vol * 0.65, audioCtx.currentTime);
             g2.gain.exponentialRampToValueAtTime(
               0.001,
-              audioCtx.currentTime + 0.34
+              audioCtx.currentTime + 0.42
             );
-            o2.connect(g2);
+            o2.connect(dist2);
+            dist2.connect(g2);
             g2.connect(r);
             g2.connect(m);
             o2.start();
-            o2.stop(audioCtx.currentTime + 0.36);
-            // Distortion on heavy beats
-            if (cnt > 5 && vol > 0.25) {
-              const ds = audioCtx.createWaveShaper(),
-                cv = new Float32Array(256);
-              for (let i = 0; i < 256; i++) {
-                const x = (i * 2) / 256 - 1;
-                cv[i] = ((Math.PI + 300) * x) / (Math.PI + 300 * Math.abs(x));
-              }
-              ds.curve = cv;
+            o2.stop(audioCtx.currentTime + 0.45);
+
+            // Distorsion sur les battements tardifs (très fort)
+            if (cnt > 6 && vol > 0.3) {
               const o3 = audioCtx.createOscillator(),
                 g3 = audioCtx.createGain();
+              const dist3 = audioCtx.createWaveShaper();
+              const cv3 = new Float32Array(256);
+              for (let i = 0; i < 256; i++) {
+                const x = (i * 2) / 256 - 1;
+                cv3[i] = ((Math.PI + 400) * x) / (Math.PI + 400 * Math.abs(x));
+              }
+              dist3.curve = cv3;
               o3.type = "sawtooth";
-              o3.frequency.value = 60 + cnt * 1.5;
-              g3.gain.setValueAtTime(vol * 0.16, audioCtx.currentTime);
+              o3.frequency.value = 55 + cnt * 2;
+              g3.gain.setValueAtTime(vol * 0.2, audioCtx.currentTime);
               g3.gain.exponentialRampToValueAtTime(
                 0.001,
-                audioCtx.currentTime + 0.24
+                audioCtx.currentTime + 0.28
               );
-              o3.connect(ds);
-              ds.connect(g3);
+              o3.connect(dist3);
+              dist3.connect(g3);
               g3.connect(m);
               o3.start();
-              o3.stop(audioCtx.currentTime + 0.26);
+              o3.stop(audioCtx.currentTime + 0.3);
             }
-          }, (60000 / bpm) * 0.4);
-          bpm = Math.min(bpm + 3.5, 175);
-          vol = Math.min(vol + 0.038, 0.9);
+          }, (60000 / bpm) * 0.38);
+
+          // Accélération progressive
+          bpm = Math.min(bpm + 4, 185);
+          vol = Math.min(vol + 0.045, 1.0);
           _hb = setTimeout(beat, 60000 / bpm);
         }
         beat();
       }
+
       function toggleMute() {
         isMuted = !isMuted;
         document.getElementById("ab").textContent = isMuted
@@ -1468,13 +1498,12 @@
       }
 
       // ═══════════════════════════════════════════════════════════════════
-      // TUNNEL — full-screen invasion
+      // TUNNEL
       // ═══════════════════════════════════════════════════════════════════
       const TC = document.getElementById("tc");
       TC.width = innerWidth;
       TC.height = innerHeight;
       const TX = TC.getContext("2d");
-
       const LAYERS = [
         {
           name: "ATMOSPHÈRE",
@@ -1860,6 +1889,7 @@
           arrivalFlash();
         }
       }
+
       function arrivalFlash() {
         PHASE = "entry";
         const b = document.getElementById("bf");
@@ -1881,6 +1911,7 @@
           b.style.opacity = a;
         }, 16);
       }
+
       function launchBrain() {
         TC.style.transition = "opacity .35s";
         TC.style.opacity = "0";
@@ -1898,9 +1929,7 @@
         }, 350);
       }
 
-      // ═══════════════════════════════════════════════════════════════════
-      // BRAIN — Three.js
-      // ═══════════════════════════════════════════════════════════════════
+      // THREE.JS — BRAIN
       const BC = document.getElementById("bc");
       BC.width = innerWidth;
       BC.height = innerHeight;
@@ -2007,7 +2036,6 @@
         sc3.add(pl);
       });
 
-      // Neural mind
       const mMat = new THREE.ShaderMaterial({
         uniforms: { uT: { value: 0 } },
         vertexShader: `uniform float uT;varying vec3 vN,vP;varying vec2 vUv;void main(){vUv=uv;vN=normalize(normalMatrix*normal);vP=position;float w=sin(position.x*8.+uT*1.8)*sin(position.y*7.+uT*2.1)*sin(position.z*6.+uT*1.5)*.12+sin(position.x*15.+uT*2.5)*sin(position.y*14.+uT*2.8)*.04+sin(uT*2.2)*.06;gl_Position=projectionMatrix*modelViewMatrix*vec4(position+normal*w,1.);}`,
@@ -2027,6 +2055,7 @@
         depthWrite: false,
       });
       sc3.add(new THREE.Mesh(new THREE.SphereGeometry(2.7, 32, 32), aMat));
+
       const NC = 2200;
       const nPos = new Float32Array(NC * 3),
         nCol = new Float32Array(NC * 3),
@@ -2062,6 +2091,7 @@
         vertexColors: true,
       });
       sc3.add(new THREE.Points(nGeo, nMat));
+
       const nLines = [];
       for (let i = 0; i < 140; i++) {
         const pts = [];
@@ -2090,6 +2120,7 @@
         );
         nLines.push({ mat, base: mat.opacity });
       }
+
       const SC2 = 3200;
       const sPos = new Float32Array(SC2 * 3),
         sCol = new Float32Array(SC2 * 3),
@@ -2125,6 +2156,7 @@
         vertexColors: true,
       });
       sc3.add(new THREE.Points(sGeo, sMat));
+
       const BG = 8000;
       const bgP = new Float32Array(BG * 3),
         bgC = new Float32Array(BG * 3);
@@ -2160,16 +2192,13 @@
         )
       );
 
-      // ═══════════════════════════════════════════════════════════════════
-      // ORGAN PORTALS — Canvas 2D, well-drawn, always visible
-      // ═══════════════════════════════════════════════════════════════════
+      // ORGAN CANVAS
       const OC = document.getElementById("oc");
       OC.width = innerWidth;
       OC.height = innerHeight;
       const OX = OC.getContext("2d");
       let orgT = 0,
         orgAID;
-
       function proj(wx, wy, wz) {
         const v = new THREE.Vector3(wx, wy, wz);
         v.project(cam3);
@@ -2180,7 +2209,6 @@
         };
       }
 
-      // ══ HEART — anatomical, clean ══
       function drawHeart(cx, cy, sz, hex, t, locked) {
         const pulse = Math.sin(t * 2.6) * 0.5 + 0.5;
         const beat = 1 + pulse * 0.08;
@@ -2190,7 +2218,6 @@
         OX.save();
         OX.translate(cx, cy);
         OX.scale(s, s);
-        // Drop shadow for depth
         OX.save();
         OX.translate(3, 5);
         OX.globalAlpha = 0.2 * al;
@@ -2199,7 +2226,6 @@
         OX.fillStyle = "#000";
         OX.fill();
         OX.restore();
-        // Main body gradient
         OX.beginPath();
         heartPath(OX);
         const g = OX.createLinearGradient(-30, -35, 20, 50);
@@ -2223,7 +2249,6 @@
         );
         OX.fillStyle = g;
         OX.fill();
-        // Glow outline
         if (!locked) {
           OX.strokeStyle = `rgba(${hr},${hg},${hb},${pulse * 0.5 * al})`;
           OX.lineWidth = 9;
@@ -2232,13 +2257,11 @@
         OX.strokeStyle = `rgba(${hr},${hg},${hb},${(0.9 + pulse * 0.1) * al})`;
         OX.lineWidth = 2.2;
         OX.stroke();
-        // Highlight sphere (3D)
         const hl = OX.createRadialGradient(-18, -20, 0, -18, -20, 24);
         hl.addColorStop(0, `rgba(255,255,255,${0.38 * al})`);
         hl.addColorStop(1, "transparent");
         OX.fillStyle = hl;
         OX.fill();
-        // Aorta
         OX.beginPath();
         OX.moveTo(-4, -5);
         OX.bezierCurveTo(-4, -24, -14, -33, -11, -46);
@@ -2249,7 +2272,6 @@
         OX.lineWidth = 6.5;
         OX.lineJoin = "round";
         OX.stroke();
-        // Aortic arch
         OX.beginPath();
         OX.arc(-1, -48, 16, Math.PI, 0, false);
         OX.strokeStyle = `rgba(${hr},${hg},${hb},${
@@ -2257,35 +2279,30 @@
         })`;
         OX.lineWidth = 5.5;
         OX.stroke();
-        // Pulmonary artery (blue)
         OX.beginPath();
         OX.moveTo(10, -4);
         OX.bezierCurveTo(22, -20, 34, -26, 37, -18);
         OX.strokeStyle = `rgba(70,140,255,${0.65 * al})`;
         OX.lineWidth = 4.5;
         OX.stroke();
-        // Left coronary
         OX.beginPath();
         OX.moveTo(-6, 12);
         OX.bezierCurveTo(-22, 18, -34, 30, -30, 42);
         OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.32 * al})`;
         OX.lineWidth = 2;
         OX.stroke();
-        // Right coronary
         OX.beginPath();
         OX.moveTo(4, 14);
         OX.bezierCurveTo(18, 20, 28, 32, 24, 42);
         OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.28 * al})`;
         OX.lineWidth = 1.8;
         OX.stroke();
-        // Superior vena cava (blue)
         OX.beginPath();
         OX.moveTo(-20, -3);
         OX.bezierCurveTo(-26, -18, -22, -32, -18, -40);
         OX.strokeStyle = `rgba(60,110,230,${0.55 * al})`;
         OX.lineWidth = 4;
         OX.stroke();
-        // Ventricle dividing line
         OX.beginPath();
         OX.moveTo(0, -5);
         OX.bezierCurveTo(-2, 10, -1, 28, 0, 50);
@@ -2305,8 +2322,6 @@
         ctx.bezierCurveTo(54, 12, 42, -34, 0, -4);
         ctx.closePath();
       }
-
-      // ══ LUNGS — anatomical, clean ══
       function drawLungs(cx, cy, sz, hex, t, locked) {
         const pulse = Math.sin(t * 1.1) * 0.5 + 0.5;
         const breath = Math.sin(t * 1.1) * 0.07;
@@ -2316,7 +2331,6 @@
         OX.save();
         OX.translate(cx, cy);
         OX.scale(s, s);
-        // Trachea
         OX.beginPath();
         OX.moveTo(0, -58);
         OX.lineTo(0, -20);
@@ -2324,7 +2338,6 @@
         OX.lineWidth = 8.5;
         OX.lineCap = "round";
         OX.stroke();
-        // Carina bifurcation
         OX.beginPath();
         OX.moveTo(0, -20);
         OX.bezierCurveTo(-5, -14, -22, -8, -32, -2);
@@ -2333,7 +2346,6 @@
         OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.78 * al})`;
         OX.lineWidth = 6.5;
         OX.stroke();
-        // ── LEFT LUNG ──
         const ls = 1 + breath * 0.09;
         OX.save();
         OX.translate(-46, 14);
@@ -2373,20 +2385,17 @@
         })`;
         OX.lineWidth = 2.2;
         OX.stroke();
-        // Highlight
         const lhl = OX.createRadialGradient(-32, -24, 0, -32, -24, 20);
         lhl.addColorStop(0, `rgba(255,255,255,${0.3 * al})`);
         lhl.addColorStop(1, "transparent");
         OX.fillStyle = lhl;
         OX.fill();
-        // Fissure
         OX.beginPath();
         OX.moveTo(-42, -2);
         OX.bezierCurveTo(-26, 8, -8, 14, 18, 10);
         OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.35 * al})`;
         OX.lineWidth = 1.5;
         OX.stroke();
-        // Bronchioles
         for (let i = 0; i < 4; i++) {
           OX.beginPath();
           OX.moveTo(2, -10);
@@ -2400,7 +2409,6 @@
           OX.stroke();
         }
         OX.restore();
-        // ── RIGHT LUNG (slightly bigger) ──
         const rs = 1 + breath * 0.1;
         OX.save();
         OX.translate(46, 14);
@@ -2445,7 +2453,6 @@
         rhl.addColorStop(1, "transparent");
         OX.fillStyle = rhl;
         OX.fill();
-        // Two fissures (right has 3 lobes)
         OX.beginPath();
         OX.moveTo(42, -5);
         OX.bezierCurveTo(26, 6, 8, 12, -16, 8);
@@ -2473,8 +2480,6 @@
         OX.restore();
         OX.restore();
       }
-
-      // ══ CELL (immune) ══
       function drawCell(cx, cy, sz, hex, t, locked) {
         const pulse = Math.sin(t * 1.8) * 0.5 + 0.5;
         const al = locked ? 0.38 : 1;
@@ -2482,7 +2487,6 @@
         const [hr, hg, hb] = hexRGB(hex);
         OX.save();
         OX.translate(cx, cy);
-        // Irregular membrane
         OX.beginPath();
         const pts = 10;
         for (let i = 0; i <= pts; i++) {
@@ -2523,7 +2527,6 @@
         })`;
         OX.lineWidth = 2.2;
         OX.stroke();
-        // Nucleus
         OX.beginPath();
         OX.arc(0, 0, r * 0.32, 0, Math.PI * 2);
         const ng = OX.createRadialGradient(
@@ -2550,7 +2553,6 @@
         )},${Math.min(255, hb + 30)},${0.6 * al})`;
         OX.lineWidth = 1.5;
         OX.stroke();
-        // Organelles
         for (let i = 0; i < 6; i++) {
           const a = (i / 6) * Math.PI * 2 + t * 0.4,
             d = r * 0.52;
@@ -2568,7 +2570,6 @@
           OX.lineWidth = 1.2;
           OX.stroke();
         }
-        // Highlight
         const hl = OX.createRadialGradient(
           -r * 0.3,
           -r * 0.3,
@@ -2583,15 +2584,12 @@
         OX.fill();
         OX.restore();
       }
-
-      // ══ SCAR (cicatrice) ══
       function drawScar(cx, cy, sz, hex, t, locked) {
         const al = locked ? 0.38 : 1;
         const r = sz * 0.6;
         const [hr, hg, hb] = hexRGB(hex);
         OX.save();
         OX.translate(cx, cy);
-        // Cracked terrain base
         const bg = OX.createRadialGradient(0, 0, r * 0.1, 0, 0, r);
         bg.addColorStop(
           0,
@@ -2602,7 +2600,6 @@
         OX.arc(0, 0, r, 0, Math.PI * 2);
         OX.fillStyle = bg;
         OX.fill();
-        // Fracture lines radiating from center
         for (let i = 0; i < 8; i++) {
           const ang = (i / 8) * Math.PI * 2 + t * 0.02;
           let x = 0,
@@ -2619,7 +2616,6 @@
           OX.strokeStyle = `rgba(${hr},${hg},${hb},${ps * al})`;
           OX.lineWidth = 2 + Math.sin(t + i) * 0.6;
           OX.stroke();
-          // Crack glow
           OX.strokeStyle = `rgba(${Math.min(255, hr + 60)},${Math.min(
             255,
             hg + 40
@@ -2627,7 +2623,6 @@
           OX.lineWidth = 4;
           OX.stroke();
         }
-        // Central wound glow
         const cg = OX.createRadialGradient(0, 0, 0, 0, 0, r * 0.3);
         cg.addColorStop(
           0,
@@ -2652,8 +2647,6 @@
         }
         OX.restore();
       }
-
-      // ══ SYNAPSE ══
       function drawSynapse(cx, cy, sz, hex, t, locked) {
         const al = locked ? 0.38 : 1;
         const r = sz * 0.6;
@@ -2670,7 +2663,6 @@
             p: Math.sin(t * 2.2 + i) * 0.5 + 0.5,
           };
         });
-        // Connections with signal dots
         npts.forEach((a, i) => {
           npts.forEach((b, j) => {
             if (j <= i) return;
@@ -2694,7 +2686,6 @@
             OX.fill();
           });
         });
-        // Central nucleus
         const cg = OX.createRadialGradient(0, 0, 0, 0, 0, r * 0.22);
         cg.addColorStop(
           0,
@@ -2718,7 +2709,6 @@
         OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.7 * al})`;
         OX.lineWidth = 1.8;
         OX.stroke();
-        // Node spheres
         npts.forEach((n) => {
           const ng = OX.createRadialGradient(
             n.x - 2,
@@ -2751,8 +2741,6 @@
         });
         OX.restore();
       }
-
-      // ══ GALAXY ══
       function drawGalaxy(cx, cy, sz, hex, t, locked) {
         const al = locked ? 0.38 : 1;
         const r = sz * 0.65;
@@ -2760,7 +2748,6 @@
         OX.save();
         OX.translate(cx, cy);
         OX.rotate(t * 0.04);
-        // Galactic disc
         const gg = OX.createRadialGradient(0, 0, 0, 0, 0, r);
         gg.addColorStop(
           0,
@@ -2779,14 +2766,6 @@
         OX.ellipse(0, 0, r, r * 0.38, 0, 0, Math.PI * 2);
         OX.fillStyle = gg;
         OX.fill();
-        if (!locked) {
-          OX.strokeStyle = `rgba(${hr},${hg},${hb},${Math.sin(t) * 0.3 * al})`;
-          OX.lineWidth = 6;
-          OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.18 * al})`;
-          OX.lineWidth = 1;
-          OX.stroke();
-        }
-        // Spiral arms
         for (let arm = 0; arm < 3; arm++) {
           const aOff = arm * ((Math.PI * 2) / 3);
           for (let i = 0; i < 32; i++) {
@@ -2810,9 +2789,8 @@
             OX.fill();
           }
         }
-        // Core
         const cg = OX.createRadialGradient(0, 0, 0, 0, 0, r * 0.2);
-        cg.addColorStop(0, `rgba(255,255,220,${0.9 * al})`);
+        cg.addColorStop(0, "rgba(255,255,220,0.9)");
         cg.addColorStop(
           0.5,
           `rgba(${Math.min(255, hr + 100)},${Math.min(255, hg + 80)},${Math.min(
@@ -2825,7 +2803,6 @@
         OX.arc(0, 0, r * 0.2, 0, Math.PI * 2);
         OX.fillStyle = cg;
         OX.fill();
-        // Stars
         for (let i = 0; i < 18; i++) {
           const a = (i / 18) * Math.PI * 2 + t * 0.05 * i;
           const d = r * (0.28 + Math.sin(t * 0.8 + i) * 0.18);
@@ -2838,7 +2815,6 @@
         }
         OX.restore();
       }
-
       function hexRGB(h) {
         return [
           parseInt(h.slice(1, 3), 16),
@@ -2846,7 +2822,6 @@
           parseInt(h.slice(5, 7), 16),
         ];
       }
-
       const DRAW_FN = {
         heart: drawHeart,
         lungs: drawLungs,
@@ -2874,7 +2849,6 @@
             const dist = Math.sqrt(dx * dx + dz * dz);
             const sz = Math.max(60, Math.min(250, 2900 / dist));
             DRAW_FN[p.organ](sc.x, sc.y, sz, p.hex, orgT + i * 0.7, p.locked);
-            // Portal number
             OX.save();
             OX.font = `bold ${Math.max(10, sz * 0.1)}px Cinzel,serif`;
             OX.textAlign = "center";
@@ -2891,7 +2865,6 @@
         loop();
       }
 
-      // Portal detection
       function updatePortals() {
         let minD = 99,
           minI = -1;
@@ -2935,6 +2908,7 @@
           }
         }
       }
+
       function showTip(i) {
         const p = P[i];
         document.getElementById("pic").textContent = p.ic;
@@ -2969,9 +2943,6 @@
         tip.classList.add("show");
       }
 
-      // ═══════════════════════════════════════════════════════════════════
-      // ENTER PORTAL — always works
-      // ═══════════════════════════════════════════════════════════════════
       function enterPortal() {
         let minD = 99,
           minI = -1;
@@ -3002,173 +2973,167 @@
         score += 100;
         document.getElementById("sv").textContent = "SCORE : " + score;
         document.getElementById("sd").textContent = score;
-        // Begin cinematic transition
         beginVeinTransition();
       }
 
       // ═══════════════════════════════════════════════════════════════════
-      // VEIN TRANSITION — professional, immersive, terrifying
-      // Phase 1: aspiration pull (2s) → Phase 2: vein rush (6s) → Phase 3: impact (2s)
+      // TRANSITION CŒUR — VERSION AMÉLIORÉE
+      // ✅ Supprimé : BOOM, EKG, crâne 💀
+      // ✅ Ajouté : battements forts + pulsations rouges + évanouissement
       // ═══════════════════════════════════════════════════════════════════
       function beginVeinTransition() {
-        // Hide brain UI
-        document.getElementById("hud").style.transition = "opacity .6s";
+        document.getElementById("hud").style.transition = "opacity .5s";
         document.getElementById("hud").style.opacity = "0";
         document.getElementById("pen").style.opacity = "0";
         OC.style.display = "none";
         cancelAnimationFrame(orgAID);
 
-        // Setup vein canvas
         const vc = document.getElementById("vc");
         vc.width = innerWidth;
         vc.height = innerHeight;
         vc.style.display = "block";
-        const ekEl = document.getElementById("ek");
-        ekEl.width = innerWidth;
-        ekEl.height = 72;
-        ekEl.style.opacity = "1";
-        const ctx = vc.getContext("2d"),
-          ekCtx = ekEl.getContext("2d");
+        const ctx = vc.getContext("2d");
         const W = vc.width,
           H = vc.height,
           cx = W / 2,
           cy = H / 2;
 
-        // Start heartbeat
+        const po = document.getElementById("pulse-overlay");
+        const ft = document.getElementById("faint-text");
+        const bo = document.getElementById("bo");
+
+        // Lance les battements forts
         startHeartbeat();
 
-        // ── VEIN GEOMETRY ──
-        const VCOUNT = 30;
+        // Veines géométrie
+        const VCOUNT = 36;
         const VEINS = Array.from({ length: VCOUNT }, (_, i) => ({
-          angle: (i / VCOUNT) * Math.PI * 2 + Math.random() * 0.12,
+          angle: (i / VCOUNT) * Math.PI * 2 + (Math.random() - 0.5) * 0.15,
           phase: Math.random() * Math.PI * 2,
-          thick: Math.random() * 7 + 2.5,
-          bulge: Math.random() * 0.45 + 0.78,
-          wobble: Math.random() * 0.045 + 0.008,
-          isArtery: Math.random() < 0.4, // arteries are brighter
+          thick: Math.random() * 8 + 2,
+          bulge: Math.random() * 0.5 + 0.75,
+          wob: Math.random() * 0.05 + 0.006,
+          artery: Math.random() < 0.35,
+          branch: Math.random() < 0.3,
         }));
 
-        // ── BLOOD CELLS ──
-        const CELLS = Array.from({ length: 200 }, () => ({
+        // Particules sang
+        const ENERGY = Array.from({ length: 280 }, () => ({
           angle: Math.random() * Math.PI * 2,
-          r: Math.random() * 0.9 + 0.05,
+          r: Math.random() * 0.92 + 0.04,
           z: Math.random(),
-          spd: Math.random() * 0.028 + 0.01,
-          sz: Math.random() * 5 + 2,
-          isRBC: Math.random() < 0.72,
-          wobA: Math.random() * 0.06,
-          wobP: Math.random() * Math.PI * 2,
+          spd: Math.random() * 0.032 + 0.009,
+          sz: Math.random() * 6 + 1.5,
+          type:
+            Math.random() < 0.65
+              ? "rbc"
+              : Math.random() < 0.5
+              ? "platelet"
+              : "energy",
+          wA: Math.random() * 0.07,
+          wP: Math.random() * Math.PI * 2,
+          hue: Math.random() * 30,
         }));
 
-        // EKG buffer
-        const EKG = new Float32Array(260);
-        let ekgHead = 0;
-
-        // Fear messages
-        const FEARS = [
-          "VOUS ÊTES ASPIRÉ...",
-          "LE CŒUR VOUS APPELLE",
-          "SANS RETOUR POSSIBLE",
-          "SENTEZ-VOUS ÇA ?",
-        ];
-        let fearI = 0;
-        const ftEl = document.getElementById("ft");
-
-        // BOOM texts
-        const BOOMS = ["BOOM...", "BOOM.", "BOOM!", "💀"];
-        let boomI = 0;
-        const btEl = document.getElementById("bt");
-
+        // Phases en frames
+        const F0 = 20; // choc initial
+        const F1 = 55; // aspiration
+        const F2 = 240; // tunnel veines
+        const F3 = 70; // évanouissement
+        const FTOT = F0 + F1 + F2 + F3;
         let frame = 0;
-        const PHASE1 = 50; // aspiration pull
-        const PHASE2 = 200; // vein rush
-        const PHASE3 = 50; // impact + fade
-        const TOTAL = PHASE1 + PHASE2 + PHASE3;
 
         function draw() {
           frame++;
-          const prog = frame / TOTAL;
-          const ph1 = Math.min(frame / PHASE1, 1);
-          const ph2 =
-            frame > PHASE1 ? Math.min((frame - PHASE1) / PHASE2, 1) : 0;
+          const ph0 = Math.min(frame / F0, 1);
+          const ph1 = frame > F0 ? Math.min((frame - F0) / F1, 1) : 0;
+          const ph2 = frame > F0 + F1 ? Math.min((frame - F0 - F1) / F2, 1) : 0;
           const ph3 =
-            frame > PHASE1 + PHASE2
-              ? Math.min((frame - PHASE1 - PHASE2) / PHASE3, 1)
-              : 0;
-          const bInt = Math.max(6, Math.floor(32 * (1 - ph2 * 0.72)));
-          const bPhase = (frame % bInt) / bInt;
-          const isBeat = bPhase < 0.14;
+            frame > F0 + F1 + F2 ? Math.min((frame - F0 - F1 - F2) / F3, 1) : 0;
 
-          // ══ PHASE 1: ASPIRATION PULL ══
-          // Screen warps toward heart portal, everything gets sucked in
-          if (ph1 < 1) {
-            ctx.clearRect(0, 0, W, H);
-            // Dark vignette closing in
-            const vg = ctx.createRadialGradient(
-              cx,
-              cy,
-              Math.max(10, (1 - ph1) * Math.min(W, H) * 0.55),
-              cx,
-              cy,
-              Math.max(W, H) * 0.75
-            );
-            vg.addColorStop(0, "rgba(0,0,0,0)");
-            vg.addColorStop(0.7, `rgba(0,0,0,${ph1 * 0.6})`);
-            vg.addColorStop(1, "rgba(0,0,0,.96)");
-            ctx.fillStyle = vg;
+          const bInterval = Math.max(5, Math.floor(34 * (1 - ph2 * 0.78)));
+          const bPhase = (frame % bInterval) / bInterval;
+          const isBeat = bPhase < 0.13;
+
+          // ── PHASE 0 : CHOC INITIAL ──
+          if (ph0 < 1) {
+            const flashA = ph0 < 0.3 ? ph0 / 0.3 : 1 - (ph0 - 0.3) / 0.7;
+            ctx.fillStyle = `rgba(255,240,240,${flashA * 0.9})`;
             ctx.fillRect(0, 0, W, H);
-            // Suction radial lines (pulling inward)
-            const lineCount = Math.floor(ph1 * 80) + 20;
-            for (let i = 0; i < lineCount; i++) {
-              const a = (i / lineCount) * Math.PI * 2;
-              const startR = Math.max(W, H) * 0.7;
-              const endR = Math.max(10, (1 - ph1) * 80);
+            ctx.beginPath();
+            ctx.arc(cx, cy, ph0 * Math.max(W, H) * 0.8, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(220,0,0,${(1 - ph0) * 0.7})`;
+            ctx.lineWidth = 8 * (1 - ph0) + 2;
+            ctx.stroke();
+            bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(200,0,0,${
+              flashA * 0.4
+            })0%,transparent 60%)`;
+            bo.style.opacity = "1";
+            requestAnimationFrame(draw);
+            return;
+          }
+
+          // ── PHASE 1 : ASPIRATION ──
+          if (ph1 < 1) {
+            ctx.fillStyle = `rgba(0,0,0,${0.2 + ph1 * 0.15})`;
+            ctx.fillRect(0, 0, W, H);
+            const lCount = 80 + Math.floor(ph1 * 60);
+            for (let i = 0; i < lCount; i++) {
+              const baseA = (i / lCount) * Math.PI * 2;
+              const spiral = ph1 * Math.PI * 0.8;
+              const a = baseA + spiral * (1 - ph1 * 0.5);
+              const startR = Math.max(W, H) * 0.75;
+              const endR = Math.max(8, Math.pow(1 - ph1, 0.8) * 120 + 10);
               const x1 = cx + Math.cos(a) * startR,
                 y1 = cy + Math.sin(a) * startR;
-              const x2 = cx + Math.cos(a) * endR,
-                y2 = cy + Math.sin(a) * endR;
-              const ln = ctx.createLinearGradient(x1, y1, x2, y2);
-              ln.addColorStop(0, "rgba(180,0,0,0)");
-              ln.addColorStop(0.6, `rgba(200,20,0,${ph1 * 0.18})`);
-              ln.addColorStop(1, `rgba(255,40,0,${ph1 * 0.55})`);
-              ctx.strokeStyle = ln;
-              ctx.lineWidth = 0.8 + ph1 * 1.2;
+              const x2 = cx + Math.cos(a + spiral * 0.3) * endR,
+                y2 = cy + Math.sin(a + spiral * 0.3) * endR;
+              const lg = ctx.createLinearGradient(x1, y1, x2, y2);
+              const intensity =
+                ph1 * (Math.sin(frame * 0.08 + i * 0.15) * 0.2 + 0.8);
+              lg.addColorStop(0, "rgba(120,0,0,0)");
+              lg.addColorStop(0.4, `rgba(180,15,0,${intensity * 0.15})`);
+              lg.addColorStop(0.75, `rgba(230,20,0,${intensity * 0.35})`);
+              lg.addColorStop(1, `rgba(255,40,0,${intensity * 0.65})`);
+              ctx.strokeStyle = lg;
+              ctx.lineWidth = 0.8 + ph1 * 1.8;
               ctx.beginPath();
               ctx.moveTo(x1, y1);
               ctx.lineTo(x2, y2);
               ctx.stroke();
             }
-            // Central glow — the heart calling
-            const hg = ctx.createRadialGradient(
+            const abR = ph1 * Math.min(W, H) * 0.28;
+            const ab = ctx.createRadialGradient(cx, cy, 0, cx, cy, abR);
+            ab.addColorStop(0, `rgba(240,0,0,${ph1 * 0.8})`);
+            ab.addColorStop(0.35, `rgba(160,0,0,${ph1 * 0.55})`);
+            ab.addColorStop(0.7, `rgba(60,0,0,${ph1 * 0.3})`);
+            ab.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = ab;
+            ctx.beginPath();
+            ctx.arc(cx, cy, abR, 0, Math.PI * 2);
+            ctx.fill();
+            const vg = ctx.createRadialGradient(
               cx,
               cy,
-              0,
+              Math.max(5, (1 - ph1) * Math.min(W, H) * 0.42),
               cx,
               cy,
-              Math.max(10, (1 - ph1) * 200 + 50)
+              Math.max(W, H) * 0.78
             );
-            hg.addColorStop(0, `rgba(220,0,0,${ph1 * 0.7})`);
-            hg.addColorStop(0.4, `rgba(180,0,0,${ph1 * 0.35})`);
-            hg.addColorStop(1, "rgba(0,0,0,0)");
-            ctx.fillStyle = hg;
+            vg.addColorStop(0, "rgba(0,0,0,0)");
+            vg.addColorStop(1, `rgba(0,0,0,${0.7 + ph1 * 0.25})`);
+            ctx.fillStyle = vg;
             ctx.fillRect(0, 0, W, H);
-            // Heartbeat overlay starts early
-            if (ph1 > 0.5) {
-              const bo = document.getElementById("bo");
-              bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(${
-                160 + Math.floor(ph1 * 60)
-              },0,0,${isBeat ? ph1 * 0.5 : 0.08 * ph1}) 0%,transparent 65%)`;
-              bo.style.opacity = "1";
-            }
-            if (ph1 < 1) {
-              requestAnimationFrame(draw);
-              return;
-            }
+            bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(${
+              180 + Math.floor(ph1 * 70)
+            },0,0,${isBeat ? ph1 * 0.55 : 0.08 * ph1})0%,transparent 60%)`;
+            bo.style.opacity = "1";
+            requestAnimationFrame(draw);
+            return;
           }
 
-          // ══ PHASE 2: INSIDE VEIN — RUSH ══
-          // Background
-          ctx.fillStyle = `rgba(0,0,0,${0.13 + ph2 * 0.07})`;
+          // ── PHASE 2 : TUNNEL VEINES ──
+          ctx.fillStyle = `rgba(0,0,0,${0.12 + ph2 * 0.06})`;
           ctx.fillRect(0, 0, W, H);
           const amb = ctx.createRadialGradient(
             cx,
@@ -3176,275 +3141,290 @@
             0,
             cx,
             cy,
-            Math.max(W, H) * 0.62
+            Math.max(W, H) * 0.65
           );
           amb.addColorStop(
             0,
-            `rgba(${100 + Math.floor(ph2 * 90)},${Math.floor(
-              ph2 * 8
-            )},${Math.floor(ph2 * 5)},${0.62 * ph2})`
+            `rgba(${105 + Math.floor(ph2 * 95)},${Math.floor(
+              ph2 * 9
+            )},${Math.floor(ph2 * 6)},${0.65 * ph2})`
           );
           amb.addColorStop(
-            0.5,
-            `rgba(${46 + Math.floor(ph2 * 30)},0,3,${0.44 * ph2})`
+            0.48,
+            `rgba(${48 + Math.floor(ph2 * 32)},0,4,${0.46 * ph2})`
           );
           amb.addColorStop(1, "rgba(0,0,0,0)");
           ctx.fillStyle = amb;
           ctx.fillRect(0, 0, W, H);
 
-          // ── VEIN TUBE — organic, pulsating ──
-          const DEPTH = 26;
+          const DEPTH = 28;
           for (let z = DEPTH; z > 0; z--) {
             const depth = z / DEPTH;
-            const beatBulge = isBeat ? 0.14 * (1 - bPhase / 0.14) : 0;
-            // Non-uniform radius — organic wobble
+            const beatBulge = isBeat ? 0.16 * (1 - bPhase / 0.13) : 0;
             const baseR =
               Math.min(W, H) *
-              0.46 *
-              (1 / depth + ph2 * 0.45) *
-              (1 + beatBulge * 0.45);
-            const alpha = depth * 0.76 * (1 - depth * 0.24);
-            const vPulse =
-              Math.sin(frame * 0.1 + z * 0.28 + Math.PI * depth) * 0.14 + 0.86;
+              0.47 *
+              (1 / depth + ph2 * 0.48) *
+              (1 + beatBulge * 0.5);
+            const alpha = depth * 0.78 * (1 - depth * 0.22);
+            const vP =
+              Math.sin(frame * 0.09 + z * 0.26 + depth * Math.PI) * 0.15 + 0.85;
             const r2 = Math.floor(
-              145 + depth * 98 + Math.sin(frame * 0.07 + z) * depth * 14
+              142 + depth * 102 + Math.sin(frame * 0.065 + z) * depth * 16
             );
-            const g2 = Math.floor(depth * 10);
-            const wx = 1 + Math.sin(frame * 0.038 + z * 0.7) * 0.045,
-              wy = 1 + Math.cos(frame * 0.032 + z * 0.55) * 0.045;
+            const g2 = Math.floor(depth * 8);
+            const wX = 1 + Math.sin(frame * 0.036 + z * 0.68 + 1.2) * 0.055;
+            const wY = 1 + Math.cos(frame * 0.029 + z * 0.52 + 2.4) * 0.038;
             ctx.save();
             ctx.translate(cx, cy);
-            ctx.scale(wx, wy);
+            ctx.scale(wX, wY);
             ctx.translate(-cx, -cy);
             ctx.beginPath();
             ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(${r2},${g2},${g2},${
-              alpha * vPulse * 0.62
-            })`;
-            ctx.lineWidth = 1.8 + depth * 3.2;
+            ctx.strokeStyle = `rgba(${r2},${g2},${g2},${alpha * vP * 0.65})`;
+            ctx.lineWidth = 1.6 + depth * 3.5;
             ctx.stroke();
-            // Inner arterial membrane
             if (z % 3 === 0) {
               ctx.beginPath();
-              ctx.arc(cx, cy, baseR * 0.97, 0, Math.PI * 2);
-              ctx.strokeStyle = `rgba(255,${Math.floor(
-                vPulse * 20
-              )},${Math.floor(vPulse * 12)},${alpha * 0.32})`;
-              ctx.lineWidth = 1;
+              ctx.arc(cx, cy, baseR * 0.96, 0, Math.PI * 2);
+              ctx.strokeStyle = `rgba(255,${Math.floor(vP * 22)},${Math.floor(
+                vP * 14
+              )},${alpha * 0.35})`;
+              ctx.lineWidth = 1.2;
+              ctx.stroke();
+            }
+            if (depth > 0.7) {
+              ctx.beginPath();
+              ctx.arc(cx, cy, baseR * 0.88, 0, Math.PI * 2);
+              ctx.strokeStyle = `rgba(${Math.floor(r2 * 0.6)},0,0,${
+                alpha * 0.18
+              })`;
+              ctx.lineWidth = 3;
               ctx.stroke();
             }
             ctx.restore();
-            // Longitudinal vein fibers
             VEINS.forEach((v) => {
-              const wobA =
-                v.angle + Math.sin(frame * v.wobble + v.phase) * 0.12;
-              const bx = cx + Math.cos(wobA) * baseR,
-                by = cy + Math.sin(wobA) * baseR;
-              const nextR =
+              const wA =
+                v.angle +
+                Math.sin(frame * v.wob + v.phase) * 0.14 +
+                Math.sin(frame * v.wob * 0.7 + v.phase * 1.3) * 0.06;
+              const bx = cx + Math.cos(wA) * baseR,
+                by = cy + Math.sin(wA) * baseR;
+              const nDepth = Math.max(depth - 0.055, 0.01);
+              const nR =
                 Math.min(W, H) *
-                0.46 *
-                (1 / Math.max(depth - 0.06, 0.01) + ph2 * 0.45) *
-                (1 + beatBulge * 0.45);
-              const nx = cx + Math.cos(wobA) * nextR,
-                ny = cy + Math.sin(wobA) * nextR;
+                0.47 *
+                (1 / nDepth + ph2 * 0.48) *
+                (1 + beatBulge * 0.5);
+              const nx = cx + Math.cos(wA) * nR,
+                ny = cy + Math.sin(wA) * nR;
               const vA =
                 alpha *
-                (0.42 + Math.sin(frame * 0.12 + v.phase + depth) * 0.14);
-              const vr = v.isArtery
-                ? Math.floor(185 + vPulse * 70)
-                : Math.floor(150 + vPulse * 65);
+                (0.44 + Math.sin(frame * 0.11 + v.phase + depth) * 0.16);
+              const vr = v.artery
+                ? Math.floor(192 + vP * 72)
+                : Math.floor(148 + vP * 68);
               ctx.strokeStyle = `rgba(${vr},${g2},${g2},${vA})`;
               ctx.lineWidth =
-                v.thick *
-                depth *
-                v.bulge *
-                vPulse *
-                0.92 *
-                (1 + beatBulge * 1.3);
+                v.thick * depth * v.bulge * vP * 0.95 * (1 + beatBulge * 1.4);
               ctx.beginPath();
               ctx.moveTo(bx, by);
               ctx.lineTo(nx, ny);
               ctx.stroke();
-              if (v.isArtery) {
-                ctx.strokeStyle = `rgba(255,${Math.floor(
-                  vPulse * 45
-                )},${Math.floor(vPulse * 28)},${vA * 0.6})`;
-                ctx.lineWidth = Math.max(0.6, v.thick * 0.3 * depth);
+              if (v.artery) {
+                ctx.strokeStyle = `rgba(255,${Math.floor(vP * 48)},${Math.floor(
+                  vP * 30
+                )},${vA * 0.65})`;
+                ctx.lineWidth = Math.max(0.5, v.thick * 0.32 * depth);
                 ctx.beginPath();
                 ctx.moveTo(bx, by);
                 ctx.lineTo(nx, ny);
                 ctx.stroke();
               }
+              if (v.branch && depth > 0.4) {
+                const bAng = wA + 0.45 + Math.sin(frame * 0.02 + v.phase) * 0.3;
+                const bLen = baseR * 0.12;
+                ctx.strokeStyle = `rgba(${vr},${g2},${g2},${vA * 0.4})`;
+                ctx.lineWidth = 0.8;
+                ctx.beginPath();
+                ctx.moveTo(bx, by);
+                ctx.lineTo(
+                  bx + Math.cos(bAng) * bLen,
+                  by + Math.sin(bAng) * bLen
+                );
+                ctx.stroke();
+              }
             });
           }
 
-          // ── BLOOD CELLS rushing past ──
-          CELLS.forEach((c) => {
-            c.z -= c.spd * (1 + ph2 * 1.3);
-            if (c.z < 0) {
-              c.z = 1;
-              c.angle = Math.random() * Math.PI * 2;
-              c.r = Math.random() * 0.9 + 0.05;
+          // Particules sang
+          ENERGY.forEach((e) => {
+            e.z -= e.spd * (1 + ph2 * 1.35);
+            if (e.z < 0) {
+              e.z = 1;
+              e.angle = Math.random() * Math.PI * 2;
+              e.r = Math.random() * 0.92 + 0.04;
             }
-            c.angle += Math.sin(frame * 0.04 + c.wobP) * c.wobA;
-            const d2 = 1 - c.z;
-            const tR = Math.min(W, H) * 0.46 * d2 * (1 + ph2 * 0.45);
-            const px = cx + Math.cos(c.angle) * (c.r * tR),
-              py = cy + Math.sin(c.angle) * (c.r * tR);
-            const csz = c.sz * (1 + d2 * 3.2) * (1 + ph2 * 0.75),
-              pA = Math.min(0.95, d2 * 1.4);
-            // Motion trail
-            const tx = cx + Math.cos(c.angle) * (c.r * tR * (1 + c.spd * 14));
-            const ty = cy + Math.sin(c.angle) * (c.r * tR * (1 + c.spd * 14));
-            if (c.isRBC) {
-              // Red blood cell — biconcave
-              const tg = ctx.createLinearGradient(px, py, tx, ty);
-              tg.addColorStop(0, `rgba(215,28,28,${pA * 0.9})`);
-              tg.addColorStop(1, "rgba(170,0,0,0)");
+            e.angle += Math.sin(frame * 0.038 + e.wP) * e.wA;
+            const d2 = 1 - e.z;
+            const tR = Math.min(W, H) * 0.47 * d2 * (1 + ph2 * 0.48);
+            const ex = cx + Math.cos(e.angle) * (e.r * tR);
+            const ey = cy + Math.sin(e.angle) * (e.r * tR);
+            const esz = e.sz * (1 + d2 * 3.5) * (1 + ph2 * 0.8);
+            const eA = Math.min(0.96, d2 * 1.45);
+            const trailLen = 1 + e.spd * 16 + ph2 * 4;
+            const tx2 = cx + Math.cos(e.angle) * (e.r * tR * trailLen);
+            const ty2 = cy + Math.sin(e.angle) * (e.r * tR * trailLen);
+            if (e.type === "rbc") {
+              const tg = ctx.createLinearGradient(ex, ey, tx2, ty2);
+              tg.addColorStop(0, `rgba(218,30,30,${eA * 0.92})`);
+              tg.addColorStop(1, "rgba(165,0,0,0)");
               ctx.strokeStyle = tg;
-              ctx.lineWidth = csz * 0.65;
+              ctx.lineWidth = esz * 0.68;
               ctx.beginPath();
-              ctx.moveTo(px, py);
-              ctx.lineTo(tx, ty);
+              ctx.moveTo(ex, ey);
+              ctx.lineTo(tx2, ty2);
               ctx.stroke();
               ctx.save();
-              ctx.translate(px, py);
-              ctx.rotate(c.angle);
+              ctx.translate(ex, ey);
+              ctx.rotate(e.angle);
               ctx.beginPath();
-              ctx.ellipse(0, 0, csz * 0.72, csz * 0.44, 0, 0, Math.PI * 2);
+              ctx.ellipse(0, 0, esz * 0.74, esz * 0.46, 0, 0, Math.PI * 2);
               const rg = ctx.createRadialGradient(
-                -csz * 0.15,
-                -csz * 0.1,
+                -esz * 0.16,
+                -esz * 0.11,
                 0,
-                -csz * 0.15,
-                -csz * 0.1,
-                csz * 0.75
+                -esz * 0.16,
+                -esz * 0.11,
+                esz * 0.78
               );
-              rg.addColorStop(0, `rgba(175,10,10,${pA * 0.7})`);
-              rg.addColorStop(0.5, `rgba(228,38,38,${pA * 0.88})`);
-              rg.addColorStop(1, `rgba(195,18,18,${pA * 0.58})`);
+              rg.addColorStop(0, `rgba(172,8,8,${eA * 0.72})`);
+              rg.addColorStop(0.5, `rgba(232,40,40,${eA * 0.9})`);
+              rg.addColorStop(1, `rgba(198,20,20,${eA * 0.6})`);
               ctx.fillStyle = rg;
               ctx.fill();
-              // Biconcave centre indent
               ctx.beginPath();
-              ctx.ellipse(0, 0, csz * 0.28, csz * 0.17, 0, 0, Math.PI * 2);
-              ctx.fillStyle = `rgba(130,5,5,${pA * 0.52})`;
+              ctx.ellipse(0, 0, esz * 0.3, esz * 0.18, 0, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(125,3,3,${eA * 0.55})`;
               ctx.fill();
+              ctx.strokeStyle = `rgba(255,80,80,${eA * 0.25})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.ellipse(0, 0, esz * 0.74, esz * 0.46, 0, 0, Math.PI * 2);
+              ctx.stroke();
               ctx.restore();
-            } else {
-              // Platelet
-              const pg = ctx.createRadialGradient(px, py, 0, px, py, csz * 1.6);
-              pg.addColorStop(0, `rgba(255,185,75,${pA * 0.85})`);
-              pg.addColorStop(1, "rgba(220,120,25,0)");
+            } else if (e.type === "platelet") {
+              const pg = ctx.createRadialGradient(ex, ey, 0, ex, ey, esz * 1.8);
+              pg.addColorStop(0, `rgba(255,188,78,${eA * 0.88})`);
+              pg.addColorStop(1, "rgba(218,122,28,0)");
               ctx.fillStyle = pg;
               ctx.beginPath();
-              ctx.arc(px, py, csz * 1.6, 0, Math.PI * 2);
+              ctx.arc(ex, ey, esz * 1.8, 0, Math.PI * 2);
               ctx.fill();
-              ctx.fillStyle = `rgba(255,205,105,${pA})`;
+              ctx.fillStyle = `rgba(255,208,108,${eA})`;
               ctx.beginPath();
-              ctx.arc(px, py, csz * 0.45, 0, Math.PI * 2);
+              ctx.arc(ex, ey, esz * 0.48, 0, Math.PI * 2);
               ctx.fill();
+              for (let sp = 0; sp < 4; sp++) {
+                const sa = e.angle + sp * Math.PI * 0.5;
+                ctx.strokeStyle = `rgba(255,195,80,${eA * 0.5})`;
+                ctx.lineWidth = 0.8;
+                ctx.beginPath();
+                ctx.moveTo(ex, ey);
+                ctx.lineTo(
+                  ex + Math.cos(sa) * esz * 1.2,
+                  ey + Math.sin(sa) * esz * 1.2
+                );
+                ctx.stroke();
+              }
+            } else {
+              const eg = ctx.createRadialGradient(ex, ey, 0, ex, ey, esz * 2.8);
+              eg.addColorStop(0, `rgba(255,240,200,${eA * 0.95})`);
+              eg.addColorStop(
+                0.3,
+                `rgba(255,${150 + Math.floor(e.hue * 3)},50,${eA * 0.7})`
+              );
+              eg.addColorStop(1, "rgba(200,50,0,0)");
+              ctx.fillStyle = eg;
+              ctx.beginPath();
+              ctx.arc(ex, ey, esz * 2.8, 0, Math.PI * 2);
+              ctx.fill();
+              const etg = ctx.createLinearGradient(ex, ey, tx2, ty2);
+              etg.addColorStop(0, `rgba(255,220,100,${eA * 0.88})`);
+              etg.addColorStop(1, "rgba(255,100,0,0)");
+              ctx.strokeStyle = etg;
+              ctx.lineWidth = esz * 0.55;
+              ctx.beginPath();
+              ctx.moveTo(ex, ey);
+              ctx.lineTo(tx2, ty2);
+              ctx.stroke();
             }
           });
 
-          // ── HEARTBEAT OVERLAY ──
-          const bo = document.getElementById("bo");
+          // ══ PULSATIONS CARDIAQUES — overlay rouge qui bat ══
+          // Remplace les BOOM et le crâne par des flashs organiques
           if (isBeat) {
-            const bA = ((0.14 - bPhase) / 0.14) * (0.48 + ph2 * 0.52);
-            bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(${
-              185 + Math.floor(ph2 * 65)
-            },0,0,${bA}) 0%,rgba(${100 + Math.floor(ph2 * 40)},0,0,${
-              bA * 0.5
-            }) 45%,transparent 70%)`;
+            const bA = ((0.13 - bPhase) / 0.13) * (0.45 + ph2 * 0.6);
+            const bR = 185 + Math.floor(ph2 * 68);
+            // Cercle d'impact qui se dilate
+            const pulseR = Math.min(W, H) * (0.05 + bPhase * 0.35) * (1 + ph2);
+            const pGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulseR);
+            pGrad.addColorStop(0, `rgba(${bR},0,0,${bA * 0.7})`);
+            pGrad.addColorStop(0.4, `rgba(${bR},0,0,${bA * 0.35})`);
+            pGrad.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = pGrad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
+            ctx.fill();
+            // Bord extérieur
+            ctx.beginPath();
+            ctx.arc(cx, cy, pulseR * 0.92, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255,20,20,${bA * 0.4})`;
+            ctx.lineWidth = 3 + ph2 * 4;
+            ctx.stroke();
+            // Overlay global rouge
+            bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(${bR},0,0,${bA})0%,rgba(${Math.floor(
+              bR * 0.5
+            )},0,0,${bA * 0.45})45%,transparent 70%)`;
             bo.style.opacity = "1";
-            // Physical screen shake on beat
-            if (ph2 > 0.2) {
-              const shk = ph2 * 5 + 2;
+            // Screen shake (croissant)
+            if (ph2 > 0.1) {
+              const shk = (ph2 * 7 + 1.5) * (isBeat ? 1.8 : 0.2);
               vc.style.transform = `translate(${
                 (Math.random() - 0.5) * shk
-              }px,${(Math.random() - 0.5) * shk}px)`;
-              setTimeout(() => (vc.style.transform = ""), 80);
+              }px,${(Math.random() - 0.5) * shk}px) rotate(${
+                (Math.random() - 0.5) * shk * 0.15
+              }deg)`;
+              setTimeout(() => (vc.style.transform = ""), 65);
             }
-            // Flash on heavy late beats
-            if (ph2 > 0.5 && bPhase < 0.04) {
-              ctx.fillStyle = `rgba(205,0,0,${0.12 + ph2 * 0.14})`;
+            if (ph2 > 0.55 && bPhase < 0.035) {
+              ctx.fillStyle = `rgba(210,0,0,${0.12 + ph2 * 0.14})`;
               ctx.fillRect(0, 0, W, H);
             }
           } else {
             bo.style.opacity = "0";
           }
 
-          // ── EKG WAVEFORM ──
-          EKG[ekgHead] = isBeat
-            ? (ph2 > 0.15 ? 3.5 : 2) * (1 - bPhase / 0.14)
-            : Math.sin(frame * 0.09 + ekgHead * 0.06) * 0.12;
-          ekgHead = (ekgHead + 1) % 260;
-          ekCtx.clearRect(0, 0, ekEl.width, 72);
-          ekCtx.fillStyle = "rgba(0,0,0,.6)";
-          ekCtx.fillRect(0, 0, ekEl.width, 72);
-          // Grid
-          ekCtx.strokeStyle = "rgba(100,0,0,.25)";
-          ekCtx.lineWidth = 0.5;
-          for (let i = 0; i < ekEl.width; i += 60) {
-            ekCtx.beginPath();
-            ekCtx.moveTo(i, 0);
-            ekCtx.lineTo(i, 72);
-            ekCtx.stroke();
-          }
-          for (let i = 0; i < 72; i += 18) {
-            ekCtx.beginPath();
-            ekCtx.moveTo(0, i);
-            ekCtx.lineTo(ekEl.width, i);
-            ekCtx.stroke();
-          }
-          // EKG line
-          ekCtx.strokeStyle = `rgba(255,${Math.floor(
-            40 + ph2 * 20
-          )},${Math.floor(30 + ph2 * 10)},${0.58 + ph2 * 0.36})`;
-          ekCtx.lineWidth = 2;
-          ekCtx.beginPath();
-          for (let i = 0; i < 260; i++) {
-            const idx = (ekgHead + i) % 260;
-            const x = (i / 260) * ekEl.width;
-            const y = 36 - EKG[idx] * 24;
-            i === 0 ? ekCtx.moveTo(x, y) : ekCtx.lineTo(x, y);
-          }
-          ekCtx.stroke();
-          // BPM
-          ekCtx.fillStyle = `rgba(255,50,50,${0.45 + ph2 * 0.35})`;
-          ekCtx.font = "bold 9px Cinzel,serif";
-          ekCtx.fillText(
-            "BPM : " + (52 + Math.floor(ph2 * 120)) + "   ██████████████",
-            16,
-            14
-          );
-
-          // ── FEAR TEXT ──
-          if (
-            frame % (50 + Math.floor((1 - ph2) * 20)) === 0 &&
-            fearI < FEARS.length
-          ) {
-            ftEl.textContent = FEARS[fearI++];
-            ftEl.style.transition = "none";
-            ftEl.style.color = `rgba(210,20,20,${0.6 + Math.random() * 0.3})`;
-            ftEl.style.letterSpacing = `${0.3 + ph2 * 0.3}em`;
-            setTimeout(() => {
-              ftEl.style.transition =
-                "color 1.4s ease,letter-spacing 1.4s ease";
-              ftEl.style.color = "rgba(210,20,20,0)";
-              ftEl.style.letterSpacing = ".7em";
-            }, 850);
-          }
-
-          // ── BLOOD SPRAY STREAKS (late) ──
-          if (ph2 > 0.42) {
-            const ns = Math.floor((ph2 - 0.42) * 22);
+          // Traînées de sang
+          if (ph2 > 0.35) {
+            const ns = Math.floor((ph2 - 0.35) * 26);
             for (let i = 0; i < ns; i++) {
-              const ang = frame * 0.05 * (i + 1) + i * 2.4;
-              const sr = Math.min(W, H) * 0.05;
-              const er = Math.min(W, H) * 0.56;
-              ctx.strokeStyle = `rgba(185,12,12,${0.07 + ph2 * 0.1})`;
-              ctx.lineWidth = 0.9 + Math.sin(frame + i) * 0.4;
+              const ang =
+                frame * 0.048 * (i + 1) +
+                i * 2.35 +
+                Math.sin(frame * 0.03 + i) * 0.5;
+              const sr = Math.min(W, H) * 0.04;
+              const er = Math.min(W, H) * 0.58;
+              const sl = ctx.createLinearGradient(
+                cx + Math.cos(ang) * sr,
+                cy + Math.sin(ang) * sr,
+                cx + Math.cos(ang) * er,
+                cy + Math.sin(ang) * er
+              );
+              sl.addColorStop(0, `rgba(200,15,15,${0.05 + ph2 * 0.09})`);
+              sl.addColorStop(1, "rgba(180,8,8,0)");
+              ctx.strokeStyle = sl;
+              ctx.lineWidth = 0.8 + Math.sin(frame * 1.2 + i) * 0.5;
               ctx.beginPath();
               ctx.moveTo(cx + Math.cos(ang) * sr, cy + Math.sin(ang) * sr);
               ctx.lineTo(cx + Math.cos(ang) * er, cy + Math.sin(ang) * er);
@@ -3452,70 +3432,105 @@
             }
           }
 
-          // ── BOOM ──
-          if ([60, 105, 148, 188].includes(frame) && boomI < BOOMS.length) {
-            btEl.textContent = BOOMS[boomI++];
-            btEl.style.opacity = "1";
-            btEl.style.transform = "translate(-50%,-50%) scale(1.28)";
-            btEl.style.transition = "all .04s";
-            setTimeout(() => {
-              btEl.style.opacity = "0";
-              btEl.style.transform = "translate(-50%,-50%) scale(.62)";
-              btEl.style.transition = "all .58s ease-out";
-            }, 480);
-          }
-
-          // ── EDGE VIGNETTE ──
+          // Vignette bord
           const vg2 = ctx.createRadialGradient(
             cx,
             cy,
-            Math.min(W, H) * 0.08,
+            Math.min(W, H) * 0.07,
             cx,
             cy,
-            Math.max(W, H) * 0.68
+            Math.max(W, H) * 0.7
           );
           vg2.addColorStop(0, "rgba(0,0,0,0)");
-          vg2.addColorStop(1, `rgba(0,0,0,${0.65 + ph2 * 0.3})`);
+          vg2.addColorStop(1, `rgba(0,0,0,${0.68 + ph2 * 0.28})`);
           ctx.fillStyle = vg2;
           ctx.fillRect(0, 0, W, H);
 
-          // ══ PHASE 3: IMPACT + WHITOUT ══
+          // ── PHASE 3 : ÉVANOUISSEMENT PROGRESSIF ──
+          // Pas de texte, pas de crâne — juste une montée vers le blanc puis le noir
           if (ph3 > 0) {
-            // Screen goes deep red then white flash then black
-            if (ph3 < 0.4) {
-              ctx.fillStyle = `rgba(150,0,0,${ph3 * 2})`;
+            if (ph3 < 0.25) {
+              // Rouge intense
+              ctx.fillStyle = `rgba(160,0,0,${ph3 * 4 * 0.9})`;
               ctx.fillRect(0, 0, W, H);
-            } else if (ph3 < 0.65) {
-              ctx.fillStyle = `rgba(255,${Math.floor(
-                ((ph3 - 0.4) / 0.25) * 200
-              )},${Math.floor(((ph3 - 0.4) / 0.25) * 200)},${
-                (ph3 - 0.4) / 0.25
-              })`;
+              bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(255,0,0,${
+                ph3 * 4 * 0.65
+              })0%,transparent 55%)`;
+              bo.style.opacity = "1";
+            } else if (ph3 < 0.5) {
+              // Flash blanc — éblouissement
+              const fl = (ph3 - 0.25) / 0.25;
+              ctx.fillStyle = `rgba(255,${Math.floor(fl * 200)},${Math.floor(
+                fl * 200
+              )},${fl * 0.98})`;
               ctx.fillRect(0, 0, W, H);
+              bo.style.opacity = "0";
+              // Écho des battements — cercles concentriques blancs
+              for (let r = 0; r < 5; r++) {
+                const rr = fl * fl * Math.min(W, H) * (0.1 + r * 0.12);
+                ctx.beginPath();
+                ctx.arc(cx, cy, rr, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255,255,255,${
+                  (1 - r * 0.18) * (1 - fl * 0.6)
+                })`;
+                ctx.lineWidth = 4 - r * 0.6;
+                ctx.stroke();
+              }
+            } else if (ph3 < 0.75) {
+              // Fondu vers le noir — évanouissement
+              const faintP = (ph3 - 0.5) / 0.25;
+              ctx.fillStyle = `rgba(0,0,0,${faintP * 0.95})`;
+              ctx.fillRect(0, 0, W, H);
+              // Pulsation qui s'éteint — dernier souffle
+              const lastBeat = Math.sin(faintP * Math.PI * 4) * 0.5 + 0.5;
+              if (lastBeat > 0.5) {
+                const lbG = ctx.createRadialGradient(
+                  cx,
+                  cy,
+                  0,
+                  cx,
+                  cy,
+                  Math.min(W, H) * 0.3 * lastBeat
+                );
+                lbG.addColorStop(
+                  0,
+                  `rgba(180,0,0,${(1 - faintP) * lastBeat * 0.5})`
+                );
+                lbG.addColorStop(1, "rgba(0,0,0,0)");
+                ctx.fillStyle = lbG;
+                ctx.beginPath();
+                ctx.arc(
+                  cx,
+                  cy,
+                  Math.min(W, H) * 0.3 * lastBeat,
+                  0,
+                  Math.PI * 2
+                );
+                ctx.fill();
+              }
             } else {
-              ctx.fillStyle = `rgba(0,0,0,${(ph3 - 0.65) / 0.35})`;
+              // Noir total — silence
+              ctx.fillStyle = `rgba(0,0,0,1)`;
               ctx.fillRect(0, 0, W, H);
             }
-            btEl.style.opacity = "0";
-            bo.style.opacity = "0";
-            if (ph3 >= 0.5 && !vc.dataset.fading) {
+
+            if (ph3 >= 0.45 && !vc.dataset.fading) {
               vc.dataset.fading = "1";
-              ekEl.style.transition = "opacity .5s";
-              ekEl.style.opacity = "0";
-              ftEl.style.color = "transparent";
-              const curt = document.getElementById("curtain");
-              curt.style.transition = "opacity 1.8s ease";
-              curt.classList.remove("gone");
-              curt.style.opacity = "1";
+              const cu = document.getElementById("curtain");
+              cu.style.transition = "opacity 2s ease";
+              cu.classList.remove("gone");
+              cu.style.opacity = "1";
             }
           }
 
-          if (frame < TOTAL) {
+          if (frame < FTOT) {
             requestAnimationFrame(draw);
           } else {
             if (_hb) clearTimeout(_hb);
             try {
               window._dr?.o.stop();
+            } catch (e) {}
+            try {
               window._ws?.s.stop();
             } catch (e) {}
             setTimeout(() => {
@@ -3523,7 +3538,7 @@
                 localStorage.setItem("gaiaPlayerName", pName);
               } catch (e) {}
               window.location.href = "scene4.html";
-            }, 1800);
+            }, 1900);
           }
         }
         requestAnimationFrame(draw);
@@ -3599,7 +3614,6 @@
         mmX.stroke();
       }
 
-      // RENDER LOOP
       function loop3() {
         requestAnimationFrame(loop3);
         if (PHASE === "tunnel") return;
