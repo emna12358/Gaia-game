@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAÏA — Scène 5 : Chambre du Cœur</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #00ff88;
+        --gd: #00cc66;
+        --red: #cc1133;
+        --rb: #ff2244;
+        --soft: #d0f0e0;
+        --ui: rgba(0, 5, 2, 0.95);
+        --ub: rgba(204, 17, 51, 0.18);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+        opacity: 0;
+        animation: fi 0.6s ease 0.1s forwards;
+      }
+      @keyframes fi {
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* CURSEUR */
+      #cur {
+        position: fixed;
+        width: 16px;
+        height: 16px;
+        border: 1.5px solid rgba(204, 17, 51, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: width 0.12s, height 0.12s;
+      }
+      #cur::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--rb);
+        border-radius: 50%;
+      }
+      #cur.aim {
+        width: 30px;
+        height: 30px;
+        border-color: #ff6688;
+        box-shadow: 0 0 14px #ff6688;
+        background: rgba(255, 102, 136, 0.05);
+      }
+      #cur.aim::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 14px;
+        background: rgba(255, 102, 136, 0.7);
+      }
+
+      /* CANVASES */
+      #c3d {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+      }
+      #smoke-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+      #particle-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+      }
+
+      /* VIGNETTE */
+      #vig {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse 90% 90% at 50% 50%,
+          transparent 20%,
+          rgba(0, 0, 0, 0.18) 55%,
+          rgba(0, 0, 0, 0.9) 100%
+        );
+      }
+
+      /* OVERLAYS */
+      #bo {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+        opacity: 0;
+      }
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 1.4s ease;
+      }
+      #curtain.gone {
+        opacity: 0;
+      }
+      #fl {
+        position: fixed;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        opacity: 0;
+      }
+
+      /* ── HUD TOP ── */
+      #hud-top {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #hud-top.show {
+        opacity: 1;
+      }
+      .ht-l {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.5em;
+        color: rgba(204, 17, 51, 0.42);
+      }
+      .ht-c {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.38em;
+        color: rgba(204, 17, 51, 0.25);
+      }
+      .ht-r {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: rgba(204, 17, 51, 0.4);
+      }
+
+      /* ── BPM + TIMER (gauche) ── */
+      #left-stats {
+        position: fixed;
+        top: 52px;
+        left: 24px;
+        z-index: 20;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+      #left-stats.show {
+        opacity: 1;
+      }
+      .ls-block {
+        margin-bottom: 10px;
+      }
+      .ls-lbl {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.32em;
+        color: rgba(255, 255, 255, 0.32);
+        margin-bottom: 3px;
+      }
+      .ls-val {
+        font-family: "Cinzel", serif;
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        background: linear-gradient(135deg, #ff2244, #aa0011);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 10px rgba(255, 34, 68, 0.5));
+      }
+      .ls-val.green {
+        background: linear-gradient(135deg, #00ff88, #00aa44);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
+      }
+      #timer-bar {
+        width: 100px;
+        height: 2px;
+        background: rgba(204, 17, 51, 0.12);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 4px;
+      }
+      #timer-fill {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, #00ff88, #ffaa33, #ff4444);
+        border-radius: 2px;
+        transition: width 0.8s linear;
+      }
+
+      /* ── ÉNERGIE VERTE (droite) ── */
+      #energy-panel {
+        position: fixed;
+        top: 52px;
+        right: 24px;
+        z-index: 20;
+        width: 220px;
+        background: var(--ui);
+        border: 1px solid rgba(0, 255, 136, 0.15);
+        backdrop-filter: blur(18px);
+        border-radius: 3px;
+        padding: 12px 15px;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+      #energy-panel.show {
+        opacity: 1;
+      }
+      .ep-title {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.32em;
+        color: rgba(0, 255, 136, 0.55);
+        margin-bottom: 6px;
+      }
+      .ep-bar-wrap {
+        width: 100%;
+        height: 10px;
+        background: rgba(0, 255, 136, 0.08);
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 255, 136, 0.12);
+        margin-bottom: 5px;
+      }
+      .ep-fill {
+        height: 100%;
+        width: 38%;
+        background: linear-gradient(90deg, #00aa44, #00ff88);
+        border-radius: 5px;
+        transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .ep-pct {
+        font-family: "Cinzel", serif;
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.55));
+      }
+      .ep-sub {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.25em;
+        color: rgba(0, 255, 136, 0.35);
+        margin-top: 2px;
+      }
+
+      /* ── PLAQUES HUD (droite bas) ── */
+      #plaque-panel {
+        position: fixed;
+        top: 175px;
+        right: 24px;
+        z-index: 20;
+        width: 220px;
+        background: var(--ui);
+        border: 1px solid rgba(204, 17, 51, 0.14);
+        backdrop-filter: blur(18px);
+        border-radius: 3px;
+        padding: 12px 15px;
+        opacity: 0;
+        transition: opacity 0.8s ease;
+      }
+      #plaque-panel.show {
+        opacity: 1;
+      }
+      .pp-title {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.32em;
+        color: rgba(204, 17, 51, 0.5);
+        margin-bottom: 8px;
+      }
+      #plaque-dots {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .pd {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: rgba(50, 5, 5, 0.8);
+        border: 1px solid rgba(204, 17, 51, 0.35);
+        transition: all 0.5s ease;
+        position: relative;
+      }
+      .pd.done {
+        background: var(--g);
+        border-color: var(--g);
+        box-shadow: 0 0 8px var(--g);
+      }
+      .pd.done::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 8px;
+        color: #000;
+        font-weight: 900;
+      }
+      .pd-diff {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.15em;
+        color: rgba(255, 255, 255, 0.28);
+        margin-top: 6px;
+      }
+
+      /* ── MINIMAP ── */
+      #minimap-wrap {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 20;
+        opacity: 0;
+        transition: opacity 0.8s ease;
+      }
+      #minimap-wrap.show {
+        opacity: 1;
+      }
+      .mm-title {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.28em;
+        color: rgba(204, 17, 51, 0.4);
+        margin-bottom: 5px;
+        text-align: center;
+      }
+      #mm-canvas {
+        border-radius: 50%;
+        border: 1px solid rgba(204, 17, 51, 0.2);
+        display: block;
+      }
+
+      /* ── INSTRUCTIONS ── */
+      #instructions {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        width: min(640px, 92vw);
+        background: var(--ui);
+        border: 1px solid rgba(204, 17, 51, 0.16);
+        backdrop-filter: blur(18px);
+        border-radius: 3px;
+        padding: 14px 24px;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.8s ease;
+      }
+      #instructions.show {
+        opacity: 1;
+      }
+      .ins-main {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: rgba(255, 200, 180, 0.75);
+        margin-bottom: 4px;
+      }
+      .ins-sub {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
+      }
+      .ins-key {
+        display: inline-block;
+        background: rgba(204, 17, 51, 0.15);
+        border: 1px solid rgba(204, 17, 51, 0.3);
+        padding: 1px 6px;
+        border-radius: 2px;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        color: rgba(255, 150, 150, 0.8);
+      }
+
+      /* ── HINT POINTER LOCK ── */
+      #lock-hint {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 25;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+        pointer-events: none;
+      }
+      #lock-hint.show {
+        opacity: 1;
+      }
+      .lh-text {
+        font-family: "Cinzel", serif;
+        font-size: 12px;
+        letter-spacing: 0.35em;
+        color: rgba(204, 17, 51, 0.8);
+        padding: 16px 32px;
+        background: var(--ui);
+        border: 1px solid rgba(204, 17, 51, 0.3);
+        border-radius: 3px;
+        animation: pulse-border 2s ease infinite;
+      }
+      @keyframes pulse-border {
+        0%,
+        100% {
+          box-shadow: 0 0 0 rgba(204, 17, 51, 0);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(204, 17, 51, 0.35);
+        }
+      }
+
+      /* ── VOIX GAÏA ── */
+      #vp {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 25;
+        width: min(720px, 92vw);
+        padding: 0 0 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+      }
+      #vs {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(204, 17, 51, 0.45),
+          transparent
+        );
+        margin-bottom: 10px;
+        transition: width 1s ease;
+      }
+      #vs.show {
+        width: 100%;
+      }
+      #vbox {
+        width: 100%;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(26px);
+        border-radius: 3px;
+        padding: 14px 22px 12px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.8s, transform 0.8s;
+        pointer-events: all;
+      }
+      #vbox.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #vsr {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 7px;
+      }
+      #vnm {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(204, 17, 51, 0.5);
+      }
+      #vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 11px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: #cc1133;
+        transform-origin: bottom;
+        animation: vba 1s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .vb:nth-child(3) {
+        height: 5px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      .vb:nth-child(5) {
+        height: 4px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      .vb:nth-child(6) {
+        height: 8px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      @keyframes vba {
+        from {
+          transform: scaleY(0.18);
+          opacity: 0.5;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+      #vtx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.6vw, 16px);
+        line-height: 1.95;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 128px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vtx::-webkit-scrollbar {
+        display: none;
+      }
+      #twc {
+        display: inline-block;
+        width: 2px;
+        height: 14px;
+        background: var(--rb);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* ── CRACK FX ── */
+      #crack-fx {
+        position: fixed;
+        pointer-events: none;
+        z-index: 30;
+        font-family: "Cinzel", serif;
+        font-size: 22px;
+        font-weight: 900;
+        color: #ff4466;
+        text-shadow: 0 0 18px rgba(255, 68, 102, 0.9);
+        opacity: 0;
+        transform: translate(-50%, -50%);
+      }
+      #crack-fx.pop {
+        animation: crpop 0.55s ease forwards;
+      }
+      @keyframes crpop {
+        0% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.5);
+        }
+        60% {
+          opacity: 0.7;
+          transform: translate(-50%, -68%) scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -85%) scale(0.6);
+        }
+      }
+
+      /* ── ÉCRAN SUCCÈS ── */
+      #success-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 8, 3, 0.94);
+        backdrop-filter: blur(6px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 1s ease;
+      }
+      #success-screen.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .ss-icon {
+        font-size: 56px;
+        margin-bottom: 12px;
+        animation: icon-float 3s ease-in-out infinite;
+      }
+      @keyframes icon-float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      .ss-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(26px, 4.5vw, 50px);
+        font-weight: 900;
+        color: var(--g);
+        letter-spacing: 0.14em;
+        margin-bottom: 10px;
+        filter: drop-shadow(0 0 28px rgba(0, 255, 136, 0.7));
+      }
+      .ss-bpm {
+        font-family: "Cinzel", serif;
+        font-size: 14px;
+        letter-spacing: 0.25em;
+        color: rgba(255, 255, 255, 0.55);
+        margin-bottom: 16px;
+      }
+      #ss-gaia-txt {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(14px, 1.8vw, 18px);
+        color: rgba(255, 255, 255, 0.72);
+        line-height: 2;
+        text-align: center;
+        max-width: 520px;
+        margin-bottom: 20px;
+      }
+      .ss-pts {
+        font-family: "Cinzel", serif;
+        font-size: 28px;
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.6));
+        margin-bottom: 14px;
+      }
+      .ss-badge-box {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 24px;
+        background: rgba(0, 255, 136, 0.06);
+        border: 1px solid rgba(0, 255, 136, 0.25);
+        border-radius: 3px;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.8);
+        margin-bottom: 26px;
+      }
+      #ss-btn {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: var(--rb);
+        background: rgba(0, 3, 1, 0.97);
+        border: 1px solid rgba(204, 17, 51, 0.6);
+        padding: 14px 42px;
+        cursor: pointer;
+        transition: all 0.35s;
+        border-radius: 2px;
+        box-shadow: 0 0 28px rgba(204, 17, 51, 0.15);
+      }
+      #ss-btn:hover {
+        background: rgba(204, 17, 51, 0.12);
+        box-shadow: 0 0 45px rgba(204, 17, 51, 0.4);
+      }
+
+      /* ── ÉCRAN ÉCHEC ── */
+      #fail-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(8, 0, 0, 0.95);
+        backdrop-filter: blur(6px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 1s ease;
+      }
+      #fail-screen.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .fs-icon {
+        font-size: 50px;
+        margin-bottom: 14px;
+        animation: shake 1.5s ease-in-out infinite;
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        75% {
+          transform: translateX(5px);
+        }
+      }
+      .fs-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(22px, 4vw, 44px);
+        font-weight: 900;
+        color: #ff4444;
+        letter-spacing: 0.14em;
+        margin-bottom: 10px;
+        filter: drop-shadow(0 0 20px rgba(255, 68, 68, 0.6));
+      }
+      .fs-sub {
+        font-family: "EB Garamond", serif;
+        font-size: 17px;
+        color: rgba(255, 180, 180, 0.7);
+        text-align: center;
+        line-height: 2;
+        margin-bottom: 26px;
+      }
+      #fs-btn {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: var(--rb);
+        background: rgba(0, 3, 1, 0.97);
+        border: 1px solid rgba(204, 17, 51, 0.6);
+        padding: 14px 40px;
+        cursor: pointer;
+        transition: all 0.35s;
+        border-radius: 2px;
+      }
+      #fs-btn:hover {
+        background: rgba(204, 17, 51, 0.12);
+        box-shadow: 0 0 40px rgba(204, 17, 51, 0.35);
+      }
+
+      /* AUDIO */
+      #ab {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 60;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        color: rgba(204, 17, 51, 0.22);
+        cursor: pointer;
+        transition: color 0.3s;
+        pointer-events: all;
+      }
+      #ab:hover {
+        color: rgba(204, 17, 51, 0.65);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cur"></div>
+    <canvas id="c3d"></canvas>
+    <canvas id="smoke-canvas"></canvas>
+    <canvas id="particle-canvas"></canvas>
+    <div id="vig"></div>
+    <div id="bo"></div>
+    <div id="fl"></div>
+
+    <!-- HUD TOP -->
+    <div id="hud-top">
+      <div class="ht-l">G A Ï A</div>
+      <div class="ht-c">C H A M B R E — C A R D I O V A S C U L A I R E</div>
+      <div class="ht-r"><span id="sv">SCORE : 100</span></div>
+    </div>
+
+    <!-- STATS GAUCHE -->
+    <div id="left-stats">
+      <div class="ls-block">
+        <div class="ls-lbl">BPM</div>
+        <div class="ls-val" id="bpm-val">85</div>
+      </div>
+      <div class="ls-block">
+        <div class="ls-lbl">TIMER</div>
+        <div class="ls-val" id="timer-val">2:00</div>
+        <div id="timer-bar"><div id="timer-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- ÉNERGIE VERTE -->
+    <div id="energy-panel">
+      <div class="ep-title">ÉNERGIE VERTE DE GAÏA</div>
+      <div class="ep-bar-wrap"><div class="ep-fill" id="ep-fill"></div></div>
+      <div class="ep-pct" id="ep-pct">38%</div>
+      <div class="ep-sub">OBJECTIF : 80%</div>
+    </div>
+
+    <!-- PLAQUES HUD -->
+    <div id="plaque-panel">
+      <div class="pp-title">
+        PLAQUES À RETIRER — <span id="plq-count">10</span> / 10
+      </div>
+      <div id="plaque-dots"></div>
+      <div class="pd-diff">🔴 Facile &nbsp; 🟠 Moyen &nbsp; 🔥 Difficile</div>
+    </div>
+
+    <!-- MINIMAP -->
+    <div id="minimap-wrap">
+      <div class="mm-title">LOCALISATION</div>
+      <canvas id="mm-canvas" width="120" height="120"></canvas>
+    </div>
+
+    <!-- INSTRUCTIONS -->
+    <div id="instructions">
+      <div class="ins-main">MINI-JEU — ARRACHEZ LES PLAQUES NOIRES</div>
+      <div class="ins-sub">
+        <span class="ins-key">WASD</span> Déplacer &nbsp;·&nbsp;
+        <span class="ins-key">SOURIS</span> Regarder &nbsp;·&nbsp;
+        <span class="ins-key">CLIC GAUCHE</span> Arracher une plaque
+      </div>
+    </div>
+
+    <!-- HINT POINTER LOCK -->
+    <div id="lock-hint">
+      <div class="lh-text">🫀 &nbsp;CLIQUEZ POUR ENTRER DANS LA CHAMBRE</div>
+    </div>
+
+    <!-- VOIX GAÏA -->
+    <div id="vp">
+      <div id="vs"></div>
+      <div id="vbox">
+        <div id="vsr">
+          <span id="vnm">G A Ï A</span>
+          <span id="vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="vtx"></div>
+        <span id="twc"></span>
+      </div>
+    </div>
+
+    <!-- CRACK FX -->
+    <div id="crack-fx">CRACK !</div>
+
+    <!-- SUCCÈS -->
+    <div id="success-screen">
+      <div class="ss-icon">💚</div>
+      <div class="ss-title">ARTÈRES DÉBLOQUÉES</div>
+      <div class="ss-bpm">85 BPM → 75 → 68 → 62 ✅</div>
+      <div id="ss-gaia-txt"></div>
+      <div class="ss-pts" id="ss-pts">+150 POINTS</div>
+      <div class="ss-badge-box">🏆 &nbsp;ACHIEVEMENT : "Première Artère"</div>
+      <button id="ss-btn" onclick="goNext()">
+        ▶ &nbsp;CONTINUER VERS LES POUMONS
+      </button>
+    </div>
+
+    <!-- ÉCHEC -->
+    <div id="fail-screen">
+      <div class="fs-icon">💔</div>
+      <div class="fs-title">TEMPS ÉCOULÉ</div>
+      <div class="fs-sub">
+        Le cœur n a pas tenu...<br />Reessayez pour sauver Gaia.
+      </div>
+      <button id="fs-btn" onclick="location.reload()">↺ &nbsp;RÉESSAYER</button>
+    </div>
+
+    <div id="curtain"></div>
+    <div id="ab" onclick="toggleMute()">🔊 SON</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      "use strict";
+      /* ═══════════════════════════════════════════════════════════════════
+   GAÏA — SCÈNE 5 : CHAMBRE DU CŒUR
+   Chambre cardiaque 3D immersive avec déplacement libre,
+   mini-jeu 10 plaques, voix, minimap, effets VFX
+═══════════════════════════════════════════════════════════════════ */
+
+      // ── STATE
+      let isMuted = false,
+        audioCtx = null,
+        typeIv = null;
+      let phase = "intro"; // intro | playing | success | fail
+      let plaquesLeft = 10,
+        energyPct = 38,
+        bpmCurrent = 85;
+      let timerSec = 120,
+        timerIv = null;
+      let score = 100;
+      let pName = "Gardien";
+      try {
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+        score = parseInt(localStorage.getItem("gaiaScore") || "100");
+      } catch (e) {}
+      document.getElementById("sv").textContent = "SCORE : " + score;
+
+      // CURSEUR
+      const $cur = document.getElementById("cur");
+      document.addEventListener("mousemove", (e) => {
+        $cur.style.left = e.clientX + "px";
+        $cur.style.top = e.clientY + "px";
+      });
+
+      // ══════════════════════════════════════════════════
+      // AUDIO
+      // ══════════════════════════════════════════════════
+      function initAudio() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      function gm() {
+        if (!audioCtx) return null;
+        if (!window._M5) {
+          const c = audioCtx.createDynamicsCompressor();
+          c.threshold.value = -20;
+          c.knee.value = 8;
+          c.ratio.value = 3;
+          c.attack.value = 0.003;
+          c.release.value = 0.25;
+          c.connect(audioCtx.destination);
+          window._M5 = c;
+        }
+        return window._M5;
+      }
+      function rv(d = 3, dc = 2) {
+        if (!audioCtx) return null;
+        const sr = audioCtx.sampleRate,
+          l = sr * d,
+          b = audioCtx.createBuffer(2, l, sr);
+        for (let c = 0; c < 2; c++) {
+          const dd = b.getChannelData(c);
+          for (let i = 0; i < l; i++)
+            dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / l, dc);
+        }
+        const cv = audioCtx.createConvolver();
+        cv.buffer = b;
+        return cv;
+      }
+
+      // Ambiance chambre cardiaque
+      function playAmbient() {
+        if (!audioCtx || isMuted) return;
+        const m = gm(),
+          r = rv(5, 3);
+        r.connect(m);
+        [28, 42, 56, 28.06].forEach((f, i) => {
+          const o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          o.type = "sawtooth";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(
+            [0.022, 0.012, 0.007, 0.018][i],
+            audioCtx.currentTime + 4 + i * 0.4
+          );
+          const fl = audioCtx.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 150;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(r);
+          g.connect(m);
+          o.start();
+        });
+      }
+
+      // Battements cardiaques — volume bas, grave
+      let _hbIv = null;
+      function playHeartbeat(bpm) {
+        if (!audioCtx || isMuted) return;
+        if (_hbIv) clearInterval(_hbIv);
+        const m = gm(),
+          r = rv(2, 1.8);
+        r.connect(m);
+        function beat() {
+          if (!audioCtx || isMuted) return;
+          // LUB
+          const o1 = audioCtx.createOscillator(),
+            g1 = audioCtx.createGain();
+          o1.type = "sine";
+          o1.frequency.setValueAtTime(78, audioCtx.currentTime);
+          o1.frequency.exponentialRampToValueAtTime(
+            26,
+            audioCtx.currentTime + 0.48
+          );
+          g1.gain.setValueAtTime(0.12, audioCtx.currentTime);
+          g1.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 0.52
+          );
+          o1.connect(g1);
+          g1.connect(r);
+          g1.connect(m);
+          o1.start();
+          o1.stop(audioCtx.currentTime + 0.55);
+          // Sub
+          const sb = audioCtx.createOscillator(),
+            sg = audioCtx.createGain();
+          sb.type = "sine";
+          sb.frequency.value = 24;
+          sg.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          sg.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 0.32
+          );
+          sb.connect(sg);
+          sg.connect(m);
+          sb.start();
+          sb.stop(audioCtx.currentTime + 0.35);
+          // DUB
+          setTimeout(() => {
+            if (!audioCtx || isMuted) return;
+            const o2 = audioCtx.createOscillator(),
+              g2 = audioCtx.createGain();
+            o2.type = "sine";
+            o2.frequency.setValueAtTime(58, audioCtx.currentTime);
+            o2.frequency.exponentialRampToValueAtTime(
+              22,
+              audioCtx.currentTime + 0.32
+            );
+            g2.gain.setValueAtTime(0.07, audioCtx.currentTime);
+            g2.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 0.35
+            );
+            o2.connect(g2);
+            g2.connect(m);
+            o2.start();
+            o2.stop(audioCtx.currentTime + 0.38);
+          }, Math.round((60000 / (bpm || 85)) * 0.38));
+        }
+        beat();
+        _hbIv = setInterval(beat, Math.round(60000 / (bpm || 85)));
+      }
+
+      // Son CRACK — plaque arrachée
+      function playCrack() {
+        if (!audioCtx || isMuted) return;
+        const m = gm();
+        // Impact
+        const bl = Math.floor(audioCtx.sampleRate * 0.14);
+        const buf = audioCtx.createBuffer(1, bl, audioCtx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < bl; i++)
+          d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bl, 1.2);
+        const src = audioCtx.createBufferSource();
+        src.buffer = buf;
+        const filt = audioCtx.createBiquadFilter();
+        filt.type = "bandpass";
+        filt.frequency.value = 1100;
+        filt.Q.value = 0.7;
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0.38, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        src.connect(filt);
+        filt.connect(g);
+        g.connect(m);
+        src.start();
+        src.stop(audioCtx.currentTime + 0.16);
+        // Soupir de soulagement
+        setTimeout(() => {
+          if (!audioCtx || isMuted) return;
+          const o = audioCtx.createOscillator(),
+            gg = audioCtx.createGain(),
+            rv2 = rv(2, 1.5);
+          rv2.connect(m);
+          o.type = "sine";
+          o.frequency.setValueAtTime(340, audioCtx.currentTime);
+          o.frequency.exponentialRampToValueAtTime(
+            150,
+            audioCtx.currentTime + 0.7
+          );
+          gg.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          gg.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.75);
+          o.connect(gg);
+          gg.connect(rv2);
+          o.start();
+          o.stop(audioCtx.currentTime + 0.8);
+        }, 80);
+      }
+
+      // Victoire
+      function playVictory() {
+        if (!audioCtx || isMuted) return;
+        const m = gm(),
+          r = rv(3, 2);
+        r.connect(m);
+        [261.6, 329.6, 392, 523.3, 659.3, 784, 1046.5].forEach((f, i) => {
+          setTimeout(() => {
+            if (!audioCtx || isMuted) return;
+            const o = audioCtx.createOscillator(),
+              g = audioCtx.createGain();
+            o.type = "triangle";
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 2
+            );
+            o.connect(g);
+            g.connect(r);
+            g.connect(m);
+            o.start();
+            o.stop(audioCtx.currentTime + 2);
+          }, i * 110);
+        });
+      }
+
+      function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("ab").textContent = isMuted
+          ? "🔇 MUET"
+          : "🔊 SON";
+        if (audioCtx) {
+          isMuted ? audioCtx.suspend() : audioCtx.resume();
+        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      // ══════════════════════════════════════════════════
+      // VOIX GAÏA
+      // ══════════════════════════════════════════════════
+      const syn = window.speechSynthesis;
+      function gv() {
+        const vs = syn ? syn.getVoices() : [];
+        return (
+          vs.find(
+            (x) =>
+              x.lang === "fr-FR" &&
+              /Marie|Amelie|Hortense|Lea|Julie/i.test(x.name)
+          ) ||
+          vs.find((x) => x.lang === "fr-FR") ||
+          vs.find((x) => x.lang.startsWith("fr")) ||
+          vs[0] ||
+          null
+        );
+      }
+      function speak(text, cb) {
+        const el = document.getElementById("vtx"),
+          cu = document.getElementById("twc");
+        el.textContent = "";
+        cu.style.display = "inline-block";
+        document.getElementById("vs").classList.add("show");
+        document.getElementById("vbox").classList.add("show");
+        let disp = 0,
+          tgt = 0,
+          vd = false,
+          called = false;
+        function fin() {
+          if (called) return;
+          called = true;
+          cu.style.display = "none";
+          if (cb) setTimeout(cb, 380);
+        }
+        function tick() {
+          if (typeIv) clearInterval(typeIv);
+          typeIv = setInterval(() => {
+            if (disp < tgt && disp < text.length) {
+              el.textContent += text[disp++];
+              el.scrollTop = el.scrollHeight;
+            } else {
+              clearInterval(typeIv);
+              typeIv = null;
+              if (disp >= text.length && vd) fin();
+            }
+          }, 22);
+        }
+        if (syn && !isMuted) {
+          syn.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = "fr-FR";
+          u.rate = 0.85;
+          u.pitch = 0.78;
+          u.volume = 1.0;
+          const sv = () => {
+            const v = gv();
+            if (v) u.voice = v;
+          };
+          syn.getVoices().length
+            ? sv()
+            : syn.addEventListener("voiceschanged", sv, { once: true });
+          u.onstart = () => document.getElementById("vbr").classList.add("on");
+          u.onboundary = (e) => {
+            if (e.name === "word") {
+              tgt = Math.min(e.charIndex + e.charLength, text.length);
+              tick();
+            }
+          };
+          u.onend = () => {
+            document.getElementById("vbr").classList.remove("on");
+            vd = true;
+            tgt = text.length;
+            tick();
+          };
+          u.onerror = () => {
+            document.getElementById("vbr").classList.remove("on");
+            vd = true;
+            tgt = text.length;
+            tick();
+            setTimeout(fin, 2500);
+          };
+          syn.speak(u);
+        }
+        setTimeout(() => {
+          if (
+            disp === 0 &&
+            !document.getElementById("vbr").classList.contains("on")
+          ) {
+            if (typeIv) clearInterval(typeIv);
+            vd = true;
+            typeIv = setInterval(() => {
+              if (disp < text.length) {
+                el.textContent += text[disp++];
+                el.scrollTop = el.scrollHeight;
+              } else {
+                clearInterval(typeIv);
+                fin();
+              }
+            }, 30);
+          }
+        }, 1700);
+      }
+      function hideVoice() {
+        const vb = document.getElementById("vbox");
+        vb.style.transition = "opacity .7s";
+        vb.style.opacity = "0";
+        setTimeout(() => {
+          vb.classList.remove("show");
+          vb.style.opacity = "";
+          vb.style.transition = "";
+        }, 700);
+        document.getElementById("vs").classList.remove("show");
+      }
+
+      // ══════════════════════════════════════════════════
+      // THREE.JS — CHAMBRE CARDIAQUE 3D
+      // ══════════════════════════════════════════════════
+      const c3d = document.getElementById("c3d");
+      c3d.width = innerWidth;
+      c3d.height = innerHeight;
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x090102, 0.055);
+      const camera = new THREE.PerspectiveCamera(
+        78,
+        innerWidth / innerHeight,
+        0.05,
+        55
+      );
+      camera.position.set(0, 0, 0);
+      const renderer = new THREE.WebGLRenderer({
+        canvas: c3d,
+        antialias: true,
+        alpha: false,
+      });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.setClearColor(0x090102);
+      const clock = new THREE.Clock();
+
+      // LUMIÈRES
+      scene.add(new THREE.AmbientLight(0x280408, 0.8));
+      const heartL = new THREE.PointLight(0xff2244, 2.5, 22);
+      heartL.position.set(0, 0, 0);
+      scene.add(heartL);
+      const heartL2 = new THREE.PointLight(0xff4400, 1.8, 16);
+      heartL2.position.set(2, -1, 3);
+      scene.add(heartL2);
+      const greenL = new THREE.PointLight(0x00ff44, 1.8, 18);
+      greenL.position.set(-5, 2, 2);
+      scene.add(greenL);
+      scene.add(new THREE.HemisphereLight(0xff1122, 0x001a00, 0.45));
+
+      // ── PAROI CHAMBRE CARDIAQUE (sphère inversée — on est à l'intérieur)
+      const chamberMat = new THREE.ShaderMaterial({
+        uniforms: {
+          uT: { value: 0 },
+          uBeat: { value: 0 },
+          uEnergy: { value: 0.38 },
+        },
+        side: THREE.BackSide,
+        vertexShader: `
+    uniform float uT,uBeat,uEnergy;
+    varying vec2 vUv;varying vec3 vN,vP;
+    void main(){
+      vUv=uv;vP=position;vN=normalize(normalMatrix*normal);
+      vec3 p=position;
+      // Battement : paroi pulse vers l'intérieur à chaque systole
+      float beat=uBeat*.1*(1.+sin(length(p)*.4+uT*.8)*.3);
+      p+=normalize(p)*(-beat);
+      // Trabécules (reliefs musculaires) — réseau tridimensionnel
+      float trab=sin(p.x*3.8+uT*.38)*sin(p.y*4.2+uT*.32)*sin(p.z*3.5+uT*.42)*.32;
+      float trab2=cos(p.x*6.2+uT*.22)*cos(p.y*5.8+uT*.28)*.14;
+      p+=normalize(p)*(trab+trab2);
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
+    }`,
+        fragmentShader: `
+    uniform float uT,uBeat,uEnergy;
+    varying vec2 vUv;varying vec3 vN,vP;
+    void main(){
+      vec3 vd=normalize(cameraPosition-vP);
+      float NdV=dot(normalize(vP),vN);
+      // Myocarde rouge profond
+      vec3 col=mix(vec3(.42,.04,.07),vec3(.65,.09,.14),abs(NdV));
+      // Fibres musculaires (striations)
+      float f1=sin(vUv.x*42.+uT*.48)*sin(vUv.y*34.+uT*.38)*.09+.91;
+      float f2=cos(vUv.x*30.-uT*.28)*cos(vUv.y*24.+uT*.22)*.06+.94;
+      col*=f1*f2;
+      // Sillons inter-trabéculaires
+      float groove=smoothstep(.88,.96,sin(vUv.x*9.42)*sin(vUv.y*9.42));
+      col*=1.-groove*.5;
+      // Reflets humides
+      vec3 lD=normalize(vec3(1.,1.5,2.));
+      float spec=pow(max(0.,dot(reflect(-lD,vN),vd)),20.)*.35;
+      col+=vec3(spec*.75,spec*.12,spec*.12);
+      // Battement lumineux
+      col+=vec3(uBeat*.28,uBeat*.02,uBeat*.02);
+      // Lueur énergie verte qui monte sur les parois
+      col+=vec3(0.,uEnergy*.08,uEnergy*.04);
+      col*=(.65+abs(NdV)*.35);
+      gl_FragColor=vec4(clamp(col,0.,1.),1.);
+    }`,
+        transparent: false,
+      });
+      const chamberMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(16, 72, 72),
+        chamberMat
+      );
+      scene.add(chamberMesh);
+
+      // ── ARTÈRES DANS LA CHAMBRE ──
+      // Vertes saines (fines, lumineuses) + Noires infectées (épaisses, sombres)
+      const ARTERY_DATA = [
+        // VERTES — saines, fines
+        {
+          pts: [
+            [0, 0, 0],
+            [2, 3, -6],
+            [4, 5, -12],
+            [5, 4, -16],
+          ],
+          r: 0.12,
+          green: true,
+        },
+        {
+          pts: [
+            [0, 0, 0],
+            [-3, 2, -5],
+            [-5, 4, -11],
+            [-6, 3, -15],
+          ],
+          r: 0.1,
+          green: true,
+        },
+        {
+          pts: [
+            [0, 0, 0],
+            [1, -3, -6],
+            [2, -5, -12],
+            [2, -4, -15],
+          ],
+          r: 0.11,
+          green: true,
+        },
+        {
+          pts: [
+            [0, 0, 0],
+            [-2, -2, -6],
+            [-4, -4, -11],
+            [-4, -3, -14],
+          ],
+          r: 0.09,
+          green: true,
+        },
+        // NOIRES — infectées, épaisses
+        {
+          pts: [
+            [0, 0, 0],
+            [4, 1, -5],
+            [7, 2, -10],
+            [8, 1, -14],
+          ],
+          r: 0.45,
+          green: false,
+        },
+        {
+          pts: [
+            [0, 0, 0],
+            [-4, 1, -5],
+            [-7, 2, -10],
+            [-8, 1, -14],
+          ],
+          r: 0.48,
+          green: false,
+        },
+        {
+          pts: [
+            [0, 0, 0],
+            [2, -2, -5],
+            [4, -4, -10],
+            [4, -3, -13],
+          ],
+          r: 0.4,
+          green: false,
+        },
+        {
+          pts: [
+            [0, 0, 0],
+            [-2, -3, -5],
+            [-4, -5, -10],
+            [-3, -4, -13],
+          ],
+          r: 0.42,
+          green: false,
+        },
+      ];
+      const arteryMeshes = [];
+      ARTERY_DATA.forEach((def, i) => {
+        const curve = new THREE.CatmullRomCurve3(
+          def.pts.map((p) => new THREE.Vector3(...p))
+        );
+        const geo = new THREE.TubeGeometry(curve, 28, def.r, 10, false);
+        let mat;
+        if (def.green) {
+          mat = new THREE.ShaderMaterial({
+            uniforms: { uT: { value: 0 }, uPulse: { value: 0 } },
+            vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+            fragmentShader: `uniform float uT,uPulse;varying vec2 vUv;
+        void main(){
+          float stripe=sin(vUv.x*40.-uT*3.+${i}.)*.08+.92;
+          vec3 col=vec3(.02,.72,.28)*stripe;
+          col+=vec3(0.,.18,.08)*uPulse;
+          float glow=smoothstep(.7,1.,sin(vUv.x*80.-uT*6.)*.5+.5)*.12;
+          col+=vec3(0.,glow*.9,glow*.4);
+          gl_FragColor=vec4(col,1.);
+        }`,
+            transparent: false,
+          });
+          window["gMat" + i] = mat;
+        } else {
+          mat = new THREE.ShaderMaterial({
+            uniforms: { uT: { value: 0 }, uPulse: { value: 0 } },
+            vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+            fragmentShader: `uniform float uT,uPulse;varying vec2 vUv;
+        void main(){
+          float dep=sin(vUv.x*55.+uT*.12)*sin(vUv.y*22.)*.1+.9;
+          float lyr=cos(vUv.x*38.)*sin(vUv.y*15.)*.07+.93;
+          vec3 col=vec3(.07,.025,.025)*dep*lyr;
+          float crack=step(.97,abs(sin(vUv.x*110.)*.5+.5));
+          col+=vec3(.22,.06,.04)*crack;
+          col+=vec3(.07,.01,.0)*uPulse;
+          gl_FragColor=vec4(col,1.);
+        }`,
+            transparent: false,
+          });
+          window["bMat" + i] = mat;
+          // Plaques de carbone sur les artères noires
+          [0.3, 0.55, 0.78].forEach((t) => {
+            const pos = curve.getPointAt(t);
+            const pg = new THREE.Mesh(
+              new THREE.SphereGeometry(def.r * 1.9, 10, 10),
+              new THREE.MeshPhongMaterial({
+                color: 0x080202,
+                emissive: new THREE.Color(0x110404),
+                shininess: 2,
+              })
+            );
+            pg.position.copy(pos);
+            scene.add(pg);
+          });
+        }
+        const mesh = new THREE.Mesh(geo, mat);
+        scene.add(mesh);
+        arteryMeshes.push({ mesh, def, curve, mat, idx: i });
+      });
+
+      // ── 10 PLAQUES NOIRES INTERACTIVES ──
+      const PLAQUE_DEFS = [
+        // Diff 1 — grosses, immobiles (r 0.6-0.7)
+        { p: [5, 1, -6], r: 0.68, d: 1 },
+        { p: [-5, 2, -5], r: 0.62, d: 1 },
+        { p: [2, -3, -7], r: 0.65, d: 1 },
+        // Diff 2 — moyennes, bougent lentement (r 0.4-0.45)
+        { p: [7, 2, -9], r: 0.44, d: 2, spd: 0.26 },
+        { p: [-6, -2, -8], r: 0.4, d: 2, spd: 0.3 },
+        { p: [3, 3, -10], r: 0.42, d: 2, spd: 0.28 },
+        { p: [-3, -3, -9], r: 0.45, d: 2, spd: 0.24 },
+        // Diff 3 — petites, rapides (r 0.24-0.28)
+        { p: [6, -1, -12], r: 0.27, d: 3, spd: 0.88 },
+        { p: [-5, 1, -11], r: 0.25, d: 3, spd: 0.95 },
+        { p: [1, -4, -13], r: 0.24, d: 3, spd: 0.85 },
+      ];
+
+      const PLAQUES = [];
+      PLAQUE_DEFS.forEach((def, i) => {
+        const mat = new THREE.ShaderMaterial({
+          uniforms: { uT: { value: 0 }, uAlive: { value: 1 } },
+          vertexShader: `
+      uniform float uT,uAlive;
+      varying vec2 vUv;varying vec3 vN,vP;
+      void main(){
+        vUv=uv;vN=normalize(normalMatrix*normal);vP=position;
+        vec3 p=position;
+        // Pulsation organique
+        float pulse=sin(uT*2.6+${i}.*1.1)*.055;
+        p+=normal*pulse*uAlive;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(p*uAlive+(1.-uAlive)*p*.01,1.);
+      }`,
+          fragmentShader: `
+      uniform float uT,uAlive;
+      varying vec2 vUv;varying vec3 vN,vP;
+      void main(){
+        if(uAlive<.05)discard;
+        vec3 vd=normalize(cameraPosition-vP);
+        float fr=pow(1.-abs(dot(vN,vd)),.55);
+        // Surface carbone grumeleuse
+        float dep=sin(vUv.x*65.+uT*.1)*sin(vUv.y*50.)*.1+.9;
+        float lyr=cos(vUv.x*45.)*sin(vUv.y*38.)*.07+.93;
+        vec3 col=vec3(.08,.028,.028)*dep*lyr;
+        // Craquelures actives
+        float cr1=step(.965,abs(sin(vUv.x*130.)*.5+.5));
+        float cr2=step(.97, abs(sin(vUv.y*100.)*.5+.5));
+        col+=vec3(.28,.07,.05)*(cr1+cr2);
+        // Lueur rouge inflammation
+        float pulse=sin(uT*2.6+${i}.*1.1)*.15+.85;
+        col+=vec3(fr*.22,fr*.01,fr*.01)*pulse;
+        // Halo sombre
+        col*=(.72+abs(dot(vN,vd))*.28);
+        gl_FragColor=vec4(col,uAlive*.92+.08);
+      }`,
+          transparent: true,
+          depthWrite: false,
+        });
+        const mesh = new THREE.Mesh(
+          new THREE.SphereGeometry(def.r, 16, 16),
+          mat
+        );
+        mesh.position.set(...def.p);
+        mesh.userData = {
+          idx: i,
+          diff: def.d,
+          alive: true,
+          basePos: new THREE.Vector3(...def.p),
+          speed: def.spd || 0,
+          phase: Math.random() * Math.PI * 2,
+        };
+        scene.add(mesh);
+        PLAQUES.push(mesh);
+      });
+
+      // Fond sphérique
+      scene.add(
+        new THREE.Mesh(
+          new THREE.SphereGeometry(22, 16, 16),
+          new THREE.MeshBasicMaterial({ color: 0x040001, side: THREE.BackSide })
+        )
+      );
+
+      // ── CANVAS 2D — Fumée + Particules
+      const smokeCanvas = document.getElementById("smoke-canvas");
+      smokeCanvas.width = innerWidth;
+      smokeCanvas.height = innerHeight;
+      const smokeCtx = smokeCanvas.getContext("2d");
+      const pCanvas = document.getElementById("particle-canvas");
+      pCanvas.width = innerWidth;
+      pCanvas.height = innerHeight;
+      const pCtx = pCanvas.getContext("2d");
+
+      // Particules de fumée sur artères noires
+      const smokeParts = [];
+      function spawnSmoke() {
+        if (Math.random() > 0.25) return;
+        // Projeter une position d'artère noire en 2D
+        const blackArts = [4, 5, 6, 7];
+        const ai = blackArts[Math.floor(Math.random() * blackArts.length)];
+        const ad = arteryMeshes[ai];
+        const pos3 = ad.curve.getPointAt(0.85 + Math.random() * 0.13);
+        const v = pos3.clone().project(camera);
+        if (v.z > 1) return;
+        const sx = (v.x * 0.5 + 0.5) * smokeCanvas.width;
+        const sy = (v.y * -0.5 + 0.5) * smokeCanvas.height;
+        smokeParts.push({
+          x: sx,
+          y: sy,
+          vx: (Math.random() - 0.5) * 1.1,
+          vy: -(1.2 + Math.random() * 2.2),
+          size: 6 + Math.random() * 20,
+          life: 1,
+          gray: 12 + Math.floor(Math.random() * 28),
+          rot: Math.random() * Math.PI * 2,
+          rspd: (Math.random() - 0.5) * 0.04,
+        });
+      }
+
+      // Particules désintégration plaque
+      const crackParts = [];
+      function spawnCrack(sx, sy) {
+        for (let i = 0; i < 40; i++) {
+          const ang = Math.random() * Math.PI * 2,
+            spd = 2 + Math.random() * 9;
+          const hue = Math.floor(Math.random() * 40);
+          crackParts.push({
+            x: sx,
+            y: sy,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd,
+            life: 1,
+            size: 1.5 + Math.random() * 5,
+            col: `hsl(${hue},90%,${45 + Math.floor(Math.random() * 30)}%)`,
+          });
+        }
+      }
+
+      // ── MINIMAP
+      const mmCanvas = document.getElementById("mm-canvas");
+      const mmCtx = mmCanvas.getContext("2d");
+      function drawMinimap() {
+        const W = 120,
+          H = 120,
+          cx = W / 2,
+          cy = H / 2,
+          R = cx - 2;
+        mmCtx.clearRect(0, 0, W, H);
+        mmCtx.fillStyle = "rgba(0,5,2,.92)";
+        mmCtx.beginPath();
+        mmCtx.arc(cx, cy, R, 0, Math.PI * 2);
+        mmCtx.fill();
+        mmCtx.strokeStyle = "rgba(204,17,51,.18)";
+        mmCtx.lineWidth = 1;
+        mmCtx.beginPath();
+        mmCtx.arc(cx, cy, R, 0, Math.PI * 2);
+        mmCtx.stroke();
+        // Grille
+        mmCtx.strokeStyle = "rgba(204,17,51,.06)";
+        mmCtx.lineWidth = 0.5;
+        for (let i = 0; i < 4; i++) {
+          const r = R * 0.25 * (i + 1);
+          mmCtx.beginPath();
+          mmCtx.arc(cx, cy, r, 0, Math.PI * 2);
+          mmCtx.stroke();
+        }
+        // Plaques
+        PLAQUES.forEach((p) => {
+          if (!p.userData.alive) return;
+          const scale = (R * 0.85) / 16;
+          const mx = cx + p.position.x * scale;
+          const my = cy + p.position.z * scale;
+          const col =
+            p.userData.diff === 1
+              ? "#ff4444"
+              : p.userData.diff === 2
+              ? "#ffaa33"
+              : "#ff8866";
+          const r2 =
+            p.userData.diff === 1 ? 5 : p.userData.diff === 2 ? 3.5 : 2.2;
+          mmCtx.beginPath();
+          mmCtx.arc(mx, my, r2, 0, Math.PI * 2);
+          mmCtx.fillStyle = col;
+          mmCtx.fill();
+          // Pulse sur minimap
+          mmCtx.beginPath();
+          mmCtx.arc(mx, my, r2 + 2, 0, Math.PI * 2);
+          mmCtx.strokeStyle = col.replace(")", ",0.4)").replace("rgb", "rgba");
+          mmCtx.lineWidth = 1;
+          mmCtx.stroke();
+        });
+        // Joueur
+        const pScale = (R * 0.85) / 16;
+        const px = cx + camera.position.x * pScale;
+        const pz = cy + camera.position.z * pScale;
+        // Flèche direction
+        mmCtx.save();
+        mmCtx.translate(px, pz);
+        mmCtx.rotate(-yaw);
+        mmCtx.beginPath();
+        mmCtx.moveTo(0, -7);
+        mmCtx.lineTo(4, 4);
+        mmCtx.lineTo(0, 2);
+        mmCtx.lineTo(-4, 4);
+        mmCtx.closePath();
+        mmCtx.fillStyle = "#00ff88";
+        mmCtx.fill();
+        mmCtx.restore();
+      }
+
+      // ── DOTS HUD
+      function buildDots() {
+        const c = document.getElementById("plaque-dots");
+        c.innerHTML = "";
+        PLAQUE_DEFS.forEach((_, i) => {
+          const d = document.createElement("div");
+          d.className = "pd";
+          d.id = "pd-" + i;
+          c.appendChild(d);
+        });
+      }
+
+      // ══════════════════════════════════════════════════
+      // DÉPLACEMENT JOUEUR — FPS complet
+      // ══════════════════════════════════════════════════
+      const keys = {};
+      let isLocked = false,
+        yaw = 0,
+        pitch = 0;
+      const BOUNDS = 13;
+
+      document.addEventListener("keydown", (e) => {
+        keys[e.code] = true;
+      });
+      document.addEventListener("keyup", (e) => {
+        keys[e.code] = false;
+      });
+
+      // Pointer lock
+      c3d.addEventListener("click", (e) => {
+        if (phase === "intro") return;
+        if (!isLocked) {
+          c3d.requestPointerLock();
+          return;
+        }
+        if (phase === "playing") handleClick();
+      });
+      document.addEventListener("pointerlockchange", () => {
+        isLocked = !!document.pointerLockElement;
+        if (isLocked) {
+          $cur.className = "aim";
+          document.getElementById("lock-hint").classList.remove("show");
+        } else {
+          $cur.className = "";
+        }
+      });
+      document.addEventListener("mousemove", (e) => {
+        if (!isLocked || phase !== "playing") return;
+        yaw -= e.movementX * 0.0022;
+        pitch -= e.movementY * 0.0016;
+        pitch = Math.max(-1.1, Math.min(1.1, pitch));
+      });
+
+      function moveCam(dt) {
+        if (!isLocked || phase !== "playing") return;
+        const spd = 4.2 * dt;
+        const sy = Math.sin(yaw),
+          cy = Math.cos(yaw);
+        const fw = [-sy, 0, -cy],
+          rt = [cy, 0, -sy];
+        let mx = 0,
+          mz = 0;
+        if (keys["KeyW"] || keys["ArrowUp"]) {
+          mx += fw[0];
+          mz += fw[2];
+        }
+        if (keys["KeyS"] || keys["ArrowDown"]) {
+          mx -= fw[0];
+          mz -= fw[2];
+        }
+        if (keys["KeyA"] || keys["ArrowLeft"]) {
+          mx -= rt[0];
+          mz -= rt[2];
+        }
+        if (keys["KeyD"] || keys["ArrowRight"]) {
+          mx += rt[0];
+          mz += rt[2];
+        }
+        const nx = camera.position.x + mx * spd;
+        const nz = camera.position.z + mz * spd;
+        if (Math.abs(nx) < BOUNDS) camera.position.x = nx;
+        if (Math.abs(nz) < BOUNDS) camera.position.z = nz;
+        camera.position.y = Math.max(-2, Math.min(2, camera.position.y));
+        camera.rotation.order = "YXZ";
+        camera.rotation.y = yaw;
+        camera.rotation.x = pitch;
+      }
+
+      // ── RAYCASTER — clic sur plaque
+      const raycaster = new THREE.Raycaster();
+      function handleClick() {
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        const alive = PLAQUES.filter((p) => p.userData.alive);
+        const hits = raycaster.intersectObjects(alive);
+        if (!hits.length) return;
+        const hit = hits[0];
+        if (hit.distance > 8) return; // trop loin
+        destroyPlaque(hit.object);
+      }
+
+      function destroyPlaque(mesh) {
+        mesh.userData.alive = false;
+        mesh.material.uniforms.uAlive.value = 0;
+        // Sons
+        playCrack();
+        // Particules à l'écran (centre car pointer locked)
+        spawnCrack(innerWidth / 2, innerHeight / 2);
+        // Feedback texte
+        const fx = document.getElementById("crack-fx");
+        fx.style.left = innerWidth / 2 + "px";
+        fx.style.top = innerHeight / 2 + "px";
+        fx.className = "";
+        void fx.offsetWidth;
+        fx.className = "pop";
+        // Dot
+        const done = 10 - plaquesLeft;
+        const dot = document.getElementById("pd-" + done);
+        if (dot) dot.classList.add("done");
+        plaquesLeft--;
+        document.getElementById("plq-count").textContent = plaquesLeft;
+        // Énergie
+        energyPct = Math.min(80, 38 + Math.floor((10 - plaquesLeft) * 4.2));
+        document.getElementById("ep-fill").style.width = energyPct + "%";
+        document.getElementById("ep-pct").textContent = energyPct + "%";
+        chamberMat.uniforms.uEnergy.value = energyPct / 100;
+        // BPM descend
+        bpmCurrent = Math.max(62, 85 - Math.floor((10 - plaquesLeft) * 2.3));
+        document.getElementById("bpm-val").textContent = bpmCurrent;
+        // Relancer heartbeat avec BPM réduit
+        playHeartbeat(bpmCurrent);
+        // Score
+        const bonus =
+          mesh.userData.diff === 1 ? 10 : mesh.userData.diff === 2 ? 15 : 25;
+        score += bonus;
+        document.getElementById("sv").textContent = "SCORE : " + score;
+        // Victoire ?
+        if (plaquesLeft === 0) setTimeout(triggerSuccess, 900);
+      }
+
+      // ══════════════════════════════════════════════════
+      // BOUCLE D'ANIMATION
+      // ══════════════════════════════════════════════════
+      let globalT = 0,
+        beatPhase = 0;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const dt = Math.min(clock.getDelta(), 0.05);
+        globalT += dt;
+        const t = globalT;
+
+        // Battement
+        const bInterval = 60 / bpmCurrent;
+        beatPhase = (beatPhase + dt) % bInterval;
+        const beat = Math.pow(
+          Math.max(0, 1 - (beatPhase / bInterval) * 5.2),
+          0.5
+        );
+
+        // Shader chambre
+        chamberMat.uniforms.uT.value = t;
+        chamberMat.uniforms.uBeat.value = beat;
+        chamberMat.uniforms.uEnergy.value = energyPct / 100;
+
+        // Lumières pulsent
+        heartL.intensity = 1.8 + beat * 3.5;
+        heartL.color.setRGB(0.94 + beat * 0.06, 0.04, 0.07);
+        heartL2.intensity = 1.2 + beat * 2;
+        greenL.intensity =
+          1.2 + (energyPct / 100) * 0.9 + Math.sin(t * 0.6) * 0.2;
+
+        // Rotation caméra légère si pas locked
+        if (!isLocked && phase === "intro") {
+          camera.rotation.y = Math.sin(t * 0.12) * 0.1;
+          camera.rotation.x = Math.sin(t * 0.08) * 0.04;
+        }
+
+        // Artères — animation shaders
+        arteryMeshes.forEach((a, i) => {
+          if (
+            a.def.green &&
+            window["gMat" + i] &&
+            window["gMat" + i].uniforms
+          ) {
+            window["gMat" + i].uniforms.uT.value = t;
+            window["gMat" + i].uniforms.uPulse.value = beat * 0.5;
+          }
+          if (
+            !a.def.green &&
+            window["bMat" + i] &&
+            window["bMat" + i].uniforms
+          ) {
+            window["bMat" + i].uniforms.uT.value = t;
+            window["bMat" + i].uniforms.uPulse.value = beat * 0.2;
+          }
+        });
+
+        // Plaques — animation + mouvement
+        PLAQUES.forEach((p) => {
+          if (!p.userData.alive) {
+            p.scale.setScalar(0);
+            return;
+          }
+          p.material.uniforms.uT.value = t;
+          if (p.userData.speed > 0) {
+            const sp = p.userData.speed,
+              ph = p.userData.phase;
+            p.position.x = p.userData.basePos.x + Math.sin(t * sp + ph) * 1.5;
+            p.position.y =
+              p.userData.basePos.y + Math.cos(t * sp * 1.2 + ph) * 1.0;
+            p.position.z =
+              p.userData.basePos.z + Math.sin(t * sp * 0.8 + ph) * 0.6;
+          }
+          p.rotation.y = t * 0.3;
+          p.rotation.x = t * 0.2;
+        });
+
+        // Déplacement joueur
+        moveCam(dt);
+
+        // Flash battement
+        const bo = document.getElementById("bo");
+        bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(${
+          185 + Math.floor(beat * 55)
+        },0,0,${beat * 0.2})0%,transparent 58%)`;
+        bo.style.opacity = beat > 0.1 ? "1" : "0";
+
+        // Render 3D
+        renderer.render(scene, camera);
+
+        // Fumée 2D
+        if (phase === "playing") spawnSmoke();
+        smokeCtx.clearRect(0, 0, smokeCanvas.width, smokeCanvas.height);
+        for (let i = smokeParts.length - 1; i >= 0; i--) {
+          const s = smokeParts[i];
+          s.x += s.vx;
+          s.y += s.vy;
+          s.life -= 0.0065;
+          s.size += 0.3;
+          s.rot += s.rspd;
+          if (s.life <= 0) {
+            smokeParts.splice(i, 1);
+            continue;
+          }
+          smokeCtx.save();
+          smokeCtx.translate(s.x, s.y);
+          smokeCtx.rotate(s.rot);
+          const a = s.life < 0.4 ? s.life / 0.4 : 1;
+          const g = smokeCtx.createRadialGradient(0, 0, 0, 0, 0, s.size);
+          g.addColorStop(
+            0,
+            `rgba(${s.gray},${s.gray - 4},${s.gray - 6},${a * 0.52})`
+          );
+          g.addColorStop(
+            0.5,
+            `rgba(${s.gray},${s.gray - 4},${s.gray - 6},${a * 0.2})`
+          );
+          g.addColorStop(1, "rgba(0,0,0,0)");
+          smokeCtx.fillStyle = g;
+          smokeCtx.beginPath();
+          smokeCtx.arc(0, 0, s.size, 0, Math.PI * 2);
+          smokeCtx.fill();
+          smokeCtx.restore();
+        }
+
+        // Particules CRACK 2D
+        pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+        for (let i = crackParts.length - 1; i >= 0; i--) {
+          const p = crackParts[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.12;
+          p.vx *= 0.96;
+          p.life -= 0.026;
+          if (p.life <= 0) {
+            crackParts.splice(i, 1);
+            continue;
+          }
+          pCtx.beginPath();
+          pCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+          pCtx.fillStyle = p.col
+            .replace("hsl", "hsla")
+            .replace(")", `,${p.life})`);
+          pCtx.fill();
+          // Traîne lumineuse
+          pCtx.beginPath();
+          pCtx.moveTo(p.x, p.y);
+          pCtx.lineTo(p.x - p.vx * 4, p.y - p.vy * 4);
+          pCtx.strokeStyle = p.col
+            .replace("hsl", "hsla")
+            .replace(")", `,${p.life * 0.5})`);
+          pCtx.lineWidth = p.size * 0.65;
+          pCtx.stroke();
+        }
+
+        // Minimap
+        if (phase === "playing") drawMinimap();
+      }
+
+      // ══════════════════════════════════════════════════
+      // SUCCÈS / ÉCHEC
+      // ══════════════════════════════════════════════════
+      function triggerSuccess() {
+        phase = "success";
+        if (timerIv) clearInterval(timerIv);
+        if (_hbIv) clearInterval(_hbIv);
+        if (document.pointerLockElement) document.exitPointerLock();
+        playVictory();
+        score += 50;
+        document.getElementById("sv").textContent = "SCORE : " + score;
+        document.getElementById("ss-pts").textContent =
+          "+" + (score - 100) + " POINTS";
+        // Texte voix succès
+        const gaiaTxt = `Oui... Je le sens ! L energie circule mieux. Mon rythme cardiaque ralentit. Merci ${pName}. Vous m avez soulagee. Mais ce n est qu un debut.`;
+        document.getElementById("ss-gaia-txt").textContent = gaiaTxt;
+        setTimeout(() => {
+          document.getElementById("success-screen").classList.add("show");
+          // Voix GAÏA
+          if (syn && !isMuted) {
+            syn.cancel();
+            const u = new SpeechSynthesisUtterance(gaiaTxt);
+            u.lang = "fr-FR";
+            u.rate = 0.88;
+            u.pitch = 0.82;
+            u.volume = 1.0;
+            const sv = () => {
+              const v = gv();
+              if (v) u.voice = v;
+            };
+            syn.getVoices().length
+              ? sv()
+              : syn.addEventListener("voiceschanged", sv, { once: true });
+            syn.speak(u);
+          }
+        }, 600);
+      }
+
+      function triggerFail() {
+        phase = "fail";
+        if (_hbIv) clearInterval(_hbIv);
+        if (document.pointerLockElement) document.exitPointerLock();
+        setTimeout(
+          () => document.getElementById("fail-screen").classList.add("show"),
+          500
+        );
+      }
+
+      // ══════════════════════════════════════════════════
+      // TIMER
+      // ══════════════════════════════════════════════════
+      function startTimer() {
+        timerIv = setInterval(() => {
+          timerSec--;
+          const m = Math.floor(timerSec / 60),
+            s = timerSec % 60;
+          document.getElementById("timer-val").textContent =
+            m + ":" + (s < 10 ? "0" : "") + s;
+          document.getElementById("timer-fill").style.width =
+            (timerSec / 120) * 100 + "%";
+          if (timerSec <= 20)
+            document.getElementById("timer-val").style.color = "#ff4444";
+          if (timerSec <= 0) {
+            clearInterval(timerIv);
+            if (phase === "playing") triggerFail();
+          }
+        }, 1000);
+      }
+
+      // ══════════════════════════════════════════════════
+      // TRANSITION + NEXT
+      // ══════════════════════════════════════════════════
+      function goNext() {
+        if (syn) syn.cancel();
+        try {
+          localStorage.setItem("gaiaPlayerName", pName);
+          localStorage.setItem("gaiaScore", score.toString());
+        } catch (e) {}
+        const cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 2s ease";
+        cu.classList.remove("gone");
+        cu.style.opacity = "1";
+        setTimeout(() => (window.location.href = "scene6.html"), 2200);
+      }
+
+      // ══════════════════════════════════════════════════
+      // SÉQUENCE NARRATIVE
+      // ══════════════════════════════════════════════════
+      function startScene() {
+        initAudio();
+        playAmbient();
+        const cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.4s ease";
+        setTimeout(() => cu.classList.add("gone"), 100);
+        setTimeout(() => playHeartbeat(85), 900);
+        setTimeout(() => {
+          document.getElementById("hud-top").classList.add("show");
+          document.getElementById("left-stats").classList.add("show");
+          document.getElementById("energy-panel").classList.add("show");
+        }, 1300);
+
+        buildDots();
+
+        // Discours 1
+        setTimeout(() => {
+          speak(
+            `Voici le centre de tout. Mon coeur pompe l energie a travers mon corps. Comme le votre pompe le sang. Mais le mien a sept virgule neuf milliards de cellules a nourrir. Chaque humain, chaque machine, chaque ville. Tous demandent de l energie. Et pendant trop longtemps, cette energie venait de mes entrailles. Charbon, petrole, gaz. Regardez ce que ca a fait.`,
+            () => {
+              setTimeout(() => {
+                speak(
+                  `Ces plaques noires. Ce sont deux cents ans d erreurs. Aidez-moi a les retirer. Cliquez sur chacune. Arrachez-les de mes veines. Mais soyez rapide. Mon coeur ne tiendra pas longtemps.`,
+                  () => {
+                    hideVoice();
+                    setTimeout(startGame, 700);
+                  }
+                );
+              }, 500);
+            }
+          );
+        }, 2000);
+      }
+
+      function startGame() {
+        phase = "playing";
+        document.getElementById("plaque-panel").classList.add("show");
+        document.getElementById("minimap-wrap").classList.add("show");
+        document.getElementById("instructions").classList.add("show");
+        document.getElementById("lock-hint").classList.add("show");
+        startTimer();
+        // Instructions disparaissent après 10s
+        setTimeout(
+          () =>
+            document.getElementById("instructions").classList.remove("show"),
+          10000
+        );
+      }
+
+      window.addEventListener("resize", () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+        c3d.width = innerWidth;
+        c3d.height = innerHeight;
+        smokeCanvas.width = innerWidth;
+        smokeCanvas.height = innerHeight;
+        pCanvas.width = innerWidth;
+        pCanvas.height = innerHeight;
+      });
+
+      animate();
+      window.addEventListener("load", startScene);
+    </script>
+  </body>
+</html>
