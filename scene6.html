@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAÏA — Scène 6 : Carte Énergétique Mondiale</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #00ff88;
+        --gd: #00cc66;
+        --soft: #d0f0e0;
+        --ui: rgba(0, 6, 2, 0.97);
+        --ub: rgba(0, 255, 136, 0.16);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+        opacity: 0;
+        animation: fi 0.5s ease 0.05s forwards;
+      }
+      @keyframes fi {
+        to {
+          opacity: 1;
+        }
+      }
+      #cur {
+        position: fixed;
+        width: 16px;
+        height: 16px;
+        border: 1.5px solid rgba(0, 255, 136, 0.7);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: width 0.12s, height 0.12s;
+      }
+      #cur::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--g);
+        border-radius: 50%;
+      }
+      #cur.hot {
+        width: 30px;
+        height: 30px;
+        border-color: var(--g);
+        box-shadow: 0 0 16px var(--g);
+      }
+
+      #gc {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        width: 100vw;
+        height: 100vh;
+        cursor: none;
+      }
+      #vig {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse 90% 90% at 50%50%,
+          transparent 35%,
+          rgba(0, 0, 0, 0.04) 60%,
+          rgba(0, 0, 0, 0.82) 100%
+        );
+      }
+      #bo {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        opacity: 0;
+      }
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 900;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 1.4s ease;
+      }
+      #curtain.gone {
+        opacity: 0;
+      }
+
+      /* HUD */
+      #hud-top {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 28px 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #hud-top.show {
+        opacity: 1;
+      }
+      .ht-l {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.5em;
+        color: rgba(0, 255, 136, 0.38);
+      }
+      .ht-c {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.38em;
+        color: rgba(0, 255, 136, 0.22);
+      }
+      .ht-r {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: rgba(0, 255, 136, 0.4);
+      }
+
+      #left-hud {
+        position: fixed;
+        top: 52px;
+        left: 28px;
+        z-index: 20;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #left-hud.show {
+        opacity: 1;
+      }
+      .lh-block {
+        margin-bottom: 10px;
+      }
+      .lh-lbl {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.32em;
+        color: rgba(0, 255, 136, 0.35);
+        margin-bottom: 2px;
+      }
+      .lh-val {
+        font-family: "Cinzel", serif;
+        font-size: 22px;
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.5));
+      }
+      #cont-dots {
+        display: flex;
+        gap: 6px;
+        margin-top: 4px;
+      }
+      .cd {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: rgba(0, 20, 8, 0.8);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        transition: all 0.5s;
+      }
+      .cd.done {
+        background: var(--g);
+        border-color: var(--g);
+        box-shadow: 0 0 7px var(--g);
+      }
+
+      #legend {
+        position: fixed;
+        bottom: 26px;
+        left: 28px;
+        z-index: 20;
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+      #legend.show {
+        opacity: 1;
+      }
+      .leg-t {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.38em;
+        color: rgba(0, 255, 136, 0.38);
+        margin-bottom: 7px;
+      }
+      .leg-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 5px;
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.55);
+      }
+      .leg-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      #globe-hint {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.38em;
+        color: rgba(0, 255, 136, 0.5);
+        opacity: 0;
+        transition: opacity 0.8s;
+        white-space: nowrap;
+        animation: hp 3s ease-in-out infinite;
+      }
+      #globe-hint.show {
+        opacity: 1;
+      }
+      @keyframes hp {
+        0%,
+        100% {
+          opacity: 0.25;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      #zoom-label {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 25;
+        font-family: "Cinzel", serif;
+        font-size: clamp(14px, 2.5vw, 22px);
+        letter-spacing: 0.38em;
+        color: rgba(0, 255, 136, 0.9);
+        text-shadow: 0 0 28px rgba(0, 255, 136, 0.6);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        text-align: center;
+      }
+      #zoom-label.show {
+        opacity: 1;
+      }
+
+      /* ── VOIX GAÏA ── */
+      #vp {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 40;
+        width: min(720px, 92vw);
+        padding: 0 0 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+      }
+      #vs {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.45),
+          transparent
+        );
+        margin-bottom: 10px;
+        transition: width 1s ease;
+      }
+      #vs.show {
+        width: 100%;
+      }
+      #vbox {
+        width: 100%;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(26px);
+        border-radius: 3px;
+        padding: 14px 22px 12px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.8s, transform 0.8s;
+      }
+      #vbox.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #vsr {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 7px;
+      }
+      #vnm {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      #vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 11px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 1s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .vb:nth-child(3) {
+        height: 5px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      .vb:nth-child(5) {
+        height: 4px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      .vb:nth-child(6) {
+        height: 8px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      @keyframes vba {
+        from {
+          transform: scaleY(0.18);
+          opacity: 0.5;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+      #vtx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.6vw, 16px);
+        line-height: 1.95;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 120px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vtx::-webkit-scrollbar {
+        display: none;
+      }
+      #twc {
+        display: inline-block;
+        width: 2px;
+        height: 14px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* ══ BADGE OVERLAY ══ */
+      #badge-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        background: rgba(0, 5, 2, 0.88);
+        backdrop-filter: blur(14px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.6s ease;
+        overflow-y: auto;
+        padding: 20px 16px;
+      }
+      #badge-overlay.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #badge-box {
+        background: rgba(0, 8, 3, 0.98);
+        border: 1px solid rgba(0, 255, 136, 0.22);
+        border-radius: 5px;
+        padding: 28px 36px 24px;
+        width: min(680px, 94vw);
+        max-width: 100%;
+        box-shadow: 0 0 80px rgba(0, 255, 136, 0.1),
+          inset 0 0 40px rgba(0, 0, 0, 0.4);
+        animation: badge-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        margin: auto;
+      }
+      @keyframes badge-in {
+        from {
+          transform: translateY(18px) scale(0.97);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      /* Badge header */
+      .bb-flag {
+        font-size: 40px;
+        margin-bottom: 6px;
+      }
+      .bb-tag {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.45em;
+        color: rgba(0, 255, 136, 0.4);
+        margin-bottom: 3px;
+      }
+      .bb-name {
+        font-family: "Cinzel", serif;
+        font-size: clamp(20px, 3.5vw, 32px);
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        margin-bottom: 6px;
+      }
+      .bb-sep {
+        height: 1px;
+        background: linear-gradient(90deg, rgba(0, 255, 136, 0.3), transparent);
+        margin-bottom: 16px;
+      }
+
+      /* % renouvelable */
+      .bb-pct-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 6px;
+      }
+      .bb-pct {
+        font-family: "Cinzel", serif;
+        font-size: clamp(32px, 6vw, 52px);
+        font-weight: 900;
+        letter-spacing: 0.05em;
+      }
+      .bb-pct-lbl {
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.55);
+        line-height: 1.5;
+      }
+      .bb-bar-wrap {
+        height: 9px;
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .bb-bar-fill {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Note */
+      .bb-note {
+        padding: 9px 12px;
+        background: rgba(255, 100, 20, 0.07);
+        border: 1px solid rgba(255, 100, 20, 0.16);
+        border-radius: 3px;
+        font-family: "EB Garamond", serif;
+        font-size: 14px;
+        color: rgba(255, 200, 160, 0.82);
+        margin-bottom: 14px;
+        line-height: 1.6;
+      }
+
+      /* Sections */
+      .bb-section {
+        margin-bottom: 16px;
+      }
+      .bb-stitle {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.35em;
+        color: rgba(0, 255, 136, 0.45);
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.07);
+      }
+
+      /* Barres distribution */
+      .bb-bar-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 5px;
+      }
+      .bb-bl {
+        font-family: "EB Garamond", serif;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.55);
+        width: 130px;
+        flex-shrink: 0;
+      }
+      .bb-bw {
+        flex: 1;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .bb-bf {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .bb-bv {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.5);
+        width: 32px;
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      /* Pays */
+      .bb-country {
+        margin-bottom: 8px;
+        padding: 10px 13px;
+        background: rgba(0, 12, 5, 0.7);
+        border-radius: 3px;
+        border: 1px solid rgba(0, 255, 136, 0.1);
+      }
+      .bb-cf {
+        font-size: 18px;
+        margin-right: 6px;
+      }
+      .bb-cn {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        color: rgba(0, 255, 136, 0.65);
+      }
+      .bb-cp {
+        font-family: "Cinzel", serif;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--g);
+      }
+      .bb-cd {
+        font-family: "EB Garamond", serif;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.5);
+        line-height: 1.5;
+        margin-top: 3px;
+      }
+
+      /* Items */
+      .bb-item {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 5px;
+        font-family: "EB Garamond", serif;
+        font-size: 14px;
+        line-height: 1.5;
+        padding: 6px 10px;
+        border-radius: 3px;
+      }
+      .bb-warn {
+        background: rgba(255, 70, 10, 0.07);
+        border: 1px solid rgba(255, 70, 10, 0.16);
+        color: rgba(255, 200, 165, 0.82);
+      }
+      .bb-ok {
+        background: rgba(0, 200, 90, 0.06);
+        border: 1px solid rgba(0, 200, 90, 0.14);
+        color: rgba(180, 255, 210, 0.82);
+      }
+      .bb-info {
+        background: rgba(0, 140, 255, 0.06);
+        border: 1px solid rgba(0, 140, 255, 0.12);
+        color: rgba(160, 220, 255, 0.82);
+      }
+      .bb-goal {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.16em;
+        color: var(--g);
+        padding: 7px 12px;
+        background: rgba(0, 255, 136, 0.06);
+        border: 1px solid rgba(0, 255, 136, 0.16);
+        border-radius: 3px;
+        margin-bottom: 5px;
+      }
+      .bb-trend {
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        color: rgba(0, 255, 136, 0.65);
+        margin-bottom: 7px;
+      }
+      .bb-invest {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        color: rgba(255, 215, 75, 0.65);
+        padding: 6px 12px;
+        background: rgba(255, 195, 0, 0.05);
+        border: 1px solid rgba(255, 195, 0, 0.12);
+        border-radius: 3px;
+        margin-bottom: 7px;
+      }
+
+      /* VOIX GAÏA dans badge — bien visible */
+      .bb-gaia-wrap {
+        background: rgba(0, 10, 4, 0.9);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        border-radius: 4px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+      }
+      .bb-gaia-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .bb-gnm {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.6);
+      }
+      #bb-vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #bb-vbr.on {
+        opacity: 1;
+      }
+      #bb-txt {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(14px, 1.6vw, 16px);
+        line-height: 1.9;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 160px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #bb-txt::-webkit-scrollbar {
+        display: none;
+      }
+      #bb-cur {
+        display: none;
+        width: 2px;
+        height: 14px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+
+      /* Score ajouté */
+      .bb-score-add {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        color: rgba(0, 255, 136, 0.7);
+        background: rgba(0, 255, 136, 0.06);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        border-radius: 3px;
+        padding: 8px 14px;
+        margin-bottom: 14px;
+        text-align: center;
+      }
+
+      /* Bouton retour */
+      .bb-close-btn {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.65);
+        background: rgba(0, 6, 2, 0.9);
+        border: 1px solid rgba(0, 255, 136, 0.25);
+        padding: 11px 32px;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.3s;
+        display: block;
+        width: 100%;
+        text-align: center;
+      }
+      .bb-close-btn:hover {
+        color: var(--g);
+        border-color: rgba(0, 255, 136, 0.55);
+        background: rgba(0, 255, 136, 0.08);
+      }
+
+      /* ══ ÉCRAN FINAL ══ */
+      #final-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        background: rgba(0, 8, 3, 0.97);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 28px 20px 28px;
+        text-align: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 1s;
+        overflow-y: auto;
+      }
+      #final-screen.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .fs-icon {
+        font-size: 56px;
+        margin-bottom: 10px;
+        animation: ffl 3s ease-in-out infinite;
+      }
+      @keyframes ffl {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      .fs-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(20px, 4vw, 40px);
+        font-weight: 900;
+        color: var(--g);
+        letter-spacing: 0.14em;
+        margin-bottom: 6px;
+        text-shadow: 0 0 32px rgba(0, 255, 136, 0.6);
+      }
+
+      /* Voix GAÏA finale — grande et visible */
+      #final-voice-box {
+        width: min(700px, 92vw);
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(22px);
+        border-radius: 4px;
+        padding: 18px 24px;
+        text-align: left;
+        margin-bottom: 18px;
+      }
+      .fv-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .fv-nm {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.55);
+      }
+      #fv-vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 11px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #fv-vbr.on {
+        opacity: 1;
+      }
+      #fv-txt {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(14px, 1.65vw, 17px);
+        line-height: 2;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 280px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 255, 136, 0.15) transparent;
+      }
+      #fv-txt::-webkit-scrollbar {
+        width: 3px;
+      }
+      #fv-txt::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 136, 0.15);
+        border-radius: 2px;
+      }
+
+      /* Badge final centré */
+      #final-badge {
+        width: min(540px, 90vw);
+        background: rgba(0, 8, 3, 0.98);
+        border: 1px solid rgba(0, 255, 136, 0.28);
+        border-radius: 5px;
+        padding: 22px 28px;
+        margin-bottom: 20px;
+        animation: badge-in 0.4s ease;
+      }
+      .fb-title {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.38em;
+        color: rgba(0, 255, 136, 0.6);
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        padding-bottom: 8px;
+      }
+      .fb-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 7px;
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.72);
+        padding: 6px 10px;
+        background: rgba(0, 255, 136, 0.04);
+        border-radius: 3px;
+      }
+      .fb-pts {
+        font-family: "Cinzel", serif;
+        font-size: 26px;
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 12px rgba(0, 255, 136, 0.55));
+        margin: 10px 0 4px;
+      }
+      .fb-ach {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 22px;
+        background: rgba(0, 255, 136, 0.07);
+        border: 1px solid rgba(0, 255, 136, 0.25);
+        border-radius: 3px;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.25em;
+        color: rgba(0, 255, 136, 0.82);
+        margin-bottom: 14px;
+      }
+
+      /* Bouton continuer */
+      #fs-btn {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        color: var(--g);
+        background: rgba(0, 5, 2, 0.97);
+        border: 1px solid rgba(0, 255, 136, 0.55);
+        padding: 16px 50px;
+        cursor: pointer;
+        transition: all 0.35s;
+        border-radius: 2px;
+        box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+      }
+      #fs-btn:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 50px rgba(0, 255, 136, 0.35);
+      }
+
+      #ab {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 90;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.2);
+        cursor: pointer;
+        transition: color 0.3s;
+        pointer-events: all;
+      }
+      #ab:hover {
+        color: rgba(0, 255, 136, 0.6);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cur"></div>
+    <canvas id="gc"></canvas>
+    <div id="vig"></div>
+    <div id="bo"></div>
+
+    <!-- HUD -->
+    <div id="hud-top">
+      <div class="ht-l">G A Ï A</div>
+      <div class="ht-c">
+        C A R T E — É N E R G É T I Q U E — M O N D I A L E
+      </div>
+      <div class="ht-r" id="sv-top">SCORE : 0</div>
+    </div>
+    <div id="left-hud">
+      <div class="lh-block">
+        <div class="lh-lbl">SCORE</div>
+        <div class="lh-val" id="score-val">0</div>
+      </div>
+      <div class="lh-block">
+        <div class="lh-lbl">CONTINENTS EXPLORÉS</div>
+        <div id="cont-dots"></div>
+      </div>
+    </div>
+    <div id="legend">
+      <div class="leg-t">SANTÉ ÉNERGÉTIQUE</div>
+      <div class="leg-row">
+        <div class="leg-dot" style="background: #00dd66"></div>
+        &gt;50% renouvelable
+      </div>
+      <div class="leg-row">
+        <div class="leg-dot" style="background: #ddcc00"></div>
+        30–50% renouvelable
+      </div>
+      <div class="leg-row">
+        <div class="leg-dot" style="background: #ee7700"></div>
+        20–30% renouvelable
+      </div>
+      <div class="leg-row">
+        <div class="leg-dot" style="background: #ee2222"></div>
+        &lt;20% renouvelable
+      </div>
+    </div>
+    <div id="globe-hint">CLIQUEZ SUR UN CONTINENT POUR EXPLORER</div>
+
+    <!-- VOIX GAÏA -->
+    <div id="vp">
+      <div id="vs"></div>
+      <div id="vbox">
+        <div id="vsr">
+          <span id="vnm">G A Ï A</span
+          ><span id="vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="vtx"></div>
+        <span id="twc"></span>
+      </div>
+    </div>
+
+    <!-- BADGE CONTINENT -->
+    <div id="badge-overlay">
+      <div id="badge-box"></div>
+    </div>
+
+    <!-- ÉCRAN FINAL -->
+    <div id="final-screen">
+      <div class="fs-icon">🌍</div>
+      <div class="fs-title">CARTOGRAPHIE COMPLÈTE</div>
+      <div id="final-voice-box">
+        <div class="fv-header">
+          <span class="fv-nm">G A Ï A</span>
+          <span id="fv-vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="fv-txt"></div>
+      </div>
+      <div id="final-badge">
+        <div class="fb-title">RÉSULTATS — EXPLORATION MONDIALE</div>
+        <div class="fb-row">✅ 6 continents explorés et analysés</div>
+        <div class="fb-row">🌍 Distribution énergétique mondiale comprise</div>
+        <div class="fb-row">💡 Inégalités verts / fossiles identifiées</div>
+        <div class="fb-row">🎯 Prêt pour la prochaine mission</div>
+        <div class="fb-pts" id="final-pts">+60 POINTS</div>
+        <div class="fb-ach">🌍 &nbsp;ACHIEVEMENT : "Voyageur Mondial"</div>
+      </div>
+      <button id="fs-btn" onclick="goNext()">
+        ▶ &nbsp;TRANSITION VERS SALLE 3 — SYSTEME IMMUNITAIRE
+      </button>
+    </div>
+
+    <div id="curtain"></div>
+    <div id="ab" onclick="toggleMute()">🔊 SON</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      "use strict";
+      let isMuted = false,
+        audioCtx = null,
+        typeIv = null;
+      let phase = "intro";
+      let score = 0,
+        pName = "Gardien",
+        explored = new Set();
+      let badgeOpen = false,
+        badgeIdx = -1,
+        isZooming = false;
+      let globeRotY = 0,
+        globeRotX = 0.22,
+        autoRot = true,
+        isDragging = false,
+        lastMX = 0,
+        lastMY = 0;
+      let camZ = 3.6,
+        zoomTarget = 3.6;
+      let finalTriggered = false;
+
+      try {
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+        score = parseInt(localStorage.getItem("gaiaScore") || "0");
+      } catch (e) {}
+      document.getElementById("sv-top").textContent = "SCORE : " + score;
+      document.getElementById("score-val").textContent = score;
+
+      const $cur = document.getElementById("cur");
+      document.addEventListener("mousemove", (e) => {
+        $cur.style.left = e.clientX + "px";
+        $cur.style.top = e.clientY + "px";
+      });
+
+      // ══ AUDIO ══
+      function initAudio() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      function gm() {
+        if (!audioCtx) return null;
+        if (!window._M6) {
+          const c = audioCtx.createDynamicsCompressor();
+          c.threshold.value = -18;
+          c.knee.value = 8;
+          c.ratio.value = 3;
+          c.attack.value = 0.003;
+          c.release.value = 0.25;
+          c.connect(audioCtx.destination);
+          window._M6 = c;
+        }
+        return window._M6;
+      }
+      function rv(d = 3, dc = 2) {
+        if (!audioCtx) return null;
+        const sr = audioCtx.sampleRate,
+          l = sr * d,
+          b = audioCtx.createBuffer(2, l, sr);
+        for (let c = 0; c < 2; c++) {
+          const dd = b.getChannelData(c);
+          for (let i = 0; i < l; i++)
+            dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / l, dc);
+        }
+        const cv = audioCtx.createConvolver();
+        cv.buffer = b;
+        return cv;
+      }
+      function playAmb() {
+        if (!audioCtx || isMuted) return;
+        const m = gm(),
+          r = rv(6, 3);
+        r.connect(m);
+        [28, 42, 28.05].forEach((f, i) => {
+          const o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          o.type = "sine";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(
+            [0.018, 0.01, 0.014][i],
+            audioCtx.currentTime + 4 + i * 0.5
+          );
+          const fl = audioCtx.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 120;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(r);
+          g.connect(m);
+          o.start();
+        });
+      }
+      function playZoom(dir) {
+        if (!audioCtx || isMuted) return;
+        const m = gm(),
+          buf = audioCtx.createBuffer(
+            1,
+            audioCtx.sampleRate * 0.6,
+            audioCtx.sampleRate
+          ),
+          d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++)
+          d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 0.9);
+        const src = audioCtx.createBufferSource();
+        src.buffer = buf;
+        const f = audioCtx.createBiquadFilter();
+        f.type = "bandpass";
+        f.frequency.value = dir === "in" ? 600 : 300;
+        f.Q.value = 0.4;
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0, audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.08);
+        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+        src.connect(f);
+        f.connect(g);
+        g.connect(m);
+        src.start();
+        src.stop(audioCtx.currentTime + 0.65);
+      }
+      function playChime(col) {
+        if (!audioCtx || isMuted) return;
+        const m = gm(),
+          r = rv(2, 1.8);
+        r.connect(m);
+        const ff = {
+          green: [523, 659, 784],
+          yellow: [440, 554, 659],
+          orange: [349, 440, 523],
+          red: [294, 370, 440],
+        }[col] || [440, 554, 659];
+        ff.forEach((f, i) =>
+          setTimeout(() => {
+            if (!audioCtx || isMuted) return;
+            const o = audioCtx.createOscillator(),
+              g = audioCtx.createGain();
+            o.type = "triangle";
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.055, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 1.1
+            );
+            o.connect(g);
+            g.connect(r);
+            o.start();
+            o.stop(audioCtx.currentTime + 1.2);
+          }, i * 75)
+        );
+      }
+      function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("ab").textContent = isMuted
+          ? "🔇 MUET"
+          : "🔊 SON";
+        if (audioCtx) {
+          isMuted ? audioCtx.suspend() : audioCtx.resume();
+        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      // ══ VOIX ══
+      const syn = window.speechSynthesis;
+      function gv() {
+        const vs = syn ? syn.getVoices() : [];
+        return (
+          vs.find(
+            (x) =>
+              x.lang === "fr-FR" &&
+              /Marie|Amelie|Hortense|Lea|Julie/i.test(x.name)
+          ) ||
+          vs.find((x) => x.lang === "fr-FR") ||
+          vs.find((x) => x.lang.startsWith("fr")) ||
+          vs[0] ||
+          null
+        );
+      }
+
+      // speakTo : version robuste, voix claire et naturelle
+      function speakTo(text, txtEl, vbrEl, curEl, cb) {
+        if (txtEl) txtEl.textContent = "";
+        if (curEl) curEl.style.display = "inline-block";
+        let disp = 0,
+          tgt = 0,
+          vd = false,
+          called = false,
+          twIv = null;
+        function fin() {
+          if (called) return;
+          called = true;
+          if (curEl) curEl.style.display = "none";
+          if (cb) setTimeout(cb, 380);
+        }
+        function tick() {
+          if (twIv) clearInterval(twIv);
+          twIv = setInterval(() => {
+            if (disp < tgt && disp < text.length) {
+              if (txtEl) {
+                txtEl.textContent = text.slice(0, ++disp);
+                txtEl.scrollTop = txtEl.scrollHeight;
+              } else disp++;
+            } else if (disp >= text.length && vd) {
+              clearInterval(twIv);
+              fin();
+            }
+          }, 24);
+        }
+        if (syn && !isMuted) {
+          syn.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = "fr-FR";
+          u.rate = 0.88; // Rate naturel — pas trop lent
+          u.pitch = 0.82; // Pitch grave mais clair
+          u.volume = 1.0; // Volume max
+          const sv = () => {
+            const v = gv();
+            if (v) u.voice = v;
+          };
+          syn.getVoices().length
+            ? sv()
+            : syn.addEventListener("voiceschanged", sv, { once: true });
+          u.onstart = () => {
+            if (vbrEl) vbrEl.classList.add("on");
+          };
+          u.onboundary = (e) => {
+            if (e.name === "word") {
+              tgt = Math.min(e.charIndex + e.charLength, text.length);
+              tick();
+            }
+          };
+          u.onend = u.onerror = () => {
+            if (vbrEl) vbrEl.classList.remove("on");
+            vd = true;
+            tgt = text.length;
+            tick();
+          };
+          syn.speak(u);
+        }
+        setTimeout(() => {
+          if (disp === 0) {
+            vd = true;
+            tgt = text.length;
+            tick();
+          }
+        }, 1900);
+      }
+
+      function showVoice(text, cb) {
+        const el = document.getElementById("vtx"),
+          vbr = document.getElementById("vbr"),
+          twc = document.getElementById("twc");
+        document.getElementById("vs").classList.add("show");
+        document.getElementById("vbox").classList.add("show");
+        speakTo(text, el, vbr, twc, cb);
+      }
+      function hideVoice(cb) {
+        const vb = document.getElementById("vbox");
+        vb.style.transition = "opacity .6s";
+        vb.style.opacity = "0";
+        setTimeout(() => {
+          vb.classList.remove("show");
+          vb.style.opacity = "";
+          vb.style.transition = "";
+          document.getElementById("vs").classList.remove("show");
+          if (cb) cb();
+        }, 650);
+      }
+
+      // ══ THREE.JS GLOBE ══
+      // Vraie Terre NASA via CDN jsdelivr (même serveur que les scènes 1/2)
+      const GC = document.getElementById("gc");
+      GC.width = innerWidth;
+      GC.height = innerHeight;
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        50,
+        innerWidth / innerHeight,
+        0.1,
+        500
+      );
+      camera.position.set(0, 0, camZ);
+      const renderer = new THREE.WebGLRenderer({
+        canvas: GC,
+        antialias: true,
+        alpha: false,
+      });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.setClearColor(0x000204);
+      const clock = new THREE.Clock();
+
+      // Étoiles
+      {
+        const sc = new Float32Array(8000);
+        for (let i = 0; i < 8000; i += 3) {
+          const phi = Math.acos(-1 + 2 * Math.random()),
+            th = Math.random() * Math.PI * 2,
+            r = 40 + Math.random() * 100;
+          sc[i] = r * Math.sin(phi) * Math.cos(th);
+          sc[i + 1] = r * Math.cos(phi);
+          sc[i + 2] = r * Math.sin(phi) * Math.sin(th);
+        }
+        const sg = new THREE.BufferGeometry();
+        sg.setAttribute("position", new THREE.BufferAttribute(sc, 3));
+        scene.add(
+          new THREE.Points(
+            sg,
+            new THREE.PointsMaterial({
+              color: 0xccccee,
+              size: 0.035,
+              transparent: true,
+              opacity: 0.6,
+            })
+          )
+        );
+      }
+
+      // Lumières
+      scene.add(new THREE.AmbientLight(0x112233, 1.2));
+      const sunL = new THREE.DirectionalLight(0xfff5e0, 2.4);
+      sunL.position.set(5, 2, 4);
+      scene.add(sunL);
+
+      const globeGroup = new THREE.Group();
+      scene.add(globeGroup);
+
+      // ── VRAIE TERRE NASA — textures depuis jsdelivr CDN (même source que index.html) ──
+      const texLoader = new THREE.TextureLoader();
+      const BASE =
+        "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/";
+
+      let earthMesh, cloudMesh, atmosMesh;
+
+      // Charger les textures NASA réelles
+      const earthTex = texLoader.load(BASE + "earth_atmos_2048.jpg");
+      const normalTex = texLoader.load(BASE + "earth_normal_2048.jpg");
+      const specTex = texLoader.load(BASE + "earth_specular_2048.jpg");
+      const cloudTex = texLoader.load(BASE + "earth_clouds_1024.png");
+
+      // Matériau terre réaliste
+      const earthMat = new THREE.MeshPhongMaterial({
+        map: earthTex,
+        normalMap: normalTex,
+        normalScale: new THREE.Vector2(0.85, 0.85),
+        specularMap: specTex,
+        specular: new THREE.Color(0.25, 0.25, 0.25),
+        shininess: 18,
+      });
+      earthMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 80, 80), earthMat);
+      globeGroup.add(earthMesh);
+
+      // Nuages
+      const cloudMat = new THREE.MeshPhongMaterial({
+        map: cloudTex,
+        transparent: true,
+        opacity: 0.38,
+        depthWrite: false,
+      });
+      cloudMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(1.012, 64, 64),
+        cloudMat
+      );
+      globeGroup.add(cloudMesh);
+
+      // Atmosphère halo
+      const atmosMat = new THREE.ShaderMaterial({
+        uniforms: { uT: { value: 0 } },
+        side: THREE.BackSide,
+        vertexShader: `varying vec3 vN,vP;void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+        fragmentShader: `uniform float uT;varying vec3 vN,vP;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),4.);float p=sin(uT*.3)*.05+.95;gl_FragColor=vec4(.12,.32,.65,fr*.62*p);}`,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      atmosMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(1.1, 32, 32),
+        atmosMat
+      );
+      globeGroup.add(atmosMesh);
+
+      // Lumière solaire sur le globe
+      const globeLight = new THREE.DirectionalLight(0xfff8e0, 1.8);
+      globeLight.position.set(5, 2, 4);
+      globeGroup.add(globeLight);
+
+      // ── DONNÉES CONTINENTS ──
+      const CONTS = [
+        {
+          id: "europe",
+          name: "EUROPE",
+          flag: "🌍",
+          pct: 42,
+          col: "#ddcc00",
+          health: "yellow",
+          lat: 52,
+          lon: 15,
+          distrib: [
+            { l: "Hydraulique", v: 16, c: "#3399ff" },
+            { l: "Éolien", v: 17, c: "#00ccff" },
+            { l: "Solaire", v: 6, c: "#ffdd00" },
+            { l: "Bioénergie", v: 3, c: "#88cc44" },
+            { l: "Fossiles + Nucl.", v: 58, c: "#aa4400" },
+          ],
+          countries: [
+            {
+              f: "🇳🇴",
+              n: "Norvège",
+              p: "98%",
+              d: "95% Hydroélectricité — Fjords naturels",
+            },
+            {
+              f: "🇮🇸",
+              n: "Islande",
+              p: "~100%",
+              d: "75% Géothermie + 25% Hydraulique",
+            },
+            {
+              f: "🇩🇰",
+              n: "Danemark",
+              p: "80%",
+              d: "Éolien offshore 50% — Leader mondial",
+            },
+            { f: "🇸🇪", n: "Suède", p: "65%", d: "Hydro + Biomasse" },
+            { f: "🇦🇹", n: "Autriche", p: "78%", d: "Hydro alpine" },
+          ],
+          trend: "↗ +5% par an (2015-2025)",
+          projects: [
+            "Éolien offshore Mer du Nord — 150 GW d ici 2050",
+            "Méga-fermes solaires Espagne — 2500 MW",
+            "Green Deal Européen — Neutralité 2050",
+          ],
+          goals: ["Objectif 2030 : 60%", "Objectif 2050 : 100%"],
+          challenges: [
+            "Dépendance gaz (en réduction)",
+            "Charbon Pologne et Allemagne",
+            "Coût transition pays de l Est",
+          ],
+          invest: "1 trillion euros (2020-2030)",
+          note: "",
+          gaiaVoice:
+            "L Europe... Une de mes zones les plus gueries.\nApres 200 ans de pollution industrielle, elle se rattrape enfin.\nLa Norvège et l Islande sont des exemples.\nPreesque 100% renouvelable.\nC est la preuve que c est possible.\nMais attention... L Europe a aussi les moyens.\nC est facile d etre vert quand on est riche.",
+        },
+        {
+          id: "namerica",
+          name: "AMÉRIQUE DU NORD",
+          flag: "🌎",
+          pct: 30,
+          col: "#ee7700",
+          health: "orange",
+          lat: 45,
+          lon: -100,
+          distrib: [
+            { l: "Hydraulique", v: 7, c: "#3399ff" },
+            { l: "Éolien", v: 10, c: "#00ccff" },
+            { l: "Solaire", v: 4, c: "#ffdd00" },
+            { l: "Bioénergie", v: 6, c: "#88cc44" },
+            { l: "Nucléaire", v: 18, c: "#9933cc" },
+            { l: "Fossiles", v: 55, c: "#aa4400" },
+          ],
+          countries: [
+            {
+              f: "🇨🇦",
+              n: "Canada",
+              p: "68%",
+              d: "60% Hydraulique — 2eme producteur mondial",
+            },
+            {
+              f: "🇺🇸",
+              n: "États-Unis",
+              p: "22%",
+              d: "Éolien Texas 28% + Solaire Californie 25%",
+            },
+            {
+              f: "🇲🇽",
+              n: "Mexique",
+              p: "26%",
+              d: "Géothermie + Éolien + Solaire Sonora",
+            },
+          ],
+          trend: "↗ +3% par an — Accélération loi IRA 2022",
+          projects: [
+            "Éolien Great Plains — 10 états",
+            "Solaire déserts Sud-Ouest — 7000 GW potentiel",
+            "Hydro Baie James Canada — 16000 MW",
+          ],
+          goals: [
+            "USA : 50% renouvelable 2030",
+            "Canada : 90% renouvelable",
+            "Mexique : 35% renouvelable",
+          ],
+          challenges: [
+            "Lobby pétrolier USA",
+            "Texas réseau isolé",
+            "Polarisation politique",
+          ],
+          invest: "1.2 trillion dollars IRA 2022-2032",
+          note: "",
+          gaiaVoice:
+            "L Amérique du Nord... Un géant divisé.\nLe Canada respire bien — 68% vert.\nSes rivières immenses font tourner mes turbines.\nMais les États-Unis... hesitent.\n50% du pays veut devenir vert.\nL autre moitié s accroche au pétrole.\nTexas produit du vent... mais brule du charbon.\nCaliffornie brille au solaire... mais Nevada creuse.",
+        },
+        {
+          id: "asia",
+          name: "ASIE",
+          flag: "🌏",
+          pct: 28,
+          col: "#ee7700",
+          health: "orange",
+          lat: 35,
+          lon: 100,
+          distrib: [
+            { l: "Hydraulique", v: 16, c: "#3399ff" },
+            { l: "Éolien", v: 6, c: "#00ccff" },
+            { l: "Solaire", v: 5, c: "#ffdd00" },
+            { l: "Charbon ⚠", v: 46, c: "#555555" },
+            { l: "Gaz", v: 14, c: "#aa6600" },
+            { l: "Nucléaire", v: 5, c: "#9933cc" },
+          ],
+          countries: [
+            {
+              f: "🇨🇳",
+              n: "Chine",
+              p: "30%",
+              d: "Leader solaire 470 GW ET leader charbon 1100 GW",
+            },
+            {
+              f: "🇮🇳",
+              n: "Inde",
+              p: "25%",
+              d: "Solaire 70 GW — Objectif 280 GW en 2030",
+            },
+            {
+              f: "🇯🇵",
+              n: "Japon",
+              p: "23%",
+              d: "Post-Fukushima — Solaire résidentiel massif",
+            },
+            {
+              f: "🇰🇷",
+              n: "Corée du Sud",
+              p: "8%",
+              d: "Retard important — Plan vert 2050",
+            },
+            {
+              f: "🇮🇩",
+              n: "Indonésie",
+              p: "12%",
+              d: "40% réserves géothermiques mondiales",
+            },
+          ],
+          trend: "↗ +4% par an — Rapide mais insuffisant",
+          projects: [
+            "Gobi Chine — 400 GW d ici 2030",
+            "Éolien offshore Jiangsu — 43 GW",
+            "Solar Park Rajasthan Inde — 10000 MW",
+          ],
+          goals: [
+            "Chine : 33% 2025 puis 80% 2060",
+            "Inde : 50% 2030",
+            "Japon : 36-38% 2030",
+          ],
+          challenges: [
+            "4.7 milliards habitants — 60% de la population mondiale",
+            "Charbon historiquement dominant",
+            "Qualité de l air catastrophique",
+          ],
+          invest: "2 trillions dollars (2020-2030, Chine seule)",
+          note: "5 millions morts par an pollution air (sur 7 millions mondiaux)",
+          gaiaVoice:
+            "L Asie... Mon plus grand dilemme.\n4.7 milliards de mes enfants vivent ici.\nIls ont le droit de s industrialiser.\nComme l Europe l a fait pendant 200 ans.\nMais la différence ? L Europe : 500 millions.\nL Asie : 4.7 milliards.\nSi l Asie pollue comme l Europe a pollue... je meurs.\nC est pour ça que la Chine investit plus que tout le monde dans le solaire.\nMais elle brule aussi plus de charbon que le monde entier.\nC est mon plus grand combat.",
+        },
+        {
+          id: "africa",
+          name: "AFRIQUE",
+          flag: "🌍",
+          pct: 40,
+          col: "#ddcc00",
+          health: "yellow",
+          lat: 5,
+          lon: 20,
+          distrib: [
+            { l: "Hydraulique", v: 17, c: "#3399ff" },
+            { l: "Bioénergie trad.", v: 18, c: "#886633" },
+            { l: "Solaire", v: 2, c: "#ffdd00" },
+            { l: "Éolien", v: 2, c: "#00ccff" },
+            { l: "Fossiles", v: 40, c: "#aa4400" },
+            { l: "Nucléaire", v: 1, c: "#9933cc" },
+          ],
+          countries: [
+            {
+              f: "🇪🇹",
+              n: "Éthiopie",
+              p: "95%",
+              d: "Barrage Renaissance du Nil 6450 MW",
+            },
+            {
+              f: "🇰🇪",
+              n: "Kenya",
+              p: "90%",
+              d: "Géothermie 47% — Olkaria 865 MW",
+            },
+            {
+              f: "🇨🇩",
+              n: "RD Congo",
+              p: "98%",
+              d: "Barrage Inga futur 40 GW — 2x Trois-Gorges",
+            },
+            {
+              f: "🇲🇦",
+              n: "Maroc",
+              p: "37%",
+              d: "Centrale Noor Ouarzazate — 580 MW",
+            },
+            {
+              f: "🇿🇦",
+              n: "Afrique du Sud",
+              p: "12%",
+              d: "Charbon 80% — Transition en cours",
+            },
+          ],
+          trend: "↗ +6% par an — Potentiel ÉNORME inexploité",
+          projects: [
+            "Sahara — 10 TW potentiel",
+            "Fleuve Congo — 100 GW potentiel",
+            "Rift Est-Africain géothermie — 15 GW",
+          ],
+          goals: [
+            "Accès universel électricité 2030",
+            "50% mix renouvelable",
+            "Sauter l étape fossile directement",
+          ],
+          challenges: [
+            "600 millions sans electricite — 43% de la population",
+            "Besoin 190 milliards par an, actuellement 30",
+            "Infrastructures insuffisantes",
+          ],
+          invest: "Besoin 190 milliards par an — actuellement 30 milliards",
+          note: "40% renouvelable MAIS 600 millions sans electricite",
+          gaiaVoice:
+            "L Afrique... Mon continent paradoxal.\n40% renouvelable... Mais 600 millions sans électricité.\nL Éthiopie, le Kenya, le Congo... Presque 100% vert. C est magnifique.\nLe Sahara pourrait alimenter toute l Europe.\nLe fleuve Congo pourrait alimenter toute l Afrique.\nMais l argent n est pas là. Les infrastructures n existent pas.\nC est l injustice la plus criante.\nLe continent le plus riche en soleil... vit dans le noir.",
+        },
+        {
+          id: "samerica",
+          name: "AMÉRIQUE DU SUD",
+          flag: "🌎",
+          pct: 60,
+          col: "#00dd66",
+          health: "green",
+          lat: -15,
+          lon: -60,
+          distrib: [
+            { l: "Hydraulique", v: 46, c: "#3399ff" },
+            { l: "Bioénergie", v: 8, c: "#88cc44" },
+            { l: "Éolien", v: 4, c: "#00ccff" },
+            { l: "Solaire", v: 2, c: "#ffdd00" },
+            { l: "Fossiles", v: 30, c: "#aa4400" },
+            { l: "Nucléaire", v: 2, c: "#9933cc" },
+          ],
+          countries: [
+            {
+              f: "🇧🇷",
+              n: "Brésil",
+              p: "85%",
+              d: "Hydro 60% + Bioénergie 18% — Leader mondial",
+            },
+            {
+              f: "🇵🇾",
+              n: "Paraguay",
+              p: "100%",
+              d: "Hydro 100% — Barrage Itaipu — 8x ses besoins",
+            },
+            {
+              f: "🇺🇾",
+              n: "Uruguay",
+              p: "95%",
+              d: "2008 : 55% fossiles → 2018 : 95% renouvelable en 10 ans",
+            },
+            {
+              f: "🇨🇱",
+              n: "Chili",
+              p: "45%",
+              d: "Atacama 3000 kWh/m2/an — Meilleur solaire mondial",
+            },
+            {
+              f: "🇦🇷",
+              n: "Argentine",
+              p: "38%",
+              d: "Éolien Patagonie — Vents 9 à 11 m/s — 500 GW potentiel",
+            },
+          ],
+          trend: "↗ +4% par an — Champion mondial transition",
+          projects: [
+            "Atacama Chili — Potentiel solaire numero 1 mondial",
+            "Éolien Patagonie Argentine — 500 GW",
+            "Biomasse Brésil — 27 milliards litres éthanol/an",
+          ],
+          goals: [
+            "70% continental 2030",
+            "Paraguay et Uruguay déjà presque 100%",
+          ],
+          challenges: [
+            "Vulnérabilité aux sécheresses",
+            "Déforestation Amazonie",
+            "Impact biodiversite barrages",
+          ],
+          invest: "150 milliards dollars (2020-2030)",
+          note: "CHAMPION CONTINENTAL — Le plus vert au monde",
+          gaiaVoice:
+            "L Amérique du Sud... Mon trésor vert.\n60% renouvelable ! Le Brésil 85%, le Paraguay 100%, l Uruguay 95%.\nMes rivières amazoniennes coulent avec une force incroyable.\nLe désert d Atacama... Le soleil le plus intense de la Terre.\nLa Patagonie... Les vents les plus forts du continent.\nMes éoliennes dansent jour et nuit.\nMais l Amazonie brûle. Pour des ranchs. Pour du soja.\nIls détruisent mon poumon... pour produire de la viande.\nC est la tragédie.",
+        },
+        {
+          id: "oceania",
+          name: "OCÉANIE",
+          flag: "🌏",
+          pct: 32,
+          col: "#ddcc00",
+          health: "yellow",
+          lat: -25,
+          lon: 140,
+          distrib: [
+            { l: "Hydraulique", v: 8, c: "#3399ff" },
+            { l: "Éolien", v: 10, c: "#00ccff" },
+            { l: "Solaire", v: 12, c: "#ffdd00" },
+            { l: "Charbon (!)", v: 42, c: "#555555" },
+            { l: "Gaz", v: 20, c: "#aa6600" },
+            { l: "Bioénergie", v: 2, c: "#88cc44" },
+          ],
+          countries: [
+            {
+              f: "🇦🇺",
+              n: "Australie",
+              p: "32%",
+              d: "30% maisons panneaux solaires — Record mondial + Charbon 42%",
+            },
+            {
+              f: "🇳🇿",
+              n: "Nouvelle-Zélande",
+              p: "85%",
+              d: "Hydro 55% + Géothermie 18% — Objectif 100% 2030",
+            },
+            {
+              f: "🇫🇯",
+              n: "Fidji",
+              p: "65%",
+              d: "Hydro 60% — Objectif 100% 2030",
+            },
+            {
+              f: "🇵🇬",
+              n: "Papouasie-N-G",
+              p: "88%",
+              d: "Hydro 82% — mais 87% sans électricité",
+            },
+          ],
+          trend: "↗ +5% par an — Accélération Australie",
+          projects: [
+            "Asian Renewable Energy Hub — 26 GW hydrogène vert",
+            "Sun Cable Australie vers Singapour — 3800 km — 10 GW",
+            "Géothermie NZ — Tauhara 174 MW 2026",
+          ],
+          goals: [
+            "Australie : 82% 2030",
+            "Nouvelle-Zélande : 100% 2030",
+            "Îles Pacifique : victimes du CC sans rien émettre",
+          ],
+          challenges: [
+            "Australie exporte du charbon vers Chine et Japon",
+            "Îles Pacifique : montée des eaux — Tuvalu et Kiribati disparaissent",
+            "Ironie absolue : 0% CO2 émis mais premières victimes",
+          ],
+          invest: "80 milliards dollars (2020-2030, Australie)",
+          note: "DIVISÉ : Australie charbon vs Nouvelle-Zélande modèle vert",
+          gaiaVoice:
+            "L Océanie... Le continent contradictoire.\nLa Nouvelle-Zélande brille. 85% vert.\nMes volcans alimentent ses villes.\nMais l Australie hésite.\nElle a le plus de soleil au monde.\n30% de ses maisons ont du solaire — un record mondial.\nMais elle exporte du charbon. Vers la Chine, le Japon.\nElle pollue par procuration.\nEt les petites îles... Tuvalu, Kiribati, Marshall.\nElles vont disparaître. Sous mes océans qui montent.\nElles ont emis zéro pourcent du CO2.\nMais elles paient de leur vie. C est l injustice absolue.",
+        },
+      ];
+
+      // ── Hotspots continents
+      const contMeshes = [];
+      function latLon3(lat, lon, r = 1.01) {
+        const phi = ((90 - lat) * Math.PI) / 180,
+          theta = ((lon + 180) * Math.PI) / 180;
+        return new THREE.Vector3(
+          -Math.sin(phi) * Math.cos(theta) * r,
+          Math.cos(phi) * r,
+          Math.sin(phi) * Math.sin(theta) * r
+        );
+      }
+      CONTS.forEach((c, ci) => {
+        const sz =
+          c.id === "asia"
+            ? 0.4
+            : c.id === "namerica"
+            ? 0.3
+            : c.id === "africa"
+            ? 0.28
+            : c.id === "samerica"
+            ? 0.24
+            : c.id === "europe"
+            ? 0.2
+            : 0.18;
+        const mat = new THREE.MeshBasicMaterial({
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+        });
+        const mesh = new THREE.Mesh(new THREE.SphereGeometry(sz, 12, 12), mat);
+        const center = latLon3(c.lat, c.lon);
+        mesh.position.copy(center);
+        mesh.userData = { idx: ci, data: c };
+        globeGroup.add(mesh);
+        contMeshes.push(mesh);
+      });
+
+      // ── INTERACTIONS ──
+      const raycaster = new THREE.Raycaster();
+      let hovIdx = -1;
+      GC.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        lastMX = e.clientX;
+        lastMY = e.clientY;
+      });
+      GC.addEventListener("mouseup", (e) => {
+        if (
+          isDragging &&
+          Math.abs(e.clientX - lastMX) < 5 &&
+          Math.abs(e.clientY - lastMY) < 5
+        ) {
+          if (phase === "globe") clickGlobe(e);
+        }
+        isDragging = false;
+      });
+      GC.addEventListener("mousemove", (e) => {
+        if (isDragging && phase === "globe") {
+          globeRotY += (e.clientX - lastMX) * 0.006;
+          globeRotX += (e.clientY - lastMY) * 0.004;
+          globeRotX = Math.max(-0.8, Math.min(0.8, globeRotX));
+          autoRot = false;
+          setTimeout(() => (autoRot = true), 4000);
+        }
+        lastMX = e.clientX;
+        lastMY = e.clientY;
+        if (phase === "globe") hoverGlobe(e);
+      });
+      function hoverGlobe(e) {
+        raycaster.setFromCamera(
+          new THREE.Vector2(
+            (e.clientX / innerWidth) * 2 - 1,
+            -(e.clientY / innerHeight) * 2 + 1
+          ),
+          camera
+        );
+        const hits = raycaster.intersectObjects(contMeshes);
+        hovIdx = hits.length ? hits[0].object.userData.idx : -1;
+        $cur.className = hovIdx >= 0 ? "hot" : "";
+      }
+      function clickGlobe(e) {
+        raycaster.setFromCamera(
+          new THREE.Vector2(
+            (e.clientX / innerWidth) * 2 - 1,
+            -(e.clientY / innerHeight) * 2 + 1
+          ),
+          camera
+        );
+        const hits = raycaster.intersectObjects(contMeshes);
+        if (!hits.length || isZooming) return;
+        openContinent(hits[0].object.userData.idx);
+      }
+
+      // ── ZOOM — sans message texte ──
+      function zoomIn(idx, cb) {
+        isZooming = true;
+        autoRot = false;
+        playZoom("in");
+        zoomTarget = 1.85;
+        // PAS de zoom-label — supprimé
+        setTimeout(() => {
+          isZooming = false;
+          if (cb) cb();
+        }, 1100);
+      }
+      function zoomOut(cb) {
+        isZooming = true;
+        playZoom("out");
+        zoomTarget = 3.6;
+        setTimeout(() => {
+          isZooming = false;
+          autoRot = true;
+          if (cb) cb();
+        }, 1000);
+      }
+
+      // ══ OPEN CONTINENT ══
+      function openContinent(idx) {
+        if (isZooming || phase === "badge") return;
+        badgeIdx = idx;
+        badgeOpen = true;
+        phase = "zooming";
+        const c = CONTS[idx];
+        playChime(c.health);
+        if (syn) syn.cancel();
+
+        // Rotation correcte : on oriente le globe pour centrer le continent face à la caméra
+        // lon positif = est, lon négatif = ouest
+        // La formule correcte : rotY = -(lon * PI/180), rotX = lat * PI/180 * 0.55
+        const targetRotY = (-c.lon * Math.PI) / 180;
+        const targetRotX = ((c.lat * Math.PI) / 180) * 0.55;
+        const startY = globeRotY,
+          startX = globeRotX;
+        let progress = 0;
+        const rotAnim = setInterval(() => {
+          progress += 0.045;
+          const p = Math.min(1, progress);
+          const ease = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; // ease in-out
+          globeRotY = startY + (targetRotY - startY) * ease;
+          globeRotX = startX + (targetRotX - startX) * ease;
+          if (p >= 1) clearInterval(rotAnim);
+        }, 16);
+
+        setTimeout(() => {
+          zoomIn(idx, () => {
+            buildBadge(c, idx);
+            document.getElementById("badge-overlay").classList.add("show");
+            hideVoice(() => {});
+            phase = "badge";
+          });
+        }, 700);
+      }
+
+      function closeBadge() {
+        if (isZooming) return;
+        phase = "zoomout";
+        document.getElementById("badge-overlay").classList.remove("show");
+        if (syn) syn.cancel();
+        document.getElementById("bb-txt") &&
+          (document.getElementById("bb-txt").textContent = "");
+        const bbvbr = document.getElementById("bb-vbr");
+        if (bbvbr) bbvbr.classList.remove("on");
+        zoomOut(() => {
+          phase = "globe";
+          $cur.className = "";
+          if (explored.size === 6 && !finalTriggered)
+            setTimeout(triggerFinal, 800);
+        });
+      }
+
+      // ══ BADGE BUILDER — complet et bien affiché ══
+      function buildBadge(c, idx) {
+        const box = document.getElementById("badge-box");
+        box.innerHTML = "";
+        const mk = (cls, html = "") => {
+          const d = document.createElement("div");
+          d.className = cls;
+          if (html) d.innerHTML = html;
+          return d;
+        };
+
+        // Header
+        box.appendChild(mk("bb-flag", c.flag));
+        box.appendChild(mk("bb-tag", "GAÏA — CONTINENT " + (idx + 1) + " / 6"));
+        const nm = mk("bb-name", c.name);
+        nm.style.color = c.col;
+        box.appendChild(nm);
+        box.appendChild(mk("bb-sep"));
+
+        // % renouvelable
+        const pctRow = mk("bb-pct-row");
+        const pctNum = mk("bb-pct", c.pct + "%");
+        pctNum.style.color = c.col;
+        pctRow.appendChild(pctNum);
+        pctRow.appendChild(mk("bb-pct-lbl", "ÉNERGIE RENOUVELABLE<br>en 2025"));
+        box.appendChild(pctRow);
+        const bw = mk("bb-bar-wrap");
+        const bf = mk("bb-bar-fill");
+        bf.style.width = "0%";
+        bf.style.background = `linear-gradient(90deg,${c.col}66,${c.col})`;
+        bw.appendChild(bf);
+        box.appendChild(bw);
+        setTimeout(() => (bf.style.width = c.pct + "%"), 200);
+
+        // Note
+        if (c.note) {
+          box.appendChild(mk("bb-note", "⚠ " + c.note));
+        }
+
+        // Distribution — barres animées avec reflow forcé pour déclencher la transition CSS
+        const s1 = mk("bb-section");
+        s1.innerHTML =
+          '<div class="bb-stitle">📊 RÉPARTITION ÉNERGÉTIQUE</div>';
+        c.distrib.forEach((d) => {
+          const r = mk("bb-bar-row");
+          // Largeur initiale 0%, le data-w stocke la vraie valeur
+          r.innerHTML = `<span class="bb-bl">${
+            d.l
+          }</span><span class="bb-bw"><span class="bb-bf" id="bf-${idx}-${d.l.replace(
+            /\s/g,
+            ""
+          )}" style="width:0%;background:${
+            d.c
+          };transition:width 1.1s cubic-bezier(.4,0,.2,1);height:100%;border-radius:3px;display:block;" data-w="${
+            d.v
+          }"></span></span><span class="bb-bv">${d.v}%</span>`;
+          s1.appendChild(r);
+        });
+        box.appendChild(s1);
+
+        // Pays
+        const s2 = mk("bb-section");
+        s2.innerHTML = '<div class="bb-stitle">🔝 PAYS LEADERS</div>';
+        c.countries.forEach((co) => {
+          const d = mk("bb-country");
+          d.innerHTML = `<span class="bb-cf">${co.f}</span><span class="bb-cn">${co.n}</span> <span class="bb-cp">${co.p}</span><div class="bb-cd">${co.d}</div>`;
+          s2.appendChild(d);
+        });
+        box.appendChild(s2);
+
+        // Tendance
+        box.appendChild(
+          mk(
+            "bb-section",
+            `<div class="bb-stitle">📈 TENDANCE</div><div class="bb-trend">${c.trend}</div>`
+          )
+        );
+
+        // Projets
+        const s4 = mk("bb-section");
+        s4.innerHTML = '<div class="bb-stitle">💡 PROJETS PHARES</div>';
+        c.projects.forEach((p) => {
+          const d = mk("bb-item bb-info");
+          d.innerHTML = `<span>🔧</span><span>${p}</span>`;
+          s4.appendChild(d);
+        });
+        box.appendChild(s4);
+
+        // Objectifs
+        const s5 = mk("bb-section");
+        s5.innerHTML = '<div class="bb-stitle">🎯 OBJECTIFS</div>';
+        c.goals.forEach((g) => {
+          const d = mk("bb-goal");
+          d.textContent = g;
+          s5.appendChild(d);
+        });
+        box.appendChild(s5);
+
+        // Défis
+        const s6 = mk("bb-section");
+        s6.innerHTML = '<div class="bb-stitle">⚠ DÉFIS</div>';
+        c.challenges.forEach((ch) => {
+          const d = mk("bb-item bb-warn");
+          d.innerHTML = `<span>⚡</span><span>${ch}</span>`;
+          s6.appendChild(d);
+        });
+        box.appendChild(s6);
+
+        // Investissement
+        box.appendChild(
+          mk(
+            "bb-section",
+            `<div class="bb-stitle">💰 INVESTISSEMENT</div><div class="bb-invest">${c.invest}</div>`
+          )
+        );
+
+        // Séparateur
+        box.appendChild(mk("bb-sep"));
+
+        // ── VOIX GAÏA — section bien visible ──
+        const gaiaWrap = mk("bb-gaia-wrap");
+        gaiaWrap.innerHTML = `
+    <div class="bb-gaia-header">
+      <span class="bb-gnm">G A Ï A — PAROLE</span>
+      <span id="bb-vbr" style="display:flex;align-items:flex-end;gap:2px;height:10px;opacity:0;transition:opacity .3s;">
+        <span class="vb"></span><span class="vb"></span><span class="vb"></span><span class="vb"></span><span class="vb"></span><span class="vb"></span>
+      </span>
+    </div>
+    <div id="bb-txt" style="font-family:'EB Garamond',serif;font-size:clamp(14px,1.6vw,16px);line-height:1.9;color:var(--soft);white-space:pre-wrap;max-height:180px;overflow-y:auto;scrollbar-width:none;"></div>
+    <span id="bb-cur" style="display:none;width:2px;height:14px;background:var(--g);vertical-align:middle;margin-left:2px;animation:blink .8s step-end infinite;"></span>`;
+        box.appendChild(gaiaWrap);
+
+        // Score
+        const already = explored.has(idx);
+        if (!already) {
+          explored.add(idx);
+          score += 10;
+          document.getElementById("sv-top").textContent = "SCORE : " + score;
+          document.getElementById("score-val").textContent = score;
+          try {
+            localStorage.setItem("gaiaScore", score.toString());
+          } catch (e) {}
+          updateDots();
+        }
+        box.appendChild(
+          mk(
+            "bb-score-add",
+            already
+              ? "Déjà exploré ✅"
+              : "+10 POINTS — " + c.name + " exploré ✅"
+          )
+        );
+
+        // Bouton retour
+        const btn = document.createElement("button");
+        btn.className = "bb-close-btn";
+        btn.textContent = "↩ RETOUR AU GLOBE";
+        btn.onclick = closeBadge;
+        box.appendChild(btn);
+
+        // Lancer la voix GAÏA dans le badge
+        setTimeout(() => {
+          // Animer les barres APRÈS que le badge soit visible dans le DOM
+          box.querySelectorAll(".bb-bf").forEach((b) => {
+            void b.offsetWidth; // force reflow
+            b.style.transition = "width 1.2s cubic-bezier(.4,0,.2,1)";
+            b.style.width = b.dataset.w + "%";
+          });
+          const pgTxt = document.getElementById("bb-txt");
+          const pgVbr = document.getElementById("bb-vbr");
+          const pgCur = document.getElementById("bb-cur");
+          if (pgTxt && pgVbr && pgCur) {
+            speakTo(c.gaiaVoice, pgTxt, pgVbr, pgCur, null);
+          }
+        }, 450);
+      }
+
+      function updateDots() {
+        document.querySelectorAll(".cd").forEach((d, i) => {
+          if (i < explored.size) d.classList.add("done");
+        });
+      }
+
+      // ══ ÉCRAN FINAL — Voix d'abord, badge après ══
+      function triggerFinal() {
+        if (finalTriggered) return;
+        finalTriggered = true;
+        if (syn) syn.cancel();
+
+        const finalTxt = `Vous avez fait le tour de mon corps, ${pName}.\nVous avez vu toutes mes artères.\nCertaines sont vertes et saines.\nD autres noires et malades.\n\nMais vous avez remarqué quelque chose ?\n\nLes pays les PLUS verts... ne sont PAS les plus riches.\nParaguay. Éthiopie. Kenya.\n100%, 95%, 90%.\nPendant que... USA, Australie, Corée du Sud.\n22%, 32%, 8%.\n\nPourquoi ?\n\nCe n est pas une question d argent.\nC est une question de VOLONTÉ.\nL Islande veut être verte. Elle l est.\nLe Danemark veut être vert. Il l est.\nL Uruguay voulait être vert. En 10 ans, il l est devenu.\n\nMais certains pays...\nPréfèrent l argent du charbon.\nPréfèrent l argent du pétrole.\nC est ça... le vrai problème.\nPas la technologie. Elle existe.\nPas le coût. C est rentable.\nC est la VOLONTÉ.\n\nEt c est pour ça que VOUS êtes importants.\nLes citoyens. Les votants.\nVous pouvez forcer vos gouvernements.\nA choisir mes artères vertes.\nManifestez. Votez. Exigez.\n\nCar moi... je ne peux rien faire.\nSeuls vous... pouvez me sauver.\n\nMaintenant, allons voir mes centrales énergétiques.\nJe vais vous montrer DEUX futurs.\nEt vous choisirez lequel vous voulez vivre.`;
+
+        setTimeout(() => {
+          // 1. Afficher l'écran final avec la voix de GAÏA
+          document.getElementById("final-screen").classList.add("show");
+          // Masquer le badge final au départ
+          document.getElementById("final-badge").style.opacity = "0";
+          document.getElementById("final-badge").style.transform =
+            "translateY(20px)";
+          document.getElementById("final-badge").style.transition =
+            "opacity .8s ease, transform .8s ease";
+          document.getElementById("fs-btn").style.opacity = "0";
+          document.getElementById("fs-btn").style.transition =
+            "opacity .8s ease";
+
+          const fvTxt = document.getElementById("fv-txt");
+          const fvVbr = document.getElementById("fv-vbr");
+
+          // 2. GAÏA parle — quand elle finit → badge apparaît
+          speakTo(finalTxt, fvTxt, fvVbr, null, () => {
+            // Voix terminée → ajouter +50 points et afficher le badge
+            setTimeout(() => {
+              score += 50;
+              document.getElementById("sv-top").textContent =
+                "SCORE : " + score;
+              document.getElementById("score-val").textContent = score;
+              document.getElementById("final-pts").textContent =
+                "+50 POINTS BONUS — TOTAL : " + score;
+              try {
+                localStorage.setItem("gaiaScore", score.toString());
+              } catch (e) {}
+
+              // Badge apparaît en fondu
+              const fb = document.getElementById("final-badge");
+              fb.style.opacity = "1";
+              fb.style.transform = "translateY(0)";
+              // Bouton après le badge
+              setTimeout(() => {
+                document.getElementById("fs-btn").style.opacity = "1";
+              }, 600);
+              // Scroller vers le badge
+              setTimeout(
+                () =>
+                  fb.scrollIntoView({ behavior: "smooth", block: "center" }),
+                400
+              );
+            }, 400);
+          });
+        }, 600);
+      }
+
+      // ══ BOUCLE ANIMATION ══
+      let gT = 0;
+      function animate() {
+        requestAnimationFrame(animate);
+        const dt = Math.min(clock.getDelta(), 0.05);
+        gT += dt;
+        camZ += (zoomTarget - camZ) * 0.06;
+        camera.position.z = camZ;
+        if (autoRot && phase !== "badge" && phase !== "zoomout")
+          globeRotY += dt * 0.055;
+        globeGroup.rotation.x = globeRotX;
+        globeGroup.rotation.y = globeRotY;
+        if (cloudMesh) cloudMesh.rotation.y = gT * 0.002;
+        atmosMat.uniforms.uT.value = gT;
+        sunL.position.set(Math.cos(gT * 0.03) * 5, 2, Math.sin(gT * 0.03) * 5);
+        globeLight.position.copy(sunL.position);
+        renderer.render(scene, camera);
+      }
+
+      // ══ SÉQUENCE ══
+      function buildDotsBuild() {
+        const c = document.getElementById("cont-dots");
+        c.innerHTML = "";
+        for (let i = 0; i < 6; i++) {
+          const d = document.createElement("div");
+          d.className = "cd";
+          c.appendChild(d);
+        }
+      }
+
+      function startScene() {
+        initAudio();
+        buildDotsBuild();
+        const cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.4s ease";
+        setTimeout(() => cu.classList.add("gone"), 100);
+        playAmb();
+        animate();
+        setTimeout(() => {
+          document.getElementById("hud-top").classList.add("show");
+          document.getElementById("left-hud").classList.add("show");
+        }, 1200);
+        phase = "intro";
+        autoRot = true;
+        setTimeout(() => {
+          showVoice(
+            `Maintenant, voyons où va cette énergie.\nMon coeur pompe vers tous les continents.\nChaque région a ses propres artères.\nCertaines sont deja vertes.\nD autres... terriblement noires.\nExplorez le monde.\nVoyez comment l énergie circule.\nComprenez les inegalités.`,
+            () => {
+              hideVoice(() => {
+                setTimeout(() => {
+                  phase = "globe";
+                  document.getElementById("legend").classList.add("show");
+                  document.getElementById("globe-hint").classList.add("show");
+                }, 400);
+              });
+            }
+          );
+        }, 1400);
+      }
+
+      setInterval(() => {
+        if (explored.size === 6 && phase === "globe" && !finalTriggered)
+          triggerFinal();
+      }, 2000);
+
+      function goNext() {
+        if (syn) syn.cancel();
+        try {
+          localStorage.setItem("gaiaPlayerName", pName);
+          localStorage.setItem("gaiaScore", score.toString());
+        } catch (e) {}
+        const cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 2s ease";
+        cu.classList.remove("gone");
+        cu.style.opacity = "1";
+        setTimeout(() => (window.location.href = "scene7.html"), 2200);
+      }
+
+      window.addEventListener("resize", () => {
+        GC.width = innerWidth;
+        GC.height = innerHeight;
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+      });
+      window.addEventListener("load", startScene);
+    </script>
+  </body>
+</html>
