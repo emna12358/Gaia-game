@@ -2,8 +2,8 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GAÏA — Scène 3 : Le Cerveau</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAÏA — Scène 3</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
       rel="stylesheet"
@@ -13,8 +13,8 @@
         --g: #00ff88;
         --gd: #00cc66;
         --soft: #d0f0e0;
-        --ui-bg: rgba(0, 6, 3, 0.88);
-        --ui-border: rgba(0, 255, 136, 0.13);
+        --ui: rgba(0, 8, 4, 0.93);
+        --ub: rgba(0, 255, 136, 0.16);
       }
       * {
         margin: 0;
@@ -32,15 +32,14 @@
         font-family: "EB Garamond", Georgia, serif;
         cursor: none;
         opacity: 0;
-        animation: page-in 0.5s ease 0.05s forwards;
+        animation: pi 0.5s ease 0.05s forwards;
       }
-      @keyframes page-in {
+      @keyframes pi {
         to {
           opacity: 1;
         }
       }
-
-      #cursor {
+      #cur {
         position: fixed;
         width: 16px;
         height: 16px;
@@ -49,9 +48,9 @@
         pointer-events: none;
         z-index: 9999;
         transform: translate(-50%, -50%);
-        transition: width 0.15s, height 0.15s, border-color 0.15s;
+        transition: width 0.15s, height 0.15s;
       }
-      #cursor::after {
+      #cur::after {
         content: "";
         position: absolute;
         top: 50%;
@@ -62,69 +61,64 @@
         background: var(--g);
         border-radius: 50%;
       }
-      #cursor.big {
+      #cur.big {
         width: 28px;
         height: 28px;
         border-color: var(--g);
         box-shadow: 0 0 14px var(--g);
       }
-
-      /* ── LAYERS ── */
-      #tunnel-canvas {
+      canvas {
         position: fixed;
-        inset: 0;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+      }
+      #tc {
         z-index: 100;
       }
-      #brain-canvas {
-        position: fixed;
-        inset: 0;
+      #bc {
         z-index: 1;
         display: none;
       }
-      #vein-canvas {
-        position: fixed;
-        inset: 0;
+      #oc {
+        z-index: 3;
+        display: none;
+        pointer-events: none;
+      }
+      #vc {
         z-index: 400;
         display: none;
       }
-      #vignette {
+      #vig {
         position: fixed;
         inset: 0;
-        z-index: 4;
+        z-index: 5;
         pointer-events: none;
         background: radial-gradient(
-          ellipse 78% 78% at 50% 50%,
-          transparent 30%,
-          rgba(0, 0, 0, 0.22) 60%,
+          ellipse 80% 80% at 50%50%,
+          transparent 25%,
+          rgba(0, 0, 0, 0.12) 55%,
           rgba(0, 0, 0, 0.82) 100%
         );
       }
-
-      /* ── FLASHES ── */
-      #flash-layer {
+      #fl {
         position: fixed;
         inset: 0;
         z-index: 300;
         pointer-events: none;
         opacity: 0;
-        background: radial-gradient(
-          ellipse at 50% 50%,
-          #00ff88 0%,
-          #003322 55%,
-          #000 100%
-        );
         transition: opacity 0.1s;
       }
-      #flash-layer.on {
+      #fl.on {
         opacity: 1;
       }
-      #blind-flash {
+      #bf {
         position: fixed;
         inset: 0;
         z-index: 450;
         pointer-events: none;
         opacity: 0;
-        background: #00ff88;
       }
       #curtain {
         position: fixed;
@@ -138,46 +132,60 @@
       #curtain.gone {
         opacity: 0;
       }
-      #curtain.show {
-        opacity: 1;
-      }
-
-      /* ── TUNNEL LABEL ── */
-      #tunnel-label {
+      #tl {
         position: fixed;
-        top: 50%;
+        bottom: 22px;
         left: 50%;
-        transform: translate(-50%, 85px);
+        transform: translateX(-50%);
         z-index: 110;
         font-family: "Cinzel", serif;
-        font-size: 11px;
+        font-size: 9px;
         letter-spacing: 0.45em;
-        color: rgba(200, 80, 50, 0.85);
         text-align: center;
         pointer-events: none;
         opacity: 0;
-        transition: opacity 0.4s;
-        text-shadow: 0 0 20px rgba(255, 50, 0, 0.6);
+        transition: opacity 0.3s;
+        padding: 5px 18px;
+        border-radius: 2px;
+        white-space: nowrap;
       }
-      #tunnel-label.show {
+      #tl.show {
         opacity: 1;
       }
-      /* Pulse animation for fear labels */
-      #tunnel-label.fear {
-        animation: fear-pulse 0.6s ease-in-out infinite alternate;
+      #tl.atmos {
+        color: rgba(160, 200, 255, 0.75);
+        background: rgba(0, 0, 20, 0.5);
+        border: 1px solid rgba(100, 150, 255, 0.15);
       }
-      @keyframes fear-pulse {
+      #tl.clouds {
+        color: rgba(255, 200, 140, 0.75);
+        background: rgba(20, 10, 0, 0.5);
+      }
+      #tl.rocks {
+        color: rgba(255, 130, 60, 0.85);
+        background: rgba(20, 3, 0, 0.55);
+        border: 1px solid rgba(220, 80, 20, 0.2);
+      }
+      #tl.roots {
+        color: rgba(80, 255, 150, 0.75);
+        background: rgba(0, 14, 3, 0.5);
+      }
+      #tl.cells {
+        color: rgba(0, 255, 210, 0.75);
+        background: rgba(0, 10, 8, 0.5);
+      }
+      #tl.fear {
+        animation: fp 0.5s ease-in-out infinite alternate;
+      }
+      @keyframes fp {
         from {
-          opacity: 0.6;
-          letter-spacing: 0.4em;
+          opacity: 0.4;
         }
         to {
-          opacity: 1;
-          letter-spacing: 0.5em;
+          opacity: 0.82;
         }
       }
-
-      /* ══════════════ HUD ══════════════ */
+      /* HUD */
       #hud {
         position: fixed;
         inset: 0;
@@ -189,7 +197,7 @@
       #hud.show {
         opacity: 1;
       }
-      #top-bar {
+      #top {
         position: absolute;
         top: 0;
         left: 0;
@@ -199,28 +207,27 @@
         justify-content: space-between;
         padding: 18px 28px 0;
       }
-      #top-logo {
+      .tl {
         font-family: "Cinzel", serif;
         font-size: 9px;
-        letter-spacing: 0.55em;
-        color: rgba(0, 255, 136, 0.22);
+        letter-spacing: 0.5em;
+        color: rgba(0, 255, 136, 0.28);
       }
-      #top-center {
+      .tc {
         font-family: "Cinzel", serif;
         font-size: 9px;
         letter-spacing: 0.38em;
-        color: rgba(0, 255, 136, 0.15);
+        color: rgba(0, 255, 136, 0.2);
       }
-      #top-right {
+      .tr {
         display: flex;
         gap: 20px;
         font-family: "Cinzel", serif;
         font-size: 8px;
         letter-spacing: 0.25em;
-        color: rgba(0, 255, 136, 0.3);
+        color: rgba(0, 255, 136, 0.35);
       }
-
-      #crosshair {
+      #xh {
         position: absolute;
         top: 50%;
         left: 50%;
@@ -229,12 +236,12 @@
         transition: opacity 0.4s;
         pointer-events: none;
       }
-      #crosshair.show {
-        opacity: 0.5;
+      #xh.show {
+        opacity: 0.55;
       }
       .ch {
         position: absolute;
-        background: rgba(0, 255, 136, 0.6);
+        background: rgba(0, 255, 136, 0.65);
       }
       .ch-h {
         width: 14px;
@@ -259,26 +266,24 @@
         left: 50%;
         transform: translate(-50%, -50%);
       }
-
-      /* Health Panel */
-      #health-panel {
+      #hp {
         position: absolute;
         top: 56px;
         right: 24px;
-        width: 256px;
-        background: var(--ui-bg);
-        border: 1px solid var(--ui-border);
-        backdrop-filter: blur(20px);
+        width: 260px;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(22px);
         border-radius: 3px;
         overflow: hidden;
         pointer-events: all;
         transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         max-height: 46px;
       }
-      #health-panel.open {
-        max-height: 280px;
+      #hp.open {
+        max-height: 290px;
       }
-      #hp-header {
+      #hph {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -287,156 +292,201 @@
         font-family: "Cinzel", serif;
         font-size: 8px;
         letter-spacing: 0.38em;
-        color: rgba(0, 255, 136, 0.5);
+        color: rgba(0, 255, 136, 0.6);
       }
-      #hp-toggle {
+      #hpt {
         font-size: 9px;
         transition: transform 0.35s;
-        color: rgba(0, 255, 136, 0.4);
+        color: rgba(0, 255, 136, 0.45);
       }
-      #health-panel.open #hp-toggle {
+      #hp.open #hpt {
         transform: rotate(180deg);
       }
-      #hp-body {
+      #hpb {
         padding: 12px 16px 14px;
       }
-      .hp-row {
+      .hr {
         margin-bottom: 10px;
       }
-      .hp-top {
+      .ht {
         display: flex;
         justify-content: space-between;
-        align-items: center;
         margin-bottom: 4px;
       }
-      .hp-lbl {
+      .hl {
         font-family: "Cinzel", serif;
         font-size: 7px;
         letter-spacing: 0.22em;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.5);
       }
-      .hp-val {
+      .hv {
         font-family: "Cinzel", serif;
         font-size: 8px;
       }
-      .hp-track {
+      .hk {
         height: 2px;
-        background: rgba(255, 255, 255, 0.07);
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 2px;
         overflow: hidden;
       }
-      .hp-fill {
+      .hf {
         height: 100%;
         border-radius: 2px;
       }
-      .c-ok {
-        color: var(--g);
-      }
-      .c-warn {
+      .cw {
         color: #ffaa33;
       }
-      .c-crit {
+      .cc {
         color: #ff4444;
       }
-
-      /* Portal Tooltip */
-      #portal-tip {
+      /* PORTAL TIP */
+      #pt {
         position: absolute;
         pointer-events: none;
         opacity: 0;
-        transform: translateY(8px);
+        transform: translateY(10px);
         transition: opacity 0.3s, transform 0.3s;
         z-index: 30;
       }
-      #portal-tip.show {
+      #pt.show {
         opacity: 1;
         transform: translateY(0);
       }
-      #pt-inner {
-        background: var(--ui-bg);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(24px);
-        border-radius: 3px;
-        padding: 18px 22px;
-        min-width: 230px;
-        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+      #pti {
+        background: rgba(2, 12, 6, 0.97);
+        border-width: 1px;
+        border-style: solid;
+        backdrop-filter: blur(28px);
+        border-radius: 4px;
+        padding: 18px 22px 15px;
+        min-width: 255px;
+        box-shadow: 0 8px 50px rgba(0, 0, 0, 0.9);
       }
-      .pt-icon {
-        font-size: 28px;
+      #pta {
+        height: 2px;
+        border-radius: 2px;
+        margin-bottom: 14px;
+      }
+      .pic {
+        font-size: 26px;
         display: block;
-        margin-bottom: 9px;
+        margin-bottom: 8px;
       }
-      .pt-name {
+      .pnu {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.3em;
+        opacity: 0.42;
+        margin-bottom: 3px;
+      }
+      .pna {
         font-family: "Cinzel", serif;
         font-size: 11px;
-        letter-spacing: 0.22em;
-        margin-bottom: 5px;
+        letter-spacing: 0.2em;
+        margin-bottom: 6px;
+        font-weight: 600;
       }
-      .pt-status {
+      .pbg {
+        display: inline-flex;
+        align-items: center;
         font-family: "Cinzel", serif;
         font-size: 8px;
         letter-spacing: 0.18em;
-        opacity: 0.7;
-        margin-bottom: 6px;
-      }
-      .pt-mission {
-        font-family: "EB Garamond", serif;
-        font-size: 13px;
-        line-height: 1.6;
-        opacity: 0.65;
+        padding: 4px 10px;
+        border-radius: 20px;
         margin-bottom: 8px;
       }
-      .pt-access {
+      .pbg.warn {
+        background: rgba(255, 160, 30, 0.12);
+        border: 1px solid rgba(255, 160, 30, 0.32);
+        color: #ffaa33;
+      }
+      .pbg.crit {
+        background: rgba(255, 60, 60, 0.12);
+        border: 1px solid rgba(255, 60, 60, 0.32);
+        color: #ff5555;
+      }
+      .pbg.ok {
+        background: rgba(0, 255, 136, 0.1);
+        border: 1px solid rgba(0, 255, 136, 0.28);
+        color: #00ff88;
+      }
+      .pbg.lock {
+        background: rgba(150, 150, 150, 0.1);
+        border: 1px solid rgba(150, 150, 150, 0.2);
+        color: #aaa;
+      }
+      .pml {
         font-family: "Cinzel", serif;
         font-size: 7px;
-        letter-spacing: 0.22em;
-        padding: 5px 10px;
+        letter-spacing: 0.25em;
+        color: rgba(255, 255, 255, 0.28);
+        margin-bottom: 3px;
+      }
+      .pms {
+        font-family: "EB Garamond", serif;
+        font-size: 14px;
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.75);
+        margin-bottom: 9px;
+      }
+      .pdv {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.07);
+        margin: 7px 0;
+      }
+      .pac {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        padding: 6px 12px;
         border-radius: 2px;
         display: inline-block;
+        font-weight: 600;
       }
-      .pt-access.open {
-        color: var(--g);
-        border: 1px solid rgba(0, 255, 136, 0.35);
-        background: rgba(0, 255, 136, 0.06);
+      .pac.open {
+        color: #00ff88;
+        border: 1px solid rgba(0, 255, 136, 0.4);
+        background: rgba(0, 255, 136, 0.08);
       }
-      .pt-access.locked {
-        color: rgba(255, 255, 255, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+      .pac.locked {
+        color: rgba(200, 200, 200, 0.38);
+        border: 1px solid rgba(200, 200, 200, 0.12);
       }
-
-      /* Portal enter button */
-      #portal-enter {
-        position: absolute;
-        bottom: 156px;
+      /* ENTER BTN */
+      #pen {
+        position: fixed;
+        bottom: 155px;
         left: 50%;
         transform: translateX(-50%);
+        z-index: 200;
         pointer-events: none;
         opacity: 0;
         transition: opacity 0.4s;
       }
-      #portal-enter.show {
+      #pen.show {
         opacity: 1;
         pointer-events: all;
       }
-      #portal-enter button {
+      #pen button {
         font-family: "Cinzel", serif;
         font-size: 10px;
         letter-spacing: 0.3em;
-        color: var(--g);
-        background: rgba(0, 6, 3, 0.9);
-        border: 1px solid rgba(0, 255, 136, 0.4);
-        padding: 12px 36px;
+        color: #00ff88;
+        background: rgba(0, 6, 3, 0.96);
+        border: 1px solid rgba(0, 255, 136, 0.6);
+        padding: 14px 44px;
         cursor: pointer;
         transition: all 0.3s;
         border-radius: 2px;
+        box-shadow: 0 0 28px rgba(0, 255, 136, 0.15);
       }
-      #portal-enter button:hover {
-        background: rgba(0, 255, 136, 0.08);
-        box-shadow: 0 0 30px rgba(0, 255, 136, 0.25);
+      #pen button:hover {
+        background: rgba(0, 255, 136, 0.12);
+        box-shadow: 0 0 45px rgba(0, 255, 136, 0.4);
       }
-
-      /* Voice box */
-      #voice-box {
+      /* VOICE */
+      #vb {
         position: absolute;
         bottom: 0;
         left: 50%;
@@ -448,26 +498,26 @@
         align-items: center;
         pointer-events: none;
       }
-      #vb-sep {
+      #vs {
         width: 0;
         height: 1px;
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(0, 255, 136, 0.4),
+          rgba(0, 255, 136, 0.45),
           transparent
         );
         margin-bottom: 12px;
         transition: width 1s ease;
       }
-      #vb-sep.show {
+      #vs.show {
         width: 100%;
       }
-      #vb-card {
+      #vc2 {
         width: 100%;
-        background: var(--ui-bg);
-        border: 1px solid var(--ui-border);
-        backdrop-filter: blur(24px);
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(26px);
         border-radius: 3px;
         padding: 18px 26px 16px;
         opacity: 0;
@@ -475,23 +525,23 @@
         transition: opacity 0.8s, transform 0.8s;
         pointer-events: all;
       }
-      #vb-card.show {
+      #vc2.show {
         opacity: 1;
         transform: translateY(0);
       }
-      #vb-speaker-row {
+      #vsr {
         display: flex;
         align-items: center;
         gap: 10px;
         margin-bottom: 8px;
       }
-      #vb-name {
+      #vnm {
         font-family: "Cinzel", serif;
         font-size: 8px;
         letter-spacing: 0.42em;
-        color: rgba(0, 255, 136, 0.38);
+        color: rgba(0, 255, 136, 0.45);
       }
-      #vbars {
+      #vbr {
         display: flex;
         align-items: flex-end;
         gap: 2px;
@@ -499,7 +549,7 @@
         opacity: 0;
         transition: opacity 0.3s;
       }
-      #vbars.on {
+      #vbr.on {
         opacity: 1;
       }
       .vb {
@@ -548,7 +598,7 @@
           opacity: 1;
         }
       }
-      #vb-text {
+      #vtx {
         font-family: "EB Garamond", serif;
         font-size: clamp(13px, 1.65vw, 16px);
         line-height: 2;
@@ -557,12 +607,11 @@
         max-height: 140px;
         overflow-y: auto;
         scrollbar-width: none;
-        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
       }
-      #vb-text::-webkit-scrollbar {
+      #vtx::-webkit-scrollbar {
         display: none;
       }
-      #tw-cur {
+      #twc {
         display: inline-block;
         width: 2px;
         height: 14px;
@@ -580,9 +629,7 @@
           opacity: 0;
         }
       }
-
-      /* Bottom left */
-      #bottom-left {
+      #bl {
         position: absolute;
         bottom: 24px;
         left: 24px;
@@ -590,26 +637,24 @@
         flex-direction: column;
         gap: 8px;
       }
-      .bl-item {
+      .bi {
         display: flex;
         flex-direction: column;
         gap: 2px;
       }
-      .bl-lbl {
+      .bll {
         font-family: "Cinzel", serif;
         font-size: 7px;
         letter-spacing: 0.28em;
-        color: rgba(0, 255, 136, 0.3);
+        color: rgba(0, 255, 136, 0.35);
       }
-      .bl-val {
+      .blv {
         font-family: "Cinzel", serif;
         font-size: 17px;
         letter-spacing: 0.12em;
         color: var(--g);
       }
-
-      /* Minimap */
-      #minimap-wrap {
+      #mw {
         position: absolute;
         bottom: 24px;
         right: 24px;
@@ -617,29 +662,29 @@
         height: 118px;
         border-radius: 50%;
         overflow: hidden;
-        border: 1px solid rgba(0, 255, 136, 0.18);
-        background: rgba(0, 6, 3, 0.85);
-        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 255, 136, 0.22);
+        background: rgba(0, 6, 3, 0.88);
       }
-      #minimap-canvas {
+      #mc {
         display: block;
+        position: static !important;
+        width: 118px !important;
+        height: 118px !important;
       }
-
-      /* Move hint */
-      #move-hint {
+      #mh {
         position: absolute;
-        bottom: 156px;
+        bottom: 155px;
         left: 50%;
         transform: translateX(-50%);
         font-family: "Cinzel", serif;
         font-size: 7px;
         letter-spacing: 0.3em;
-        color: rgba(0, 255, 136, 0.28);
+        color: rgba(0, 255, 136, 0.3);
         white-space: nowrap;
         pointer-events: none;
-        animation: hint-fade 3s ease 4s forwards;
+        animation: hf 3s ease 4s forwards;
       }
-      @keyframes hint-fade {
+      @keyframes hf {
         0% {
           opacity: 1;
         }
@@ -647,81 +692,110 @@
           opacity: 0;
         }
       }
-
-      /* BOOM text overlay */
-      #boom-text {
+      /* TRANSITION OVERLAYS */
+      #bo {
+        position: fixed;
+        inset: 0;
+        z-index: 410;
+        pointer-events: none;
+        opacity: 0;
+      }
+      #bt {
         position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 420;
         font-family: "Cinzel", serif;
-        font-size: clamp(60px, 12vw, 140px);
+        font-size: clamp(80px, 16vw, 190px);
         font-weight: 900;
         color: #ff2200;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.06em;
         opacity: 0;
         pointer-events: none;
-        text-shadow: 0 0 60px rgba(255, 30, 0, 0.8),
-          0 0 120px rgba(255, 0, 0, 0.4);
+        text-shadow: 0 0 80px rgba(255, 30, 0, 0.9),
+          0 0 200px rgba(255, 0, 0, 0.5);
       }
-
-      #audio-btn {
+      #ek {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        z-index: 415;
+        pointer-events: none;
+        opacity: 0;
+      }
+      #ft {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 418;
+        font-family: "Cinzel", serif;
+        font-size: clamp(14px, 2.5vw, 22px);
+        letter-spacing: 0.4em;
+        color: transparent;
+        pointer-events: none;
+        text-align: center;
+        text-shadow: 0 0 40px rgba(255, 0, 0, 0.8);
+      }
+      #ab {
         position: fixed;
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 50;
+        z-index: 60;
         font-family: "Cinzel", serif;
         font-size: 8px;
         letter-spacing: 0.3em;
-        color: rgba(0, 255, 136, 0.2);
+        color: rgba(0, 255, 136, 0.22);
         cursor: pointer;
         transition: color 0.3s;
         pointer-events: all;
       }
-      #audio-btn:hover {
+      #ab:hover {
         color: rgba(0, 255, 136, 0.65);
       }
     </style>
   </head>
   <body>
-    <div id="cursor"></div>
-    <canvas id="tunnel-canvas"></canvas>
-    <canvas id="brain-canvas"></canvas>
-    <canvas id="vein-canvas"></canvas>
-    <div id="vignette"></div>
-    <div id="flash-layer"></div>
-    <div id="blind-flash"></div>
-    <div id="tunnel-label"></div>
-    <div id="boom-text">BOOM</div>
+    <div id="cur"></div>
+    <canvas id="tc"></canvas>
+    <canvas id="bc"></canvas>
+    <canvas id="oc"></canvas>
+    <canvas id="vc"></canvas>
+    <div id="vig"></div>
+    <div id="fl"></div>
+    <div id="bf"></div>
+    <div id="tl"></div>
+    <div id="bo"></div>
+    <div id="bt"></div>
+    <div id="ft"></div>
+    <canvas id="ek"></canvas>
 
     <div id="hud">
-      <div id="top-bar">
-        <div id="top-logo">G A Ï A</div>
-        <div id="top-center">C E R V E A U — H U B C E N T R A L</div>
-        <div id="top-right">
-          <span id="score-val">SCORE : 0</span><span id="timer-val">00:00</span>
+      <div id="top">
+        <div class="tl">G A Ï A</div>
+        <div class="tc">C O N S C I E N C E — H U B</div>
+        <div class="tr">
+          <span id="sv">SCORE : 0</span><span id="tv">00:00</span>
         </div>
       </div>
-      <div id="crosshair">
+      <div id="xh">
         <div class="ch ch-h"></div>
         <div class="ch ch-v"></div>
         <div class="ch ch-c"></div>
       </div>
-      <div id="health-panel" onclick="toggleHealth()">
-        <div id="hp-header">
-          ÉTAT DE SANTÉ DE GAÏA <span id="hp-toggle">▼</span>
-        </div>
-        <div id="hp-body">
-          <div class="hp-row">
-            <div class="hp-top">
-              <span class="hp-lbl">SANTÉ GLOBALE</span
-              ><span class="hp-val c-warn">67/100</span>
+      <div id="hp" onclick="toggleHP()">
+        <div id="hph">ÉTAT DE SANTÉ DE GAÏA <span id="hpt">▼</span></div>
+        <div id="hpb">
+          <div class="hr">
+            <div class="ht">
+              <span class="hl">SANTÉ GLOBALE</span
+              ><span class="hv cw">67/100</span>
             </div>
-            <div class="hp-track">
+            <div class="hk">
               <div
-                class="hp-fill"
+                class="hf"
                 style="
                   width: 67%;
                   background: linear-gradient(90deg, #ff4444, #ffaa33, #00ff88);
@@ -729,213 +803,212 @@
               ></div>
             </div>
           </div>
-          <div class="hp-row">
-            <div class="hp-top">
-              <span class="hp-lbl">TEMPÉRATURE</span
-              ><span class="hp-val c-warn">+1.2°C ⚠</span>
+          <div class="hr">
+            <div class="ht">
+              <span class="hl">TEMPÉRATURE</span
+              ><span class="hv cw">+1.2°C ⚠</span>
             </div>
-            <div class="hp-track">
-              <div
-                class="hp-fill"
-                style="width: 62%; background: #ffaa33"
-              ></div>
+            <div class="hk">
+              <div class="hf" style="width: 62%; background: #ffaa33"></div>
             </div>
           </div>
-          <div class="hp-row">
-            <div class="hp-top">
-              <span class="hp-lbl">BIODIVERSITÉ</span
-              ><span class="hp-val c-crit">−30% 🔴</span>
+          <div class="hr">
+            <div class="ht">
+              <span class="hl">BIODIVERSITÉ</span
+              ><span class="hv cc">−30% 🔴</span>
             </div>
-            <div class="hp-track">
-              <div
-                class="hp-fill"
-                style="width: 35%; background: #ff4444"
-              ></div>
+            <div class="hk">
+              <div class="hf" style="width: 35%; background: #ff4444"></div>
             </div>
           </div>
-          <div class="hp-row">
-            <div class="hp-top">
-              <span class="hp-lbl">POLLUTION</span
-              ><span class="hp-val c-warn">ÉLEVÉE ⚠</span>
+          <div class="hr">
+            <div class="ht">
+              <span class="hl">POLLUTION</span
+              ><span class="hv cw">ÉLEVÉE ⚠</span>
             </div>
-            <div class="hp-track">
-              <div
-                class="hp-fill"
-                style="width: 78%; background: #ffaa33"
-              ></div>
+            <div class="hk">
+              <div class="hf" style="width: 78%; background: #ffaa33"></div>
             </div>
           </div>
-          <div class="hp-row">
-            <div class="hp-top">
-              <span class="hp-lbl">ÉNERGIES VERTES</span
-              ><span class="hp-val" style="color: #ffcc00">38% 🟡</span>
+          <div class="hr">
+            <div class="ht">
+              <span class="hl">ÉNERGIES VERTES</span
+              ><span class="hv" style="color: #ffcc00">38%</span>
             </div>
-            <div class="hp-track">
-              <div
-                class="hp-fill"
-                style="width: 38%; background: #ffcc00"
-              ></div>
+            <div class="hk">
+              <div class="hf" style="width: 38%; background: #ffcc00"></div>
             </div>
           </div>
         </div>
       </div>
-      <div id="portal-tip">
-        <div id="pt-inner">
-          <span class="pt-icon" id="pt-icon"></span>
-          <div class="pt-name" id="pt-name"></div>
-          <div class="pt-status" id="pt-status"></div>
-          <div class="pt-mission" id="pt-mission"></div>
-          <span class="pt-access" id="pt-access"></span>
+      <div id="pt">
+        <div id="pti">
+          <div id="pta"></div>
+          <span class="pic" id="pic"></span>
+          <div class="pnu" id="pnu"></div>
+          <div class="pna" id="pna"></div>
+          <span class="pbg" id="pst"></span>
+          <div class="pml">MISSION</div>
+          <div class="pms" id="pms"></div>
+          <div class="pdv"></div>
+          <span class="pac" id="pac"></span>
         </div>
       </div>
-      <div id="portal-enter">
-        <button onclick="enterPortal()">▶ &nbsp;ENTRER DANS CE PORTAIL</button>
-      </div>
-      <div id="voice-box">
-        <div id="vb-sep"></div>
-        <div id="vb-card">
-          <div id="vb-speaker-row">
-            <span id="vb-name">G A Ï A</span
-            ><span id="vbars"
+      <div id="vb">
+        <div id="vs"></div>
+        <div id="vc2">
+          <div id="vsr">
+            <span id="vnm">G A Ï A</span
+            ><span id="vbr"
               ><span class="vb"></span><span class="vb"></span
               ><span class="vb"></span><span class="vb"></span
               ><span class="vb"></span><span class="vb"></span
             ></span>
           </div>
-          <div id="vb-text"></div>
-          <span id="tw-cur"></span>
+          <div id="vtx"></div>
+          <span id="twc"></span>
         </div>
       </div>
-      <div id="bottom-left">
-        <div class="bl-item">
-          <span class="bl-lbl">SCORE</span
-          ><span class="bl-val" id="score-display">0</span>
+      <div id="bl">
+        <div class="bi">
+          <span class="bll">SCORE</span><span class="blv" id="sd">0</span>
         </div>
-        <div class="bl-item">
-          <span class="bl-lbl">TEMPS</span
-          ><span class="bl-val" id="timer-display">00:00</span>
+        <div class="bi">
+          <span class="bll">TEMPS</span><span class="blv" id="td">00:00</span>
         </div>
       </div>
-      <div id="minimap-wrap">
-        <canvas id="minimap-canvas" width="118" height="118"></canvas>
-      </div>
-      <div id="move-hint">CLIC · WASD DÉPLACER · SOURIS REGARDER · H SANTÉ</div>
+      <div id="mw"><canvas id="mc" width="118" height="118"></canvas></div>
+      <div id="mh">CLIC · WASD · SOURIS · H=SANTÉ</div>
     </div>
 
+    <div id="pen">
+      <button onclick="enterPortal()">▶ &nbsp;ENTRER DANS CET ORGANE</button>
+    </div>
     <div id="curtain"></div>
-    <div id="audio-btn" onclick="toggleMute()">🔊 SON</div>
+    <div id="ab" onclick="toggleMute()">🔊 SON</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-      // ══════════════════════════════════════════════════════════════════
-      // GAÏA SCÈNE 3 — TUNNEL DE PEUR + CERVEAU + PORTAIL CŒUR + VEINES
-      // ══════════════════════════════════════════════════════════════════
-
+      "use strict";
+      // ═══════════════════════════════════════════════════════════════════
+      // GAÏA — SCÈNE 3
+      // ═══════════════════════════════════════════════════════════════════
       let PHASE = "tunnel";
       let isMuted = false,
         audioCtx = null;
       let score = 0,
         elapsed = 0,
         timerOn = false;
-      let nearPortalIdx = -1,
-        lastNearIdx = -2;
-      let typeIv = null;
-      let heartDialoguePlayed = false; // so we only say heart dialogue once
-      let enteringPortal = false;
-
-      let playerName = "Gardien";
+      let nearIdx = -1,
+        lastNear = -2;
+      let typeIv = null,
+        hrtDialogue = false,
+        entering = false;
+      let pName = "Gardien";
       try {
-        playerName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
       } catch (e) {}
 
-      const PORTALS = [
+      const P = [
         {
-          icon: "💚",
-          name: "SYSTÈME CARDIOVASCULAIRE",
-          status: "🟡 AFFAIBLI",
-          mission: "Rétablir le flux énergétique vital",
+          n: "1",
+          ic: "💚",
+          nm: "SYSTÈME CARDIOVASCULAIRE",
+          st: "🟡 AFFAIBLI",
+          sc: "warn",
+          ms: "Rétablir le flux énergétique vital",
           locked: false,
-          color: 0x00ff88,
-          hex: "#00ff88",
+          hex: "#cc1133",
           angle: 0,
+          organ: "heart",
         },
         {
-          icon: "🫁",
-          name: "POUMONS — FORÊTS",
-          status: "🟠 ENDOMMAGÉ",
-          mission: "Restaurer la capacité respiratoire",
+          n: "2",
+          ic: "🫁",
+          nm: "POUMONS — FORÊTS",
+          st: "🟠 ENDOMMAGÉ",
+          sc: "warn",
+          ms: "Restaurer la capacité respiratoire",
           locked: true,
-          color: 0x44aaff,
-          hex: "#44aaff",
+          hex: "#3399ee",
           angle: 60,
+          organ: "lungs",
         },
         {
-          icon: "🦠",
-          name: "SYSTÈME IMMUNITAIRE",
-          status: "🔴 CRITIQUE",
-          mission: "Renforcer les défenses naturelles",
+          n: "3",
+          ic: "🦠",
+          nm: "SYSTÈME IMMUNITAIRE",
+          st: "🔴 CRITIQUE",
+          sc: "crit",
+          ms: "Renforcer les défenses naturelles",
           locked: true,
-          color: 0xff5533,
-          hex: "#ff5533",
+          hex: "#ff5500",
           angle: 120,
+          organ: "cell",
         },
         {
-          icon: "💀",
-          name: "CICATRICES — MÉMOIRE",
-          status: "🔴 DOULOUREUX",
-          mission: "Comprendre les traumatismes",
+          n: "4",
+          ic: "💀",
+          nm: "CICATRICES — MÉMOIRE",
+          st: "🔴 DOULOUREUX",
+          sc: "crit",
+          ms: "Comprendre les traumatismes",
           locked: true,
-          color: 0xbb44ff,
-          hex: "#bb44ff",
+          hex: "#9933cc",
           angle: 180,
+          organ: "scar",
         },
         {
-          icon: "⚡",
-          name: "SYNAPSES — CONNEXIONS",
-          status: "🟢 FONCTIONNEL",
-          mission: "Optimiser le réseau neuronal",
+          n: "5",
+          ic: "⚡",
+          nm: "SYNAPSES — CONNEXIONS",
+          st: "🟢 FONCTIONNEL",
+          sc: "ok",
+          ms: "Optimiser le réseau neuronal",
           locked: true,
-          color: 0xffcc00,
-          hex: "#ffcc00",
+          hex: "#ddaa00",
           angle: 240,
+          organ: "synapse",
         },
         {
-          icon: "🌌",
-          name: "SUBCONSCIENT",
-          status: "🔒 SCELLÉ",
-          mission: "Révélation finale — secrets de Gaïa",
+          n: "6",
+          ic: "🌌",
+          nm: "SUBCONSCIENT",
+          st: "🔒 SCELLÉ",
+          sc: "lock",
+          ms: "Révélation finale",
           locked: true,
-          color: 0xff44bb,
-          hex: "#ff44bb",
+          hex: "#cc3388",
           angle: 300,
+          organ: "galaxy",
         },
       ];
-      const PORTAL_R = 10;
-      const PCOLS = [
-        0x00ff88, 0x44aaff, 0xff5533, 0xbb44ff, 0xffcc00, 0xff44bb,
-      ];
+      const PR = 10;
 
-      const $cur = document.getElementById("cursor");
+      const $c = document.getElementById("cur");
       document.addEventListener("mousemove", (e) => {
-        $cur.style.left = e.clientX + "px";
-        $cur.style.top = e.clientY + "px";
+        $c.style.left = e.clientX + "px";
+        $c.style.top = e.clientY + "px";
       });
-
       setInterval(() => {
         if (!timerOn) return;
         elapsed++;
         const m = String(Math.floor(elapsed / 60)).padStart(2, "0"),
           s = String(elapsed % 60).padStart(2, "0"),
-          v = `${m}:${s}`;
-        document.getElementById("timer-val").textContent = v;
-        document.getElementById("timer-display").textContent = v;
+          v = m + ":" + s;
+        document.getElementById("tv").textContent = v;
+        document.getElementById("td").textContent = v;
       }, 1000);
-
-      function toggleHealth() {
-        document.getElementById("health-panel").classList.toggle("open");
+      function toggleHP() {
+        document.getElementById("hp").classList.toggle("open");
       }
+      const keys = {};
       document.addEventListener("keydown", (e) => {
-        if (e.code === "KeyH") toggleHealth();
+        if (e.code === "KeyH") toggleHP();
+        keys[e.code] = true;
+      });
+      document.addEventListener("keyup", (e) => {
+        keys[e.code] = false;
       });
 
       // ══ AUDIO ══
@@ -943,9 +1016,9 @@
         if (audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
-      function getMaster() {
+      function gm() {
         if (!audioCtx) return null;
-        if (!window._gM) {
+        if (!window._M) {
           const c = audioCtx.createDynamicsCompressor();
           c.threshold.value = -18;
           c.knee.value = 8;
@@ -953,74 +1026,55 @@
           c.attack.value = 0.003;
           c.release.value = 0.25;
           c.connect(audioCtx.destination);
-          window._gM = c;
+          window._M = c;
         }
-        return window._gM;
+        return window._M;
       }
-      function mkReverb(dur = 4, decay = 2.4) {
+      function rv(d = 4, dc = 2.4) {
         if (!audioCtx) return null;
         const sr = audioCtx.sampleRate,
-          len = sr * dur;
-        const buf = audioCtx.createBuffer(2, len, sr);
+          l = sr * d,
+          b = audioCtx.createBuffer(2, l, sr);
         for (let c = 0; c < 2; c++) {
-          const d = buf.getChannelData(c);
-          for (let i = 0; i < len; i++)
-            d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+          const dd = b.getChannelData(c);
+          for (let i = 0; i < l; i++)
+            dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / l, dc);
         }
         const cv = audioCtx.createConvolver();
-        cv.buffer = buf;
+        cv.buffer = b;
         return cv;
       }
 
-      // ── TUNNEL AUDIO — atmosphère de peur, crescendo sombre ──
-      function playTunnelAudio() {
+      function playTunnel() {
         if (!audioCtx || isMuted) return;
-        const m = getMaster(),
-          rv = mkReverb(4, 3);
-        rv.connect(m);
-        // Low rumble of terror
-        [30, 45, 60].forEach((f, i) => {
+        const m = gm(),
+          r = rv(4, 3);
+        r.connect(m);
+        [28, 40, 55].forEach((f, i) => {
           const o = audioCtx.createOscillator(),
             g = audioCtx.createGain();
           o.type = "sawtooth";
           o.frequency.setValueAtTime(f, audioCtx.currentTime);
           o.frequency.exponentialRampToValueAtTime(
-            f * 3.5,
+            f * 3,
             audioCtx.currentTime + 5.5
           );
           g.gain.setValueAtTime(0, audioCtx.currentTime);
           g.gain.linearRampToValueAtTime(
-            0.03 - i * 0.006,
-            audioCtx.currentTime + 0.6
+            0.024 - i * 0.004,
+            audioCtx.currentTime + 0.7
           );
           g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 6);
-          const filt = audioCtx.createBiquadFilter();
-          filt.type = "lowpass";
-          filt.frequency.value = 300 + i * 80;
-          o.connect(filt);
-          filt.connect(g);
-          g.connect(rv);
+          const fl = audioCtx.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 280 + i * 70;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(r);
           g.connect(m);
           o.start();
           o.stop(audioCtx.currentTime + 6);
         });
-        // Fear screech (high transient)
-        const o2 = audioCtx.createOscillator(),
-          g2 = audioCtx.createGain();
-        o2.type = "sine";
-        o2.frequency.setValueAtTime(800, audioCtx.currentTime + 1);
-        o2.frequency.exponentialRampToValueAtTime(
-          200,
-          audioCtx.currentTime + 2.5
-        );
-        g2.gain.setValueAtTime(0, audioCtx.currentTime + 1);
-        g2.gain.linearRampToValueAtTime(0.025, audioCtx.currentTime + 1.3);
-        g2.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.6);
-        o2.connect(g2);
-        g2.connect(rv);
-        o2.start();
-        o2.stop(audioCtx.currentTime + 3);
-        // Wind of dread
         const nb = audioCtx.createBuffer(
           1,
           audioCtx.sampleRate * 6,
@@ -1033,8 +1087,8 @@
         ns.loop = true;
         const nf = audioCtx.createBiquadFilter();
         nf.type = "bandpass";
-        nf.frequency.value = 500;
-        nf.Q.value = 0.25;
+        nf.frequency.value = 600;
+        nf.Q.value = 0.28;
         const ng = audioCtx.createGain();
         ng.gain.setValueAtTime(0, audioCtx.currentTime);
         ng.gain.linearRampToValueAtTime(0.07, audioCtx.currentTime + 1.5);
@@ -1045,12 +1099,11 @@
         ns.start();
         ns.stop(audioCtx.currentTime + 6);
       }
-
-      function playBrainAudio() {
+      function playBrain() {
         if (!audioCtx || isMuted) return;
-        const m = getMaster(),
-          rv = mkReverb(6, 3);
-        rv.connect(m);
+        const m = gm(),
+          r = rv(6, 3);
+        r.connect(m);
         [28, 42, 56, 84, 28.08].forEach((f, i) => {
           const o = audioCtx.createOscillator(),
             g = audioCtx.createGain();
@@ -1062,27 +1115,27 @@
             audioCtx.currentTime + 4 + i * 0.4
           );
           o.connect(g);
-          g.connect(rv);
+          g.connect(r);
           g.connect(m);
           o.start();
         });
         const mel = [261.6, 329.6, 392, 493.9, 523.3, 659.3, 784];
         let step = 0;
-        window._melIv = setInterval(() => {
+        window._miv = setInterval(() => {
           if (!audioCtx || isMuted) return;
           const o = audioCtx.createOscillator(),
             g = audioCtx.createGain(),
-            rv2 = mkReverb(2, 2);
-          rv2.connect(m);
+            r2 = rv(2, 2);
+          r2.connect(m);
           o.type = "triangle";
           o.frequency.value = mel[step % mel.length];
-          g.gain.setValueAtTime(0.032, audioCtx.currentTime);
+          g.gain.setValueAtTime(0.025, audioCtx.currentTime);
           g.gain.exponentialRampToValueAtTime(
             0.001,
             audioCtx.currentTime + 1.2
           );
           o.connect(g);
-          g.connect(rv2);
+          g.connect(r2);
           o.start();
           o.stop(audioCtx.currentTime + 1.2);
           step++;
@@ -1097,7 +1150,7 @@
             28,
             audioCtx.currentTime + 0.6
           );
-          g.gain.setValueAtTime(0.22, audioCtx.currentTime);
+          g.gain.setValueAtTime(0.18, audioCtx.currentTime);
           g.gain.exponentialRampToValueAtTime(
             0.001,
             audioCtx.currentTime + 0.65
@@ -1115,12 +1168,12 @@
           const o = audioCtx.createOscillator(),
             g = audioCtx.createGain();
           o.type = "sine";
-          o.frequency.setValueAtTime(62, audioCtx.currentTime);
+          o.frequency.setValueAtTime(60, audioCtx.currentTime);
           o.frequency.exponentialRampToValueAtTime(
-            38,
+            36,
             audioCtx.currentTime + 0.32
           );
-          g.gain.setValueAtTime(0.042, audioCtx.currentTime);
+          g.gain.setValueAtTime(0.038, audioCtx.currentTime);
           g.gain.exponentialRampToValueAtTime(
             0.001,
             audioCtx.currentTime + 0.36
@@ -1134,8 +1187,8 @@
             const o2 = audioCtx.createOscillator(),
               g2 = audioCtx.createGain();
             o2.type = "sine";
-            o2.frequency.value = 46;
-            g2.gain.setValueAtTime(0.025, audioCtx.currentTime);
+            o2.frequency.value = 44;
+            g2.gain.setValueAtTime(0.022, audioCtx.currentTime);
             g2.gain.exponentialRampToValueAtTime(
               0.001,
               audioCtx.currentTime + 0.28
@@ -1149,94 +1202,152 @@
         setTimeout(pulse, 2500);
         setInterval(pulse, 3600);
       }
-
-      function playPortalChime(freq) {
+      function playChime(f) {
         if (!audioCtx || isMuted) return;
-        const m = getMaster(),
-          rv = mkReverb(2, 1.8);
-        rv.connect(m);
-        [freq, freq * 1.26, freq * 1.5].forEach((f, i) => {
+        const m = gm(),
+          r = rv(2, 1.8);
+        r.connect(m);
+        [f, f * 1.26, f * 1.5].forEach((ff, i) => {
           setTimeout(() => {
             if (!audioCtx || isMuted) return;
             const o = audioCtx.createOscillator(),
               g = audioCtx.createGain();
             o.type = "triangle";
-            o.frequency.value = f;
-            g.gain.setValueAtTime(0.045, audioCtx.currentTime);
+            o.frequency.value = ff;
+            g.gain.setValueAtTime(0.05, audioCtx.currentTime);
             g.gain.exponentialRampToValueAtTime(
               0.001,
               audioCtx.currentTime + 1
             );
             o.connect(g);
-            g.connect(rv);
+            g.connect(r);
             o.start();
             o.stop(audioCtx.currentTime + 1);
           }, i * 70);
         });
       }
 
-      // ── HEARTBEAT TUNNEL AUDIO — BOOM crescendo ──
-      let heartBeatInterval = null;
-      function playHeartTunnelAudio() {
+      // ── HEARTBEAT AUDIO — terrifying crescendo ──
+      let _hb = null;
+      function startHeartbeat() {
         if (!audioCtx || isMuted) return;
-        const m = getMaster();
-        let bpm = 80,
-          vol = 0.08;
+        const m = gm(),
+          r = rv(4, 2);
+        r.connect(m);
+        // Low terror drone
+        const dr = audioCtx.createOscillator(),
+          dg = audioCtx.createGain();
+        dr.type = "sawtooth";
+        dr.frequency.value = 28;
+        dg.gain.setValueAtTime(0, audioCtx.currentTime);
+        dg.gain.linearRampToValueAtTime(0.055, audioCtx.currentTime + 1.5);
+        dr.connect(dg);
+        dg.connect(m);
+        dr.start();
+        window._dr = { o: dr, g: dg };
+        // Blood whoosh
+        const wb = audioCtx.createBuffer(
+          1,
+          audioCtx.sampleRate * 8,
+          audioCtx.sampleRate
+        );
+        const wd = wb.getChannelData(0);
+        for (let i = 0; i < wd.length; i++) wd[i] = Math.random() * 2 - 1;
+        const ws = audioCtx.createBufferSource();
+        ws.buffer = wb;
+        ws.loop = true;
+        const wf = audioCtx.createBiquadFilter();
+        wf.type = "bandpass";
+        wf.frequency.value = 200;
+        wf.Q.value = 0.5;
+        const wg = audioCtx.createGain();
+        wg.gain.setValueAtTime(0, audioCtx.currentTime);
+        wg.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 2);
+        ws.connect(wf);
+        wf.connect(wg);
+        wg.connect(m);
+        ws.start();
+        window._ws = { s: ws, g: wg };
+        let bpm = 50,
+          vol = 0.04,
+          cnt = 0;
         function beat() {
           if (!audioCtx || isMuted) return;
-          // Thump 1
+          cnt++;
+          // THUMP 1
           const o = audioCtx.createOscillator(),
             g = audioCtx.createGain();
           o.type = "sine";
-          o.frequency.setValueAtTime(70, audioCtx.currentTime);
+          o.frequency.setValueAtTime(85, audioCtx.currentTime);
           o.frequency.exponentialRampToValueAtTime(
-            35,
-            audioCtx.currentTime + 0.35
+            30,
+            audioCtx.currentTime + 0.45
           );
           g.gain.setValueAtTime(vol, audioCtx.currentTime);
           g.gain.exponentialRampToValueAtTime(
             0.001,
-            audioCtx.currentTime + 0.4
+            audioCtx.currentTime + 0.5
           );
           o.connect(g);
+          g.connect(r);
           g.connect(m);
           o.start();
-          o.stop(audioCtx.currentTime + 0.4);
-          // Thump 2 (smaller)
+          o.stop(audioCtx.currentTime + 0.52);
+          // THUMP 2 after short delay
           setTimeout(() => {
             if (!audioCtx || isMuted) return;
             const o2 = audioCtx.createOscillator(),
               g2 = audioCtx.createGain();
             o2.type = "sine";
-            o2.frequency.setValueAtTime(55, audioCtx.currentTime);
+            o2.frequency.setValueAtTime(62, audioCtx.currentTime);
             o2.frequency.exponentialRampToValueAtTime(
               28,
-              audioCtx.currentTime + 0.28
-            );
-            g2.gain.setValueAtTime(vol * 0.55, audioCtx.currentTime);
-            g2.gain.exponentialRampToValueAtTime(
-              0.001,
               audioCtx.currentTime + 0.3
             );
+            g2.gain.setValueAtTime(vol * 0.6, audioCtx.currentTime);
+            g2.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 0.34
+            );
             o2.connect(g2);
+            g2.connect(r);
             g2.connect(m);
             o2.start();
-            o2.stop(audioCtx.currentTime + 0.3);
-          }, (60000 / bpm) * 0.35);
+            o2.stop(audioCtx.currentTime + 0.36);
+            // Distortion on heavy beats
+            if (cnt > 5 && vol > 0.25) {
+              const ds = audioCtx.createWaveShaper(),
+                cv = new Float32Array(256);
+              for (let i = 0; i < 256; i++) {
+                const x = (i * 2) / 256 - 1;
+                cv[i] = ((Math.PI + 300) * x) / (Math.PI + 300 * Math.abs(x));
+              }
+              ds.curve = cv;
+              const o3 = audioCtx.createOscillator(),
+                g3 = audioCtx.createGain();
+              o3.type = "sawtooth";
+              o3.frequency.value = 60 + cnt * 1.5;
+              g3.gain.setValueAtTime(vol * 0.16, audioCtx.currentTime);
+              g3.gain.exponentialRampToValueAtTime(
+                0.001,
+                audioCtx.currentTime + 0.24
+              );
+              o3.connect(ds);
+              ds.connect(g3);
+              g3.connect(m);
+              o3.start();
+              o3.stop(audioCtx.currentTime + 0.26);
+            }
+          }, (60000 / bpm) * 0.4);
+          bpm = Math.min(bpm + 3.5, 175);
+          vol = Math.min(vol + 0.038, 0.9);
+          _hb = setTimeout(beat, 60000 / bpm);
         }
         beat();
-        heartBeatInterval = setInterval(() => {
-          beat();
-          bpm = Math.min(bpm + 8, 180);
-          vol = Math.min(vol + 0.04, 0.7);
-          clearInterval(heartBeatInterval);
-          heartBeatInterval = setInterval(beat, 60000 / bpm);
-        }, 60000 / bpm);
       }
-
       function toggleMute() {
         isMuted = !isMuted;
-        document.getElementById("audio-btn").textContent = isMuted
+        document.getElementById("ab").textContent = isMuted
           ? "🔇 MUET"
           : "🔊 SON";
         if (audioCtx) {
@@ -1245,679 +1356,697 @@
         if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
       }
 
-      // ══ VOICE (synchronized with typewriter — same as scene 2) ══
-      const synth = window.speechSynthesis;
-      function getGaiaVoice() {
-        const v = synth ? synth.getVoices() : [];
+      // ══ VOICE ══
+      const syn = window.speechSynthesis;
+      function gv() {
+        const vs = syn ? syn.getVoices() : [];
         return (
-          v.find(
+          vs.find(
             (x) =>
               x.lang === "fr-FR" &&
               /Marie|Amélie|Hortense|Lea|Julie/i.test(x.name)
           ) ||
-          v.find((x) => x.lang === "fr-FR") ||
-          v.find((x) => x.lang.startsWith("fr")) ||
-          v[0] ||
+          vs.find((x) => x.lang === "fr-FR") ||
+          vs.find((x) => x.lang.startsWith("fr")) ||
+          vs[0] ||
           null
         );
       }
-
-      // Exact same speakAndType as scene 2 — voice synced with typing
-      function speakAndType(text, onDone) {
-        const el = document.getElementById("vb-text"),
-          cur = document.getElementById("tw-cur");
+      function speak(text, cb) {
+        const el = document.getElementById("vtx"),
+          cu = document.getElementById("twc");
         el.textContent = "";
-        cur.style.display = "inline-block";
-        document.getElementById("vb-sep").classList.add("show");
-        document.getElementById("vb-card").classList.add("show");
-        let displayed = 0,
-          target = 0,
-          vDone = false;
-
+        cu.style.display = "inline-block";
+        document.getElementById("vs").classList.add("show");
+        document.getElementById("vc2").classList.add("show");
+        let disp = 0,
+          tgt = 0,
+          vd = false;
         function tick() {
           if (typeIv) clearInterval(typeIv);
           typeIv = setInterval(() => {
-            if (displayed < target && displayed < text.length) {
-              el.textContent += text[displayed++];
+            if (disp < tgt && disp < text.length) {
+              el.textContent += text[disp++];
               el.scrollTop = el.scrollHeight;
             } else {
               clearInterval(typeIv);
               typeIv = null;
-              if (displayed >= text.length) {
-                cur.style.display = "none";
-                if (vDone && onDone) setTimeout(onDone, 500);
+              if (disp >= text.length) {
+                cu.style.display = "none";
+                if (vd && cb) setTimeout(cb, 500);
               }
             }
           }, 22);
         }
-
-        if (synth && !isMuted) {
-          synth.cancel();
+        if (syn && !isMuted) {
+          syn.cancel();
           const u = new SpeechSynthesisUtterance(text);
           u.lang = "fr-FR";
           u.rate = 0.72;
           u.pitch = 0.64;
           u.volume = 0.88;
           const sv = () => {
-            const v = getGaiaVoice();
+            const v = gv();
             if (v) u.voice = v;
           };
-          synth.getVoices().length
+          syn.getVoices().length
             ? sv()
-            : synth.addEventListener("voiceschanged", sv, { once: true });
-          u.onstart = () =>
-            document.getElementById("vbars").classList.add("on");
+            : syn.addEventListener("voiceschanged", sv, { once: true });
+          u.onstart = () => document.getElementById("vbr").classList.add("on");
           u.onboundary = (e) => {
             if (e.name === "word") {
-              target = Math.min(e.charIndex + e.charLength, text.length);
+              tgt = Math.min(e.charIndex + e.charLength, text.length);
               tick();
             }
           };
           u.onend = u.onerror = () => {
-            document.getElementById("vbars").classList.remove("on");
-            vDone = true;
-            target = text.length;
+            document.getElementById("vbr").classList.remove("on");
+            vd = true;
+            tgt = text.length;
             tick();
           };
-          synth.speak(u);
+          syn.speak(u);
         }
-        // Fallback typewriter
         setTimeout(() => {
           if (
-            displayed === 0 &&
-            !document.getElementById("vbars").classList.contains("on")
+            disp === 0 &&
+            !document.getElementById("vbr").classList.contains("on")
           ) {
             if (typeIv) clearInterval(typeIv);
-            vDone = true;
+            vd = true;
             typeIv = setInterval(() => {
-              if (displayed < text.length) {
-                el.textContent += text[displayed++];
+              if (disp < text.length) {
+                el.textContent += text[disp++];
                 el.scrollTop = el.scrollHeight;
               } else {
                 clearInterval(typeIv);
-                cur.style.display = "none";
-                if (onDone) setTimeout(onDone, 500);
+                cu.style.display = "none";
+                if (cb) setTimeout(cb, 500);
               }
             }, 26);
           }
         }, 1600);
       }
-
       function stopVoice() {
-        if (synth) synth.cancel();
+        if (syn) syn.cancel();
         if (typeIv) {
           clearInterval(typeIv);
           typeIv = null;
         }
-        document.getElementById("vbars").classList.remove("on");
+        document.getElementById("vbr").classList.remove("on");
       }
-
-      function hideVoiceBox() {
-        const card = document.getElementById("vb-card");
-        card.style.transition = "opacity 1s";
-        card.style.opacity = "0";
+      function hideVB() {
+        const c = document.getElementById("vc2");
+        c.style.transition = "opacity 1s";
+        c.style.opacity = "0";
         setTimeout(() => {
-          card.classList.remove("show");
-          card.style.opacity = "";
-          card.style.transition = "";
+          c.classList.remove("show");
+          c.style.opacity = "";
+          c.style.transition = "";
         }, 1000);
-        document.getElementById("vb-sep").classList.remove("show");
+        document.getElementById("vs").classList.remove("show");
       }
 
-      // ══════════════════════════════════════════════════════════════════
-      // TUNNEL — ATMOSPHERE DE PEUR
-      // Couleurs: rouge/sombre/distortion, sons inquiétants
-      // ══════════════════════════════════════════════════════════════════
-      const TC = document.getElementById("tunnel-canvas");
-      const TCX = TC.getContext("2d");
+      // ═══════════════════════════════════════════════════════════════════
+      // TUNNEL — full-screen invasion
+      // ═══════════════════════════════════════════════════════════════════
+      const TC = document.getElementById("tc");
       TC.width = innerWidth;
       TC.height = innerHeight;
+      const TX = TC.getContext("2d");
 
       const LAYERS = [
         {
-          name: "ATMOSPHÈRE...",
-          bg0: "#050010",
-          bg1: "#100030",
-          ring: "rgba(80,40,180,",
-          pt: "rgba(120,80,255,",
-          draw: drawAtmos,
-          fearColor: "rgba(80,30,160,",
+          name: "ATMOSPHÈRE",
+          cls: "atmos",
+          bg0: "#000008",
+          bg1: "#04042a",
+          ring: "rgba(100,130,255,",
+          pt: "rgba(150,170,255,",
+          fc: "rgba(60,80,200,",
+          draw: dAtmos,
         },
         {
-          name: "NUAGES DE CENDRES",
-          bg0: "#0a0808",
-          bg1: "#1a0f0a",
-          ring: "rgba(150,70,40,",
-          pt: "rgba(180,100,50,",
-          draw: drawClouds,
-          fearColor: "rgba(120,50,20,",
+          name: "NUAGES",
+          cls: "clouds",
+          bg0: "#0e0800",
+          bg1: "#1e1000",
+          ring: "rgba(200,130,60,",
+          pt: "rgba(220,150,80,",
+          fc: "rgba(160,90,30,",
+          draw: dClouds,
         },
         {
-          name: "PROFONDEURS...",
-          bg0: "#100500",
-          bg1: "#200800",
-          ring: "rgba(180,40,10,",
-          pt: "rgba(220,60,20,",
-          draw: drawRocks,
-          fearColor: "rgba(200,30,0,",
+          name: "CROÛTE",
+          cls: "rocks",
+          bg0: "#150300",
+          bg1: "#280500",
+          ring: "rgba(220,60,10,",
+          pt: "rgba(255,80,20,",
+          fc: "rgba(200,30,0,",
+          draw: dRocks,
         },
         {
-          name: "RACINES GÉANTES",
-          bg0: "#000a02",
-          bg1: "#001508",
-          ring: "rgba(20,120,40,",
-          pt: "rgba(0,180,50,",
-          draw: drawRoots,
-          fearColor: "rgba(0,150,30,",
+          name: "RACINES",
+          cls: "roots",
+          bg0: "#000e02",
+          bg1: "#001a04",
+          ring: "rgba(0,180,60,",
+          pt: "rgba(0,220,80,",
+          fc: "rgba(0,150,40,",
+          draw: dRoots,
         },
         {
-          name: "CELLULES VIVANTES",
-          bg0: "#000508",
-          bg1: "#000e18",
-          ring: "rgba(0,200,120,",
-          pt: "rgba(0,255,136,",
-          draw: drawCells,
-          fearColor: "rgba(0,220,100,",
+          name: "CELLULES",
+          cls: "cells",
+          bg0: "#000812",
+          bg1: "#001224",
+          ring: "rgba(0,230,180,",
+          pt: "rgba(0,255,200,",
+          fc: "rgba(0,200,160,",
+          draw: dCells,
         },
       ];
-
-      const T_LF = 72,
-        T_TOT = LAYERS.length * T_LF;
+      const TLF = 68,
+        TTOT = LAYERS.length * TLF;
       let tT = 0,
-        tFrame = 0,
-        tLayer = 0,
-        tLFrame = 0,
-        tSpd = 0.7,
-        tAnID;
-      // Screen shake vars
-      let shakeX = 0,
-        shakeY = 0;
-      const TPTS = Array.from({ length: 260 }, () => ({
+        tFr = 0,
+        tLay = 0,
+        tLFr = 0,
+        tSpd = 0.4,
+        tAID;
+      let sX = 0,
+        sY = 0,
+        sD = 0;
+      const STKS = Array.from({ length: 420 }, () => ({
         a: Math.random() * Math.PI * 2,
-        r: 60 + Math.random() * 310,
-        spd: Math.random() * 7 + 3,
-        sz: Math.random() * 2.8 + 0.5,
-        al: Math.random() * 0.7 + 0.2,
+        r: Math.random() * 300 + 15,
+        len: Math.random() * 90 + 30,
+        spd: Math.random() * 15 + 6,
+        w: Math.random() * 2.5 + 0.3,
+        al: Math.random() * 0.9 + 0.1,
+      }));
+      const STRS = Array.from({ length: 220 }, () => ({
+        a: Math.random() * Math.PI * 2,
+        r: 20 + Math.random() * 370,
+        spd: Math.random() * 9 + 3,
+        sz: Math.random() * 3.5 + 0.5,
+        al: Math.random() * 0.8 + 0.2,
       }));
 
-      function drawAtmos(cx, cy, t) {
-        // Dark purple atmospheric distortion bands
-        for (let i = 0; i < 5; i++) {
-          const y = cy + Math.sin(t * 0.3 + i * 1.2) * 100 + (i - 2) * 120;
-          const gd = TCX.createLinearGradient(0, y - 60, 0, y + 60);
-          gd.addColorStop(0, "rgba(60,20,120,0)");
+      function dAtmos(cx, cy, t, W, H) {
+        for (let i = 0; i < 8; i++) {
+          const y = cy + Math.sin(t * 0.25 + i * 1.1) * 95 + (i - 3.5) * 118;
+          const gd = TX.createLinearGradient(0, y - 58, 0, y + 58);
+          gd.addColorStop(0, "rgba(40,60,180,0)");
           gd.addColorStop(
             0.5,
-            `rgba(80,30,160,${0.055 + Math.sin(t + i) * 0.03})`
+            `rgba(82,108,228,${0.062 + Math.sin(t + i) * 0.025})`
           );
-          gd.addColorStop(1, "rgba(40,10,80,0)");
-          TCX.fillStyle = gd;
-          TCX.fillRect(0, y - 60, TC.width, 120);
+          gd.addColorStop(1, "rgba(40,60,180,0)");
+          TX.fillStyle = gd;
+          TX.fillRect(0, y - 58, W, 116);
         }
-        // Fear distortion lines
-        TCX.save();
-        for (let i = 0; i < 6; i++) {
-          const y = ((t * 120 + i * 80) % (TC.height + 80)) - 40;
-          TCX.beginPath();
-          TCX.moveTo(0, y);
-          TCX.lineTo(TC.width, y + Math.sin(t + i) * 15);
-          TCX.strokeStyle = `rgba(120,50,200,${
-            0.04 + Math.sin(t * 2 + i) * 0.02
-          })`;
-          TCX.lineWidth = 0.8;
-          TCX.stroke();
-        }
-        TCX.restore();
-      }
-      function drawClouds(cx, cy, t) {
-        // Dark ashy clouds
-        for (let i = 0; i < 8; i++) {
-          const x = (((i / 8 + t * 0.035) % 1.3) - 0.1) * TC.width,
-            y = cy + Math.sin(i * 1.5 + t * 0.2) * 120;
-          const r = 60 + i * 20;
-          const gd = TCX.createRadialGradient(x, y, 0, x, y, r);
-          gd.addColorStop(0, `rgba(80,40,20,${0.08 + Math.sin(t + i) * 0.03})`);
-          gd.addColorStop(1, "rgba(60,20,10,0)");
-          TCX.fillStyle = gd;
-          TCX.beginPath();
-          TCX.ellipse(x, y, r, r * 0.5, 0, 0, Math.PI * 2);
-          TCX.fill();
-        }
-      }
-      function drawRocks(cx, cy, t) {
-        TCX.save();
-        // Red-hot cracks
-        for (let i = 0; i < 10; i++) {
-          const ang = (i / 10) * Math.PI * 2 + t * 0.04;
-          TCX.beginPath();
-          let x = cx,
-            y = cy;
-          for (let s = 0; s < 6; s++) {
-            x += Math.cos(ang + Math.sin(s * 0.9) * 0.5) * (65 + s * 40);
-            y += Math.sin(ang + Math.sin(s * 0.9) * 0.5) * (65 + s * 40);
-            s === 0 ? TCX.moveTo(x, y) : TCX.lineTo(x, y);
-          }
-          TCX.strokeStyle = `rgba(220,60,10,${0.18 + Math.sin(t + i) * 0.09})`;
-          TCX.lineWidth = 2.2 - i * 0.12;
-          TCX.stroke();
-        }
-        // Pulsing magma spots — fear
         for (let i = 0; i < 7; i++) {
-          const ang = (i / 7) * Math.PI * 2 + t * 0.08;
-          const dist = 160 + Math.sin(t * 1.6 + i) * 80;
-          const x = cx + Math.cos(ang) * dist,
-            y = cy + Math.sin(ang) * dist;
-          const gd = TCX.createRadialGradient(x, y, 0, x, y, 60);
-          gd.addColorStop(
+          const x = (((i / 7 + t * 0.03) % 1.2) - 0.1) * W,
+            y = cy + Math.sin(i * 1.8 + t * 0.15) * 135;
+          const r = 60 + i * 22;
+          const cg = TX.createRadialGradient(x, y, 0, x, y, r);
+          cg.addColorStop(
             0,
-            `rgba(255,${40 + Math.floor(Math.sin(t * 3 + i) * 20)},0,${
-              0.25 + Math.sin(t * 2 + i) * 0.12
-            })`
+            `rgba(180,195,255,${0.068 + Math.sin(t + i) * 0.03})`
           );
-          gd.addColorStop(1, "rgba(200,0,0,0)");
-          TCX.fillStyle = gd;
-          TCX.beginPath();
-          TCX.arc(x, y, 62, 0, Math.PI * 2);
-          TCX.fill();
+          cg.addColorStop(1, "transparent");
+          TX.fillStyle = cg;
+          TX.beginPath();
+          TX.ellipse(x, y, r, r * 0.45, 0, 0, Math.PI * 2);
+          TX.fill();
         }
-        TCX.restore();
       }
-      function drawRoots(cx, cy, t) {
-        TCX.save();
-        for (let i = 0; i < 14; i++) {
-          const ang = (i / 14) * Math.PI * 2 + t * 0.05;
-          TCX.beginPath();
+      function dClouds(cx, cy, t, W, H) {
+        for (let i = 0; i < 12; i++) {
+          const x = (((i / 12 + t * 0.03) % 1.3) - 0.15) * W,
+            y = cy + Math.sin(i * 1.4 + t * 0.18) * 135;
+          const r = 70 + i * 22;
+          const cg = TX.createRadialGradient(x, y, 0, x, y, r);
+          cg.addColorStop(
+            0,
+            `rgba(115,64,28,${0.11 + Math.sin(t + i) * 0.04})`
+          );
+          cg.addColorStop(1, "transparent");
+          TX.fillStyle = cg;
+          TX.beginPath();
+          TX.ellipse(x, y, r, r * 0.5, 0, 0, Math.PI * 2);
+          TX.fill();
+        }
+      }
+      function dRocks(cx, cy, t, W, H) {
+        TX.save();
+        for (let i = 0; i < 13; i++) {
+          const ang = (i / 13) * Math.PI * 2 + t * 0.03;
+          TX.beginPath();
           let x = cx,
             y = cy;
           for (let s = 0; s < 8; s++) {
-            const b = Math.sin(t * 0.4 + i * 0.7 + s * 0.45) * 0.55;
-            x += Math.cos(ang + b) * (55 + s * 28);
-            y += Math.sin(ang + b) * (55 + s * 28);
-            s === 0 ? TCX.moveTo(x, y) : TCX.lineTo(x, y);
+            const b = Math.sin(t * 0.3 + i * 0.8 + s * 0.5) * 0.6;
+            x += Math.cos(ang + b) * (62 + s * 36);
+            y += Math.sin(ang + b) * (62 + s * 36);
+            s === 0 ? TX.moveTo(x, y) : TX.lineTo(x, y);
           }
-          const al = 0.1 + Math.sin(t * 1.2 + i) * 0.06;
-          TCX.strokeStyle = `rgba(0,${
-            140 + Math.floor(Math.sin(t + i) * 40)
-          },40,${al})`;
-          TCX.lineWidth = 3.2 - i * 0.16;
-          TCX.stroke();
-          if (i % 3 === 0) {
-            const ba = ang + 0.9;
-            TCX.beginPath();
-            TCX.moveTo(x, y);
-            TCX.lineTo(x + Math.cos(ba) * 100, y + Math.sin(ba) * 100);
-            TCX.strokeStyle = `rgba(0,160,40,${al * 0.5})`;
-            TCX.lineWidth = 1.3;
-            TCX.stroke();
-          }
+          TX.strokeStyle = `rgba(245,74,14,${0.24 + Math.sin(t + i) * 0.1})`;
+          TX.lineWidth = 3.5 - i * 0.16;
+          TX.stroke();
+          TX.strokeStyle = `rgba(255,168,58,${0.09 + Math.sin(t + i) * 0.05})`;
+          TX.lineWidth = 7 - i * 0.25;
+          TX.stroke();
         }
-        TCX.restore();
-      }
-      function drawCells(cx, cy, t) {
-        TCX.save();
-        for (let i = 0; i < 18; i++) {
-          const ang = (i / 18) * Math.PI * 2 + t * 0.11;
-          const dist = 65 + Math.sin(t * 1.4 + i) * 55;
+        for (let i = 0; i < 9; i++) {
+          const ang = (i / 9) * Math.PI * 2 + t * 0.06;
+          const dist = 128 + Math.sin(t * 1.5 + i) * 82;
           const x = cx + Math.cos(ang) * dist,
             y = cy + Math.sin(ang) * dist;
-          const r = 15 + Math.sin(t * 2 + i) * 7;
-          TCX.strokeStyle = `rgba(0,255,136,${0.14 + Math.sin(t + i) * 0.07})`;
-          TCX.lineWidth = 1.5;
-          TCX.beginPath();
-          TCX.arc(x, y, r, 0, Math.PI * 2);
-          TCX.stroke();
-          TCX.beginPath();
-          TCX.arc(x, y, r * 0.32, 0, Math.PI * 2);
-          TCX.fillStyle = `rgba(0,255,136,${
-            0.065 + Math.sin(t * 3 + i) * 0.04
-          })`;
-          TCX.fill();
+          const cg = TX.createRadialGradient(x, y, 0, x, y, 55);
+          cg.addColorStop(
+            0,
+            `rgba(255,${85 + Math.floor(Math.sin(t * 3 + i) * 32)},0,${
+              0.4 + Math.sin(t * 2 + i) * 0.17
+            })`
+          );
+          cg.addColorStop(1, "transparent");
+          TX.fillStyle = cg;
+          TX.beginPath();
+          TX.arc(x, y, 55, 0, Math.PI * 2);
+          TX.fill();
         }
-        TCX.restore();
+        TX.restore();
+      }
+      function dRoots(cx, cy, t, W, H) {
+        TX.save();
+        for (let i = 0; i < 18; i++) {
+          const ang = (i / 18) * Math.PI * 2 + t * 0.04;
+          TX.beginPath();
+          let x = cx,
+            y = cy;
+          for (let s = 0; s < 10; s++) {
+            const b = Math.sin(t * 0.35 + i * 0.6 + s * 0.4) * 0.6;
+            x += Math.cos(ang + b) * (52 + s * 27);
+            y += Math.sin(ang + b) * (52 + s * 27);
+            s === 0 ? TX.moveTo(x, y) : TX.lineTo(x, y);
+          }
+          const al = 0.13 + Math.sin(t * 1.1 + i) * 0.07,
+            g2 = 135 + Math.floor(Math.sin(t + i) * 55);
+          TX.strokeStyle = `rgba(10,${g2},38,${al})`;
+          TX.lineWidth = 4.2 - i * 0.16;
+          TX.stroke();
+          if (i % 2 === 0) {
+            for (let b = 0; b < 3; b++) {
+              const ba = ang + 0.8 + b * 0.35;
+              TX.beginPath();
+              TX.moveTo(x, y);
+              TX.lineTo(x + Math.cos(ba) * 88, y + Math.sin(ba) * 88);
+              TX.strokeStyle = `rgba(0,${g2 - 22},32,${al * 0.52})`;
+              TX.lineWidth = 1.3;
+              TX.stroke();
+            }
+          }
+        }
+        TX.restore();
+      }
+      function dCells(cx, cy, t, W, H) {
+        TX.save();
+        for (let i = 0; i < 24; i++) {
+          const ang = (i / 24) * Math.PI * 2 + t * 0.09;
+          const dist = 58 + Math.sin(t * 1.2 + i) * 65;
+          const x = cx + Math.cos(ang) * dist,
+            y = cy + Math.sin(ang) * dist;
+          const r = 16 + Math.sin(t * 1.8 + i) * 8;
+          TX.strokeStyle = `rgba(0,255,200,${0.22 + Math.sin(t + i) * 0.1})`;
+          TX.lineWidth = 2;
+          TX.beginPath();
+          TX.arc(x, y, r, 0, Math.PI * 2);
+          TX.stroke();
+          const cg = TX.createRadialGradient(x, y, 0, x, y, r);
+          cg.addColorStop(
+            0,
+            `rgba(0,255,180,${0.08 + Math.sin(t * 2 + i) * 0.04})`
+          );
+          cg.addColorStop(1, "transparent");
+          TX.fillStyle = cg;
+          TX.fill();
+          TX.beginPath();
+          TX.arc(x, y, r * 0.35, 0, Math.PI * 2);
+          TX.fillStyle = `rgba(0,210,165,${0.15 + Math.sin(t * 3 + i) * 0.07})`;
+          TX.fill();
+        }
+        TX.restore();
       }
 
-      function tunnelFrame() {
+      function showTL(idx) {
+        const l = document.getElementById("tl");
+        l.className = "";
+        l.textContent = LAYERS[idx].name;
+        l.classList.add(LAYERS[idx].cls);
+        if (idx >= 2) l.classList.add("fear");
+        l.classList.add("show");
+        setTimeout(() => l.classList.remove("show"), 1500);
+      }
+
+      function tunnelFr() {
         const W = TC.width,
           H = TC.height;
-        tT += 0.018;
-        tFrame++;
-        tLFrame++;
-
-        if (tLFrame > T_LF && tLayer < LAYERS.length - 1) {
-          tLayer++;
-          tLFrame = 0;
-          const lbl = document.getElementById("tunnel-label");
-          lbl.className = "";
-          lbl.textContent = LAYERS[tLayer].name;
-          lbl.classList.add("show");
-          if (tLayer >= 2) lbl.classList.add("fear"); // peur visible
-          setTimeout(() => lbl.classList.remove("show"), 1400);
-          const fl = document.getElementById("flash-layer");
-          fl.style.transition = "opacity .08s";
+        tT += 0.016;
+        tFr++;
+        tLFr++;
+        if (tLFr > TLF && tLay < LAYERS.length - 1) {
+          tLay++;
+          tLFr = 0;
+          showTL(tLay);
+          sD = 20;
+          const fl = document.getElementById("fl");
+          fl.style.background = `radial-gradient(ellipse at 50%50%,${LAYERS[tLay].pt}0.55)0%,transparent 65%)`;
+          fl.style.transition = "opacity .07s";
           fl.classList.add("on");
           setTimeout(() => {
-            fl.style.transition = "opacity .5s";
+            fl.style.transition = "opacity .45s";
             fl.classList.remove("on");
-          }, 100);
+          }, 90);
         }
-
-        // Screen shake increases with speed (peur)
-        if (tSpd > 1.2) {
-          const shakeAmt = (tSpd - 1.2) * 0.8;
-          shakeX = (Math.random() - 0.5) * shakeAmt * 6;
-          shakeY = (Math.random() - 0.5) * shakeAmt * 6;
+        if (sD > 0) {
+          const s = sD * 0.6;
+          sX = (Math.random() - 0.5) * s;
+          sY = (Math.random() - 0.5) * s;
+          sD--;
+        } else if (tSpd > 1.7) {
+          const s = (tSpd - 1.7) * 2;
+          sX = (Math.random() - 0.5) * s * 7;
+          sY = (Math.random() - 0.5) * s * 7;
         } else {
-          shakeX = 0;
-          shakeY = 0;
+          sX *= 0.76;
+          sY *= 0.76;
         }
-
-        const L = LAYERS[tLayer];
-        const cx = W / 2 + shakeX,
-          cy = H / 2 + shakeY;
-
-        TCX.fillStyle = "rgba(0,0,0,.18)";
-        TCX.fillRect(0, 0, W, H);
-
-        // Radial fear gradient (darker than before)
-        const sky = TCX.createRadialGradient(
+        const L = LAYERS[tLay],
+          cx = W / 2 + sX,
+          cy = H / 2 + sY;
+        TX.fillStyle = `rgba(0,0,0,${Math.min(0.07 + tSpd * 0.048, 0.26)})`;
+        TX.fillRect(0, 0, W, H);
+        const sky = TX.createRadialGradient(
           cx,
           cy,
           0,
           cx,
           cy,
-          Math.max(W, H) * 0.8
+          Math.max(W, H) * 0.98
         );
         sky.addColorStop(0, L.bg0);
-        sky.addColorStop(0.6, L.bg1);
+        sky.addColorStop(0.72, L.bg1);
         sky.addColorStop(1, "#000");
-        TCX.globalAlpha = 0.38;
-        TCX.fillStyle = sky;
-        TCX.fillRect(0, 0, W, H);
-        TCX.globalAlpha = 1;
-
-        // Tunnel rings — fear tint
-        for (let r = 0; r < 26; r++) {
-          const depth = (r / 26 + tT * 0.17 * tSpd) % 1;
-          const actualRad = Math.min(
-            ((depth * 0.45 + 0.05) / (depth + 0.01)) * W * 0.34,
-            W * 1.7
-          );
-          const alpha = Math.max(0, Math.min(0.55, depth * 1.7));
-          TCX.beginPath();
-          TCX.arc(cx, cy, actualRad, 0, Math.PI * 2);
-          // Fear tint: more red in mid layers
-          const fearTint =
-            tLayer >= 2 && tLayer <= 3
-              ? `rgba(200,40,10,${alpha * 0.35})`
+        TX.globalAlpha = 0.44;
+        TX.fillStyle = sky;
+        TX.fillRect(0, 0, W, H);
+        TX.globalAlpha = 1;
+        for (let r = 0; r < 38; r++) {
+          const t2 = (r / 38 + tT * 0.22 * tSpd) % 1;
+          const persp = Math.pow(t2, 1.32);
+          const rad = persp * Math.max(W, H) * 0.82;
+          const alpha = Math.max(0, Math.min(0.74, t2 * 2.3));
+          TX.beginPath();
+          TX.arc(cx, cy, rad, 0, Math.PI * 2);
+          TX.strokeStyle =
+            tLay >= 2 && tLay <= 3
+              ? `rgba(228,54,14,${alpha * 0.46})`
               : `${L.ring}${alpha.toFixed(2)})`;
-          TCX.strokeStyle = fearTint;
-          TCX.lineWidth = 1.4 + depth * 1.6;
-          TCX.stroke();
-          // Secondary fear ring (darker)
-          if (tLayer >= 2) {
-            TCX.strokeStyle = `${L.fearColor}${(alpha * 0.4).toFixed(2)})`;
-            TCX.lineWidth = 0.6;
-            TCX.stroke();
+          TX.lineWidth = (0.7 + t2 * 3.8) * (1 + tSpd * 0.2);
+          TX.stroke();
+          if (tLay >= 2) {
+            TX.strokeStyle = `${L.fc}${(alpha * 0.44).toFixed(2)})`;
+            TX.lineWidth = 0.6;
+            TX.stroke();
           }
         }
-
-        L.draw(cx, cy, tT);
-
-        // Speed particles (fear colored)
-        tSpd = Math.min(tSpd + 0.007, 2.2);
-        TPTS.forEach((pt) => {
-          pt.r -= pt.spd * (tSpd * 0.55);
-          pt.a += 0.002;
-          if (pt.r < 5) {
-            pt.r = 250 + Math.random() * 250;
-            pt.a = Math.random() * Math.PI * 2;
+        L.draw(cx, cy, tT, W, H);
+        tSpd = Math.min(tSpd + 0.009, 2.7);
+        STKS.forEach((s) => {
+          s.r -= s.spd * (tSpd * 0.68);
+          if (s.r < 4) {
+            s.r = 340 + Math.random() * 300;
+            s.a = Math.random() * Math.PI * 2;
+            s.len = Math.random() * 90 + 30;
           }
-          const x = cx + Math.cos(pt.a) * pt.r,
-            y = cy + Math.sin(pt.a) * pt.r;
-          const palpha = Math.max(
+          const x1 = cx + Math.cos(s.a) * s.r,
+            y1 = cy + Math.sin(s.a) * s.r,
+            x2 = cx + Math.cos(s.a) * (s.r + s.len * tSpd),
+            y2 = cy + Math.sin(s.a) * (s.r + s.len * tSpd);
+          const pa = Math.max(
             0,
-            Math.min(pt.al * (1 - pt.r / 500) * tSpd * 0.75, 0.9)
+            Math.min(s.al * (1 - s.r / 600) * tSpd * 0.75, 0.92)
           );
-          TCX.beginPath();
-          TCX.arc(x, y, pt.sz * (1 - pt.r / 500), 0, Math.PI * 2);
-          TCX.fillStyle = `${L.pt}${palpha.toFixed(2)})`;
-          TCX.fill();
+          if (pa < 0.022) return;
+          const gr = TX.createLinearGradient(x1, y1, x2, y2);
+          gr.addColorStop(0, `${L.pt}${pa.toFixed(2)})`);
+          gr.addColorStop(1, `${L.pt}0)`);
+          TX.strokeStyle = gr;
+          TX.lineWidth = s.w * (1 + tSpd * 0.28);
+          TX.beginPath();
+          TX.moveTo(x1, y1);
+          TX.lineTo(x2, y2);
+          TX.stroke();
         });
-
-        // Central glow (changes color by layer — fear = red/orange mid journey)
-        const glowColor =
-          tLayer >= 2 && tLayer <= 3 ? "rgba(255,40,0," : "rgba(0,255,136,";
-        const cg = TCX.createRadialGradient(
+        STRS.forEach((p) => {
+          p.r -= p.spd * (tSpd * 0.58);
+          p.a += 0.001;
+          if (p.r < 5) {
+            p.r = 250 + Math.random() * 300;
+            p.a = Math.random() * Math.PI * 2;
+          }
+          const px = cx + Math.cos(p.a) * p.r,
+            py = cy + Math.sin(p.a) * p.r;
+          const pa = Math.max(
+            0,
+            Math.min(p.al * (1 - p.r / 580) * tSpd * 0.85, 0.93)
+          );
+          if (pa < 0.022) return;
+          TX.beginPath();
+          TX.arc(px, py, p.sz * (1 - p.r / 580), 0, Math.PI * 2);
+          TX.fillStyle = `${L.pt}${pa.toFixed(2)})`;
+          TX.fill();
+        });
+        const destSz = 32 + tSpd * 38 + Math.sin(tT * 4) * 12;
+        const gc =
+          tLay >= 2 && tLay <= 3 ? "rgba(255,80,0," : "rgba(0,255,160,";
+        const cg2 = TX.createRadialGradient(cx, cy, 0, cx, cy, destSz);
+        cg2.addColorStop(0, `${gc}.94)`);
+        cg2.addColorStop(0.32, `${gc}.28)`);
+        cg2.addColorStop(1, `${gc}0)`);
+        TX.fillStyle = cg2;
+        TX.beginPath();
+        TX.arc(cx, cy, destSz, 0, Math.PI * 2);
+        TX.fill();
+        const vg = TX.createRadialGradient(
           cx,
           cy,
-          0,
+          Math.min(W, H) * 0.07,
           cx,
           cy,
-          68 + Math.sin(tT * 3 + shakeX) * 15
-        );
-        cg.addColorStop(0, `${glowColor}.75)`);
-        cg.addColorStop(0.5, `${glowColor}.16)`);
-        cg.addColorStop(1, `${glowColor}0)`);
-        TCX.fillStyle = cg;
-        TCX.beginPath();
-        TCX.arc(cx, cy, 74, 0, Math.PI * 2);
-        TCX.fill();
-
-        // Edge vignette
-        const vg = TCX.createRadialGradient(
-          cx,
-          cy,
-          Math.min(W, H) * 0.2,
-          cx,
-          cy,
-          Math.max(W, H) * 0.73
+          Math.max(W, H) * 0.82
         );
         vg.addColorStop(0, "rgba(0,0,0,0)");
-        vg.addColorStop(1, "rgba(0,0,0,.92)");
-        TCX.fillStyle = vg;
-        TCX.fillRect(0, 0, W, H);
-
-        if (tFrame < T_TOT) {
-          tAnID = requestAnimationFrame(tunnelFrame);
+        vg.addColorStop(1, "rgba(0,0,0,.96)");
+        TX.fillStyle = vg;
+        TX.fillRect(0, 0, W, H);
+        if (tFr < TTOT) {
+          tAID = requestAnimationFrame(tunnelFr);
         } else {
-          cancelAnimationFrame(tAnID);
-          doEntryFlash();
+          cancelAnimationFrame(tAID);
+          arrivalFlash();
         }
       }
-
-      function doEntryFlash() {
+      function arrivalFlash() {
         PHASE = "entry";
-        const bf = document.getElementById("blind-flash");
+        const b = document.getElementById("bf");
+        b.style.background = "#00ff88";
         let a = 0,
           up = true;
         const iv = setInterval(() => {
           if (up) {
-            a += 0.08;
+            a += 0.1;
             if (a >= 1) up = false;
           } else {
-            a -= 0.045;
+            a -= 0.05;
             if (a <= 0) {
               clearInterval(iv);
-              bf.style.opacity = "0";
+              b.style.opacity = "0";
               launchBrain();
             }
           }
-          bf.style.opacity = a;
+          b.style.opacity = a;
         }, 16);
       }
       function launchBrain() {
-        TC.style.transition = "opacity .4s";
+        TC.style.transition = "opacity .35s";
         TC.style.opacity = "0";
         setTimeout(() => {
           TC.style.display = "none";
-          document.getElementById("brain-canvas").style.display = "block";
+          document.getElementById("bc").style.display = "block";
+          document.getElementById("oc").style.display = "block";
           document.getElementById("hud").classList.add("show");
-          document.getElementById("tunnel-label").style.display = "none";
           PHASE = "brain";
-          brainData.entryZoom = true;
+          BD.zoom = true;
           timerOn = true;
-          setTimeout(() => playBrainAudio(), 300);
-          initBrainVoice();
-        }, 400);
+          setTimeout(() => playBrain(), 300);
+          brainVoice();
+          organLoop();
+        }, 350);
       }
 
-      // ══════════════════════════════════════════════════════════════════
-      // BRAIN — Three.js (same as before, perfect)
-      // ══════════════════════════════════════════════════════════════════
-      const BC = document.getElementById("brain-canvas");
+      // ═══════════════════════════════════════════════════════════════════
+      // BRAIN — Three.js
+      // ═══════════════════════════════════════════════════════════════════
+      const BC = document.getElementById("bc");
       BC.width = innerWidth;
       BC.height = innerHeight;
-      const scene3 = new THREE.Scene();
-      scene3.fog = new THREE.FogExp2(0x000204, 0.011);
-      const camera3 = new THREE.PerspectiveCamera(
+      const sc3 = new THREE.Scene();
+      sc3.fog = new THREE.FogExp2(0x000204, 0.008);
+      const cam3 = new THREE.PerspectiveCamera(
         75,
         innerWidth / innerHeight,
         0.05,
         300
       );
-      camera3.position.set(0, 0, 0.1);
-      const renderer3 = new THREE.WebGLRenderer({
+      cam3.position.set(0, 0, 0.5);
+      const rdr3 = new THREE.WebGLRenderer({
         canvas: BC,
         antialias: true,
         alpha: false,
       });
-      renderer3.setPixelRatio(Math.min(devicePixelRatio, 2));
-      renderer3.setSize(innerWidth, innerHeight);
-      renderer3.setClearColor(0x000102);
-      const clock3 = new THREE.Clock();
+      rdr3.setPixelRatio(Math.min(devicePixelRatio, 2));
+      rdr3.setSize(innerWidth, innerHeight);
+      rdr3.setClearColor(0x000102);
+      const clk3 = new THREE.Clock();
       const cam = { yaw: 0, pitch: 0, x: 0, y: 0, z: 0 };
-      const keys = {};
-      let mlocked = false;
-      const brainData = { entryZoom: false, entryT: 0, time: 0 };
+      let ml = false;
+      const BD = { zoom: false, zt: 0, time: 0 };
 
       BC.addEventListener("click", () => {
-        if (!mlocked && !enteringPortal) BC.requestPointerLock();
+        if (!ml && !entering) BC.requestPointerLock();
       });
       document.addEventListener("pointerlockchange", () => {
-        mlocked = !!document.pointerLockElement;
-        document.getElementById("crosshair").classList.toggle("show", mlocked);
+        ml = !!document.pointerLockElement;
+        document.getElementById("xh").classList.toggle("show", ml);
       });
       document.addEventListener("mousemove", (e) => {
-        if (!mlocked || PHASE !== "brain") return;
+        if (!ml || PHASE !== "brain") return;
         cam.yaw -= e.movementX * 0.0022;
         cam.pitch -= e.movementY * 0.0018;
         cam.pitch = Math.max(-1.2, Math.min(1.2, cam.pitch));
       });
-      document.addEventListener("keydown", (e) => {
-        keys[e.code] = true;
-      });
-      document.addEventListener("keyup", (e) => {
-        keys[e.code] = false;
-      });
       window.addEventListener("resize", () => {
-        camera3.aspect = innerWidth / innerHeight;
-        camera3.updateProjectionMatrix();
-        renderer3.setSize(innerWidth, innerHeight);
+        cam3.aspect = innerWidth / innerHeight;
+        cam3.updateProjectionMatrix();
+        rdr3.setSize(innerWidth, innerHeight);
         TC.width = innerWidth;
         TC.height = innerHeight;
+        OC.width = innerWidth;
+        OC.height = innerHeight;
       });
 
-      function moveCamera(dt) {
-        if (PHASE !== "brain" || enteringPortal) return;
+      function moveCam(dt) {
+        if (PHASE !== "brain" || entering) return;
         const spd = 3.8 * dt,
           sy = Math.sin(cam.yaw),
-          cy = Math.cos(cam.yaw),
+          cy2 = Math.cos(cam.yaw),
           sp = Math.sin(cam.pitch),
           cp = Math.cos(cam.pitch);
-        const fwd = [-sy * cp, sp, -cy * cp],
-          rgt = [cy, 0, -sy];
+        const fw = [-sy * cp, sp, -cy2 * cp],
+          rt = [cy2, 0, -sy];
         if (keys["KeyW"] || keys["ArrowUp"]) {
-          cam.x += fwd[0] * spd;
-          cam.y += fwd[1] * spd;
-          cam.z += fwd[2] * spd;
+          cam.x += fw[0] * spd;
+          cam.y += fw[1] * spd;
+          cam.z += fw[2] * spd;
         }
         if (keys["KeyS"] || keys["ArrowDown"]) {
-          cam.x -= fwd[0] * spd;
-          cam.y -= fwd[1] * spd;
-          cam.z -= fwd[2] * spd;
+          cam.x -= fw[0] * spd;
+          cam.y -= fw[1] * spd;
+          cam.z -= fw[2] * spd;
         }
         if (keys["KeyA"] || keys["ArrowLeft"]) {
-          cam.x -= rgt[0] * spd;
-          cam.z -= rgt[2] * spd;
+          cam.x -= rt[0] * spd;
+          cam.z -= rt[2] * spd;
         }
         if (keys["KeyD"] || keys["ArrowRight"]) {
-          cam.x += rgt[0] * spd;
-          cam.z += rgt[2] * spd;
+          cam.x += rt[0] * spd;
+          cam.z += rt[2] * spd;
         }
         const d = Math.sqrt(cam.x * cam.x + cam.z * cam.z);
-        if (d > PORTAL_R - 2) {
-          const f = (PORTAL_R - 2) / d;
+        if (d > PR - 2) {
+          const f = (PR - 2) / d;
           cam.x *= f;
           cam.z *= f;
         }
         cam.y = Math.max(-3, Math.min(3, cam.y));
-        camera3.position.set(cam.x, cam.y, cam.z);
-        camera3.rotation.order = "YXZ";
-        camera3.rotation.y = cam.yaw;
-        camera3.rotation.x = cam.pitch;
+        cam3.position.set(cam.x, cam.y, cam.z);
+        cam3.rotation.order = "YXZ";
+        cam3.rotation.y = cam.yaw;
+        cam3.rotation.x = cam.pitch;
       }
 
-      // Lights
-      scene3.add(new THREE.AmbientLight(0x020508, 1));
-      const centerLight = new THREE.PointLight(0x00ff88, 3, 26);
-      centerLight.position.set(0, 0, 0);
-      scene3.add(centerLight);
-      PORTALS.forEach((p, i) => {
+      sc3.add(new THREE.AmbientLight(0x020508, 1));
+      const cL = new THREE.PointLight(0x4488ff, 2.5, 30);
+      cL.position.set(0, 0, 0);
+      sc3.add(cL);
+      const gL = new THREE.PointLight(0x00ff88, 1.5, 18);
+      gL.position.set(0, 0, 0);
+      sc3.add(gL);
+      P.forEach((p, i) => {
         const a = (p.angle * Math.PI) / 180;
-        const pl = new THREE.PointLight(p.color, 0.75, 13);
-        pl.position.set(
-          Math.sin(a) * PORTAL_R * 0.65,
-          0,
-          Math.cos(a) * PORTAL_R * 0.65
+        const pl = new THREE.PointLight(
+          parseInt("0x" + p.hex.slice(1)),
+          1.0,
+          14
         );
-        scene3.add(pl);
+        pl.position.set(Math.sin(a) * PR * 0.7, 0, Math.cos(a) * PR * 0.7);
+        sc3.add(pl);
       });
 
-      // Cortex
-      const cortexMat = new THREE.ShaderMaterial({
+      // Neural mind
+      const mMat = new THREE.ShaderMaterial({
         uniforms: { uT: { value: 0 } },
-        vertexShader: `uniform float uT;varying vec2 vUv;varying vec3 vN,vP;void main(){vUv=uv;vN=normalize(normalMatrix*normal);vP=position;float d=sin(position.x*5.+uT*2.)*sin(position.y*5.+uT*1.6)*sin(position.z*4.+uT*1.9)*.09+sin(uT*2.5)*.05;vec3 pos=position+normal*d;gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.);}`,
-        fragmentShader: `uniform float uT;varying vec2 vUv;varying vec3 vN,vP;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-abs(dot(vN,vd)),.7);float grid=step(.962,fract(vUv.x*22.))+step(.962,fract(vUv.y*22.));float pulse=sin(uT*2.2)*.5+.5;vec3 col=mix(vec3(0.,.26,.13),vec3(0.,.88,.5),fr*.9);col+=vec3(0.,.88,.5)*grid*.25+vec3(0.,.88,.5)*pulse*.18;float a=.52+fr*.38+grid*.12+pulse*.07;gl_FragColor=vec4(col,a);}`,
+        vertexShader: `uniform float uT;varying vec3 vN,vP;varying vec2 vUv;void main(){vUv=uv;vN=normalize(normalMatrix*normal);vP=position;float w=sin(position.x*8.+uT*1.8)*sin(position.y*7.+uT*2.1)*sin(position.z*6.+uT*1.5)*.12+sin(position.x*15.+uT*2.5)*sin(position.y*14.+uT*2.8)*.04+sin(uT*2.2)*.06;gl_Position=projectionMatrix*modelViewMatrix*vec4(position+normal*w,1.);}`,
+        fragmentShader: `uniform float uT;varying vec3 vN,vP;varying vec2 vUv;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-abs(dot(vN,vd)),.6);float g=step(.94,fract(vUv.x*28.))+step(.94,fract(vUv.y*28.));float dg=step(.98,fract(vUv.x*14.))+step(.98,fract(vUv.y*14.));float pulse=sin(uT*2.4)*.5+.5;vec3 col=mix(vec3(.02,.06,.04),vec3(.12,.55,.9),fr*.85)+vec3(.04,.22,.35)*g*.4+vec3(.12,.55,.9)*dg*.6+vec3(0.,.6,.35)*pulse*.25*fr;float a=.35+fr*.55+g*.18+dg*.22+pulse*.08;gl_FragColor=vec4(col,a);}`,
         transparent: true,
         blending: THREE.AdditiveBlending,
       });
-      const cortex = new THREE.Mesh(
-        new THREE.SphereGeometry(2, 64, 64),
-        cortexMat
-      );
-      scene3.add(cortex);
-      const cgMat = new THREE.ShaderMaterial({
+      const mSph = new THREE.Mesh(new THREE.SphereGeometry(2.2, 80, 80), mMat);
+      sc3.add(mSph);
+      const aMat = new THREE.ShaderMaterial({
         uniforms: { uT: { value: 0 } },
         vertexShader: `varying vec3 vN,vP;void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-        fragmentShader: `uniform float uT;varying vec3 vN,vP;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),3.4);float p=sin(uT*2.)*.12+.88;gl_FragColor=vec4(0.,.86,.5,fr*.44*p);}`,
+        fragmentShader: `uniform float uT;varying vec3 vN,vP;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),3.);float p=sin(uT*2.2)*.15+.85;vec3 col=mix(vec3(.08,.4,.9),vec3(0.,.8,.5),sin(uT*.8)*.5+.5);gl_FragColor=vec4(col,fr*.55*p);}`,
         transparent: true,
         side: THREE.BackSide,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
-      scene3.add(new THREE.Mesh(new THREE.SphereGeometry(2.55, 32, 32), cgMat));
-
-      // Neurons
-      const NC = 1800;
+      sc3.add(new THREE.Mesh(new THREE.SphereGeometry(2.7, 32, 32), aMat));
+      const NC = 2200;
       const nPos = new Float32Array(NC * 3),
         nCol = new Float32Array(NC * 3),
         nSz = new Float32Array(NC);
       for (let i = 0; i < NC; i++) {
         const phi = Math.acos(-1 + 2 * Math.random()),
           th = Math.random() * Math.PI * 2,
-          r = 2.8 + Math.pow(Math.random(), 0.5) * 13;
+          r = 2.8 + Math.pow(Math.random(), 0.4) * 13;
         nPos[i * 3] = r * Math.sin(phi) * Math.cos(th);
-        nPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(th) * 0.62;
+        nPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(th) * 0.6;
         nPos[i * 3 + 2] = r * Math.cos(phi);
-        const base = new THREE.Color(0x00ff88);
-        const acc = new THREE.Color(
-          PCOLS[Math.floor(Math.random() * PCOLS.length)]
+        const hue = new THREE.Color().setHSL(
+          0.55 + Math.random() * 0.1,
+          0.8,
+          0.5
         );
-        const c = new THREE.Color().lerpColors(base, acc, Math.random() * 0.48);
-        nCol[i * 3] = c.r;
-        nCol[i * 3 + 1] = c.g;
-        nCol[i * 3 + 2] = c.b;
-        nSz[i] = Math.random() * 2 + 0.4;
+        nCol[i * 3] = hue.r;
+        nCol[i * 3 + 1] = hue.g;
+        nCol[i * 3 + 2] = hue.b;
+        nSz[i] = Math.random() * 2.2 + 0.4;
       }
       const nGeo = new THREE.BufferGeometry();
       nGeo.setAttribute("position", new THREE.BufferAttribute(nPos, 3));
@@ -1925,52 +2054,57 @@
       nGeo.setAttribute("size", new THREE.BufferAttribute(nSz, 1));
       const nMat = new THREE.ShaderMaterial({
         uniforms: { uT: { value: 0 } },
-        vertexShader: `attribute float size;attribute vec3 color;varying vec3 vC;varying float vA;uniform float uT;void main(){vC=color;vec3 p=position;float a=uT*.04+p.y*.05;float r=length(p.xz);p.x=cos(a)*r-sin(a)*p.z;p.z=sin(a)*r+cos(a)*p.z;p.y+=sin(uT*.6+r*.3)*.25;vA=.38+sin(uT*.9+r*.4+p.y*.3)*.3;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(210./-mv.z);gl_PointSize=clamp(gl_PointSize,.5,18.);gl_Position=projectionMatrix*mv;}`,
-        fragmentShader: `varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5)*2.;float a=1.-smoothstep(.35,.9,d);gl_FragColor=vec4(vC,a*vA*.88);}`,
+        vertexShader: `attribute float size;attribute vec3 color;varying vec3 vC;varying float vA;uniform float uT;void main(){vC=color;vec3 p=position;float a=uT*.038+p.y*.048;float r=length(p.xz);p.x=cos(a)*r-sin(a)*p.z;p.z=sin(a)*r+cos(a)*p.z;p.y+=sin(uT*.55+r*.28)*.3;vA=.35+sin(uT*.85+r*.4+p.y*.3)*.32;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(220./-mv.z);gl_PointSize=clamp(gl_PointSize,.5,20.);gl_Position=projectionMatrix*mv;}`,
+        fragmentShader: `varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5)*2.;float a=1.-smoothstep(.3,.88,d);gl_FragColor=vec4(vC,a*vA*.9);}`,
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         vertexColors: true,
       });
-      scene3.add(new THREE.Points(nGeo, nMat));
+      sc3.add(new THREE.Points(nGeo, nMat));
       const nLines = [];
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 140; i++) {
         const pts = [];
-        let x = (Math.random() - 0.5) * 20,
-          y = (Math.random() - 0.5) * 12,
-          z = (Math.random() - 0.5) * 20;
+        let x = (Math.random() - 0.5) * 22,
+          y = (Math.random() - 0.5) * 14,
+          z = (Math.random() - 0.5) * 22;
         pts.push(new THREE.Vector3(x, y, z));
-        for (let j = 0; j < 5; j++) {
-          x += (Math.random() - 0.5) * 4;
-          y += (Math.random() - 0.5) * 3;
-          z += (Math.random() - 0.5) * 4;
+        for (let j = 0; j < 6; j++) {
+          x += (Math.random() - 0.5) * 3.5;
+          y += (Math.random() - 0.5) * 2.5;
+          z += (Math.random() - 0.5) * 3.5;
           pts.push(new THREE.Vector3(x, y, z));
         }
+        const c = new THREE.Color().setHSL(
+          0.55 + Math.random() * 0.15,
+          0.7,
+          0.4 + Math.random() * 0.2
+        );
         const mat = new THREE.LineBasicMaterial({
-          color: PCOLS[Math.floor(Math.random() * PCOLS.length)],
+          color: c,
           transparent: true,
-          opacity: 0.06 + Math.random() * 0.1,
+          opacity: 0.04 + Math.random() * 0.1,
         });
-        scene3.add(
+        sc3.add(
           new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat)
         );
         nLines.push({ mat, base: mat.opacity });
       }
-
-      // Synapses
-      const SC = 3200;
-      const sPos = new Float32Array(SC * 3),
-        sCol = new Float32Array(SC * 3),
-        sSz = new Float32Array(SC);
-      for (let i = 0; i < SC; i++) {
+      const SC2 = 3200;
+      const sPos = new Float32Array(SC2 * 3),
+        sCol = new Float32Array(SC2 * 3),
+        sSz = new Float32Array(SC2);
+      for (let i = 0; i < SC2; i++) {
         const phi = Math.acos(-1 + 2 * Math.random()),
           th = Math.random() * Math.PI * 2,
           r = 1.5 + Math.random() * 14;
         sPos[i * 3] = r * Math.sin(phi) * Math.cos(th);
         sPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(th) * 0.5;
         sPos[i * 3 + 2] = r * Math.cos(phi);
-        const c = new THREE.Color(
-          PCOLS[Math.floor(Math.random() * PCOLS.length)]
+        const c = new THREE.Color().setHSL(
+          0.55 + Math.random() * 0.2,
+          0.9,
+          0.6 + Math.random() * 0.3
         );
         sCol[i * 3] = c.r;
         sCol[i * 3 + 1] = c.g;
@@ -1983,30 +2117,28 @@
       sGeo.setAttribute("size", new THREE.BufferAttribute(sSz, 1));
       const sMat = new THREE.ShaderMaterial({
         uniforms: { uT: { value: 0 } },
-        vertexShader: `attribute float size;attribute vec3 color;varying vec3 vC;uniform float uT;void main(){vC=color;vec3 p=position;float ang=uT*.055+p.z*.07;float r=length(p.xy);p.x=cos(ang)*r-sin(ang)*p.y;p.y=sin(ang)*r+cos(ang)*p.y;p.z+=sin(uT*.5+r*.38)*.38;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(175./-mv.z);gl_PointSize=clamp(gl_PointSize,.3,12.);gl_Position=projectionMatrix*mv;}`,
-        fragmentShader: `varying vec3 vC;void main(){float d=length(gl_PointCoord-.5)*2.;float a=1.-smoothstep(.22,.82,d);gl_FragColor=vec4(vC,a*.62);}`,
+        vertexShader: `attribute float size;attribute vec3 color;varying vec3 vC;uniform float uT;void main(){vC=color;vec3 p=position;float ang=uT*.05+p.z*.065;float r=length(p.xy);p.x=cos(ang)*r-sin(ang)*p.y;p.y=sin(ang)*r+cos(ang)*p.y;p.z+=sin(uT*.45+r*.35)*.35;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(185./-mv.z);gl_PointSize=clamp(gl_PointSize,.3,14.);gl_Position=projectionMatrix*mv;}`,
+        fragmentShader: `varying vec3 vC;void main(){float d=length(gl_PointCoord-.5)*2.;float a=1.-smoothstep(.2,.8,d);gl_FragColor=vec4(vC,a*.65);}`,
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         vertexColors: true,
       });
-      scene3.add(new THREE.Points(sGeo, sMat));
-
-      // Background galaxy
+      sc3.add(new THREE.Points(sGeo, sMat));
       const BG = 8000;
       const bgP = new Float32Array(BG * 3),
         bgC = new Float32Array(BG * 3);
       for (let i = 0; i < BG; i++) {
         const phi = Math.acos(-1 + 2 * Math.random()),
           th = Math.random() * Math.PI * 2,
-          r = 18 + Math.random() * 75;
+          r = 20 + Math.random() * 80;
         bgP[i * 3] = r * Math.sin(phi) * Math.cos(th);
         bgP[i * 3 + 1] = r * Math.sin(phi) * Math.sin(th);
         bgP[i * 3 + 2] = r * Math.cos(phi);
         const c = new THREE.Color().setHSL(
-          Math.random() * 0.35 + 0.28,
-          Math.random() * 0.5 + 0.3,
-          Math.random() * 0.4 + 0.15
+          Math.random() * 0.4 + 0.5,
+          Math.random() * 0.6 + 0.2,
+          Math.random() * 0.35 + 0.12
         );
         bgC[i * 3] = c.r;
         bgC[i * 3 + 1] = c.g;
@@ -2015,315 +2147,1380 @@
       const bgGeo = new THREE.BufferGeometry();
       bgGeo.setAttribute("position", new THREE.BufferAttribute(bgP, 3));
       bgGeo.setAttribute("color", new THREE.BufferAttribute(bgC, 3));
-      scene3.add(
+      sc3.add(
         new THREE.Points(
           bgGeo,
           new THREE.PointsMaterial({
-            size: 0.065,
+            size: 0.055,
             vertexColors: true,
             transparent: true,
-            opacity: 0.52,
+            opacity: 0.5,
             depthWrite: false,
           })
         )
       );
 
-      // Portals
-      const pObjects = [];
-      PORTALS.forEach((p, i) => {
-        const a = (p.angle * Math.PI) / 180,
-          px = Math.sin(a) * PORTAL_R,
-          pz = Math.cos(a) * PORTAL_R,
-          py = 0;
-        const rMat = new THREE.MeshBasicMaterial({
-          color: p.color,
-          transparent: true,
-          opacity: 0.88,
-        });
-        const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(0.88, 0.068, 16, 80),
-          rMat
-        );
-        ring.position.set(px, py, pz);
-        ring.lookAt(0, py, 0);
-        scene3.add(ring);
-        const dMat = new THREE.ShaderMaterial({
-          uniforms: {
-            uT: { value: 0 },
-            uC: { value: new THREE.Color(p.color) },
-            uIdx: { value: i },
-            uLk: { value: p.locked ? 1 : 0 },
-          },
-          vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-          fragmentShader: `uniform float uT,uIdx,uLk;uniform vec3 uC;varying vec2 vUv;void main(){vec2 uv=vUv-.5;float d=length(uv);float ring=smoothstep(.44,.38,d)-smoothstep(.3,.24,d);float inner=smoothstep(.23,0.,d);float p=sin(uT*3.+uIdx*1.05)*.35+.65;float scan=sin(uv.y*28.+uT*3.5)*.04+.96;float spin=sin(atan(uv.y,uv.x)*6.+uT*2.)*.5+.5;vec3 col=uC*(uLk>.5?.22:.82);float a=(ring*.7+inner*.35*spin*scan)*p*(uLk>.5?.38:1.);gl_FragColor=vec4(col,a);}`,
-          transparent: true,
-          side: THREE.DoubleSide,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        });
-        const disc = new THREE.Mesh(new THREE.CircleGeometry(0.88, 64), dMat);
-        disc.position.set(px, py, pz);
-        disc.lookAt(0, py, 0);
-        scene3.add(disc);
-        const curve = new THREE.CatmullRomCurve3([
-          new THREE.Vector3(0, 0, 0),
-          new THREE.Vector3(px * 0.55, py, pz * 0.55),
-          new THREE.Vector3(px, py, pz),
-        ]);
-        scene3.add(
-          new THREE.Line(
-            new THREE.BufferGeometry().setFromPoints(curve.getPoints(60)),
-            new THREE.LineBasicMaterial({
-              color: p.color,
-              transparent: true,
-              opacity: 0.18,
-            })
-          )
-        );
-        pObjects.push({ ring, disc, dMat, rMat, px, py, pz, p });
-      });
+      // ═══════════════════════════════════════════════════════════════════
+      // ORGAN PORTALS — Canvas 2D, well-drawn, always visible
+      // ═══════════════════════════════════════════════════════════════════
+      const OC = document.getElementById("oc");
+      OC.width = innerWidth;
+      OC.height = innerHeight;
+      const OX = OC.getContext("2d");
+      let orgT = 0,
+        orgAID;
 
-      // ── PORTAL DETECTION ──
+      function proj(wx, wy, wz) {
+        const v = new THREE.Vector3(wx, wy, wz);
+        v.project(cam3);
+        if (v.z >= 1) return null;
+        return {
+          x: (v.x * 0.5 + 0.5) * OC.width,
+          y: (v.y * -0.5 + 0.5) * OC.height,
+        };
+      }
+
+      // ══ HEART — anatomical, clean ══
+      function drawHeart(cx, cy, sz, hex, t, locked) {
+        const pulse = Math.sin(t * 2.6) * 0.5 + 0.5;
+        const beat = 1 + pulse * 0.08;
+        const s = sz * beat * 0.017;
+        const al = locked ? 0.38 : 1;
+        const [hr, hg, hb] = hexRGB(hex);
+        OX.save();
+        OX.translate(cx, cy);
+        OX.scale(s, s);
+        // Drop shadow for depth
+        OX.save();
+        OX.translate(3, 5);
+        OX.globalAlpha = 0.2 * al;
+        OX.beginPath();
+        heartPath(OX);
+        OX.fillStyle = "#000";
+        OX.fill();
+        OX.restore();
+        // Main body gradient
+        OX.beginPath();
+        heartPath(OX);
+        const g = OX.createLinearGradient(-30, -35, 20, 50);
+        g.addColorStop(
+          0,
+          `rgba(${Math.min(255, hr + 70)},${Math.min(255, hg + 30)},${Math.min(
+            255,
+            hb + 30
+          )},${(0.85 + pulse * 0.12) * al})`
+        );
+        g.addColorStop(
+          0.45,
+          `rgba(${hr},${hg},${hb},${(0.65 + pulse * 0.1) * al})`
+        );
+        g.addColorStop(
+          1,
+          `rgba(${Math.max(0, hr - 55)},${Math.max(0, hg - 20)},${Math.max(
+            0,
+            hb - 20
+          )},${(0.32 + pulse * 0.08) * al})`
+        );
+        OX.fillStyle = g;
+        OX.fill();
+        // Glow outline
+        if (!locked) {
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${pulse * 0.5 * al})`;
+          OX.lineWidth = 9;
+          OX.stroke();
+        }
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${(0.9 + pulse * 0.1) * al})`;
+        OX.lineWidth = 2.2;
+        OX.stroke();
+        // Highlight sphere (3D)
+        const hl = OX.createRadialGradient(-18, -20, 0, -18, -20, 24);
+        hl.addColorStop(0, `rgba(255,255,255,${0.38 * al})`);
+        hl.addColorStop(1, "transparent");
+        OX.fillStyle = hl;
+        OX.fill();
+        // Aorta
+        OX.beginPath();
+        OX.moveTo(-4, -5);
+        OX.bezierCurveTo(-4, -24, -14, -33, -11, -46);
+        OX.bezierCurveTo(-8, -54, 7, -55, 10, -44);
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${
+          (0.78 + pulse * 0.18) * al
+        })`;
+        OX.lineWidth = 6.5;
+        OX.lineJoin = "round";
+        OX.stroke();
+        // Aortic arch
+        OX.beginPath();
+        OX.arc(-1, -48, 16, Math.PI, 0, false);
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${
+          (0.65 + pulse * 0.18) * al
+        })`;
+        OX.lineWidth = 5.5;
+        OX.stroke();
+        // Pulmonary artery (blue)
+        OX.beginPath();
+        OX.moveTo(10, -4);
+        OX.bezierCurveTo(22, -20, 34, -26, 37, -18);
+        OX.strokeStyle = `rgba(70,140,255,${0.65 * al})`;
+        OX.lineWidth = 4.5;
+        OX.stroke();
+        // Left coronary
+        OX.beginPath();
+        OX.moveTo(-6, 12);
+        OX.bezierCurveTo(-22, 18, -34, 30, -30, 42);
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.32 * al})`;
+        OX.lineWidth = 2;
+        OX.stroke();
+        // Right coronary
+        OX.beginPath();
+        OX.moveTo(4, 14);
+        OX.bezierCurveTo(18, 20, 28, 32, 24, 42);
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.28 * al})`;
+        OX.lineWidth = 1.8;
+        OX.stroke();
+        // Superior vena cava (blue)
+        OX.beginPath();
+        OX.moveTo(-20, -3);
+        OX.bezierCurveTo(-26, -18, -22, -32, -18, -40);
+        OX.strokeStyle = `rgba(60,110,230,${0.55 * al})`;
+        OX.lineWidth = 4;
+        OX.stroke();
+        // Ventricle dividing line
+        OX.beginPath();
+        OX.moveTo(0, -5);
+        OX.bezierCurveTo(-2, 10, -1, 28, 0, 50);
+        OX.strokeStyle = `rgba(${Math.max(0, hr - 40)},${Math.max(
+          0,
+          hg - 20
+        )},${Math.max(0, hb - 20)},${0.22 * al})`;
+        OX.lineWidth = 1.5;
+        OX.stroke();
+        OX.restore();
+      }
+      function heartPath(ctx) {
+        ctx.moveTo(0, -4);
+        ctx.bezierCurveTo(-42, -34, -54, 12, -27, 34);
+        ctx.bezierCurveTo(-16, 46, 0, 58, 0, 58);
+        ctx.bezierCurveTo(0, 58, 16, 46, 27, 34);
+        ctx.bezierCurveTo(54, 12, 42, -34, 0, -4);
+        ctx.closePath();
+      }
+
+      // ══ LUNGS — anatomical, clean ══
+      function drawLungs(cx, cy, sz, hex, t, locked) {
+        const pulse = Math.sin(t * 1.1) * 0.5 + 0.5;
+        const breath = Math.sin(t * 1.1) * 0.07;
+        const s = sz * 0.014;
+        const al = locked ? 0.38 : 1;
+        const [hr, hg, hb] = hexRGB(hex);
+        OX.save();
+        OX.translate(cx, cy);
+        OX.scale(s, s);
+        // Trachea
+        OX.beginPath();
+        OX.moveTo(0, -58);
+        OX.lineTo(0, -20);
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.88 * al})`;
+        OX.lineWidth = 8.5;
+        OX.lineCap = "round";
+        OX.stroke();
+        // Carina bifurcation
+        OX.beginPath();
+        OX.moveTo(0, -20);
+        OX.bezierCurveTo(-5, -14, -22, -8, -32, -2);
+        OX.moveTo(0, -20);
+        OX.bezierCurveTo(5, -14, 22, -8, 32, -2);
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.78 * al})`;
+        OX.lineWidth = 6.5;
+        OX.stroke();
+        // ── LEFT LUNG ──
+        const ls = 1 + breath * 0.09;
+        OX.save();
+        OX.translate(-46, 14);
+        OX.scale(ls, ls);
+        OX.beginPath();
+        OX.moveTo(2, -38);
+        OX.bezierCurveTo(-32, -44, -50, -24, -46, 4);
+        OX.bezierCurveTo(-44, 28, -34, 50, -16, 57);
+        OX.bezierCurveTo(-2, 63, 18, 55, 22, 38);
+        OX.bezierCurveTo(26, 20, 20, -10, 2, -38);
+        OX.closePath();
+        const lgL = OX.createLinearGradient(-40, -30, 18, 50);
+        lgL.addColorStop(
+          0,
+          `rgba(${Math.min(255, hr + 55)},${Math.min(255, hg + 35)},${Math.min(
+            255,
+            hb + 35
+          )},${(0.58 + pulse * 0.2) * al})`
+        );
+        lgL.addColorStop(
+          0.55,
+          `rgba(${hr},${hg},${hb},${(0.32 + pulse * 0.12) * al})`
+        );
+        lgL.addColorStop(
+          1,
+          `rgba(${Math.max(0, hr - 45)},${Math.max(0, hg - 25)},0,${0.12 * al})`
+        );
+        OX.fillStyle = lgL;
+        OX.fill();
+        if (!locked) {
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${pulse * 0.38 * al})`;
+          OX.lineWidth = 8;
+          OX.stroke();
+        }
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${
+          (0.78 + pulse * 0.18) * al
+        })`;
+        OX.lineWidth = 2.2;
+        OX.stroke();
+        // Highlight
+        const lhl = OX.createRadialGradient(-32, -24, 0, -32, -24, 20);
+        lhl.addColorStop(0, `rgba(255,255,255,${0.3 * al})`);
+        lhl.addColorStop(1, "transparent");
+        OX.fillStyle = lhl;
+        OX.fill();
+        // Fissure
+        OX.beginPath();
+        OX.moveTo(-42, -2);
+        OX.bezierCurveTo(-26, 8, -8, 14, 18, 10);
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.35 * al})`;
+        OX.lineWidth = 1.5;
+        OX.stroke();
+        // Bronchioles
+        for (let i = 0; i < 4; i++) {
+          OX.beginPath();
+          OX.moveTo(2, -10);
+          const tx = -10 + i * -8,
+            ty = 8 + i * 12;
+          OX.lineTo(tx, ty);
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${
+            (0.28 + pulse * 0.08) * al
+          })`;
+          OX.lineWidth = 1.2 - i * 0.2;
+          OX.stroke();
+        }
+        OX.restore();
+        // ── RIGHT LUNG (slightly bigger) ──
+        const rs = 1 + breath * 0.1;
+        OX.save();
+        OX.translate(46, 14);
+        OX.scale(rs, rs);
+        OX.beginPath();
+        OX.moveTo(-2, -38);
+        OX.bezierCurveTo(32, -44, 52, -24, 48, 4);
+        OX.bezierCurveTo(46, 28, 36, 50, 18, 57);
+        OX.bezierCurveTo(2, 63, -18, 55, -22, 38);
+        OX.bezierCurveTo(-26, 20, -20, -10, -2, -38);
+        OX.closePath();
+        const lgR = OX.createLinearGradient(40, -30, -18, 50);
+        lgR.addColorStop(
+          0,
+          `rgba(${Math.min(255, hr + 55)},${Math.min(255, hg + 35)},${Math.min(
+            255,
+            hb + 35
+          )},${(0.58 + pulse * 0.2) * al})`
+        );
+        lgR.addColorStop(
+          0.55,
+          `rgba(${hr},${hg},${hb},${(0.32 + pulse * 0.12) * al})`
+        );
+        lgR.addColorStop(
+          1,
+          `rgba(${Math.max(0, hr - 45)},${Math.max(0, hg - 25)},0,${0.12 * al})`
+        );
+        OX.fillStyle = lgR;
+        OX.fill();
+        if (!locked) {
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${pulse * 0.38 * al})`;
+          OX.lineWidth = 8;
+          OX.stroke();
+        }
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${
+          (0.78 + pulse * 0.18) * al
+        })`;
+        OX.lineWidth = 2.2;
+        OX.stroke();
+        const rhl = OX.createRadialGradient(32, -24, 0, 32, -24, 20);
+        rhl.addColorStop(0, `rgba(255,255,255,${0.3 * al})`);
+        rhl.addColorStop(1, "transparent");
+        OX.fillStyle = rhl;
+        OX.fill();
+        // Two fissures (right has 3 lobes)
+        OX.beginPath();
+        OX.moveTo(42, -5);
+        OX.bezierCurveTo(26, 6, 8, 12, -16, 8);
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.35 * al})`;
+        OX.lineWidth = 1.5;
+        OX.stroke();
+        OX.beginPath();
+        OX.moveTo(40, 18);
+        OX.bezierCurveTo(22, 25, 4, 28, -16, 22);
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.28 * al})`;
+        OX.lineWidth = 1.2;
+        OX.stroke();
+        for (let i = 0; i < 4; i++) {
+          OX.beginPath();
+          OX.moveTo(-2, -10);
+          const tx = 10 + i * 8,
+            ty = 8 + i * 12;
+          OX.lineTo(tx, ty);
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${
+            (0.28 + pulse * 0.08) * al
+          })`;
+          OX.lineWidth = 1.2 - i * 0.2;
+          OX.stroke();
+        }
+        OX.restore();
+        OX.restore();
+      }
+
+      // ══ CELL (immune) ══
+      function drawCell(cx, cy, sz, hex, t, locked) {
+        const pulse = Math.sin(t * 1.8) * 0.5 + 0.5;
+        const al = locked ? 0.38 : 1;
+        const r = sz * 0.65;
+        const [hr, hg, hb] = hexRGB(hex);
+        OX.save();
+        OX.translate(cx, cy);
+        // Irregular membrane
+        OX.beginPath();
+        const pts = 10;
+        for (let i = 0; i <= pts; i++) {
+          const a = (i / pts) * Math.PI * 2;
+          const rr = r * (0.65 + Math.sin(t + i * 1.3) * 0.1);
+          OX.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+        }
+        OX.closePath();
+        const g = OX.createRadialGradient(
+          -r * 0.25,
+          -r * 0.25,
+          r * 0.05,
+          -r * 0.25,
+          -r * 0.25,
+          r * 1.1
+        );
+        g.addColorStop(
+          0,
+          `rgba(${Math.min(255, hr + 70)},${Math.min(255, hg + 50)},${Math.min(
+            255,
+            hb + 50
+          )},${(0.72 + pulse * 0.2) * al})`
+        );
+        g.addColorStop(
+          0.55,
+          `rgba(${hr},${hg},${hb},${(0.45 + pulse * 0.15) * al})`
+        );
+        g.addColorStop(1, `rgba(${Math.max(0, hr - 50)},0,0,${0.15 * al})`);
+        OX.fillStyle = g;
+        OX.fill();
+        if (!locked) {
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${pulse * 0.5 * al})`;
+          OX.lineWidth = 7;
+          OX.stroke();
+        }
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${
+          (0.85 + pulse * 0.15) * al
+        })`;
+        OX.lineWidth = 2.2;
+        OX.stroke();
+        // Nucleus
+        OX.beginPath();
+        OX.arc(0, 0, r * 0.32, 0, Math.PI * 2);
+        const ng = OX.createRadialGradient(
+          -r * 0.08,
+          -r * 0.08,
+          0,
+          -r * 0.08,
+          -r * 0.08,
+          r * 0.35
+        );
+        ng.addColorStop(
+          0,
+          `rgba(${Math.min(255, hr + 90)},${Math.min(255, hg + 70)},${Math.min(
+            255,
+            hb + 70
+          )},${0.7 * al})`
+        );
+        ng.addColorStop(1, `rgba(${hr},${hg},${hb},${0.4 * al})`);
+        OX.fillStyle = ng;
+        OX.fill();
+        OX.strokeStyle = `rgba(${Math.min(255, hr + 50)},${Math.min(
+          255,
+          hg + 30
+        )},${Math.min(255, hb + 30)},${0.6 * al})`;
+        OX.lineWidth = 1.5;
+        OX.stroke();
+        // Organelles
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2 + t * 0.4,
+            d = r * 0.52;
+          OX.beginPath();
+          OX.ellipse(
+            Math.cos(a) * d,
+            Math.sin(a) * d,
+            r * 0.1,
+            r * 0.06,
+            a,
+            0,
+            Math.PI * 2
+          );
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.45 * al})`;
+          OX.lineWidth = 1.2;
+          OX.stroke();
+        }
+        // Highlight
+        const hl = OX.createRadialGradient(
+          -r * 0.3,
+          -r * 0.3,
+          0,
+          -r * 0.3,
+          -r * 0.3,
+          r * 0.4
+        );
+        hl.addColorStop(0, `rgba(255,255,255,${0.35 * al})`);
+        hl.addColorStop(1, "transparent");
+        OX.fillStyle = hl;
+        OX.fill();
+        OX.restore();
+      }
+
+      // ══ SCAR (cicatrice) ══
+      function drawScar(cx, cy, sz, hex, t, locked) {
+        const al = locked ? 0.38 : 1;
+        const r = sz * 0.6;
+        const [hr, hg, hb] = hexRGB(hex);
+        OX.save();
+        OX.translate(cx, cy);
+        // Cracked terrain base
+        const bg = OX.createRadialGradient(0, 0, r * 0.1, 0, 0, r);
+        bg.addColorStop(
+          0,
+          `rgba(${Math.max(0, hr - 30)},0,${Math.max(0, hb - 30)},${0.35 * al})`
+        );
+        bg.addColorStop(1, `rgba(0,0,0,${0.1 * al})`);
+        OX.beginPath();
+        OX.arc(0, 0, r, 0, Math.PI * 2);
+        OX.fillStyle = bg;
+        OX.fill();
+        // Fracture lines radiating from center
+        for (let i = 0; i < 8; i++) {
+          const ang = (i / 8) * Math.PI * 2 + t * 0.02;
+          let x = 0,
+            y = 0;
+          OX.beginPath();
+          OX.moveTo(0, 0);
+          for (let s = 0; s < 5; s++) {
+            const jit = (Math.random() - 0.5) * 0.7;
+            x += Math.cos(ang + jit) * r * 0.22;
+            y += Math.sin(ang + jit) * r * 0.22;
+            OX.lineTo(x, y);
+          }
+          const ps = 0.45 + Math.sin(t * 1.5 + i) * 0.35;
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${ps * al})`;
+          OX.lineWidth = 2 + Math.sin(t + i) * 0.6;
+          OX.stroke();
+          // Crack glow
+          OX.strokeStyle = `rgba(${Math.min(255, hr + 60)},${Math.min(
+            255,
+            hg + 40
+          )},${Math.min(255, hb + 60)},${ps * 0.4 * al})`;
+          OX.lineWidth = 4;
+          OX.stroke();
+        }
+        // Central wound glow
+        const cg = OX.createRadialGradient(0, 0, 0, 0, 0, r * 0.3);
+        cg.addColorStop(
+          0,
+          `rgba(${hr},${hg},${hb},${(0.65 + Math.sin(t * 2) * 0.25) * al})`
+        );
+        cg.addColorStop(1, `rgba(${hr},${hg},${hb},0)`);
+        OX.beginPath();
+        OX.arc(0, 0, r * 0.3, 0, Math.PI * 2);
+        OX.fillStyle = cg;
+        OX.fill();
+        if (!locked) {
+          const eg = OX.createRadialGradient(0, 0, r * 0.5, 0, 0, r);
+          eg.addColorStop(0, `rgba(${hr},${hg},${hb},0)`);
+          eg.addColorStop(
+            1,
+            `rgba(${hr},${hg},${hb},${Math.sin(t * 1.5) * 0.22 * al})`
+          );
+          OX.beginPath();
+          OX.arc(0, 0, r, 0, Math.PI * 2);
+          OX.fillStyle = eg;
+          OX.fill();
+        }
+        OX.restore();
+      }
+
+      // ══ SYNAPSE ══
+      function drawSynapse(cx, cy, sz, hex, t, locked) {
+        const al = locked ? 0.38 : 1;
+        const r = sz * 0.6;
+        const [hr, hg, hb] = hexRGB(hex);
+        const nodes = 7;
+        OX.save();
+        OX.translate(cx, cy);
+        const npts = Array.from({ length: nodes }, (_, i) => {
+          const a = (i / nodes) * Math.PI * 2 + t * 0.06,
+            d = r * 0.58;
+          return {
+            x: Math.cos(a) * d,
+            y: Math.sin(a) * d,
+            p: Math.sin(t * 2.2 + i) * 0.5 + 0.5,
+          };
+        });
+        // Connections with signal dots
+        npts.forEach((a, i) => {
+          npts.forEach((b, j) => {
+            if (j <= i) return;
+            const sig = Math.sin(t * 3 + i * 1.3 + j * 0.7) * 0.5 + 0.5;
+            const alpha2 = (0.1 + sig * 0.25) * al;
+            OX.beginPath();
+            OX.moveTo(a.x, a.y);
+            OX.lineTo(b.x, b.y);
+            OX.strokeStyle = `rgba(${hr},${hg},${hb},${alpha2})`;
+            OX.lineWidth = 1;
+            OX.stroke();
+            const prog = (t * 0.8 + i * 0.3 + j * 0.2) % 1;
+            const sx = a.x + (b.x - a.x) * prog,
+              sy = a.y + (b.y - a.y) * prog;
+            OX.beginPath();
+            OX.arc(sx, sy, 3, 0, Math.PI * 2);
+            OX.fillStyle = `rgba(${Math.min(255, hr + 80)},${Math.min(
+              255,
+              hg + 60
+            )},${Math.min(255, hb + 60)},${sig * 0.9 * al})`;
+            OX.fill();
+          });
+        });
+        // Central nucleus
+        const cg = OX.createRadialGradient(0, 0, 0, 0, 0, r * 0.22);
+        cg.addColorStop(
+          0,
+          `rgba(${Math.min(255, hr + 80)},${Math.min(255, hg + 60)},${Math.min(
+            255,
+            hb + 60
+          )},${(0.85 + Math.sin(t * 2.5) * 0.15) * al})`
+        );
+        cg.addColorStop(1, `rgba(${hr},${hg},${hb},${0.4 * al})`);
+        OX.beginPath();
+        OX.arc(0, 0, r * 0.22, 0, Math.PI * 2);
+        OX.fillStyle = cg;
+        OX.fill();
+        if (!locked) {
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${
+            Math.sin(t * 2) * 0.4 * al
+          })`;
+          OX.lineWidth = 6;
+          OX.stroke();
+        }
+        OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.7 * al})`;
+        OX.lineWidth = 1.8;
+        OX.stroke();
+        // Node spheres
+        npts.forEach((n) => {
+          const ng = OX.createRadialGradient(
+            n.x - 2,
+            n.y - 2,
+            0,
+            n.x,
+            n.y,
+            7 + n.p * 4
+          );
+          ng.addColorStop(
+            0,
+            `rgba(${Math.min(255, hr + 100)},${Math.min(
+              255,
+              hg + 80
+            )},${Math.min(255, hb + 80)},${(0.9 + n.p * 0.1) * al})`
+          );
+          ng.addColorStop(1, `rgba(${hr},${hg},${hb},${0.4 * al})`);
+          OX.beginPath();
+          OX.arc(n.x, n.y, 7 + n.p * 4, 0, Math.PI * 2);
+          OX.fillStyle = ng;
+          OX.fill();
+          if (!locked) {
+            OX.strokeStyle = `rgba(${hr},${hg},${hb},${n.p * 0.5 * al})`;
+            OX.lineWidth = 4;
+            OX.stroke();
+          }
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.7 * al})`;
+          OX.lineWidth = 1.5;
+          OX.stroke();
+        });
+        OX.restore();
+      }
+
+      // ══ GALAXY ══
+      function drawGalaxy(cx, cy, sz, hex, t, locked) {
+        const al = locked ? 0.38 : 1;
+        const r = sz * 0.65;
+        const [hr, hg, hb] = hexRGB(hex);
+        OX.save();
+        OX.translate(cx, cy);
+        OX.rotate(t * 0.04);
+        // Galactic disc
+        const gg = OX.createRadialGradient(0, 0, 0, 0, 0, r);
+        gg.addColorStop(
+          0,
+          `rgba(${Math.min(255, hr + 80)},${Math.min(255, hg + 60)},${Math.min(
+            255,
+            hb + 80
+          )},${0.75 * al})`
+        );
+        gg.addColorStop(0.35, `rgba(${hr},${hg},${hb},${0.45 * al})`);
+        gg.addColorStop(
+          0.7,
+          `rgba(${Math.max(0, hr - 30)},0,${Math.max(0, hb - 20)},${0.2 * al})`
+        );
+        gg.addColorStop(1, "transparent");
+        OX.beginPath();
+        OX.ellipse(0, 0, r, r * 0.38, 0, 0, Math.PI * 2);
+        OX.fillStyle = gg;
+        OX.fill();
+        if (!locked) {
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${Math.sin(t) * 0.3 * al})`;
+          OX.lineWidth = 6;
+          OX.strokeStyle = `rgba(${hr},${hg},${hb},${0.18 * al})`;
+          OX.lineWidth = 1;
+          OX.stroke();
+        }
+        // Spiral arms
+        for (let arm = 0; arm < 3; arm++) {
+          const aOff = arm * ((Math.PI * 2) / 3);
+          for (let i = 0; i < 32; i++) {
+            const frac = i / 32;
+            const a = aOff + frac * Math.PI * 1.6;
+            const d = frac * r * 0.85;
+            const x = Math.cos(a) * d * 1.1,
+              y = Math.sin(a) * d * 0.42;
+            const ps = 3 - frac * 2.2;
+            const pa = (0.7 - frac * 0.5) * al;
+            if (pa < 0.05) break;
+            OX.beginPath();
+            OX.arc(x, y, Math.max(0.5, ps), 0, Math.PI * 2);
+            OX.fillStyle = `rgba(${Math.min(
+              255,
+              hr + 80 + Math.floor(frac * 30)
+            )},${Math.min(255, hg + 60 + Math.floor(frac * 20))},${Math.min(
+              255,
+              hb + 80
+            )},${pa})`;
+            OX.fill();
+          }
+        }
+        // Core
+        const cg = OX.createRadialGradient(0, 0, 0, 0, 0, r * 0.2);
+        cg.addColorStop(0, `rgba(255,255,220,${0.9 * al})`);
+        cg.addColorStop(
+          0.5,
+          `rgba(${Math.min(255, hr + 100)},${Math.min(255, hg + 80)},${Math.min(
+            255,
+            hb + 100
+          )},${0.7 * al})`
+        );
+        cg.addColorStop(1, `rgba(${hr},${hg},${hb},0)`);
+        OX.beginPath();
+        OX.arc(0, 0, r * 0.2, 0, Math.PI * 2);
+        OX.fillStyle = cg;
+        OX.fill();
+        // Stars
+        for (let i = 0; i < 18; i++) {
+          const a = (i / 18) * Math.PI * 2 + t * 0.05 * i;
+          const d = r * (0.28 + Math.sin(t * 0.8 + i) * 0.18);
+          OX.beginPath();
+          OX.arc(Math.cos(a) * d, Math.sin(a) * d * 0.42, 1.8, 0, Math.PI * 2);
+          OX.fillStyle = `rgba(255,255,240,${
+            (0.6 + Math.sin(t * 3 + i) * 0.3) * al
+          })`;
+          OX.fill();
+        }
+        OX.restore();
+      }
+
+      function hexRGB(h) {
+        return [
+          parseInt(h.slice(1, 3), 16),
+          parseInt(h.slice(3, 5), 16),
+          parseInt(h.slice(5, 7), 16),
+        ];
+      }
+
+      const DRAW_FN = {
+        heart: drawHeart,
+        lungs: drawLungs,
+        cell: drawCell,
+        scar: drawScar,
+        synapse: drawSynapse,
+        galaxy: drawGalaxy,
+      };
+
+      function organLoop() {
+        orgT = 0;
+        function loop() {
+          orgAID = requestAnimationFrame(loop);
+          if (PHASE !== "brain") return;
+          orgT += 0.016;
+          OX.clearRect(0, 0, OC.width, OC.height);
+          P.forEach((p, i) => {
+            const a = (p.angle * Math.PI) / 180;
+            const px = Math.sin(a) * PR,
+              pz = Math.cos(a) * PR;
+            const sc = proj(px, 0, pz);
+            if (!sc) return;
+            const dx = cam.x - px,
+              dz = cam.z - pz;
+            const dist = Math.sqrt(dx * dx + dz * dz);
+            const sz = Math.max(60, Math.min(250, 2900 / dist));
+            DRAW_FN[p.organ](sc.x, sc.y, sz, p.hex, orgT + i * 0.7, p.locked);
+            // Portal number
+            OX.save();
+            OX.font = `bold ${Math.max(10, sz * 0.1)}px Cinzel,serif`;
+            OX.textAlign = "center";
+            OX.fillStyle = `${p.hex}${p.locked ? "66" : "cc"}`;
+            OX.fillText(p.n, sc.x, sc.y - sz * 0.88);
+            if (p.locked) {
+              OX.font = `${Math.max(8, sz * 0.08)}px Cinzel,serif`;
+              OX.fillStyle = "rgba(180,180,180,.5)";
+              OX.fillText("🔒", sc.x, sc.y + sz * 0.88);
+            }
+            OX.restore();
+          });
+        }
+        loop();
+      }
+
+      // Portal detection
       function updatePortals() {
         let minD = 99,
           minI = -1;
-        pObjects.forEach((po, i) => {
-          const dx = cam.x - po.px,
-            dy = cam.y - po.py,
-            dz = cam.z - po.pz;
-          const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        P.forEach((p, i) => {
+          const a = (p.angle * Math.PI) / 180;
+          const px = Math.sin(a) * PR,
+            pz = Math.cos(a) * PR;
+          const d = Math.sqrt(
+            (cam.x - px) ** 2 + cam.y ** 2 + (cam.z - pz) ** 2
+          );
           if (d < minD) {
             minD = d;
             minI = i;
           }
         });
-        const near = minD < 4.2 ? minI : -1;
-        if (near !== lastNearIdx) {
-          lastNearIdx = near;
-          nearPortalIdx = near;
+        const near = minD < 4.5 ? minI : -1;
+        if (near !== lastNear) {
+          lastNear = near;
+          nearIdx = near;
           if (near >= 0) {
-            showPortalTip(near);
-            playPortalChime(180 + near * 22);
-            document.getElementById("portal-enter").classList.add("show");
-            $cur.classList.add("big");
-            // Heart portal specific dialogue (plays once)
-            if (near === 0 && !heartDialoguePlayed) {
-              heartDialoguePlayed = true;
+            showTip(near);
+            playChime(180 + near * 22);
+            document.getElementById("pen").classList.add("show");
+            $c.classList.add("big");
+            if (near === 0 && !hrtDialogue) {
+              hrtDialogue = true;
               stopVoice();
-              setTimeout(() => playHeartPortalDialogue(), 400);
+              setTimeout(
+                () =>
+                  speak(
+                    "Mon cœur... Il bat si fort.\nTrop fort. Trop vite.\nComme en panique constante.\n\nVous allez comprendre...",
+                    () => setTimeout(hideVB, 3000)
+                  ),
+                400
+              );
             }
           } else {
-            document.getElementById("portal-tip").classList.remove("show");
-            document.getElementById("portal-enter").classList.remove("show");
-            $cur.classList.remove("big");
+            document.getElementById("pt").classList.remove("show");
+            document.getElementById("pen").classList.remove("show");
+            $c.classList.remove("big");
           }
         }
       }
-
-      function showPortalTip(idx) {
-        const p = PORTALS[idx];
-        document.getElementById("pt-icon").textContent = p.icon;
-        document.getElementById("pt-name").textContent = p.name;
-        document.getElementById("pt-name").style.color = p.hex;
-        document.getElementById("pt-status").textContent = p.status;
-        document.getElementById("pt-mission").textContent = p.mission;
-        document.getElementById("pt-inner").style.borderColor = p.hex + "33";
-        const ac = document.getElementById("pt-access");
+      function showTip(i) {
+        const p = P[i];
+        document.getElementById("pic").textContent = p.ic;
+        document.getElementById("pnu").textContent = `ORGANE ${p.n}/6`;
+        document.getElementById("pna").textContent = p.nm;
+        document.getElementById("pna").style.color = p.hex;
+        document.getElementById(
+          "pta"
+        ).style.background = `linear-gradient(90deg,${p.hex},${p.hex}55)`;
+        const sb = document.getElementById("pst");
+        sb.textContent = p.st;
+        sb.className = `pbg ${p.sc}`;
+        document.getElementById("pms").textContent = p.ms;
+        document.getElementById("pti").style.borderColor = p.hex + "55";
+        document.getElementById(
+          "pti"
+        ).style.boxShadow = `0 8px 50px rgba(0,0,0,.9),0 0 35px ${p.hex}18`;
+        const ac = document.getElementById("pac");
         if (!p.locked) {
-          ac.textContent = "✓ ACCESSIBLE — ENTRER";
-          ac.className = "pt-access open";
-          ac.style.borderColor = p.hex + "55";
+          ac.textContent = "✓ ACCESSIBLE";
+          ac.className = "pac open";
           ac.style.color = p.hex;
+          ac.style.borderColor = p.hex + "55";
         } else {
-          ac.textContent = "🔒 VERROUILLÉ — COMPLETEZ LE STAGE PRÉCÉDENT";
-          ac.className = "pt-access locked";
+          ac.textContent = `🔒 VERROUILLÉ — STAGE ${i}`;
+          ac.className = "pac locked";
         }
-        const tip = document.getElementById("portal-tip");
+        const tip = document.getElementById("pt");
         tip.style.left = "50%";
-        tip.style.bottom = "250px";
+        tip.style.bottom = "265px";
         tip.style.transform = "translateX(-50%)";
         tip.classList.add("show");
       }
 
-      // ── HEART PORTAL DIALOGUE ──
-      function playHeartPortalDialogue() {
-        const text = `Mon cœur... Il bat si fort en ce moment.\nTrop fort. Trop vite.\nComme s'il était en panique constante.\n\nVous allez comprendre pourquoi...`;
-        speakAndType(text, () => {
-          setTimeout(() => hideVoiceBox(), 3000);
-        });
-      }
-
-      // ══════════════════════════════════════════════════════════════════
-      // ENTER PORTAL — FLASH VERT + TUNNEL VEINES + BOOM + SCÈNE 4
-      // ══════════════════════════════════════════════════════════════════
+      // ═══════════════════════════════════════════════════════════════════
+      // ENTER PORTAL — always works
+      // ═══════════════════════════════════════════════════════════════════
       function enterPortal() {
-        if (nearPortalIdx < 0 || enteringPortal) return;
-        const p = PORTALS[nearPortalIdx];
+        let minD = 99,
+          minI = -1;
+        P.forEach((p, i) => {
+          const a = (p.angle * Math.PI) / 180;
+          const px = Math.sin(a) * PR,
+            pz = Math.cos(a) * PR;
+          const d = Math.sqrt((cam.x - px) ** 2 + (cam.z - pz) ** 2);
+          if (d < minD) {
+            minD = d;
+            minI = i;
+          }
+        });
+        const tgt = nearIdx >= 0 ? nearIdx : minD < 7 ? minI : -1;
+        if (tgt < 0 || entering) return;
+        const p = P[tgt];
         if (p.locked) {
-          document.getElementById("pt-inner").style.boxShadow =
-            "0 0 24px rgba(255,50,50,.6)";
-          setTimeout(
-            () => (document.getElementById("pt-inner").style.boxShadow = ""),
-            800
-          );
+          document.getElementById("pti").style.boxShadow =
+            "0 0 30px rgba(255,40,40,.8)";
+          setTimeout(() => showTip(tgt), 900);
           return;
         }
-        enteringPortal = true;
+        entering = true;
         stopVoice();
-        // Unlock pointer
         if (document.pointerLockElement) document.exitPointerLock();
-
-        // Hide HUD
-        document.getElementById("portal-tip").classList.remove("show");
-        document.getElementById("portal-enter").classList.remove("show");
-
+        document.getElementById("pt").classList.remove("show");
+        document.getElementById("pen").classList.remove("show");
         score += 100;
-        document.getElementById("score-val").textContent = `SCORE : ${score}`;
-        document.getElementById("score-display").textContent = score;
-
-        // 1. BLINDING GREEN FLASH
-        const bf = document.getElementById("blind-flash");
-        bf.style.background = "#00ff88";
-        bf.style.transition = "none";
-        bf.style.opacity = "1";
-        setTimeout(() => {
-          bf.style.transition = "opacity .4s";
-          bf.style.opacity = "0";
-          // 2. Start vein tunnel
-          setTimeout(() => startVeinTunnel(), 300);
-        }, 120);
+        document.getElementById("sv").textContent = "SCORE : " + score;
+        document.getElementById("sd").textContent = score;
+        // Begin cinematic transition
+        beginVeinTransition();
       }
 
-      // ── VEIN TUNNEL ──
-      function startVeinTunnel() {
+      // ═══════════════════════════════════════════════════════════════════
+      // VEIN TRANSITION — professional, immersive, terrifying
+      // Phase 1: aspiration pull (2s) → Phase 2: vein rush (6s) → Phase 3: impact (2s)
+      // ═══════════════════════════════════════════════════════════════════
+      function beginVeinTransition() {
+        // Hide brain UI
+        document.getElementById("hud").style.transition = "opacity .6s";
         document.getElementById("hud").style.opacity = "0";
-        const vc = document.getElementById("vein-canvas");
+        document.getElementById("pen").style.opacity = "0";
+        OC.style.display = "none";
+        cancelAnimationFrame(orgAID);
+
+        // Setup vein canvas
+        const vc = document.getElementById("vc");
         vc.width = innerWidth;
         vc.height = innerHeight;
         vc.style.display = "block";
-        const ctx = vc.getContext("2d");
+        const ekEl = document.getElementById("ek");
+        ekEl.width = innerWidth;
+        ekEl.height = 72;
+        ekEl.style.opacity = "1";
+        const ctx = vc.getContext("2d"),
+          ekCtx = ekEl.getContext("2d");
         const W = vc.width,
           H = vc.height,
           cx = W / 2,
           cy = H / 2;
 
-        playHeartTunnelAudio();
+        // Start heartbeat
+        startHeartbeat();
 
-        const veins = Array.from({ length: 28 }, () => ({
-          angle: Math.random() * Math.PI * 2,
-          r: Math.random() * 120 + 60,
-          width: Math.random() * 10 + 3,
+        // ── VEIN GEOMETRY ──
+        const VCOUNT = 30;
+        const VEINS = Array.from({ length: VCOUNT }, (_, i) => ({
+          angle: (i / VCOUNT) * Math.PI * 2 + Math.random() * 0.12,
           phase: Math.random() * Math.PI * 2,
-          seg: Math.random() * 4 + 3,
+          thick: Math.random() * 7 + 2.5,
+          bulge: Math.random() * 0.45 + 0.78,
+          wobble: Math.random() * 0.045 + 0.008,
+          isArtery: Math.random() < 0.4, // arteries are brighter
         }));
 
-        let frame = 0,
-          totalFrames = 210;
-        const booms = ["BOOM...", "BOOM.", "BOOM!"];
-        let boomIdx = 0,
-          boomAlpha = 0,
-          boomShown = false;
+        // ── BLOOD CELLS ──
+        const CELLS = Array.from({ length: 200 }, () => ({
+          angle: Math.random() * Math.PI * 2,
+          r: Math.random() * 0.9 + 0.05,
+          z: Math.random(),
+          spd: Math.random() * 0.028 + 0.01,
+          sz: Math.random() * 5 + 2,
+          isRBC: Math.random() < 0.72,
+          wobA: Math.random() * 0.06,
+          wobP: Math.random() * Math.PI * 2,
+        }));
+
+        // EKG buffer
+        const EKG = new Float32Array(260);
+        let ekgHead = 0;
+
+        // Fear messages
+        const FEARS = [
+          "VOUS ÊTES ASPIRÉ...",
+          "LE CŒUR VOUS APPELLE",
+          "SANS RETOUR POSSIBLE",
+          "SENTEZ-VOUS ÇA ?",
+        ];
+        let fearI = 0;
+        const ftEl = document.getElementById("ft");
+
+        // BOOM texts
+        const BOOMS = ["BOOM...", "BOOM.", "BOOM!", "💀"];
+        let boomI = 0;
+        const btEl = document.getElementById("bt");
+
+        let frame = 0;
+        const PHASE1 = 50; // aspiration pull
+        const PHASE2 = 200; // vein rush
+        const PHASE3 = 50; // impact + fade
+        const TOTAL = PHASE1 + PHASE2 + PHASE3;
 
         function draw() {
           frame++;
-          const progress = frame / totalFrames;
-          ctx.fillStyle = `rgba(0,0,0,${0.15 + progress * 0.04})`;
-          ctx.fillRect(0, 0, W, H);
+          const prog = frame / TOTAL;
+          const ph1 = Math.min(frame / PHASE1, 1);
+          const ph2 =
+            frame > PHASE1 ? Math.min((frame - PHASE1) / PHASE2, 1) : 0;
+          const ph3 =
+            frame > PHASE1 + PHASE2
+              ? Math.min((frame - PHASE1 - PHASE2) / PHASE3, 1)
+              : 0;
+          const bInt = Math.max(6, Math.floor(32 * (1 - ph2 * 0.72)));
+          const bPhase = (frame % bInt) / bInt;
+          const isBeat = bPhase < 0.14;
 
-          // Deep red background
-          const grd = ctx.createRadialGradient(
+          // ══ PHASE 1: ASPIRATION PULL ══
+          // Screen warps toward heart portal, everything gets sucked in
+          if (ph1 < 1) {
+            ctx.clearRect(0, 0, W, H);
+            // Dark vignette closing in
+            const vg = ctx.createRadialGradient(
+              cx,
+              cy,
+              Math.max(10, (1 - ph1) * Math.min(W, H) * 0.55),
+              cx,
+              cy,
+              Math.max(W, H) * 0.75
+            );
+            vg.addColorStop(0, "rgba(0,0,0,0)");
+            vg.addColorStop(0.7, `rgba(0,0,0,${ph1 * 0.6})`);
+            vg.addColorStop(1, "rgba(0,0,0,.96)");
+            ctx.fillStyle = vg;
+            ctx.fillRect(0, 0, W, H);
+            // Suction radial lines (pulling inward)
+            const lineCount = Math.floor(ph1 * 80) + 20;
+            for (let i = 0; i < lineCount; i++) {
+              const a = (i / lineCount) * Math.PI * 2;
+              const startR = Math.max(W, H) * 0.7;
+              const endR = Math.max(10, (1 - ph1) * 80);
+              const x1 = cx + Math.cos(a) * startR,
+                y1 = cy + Math.sin(a) * startR;
+              const x2 = cx + Math.cos(a) * endR,
+                y2 = cy + Math.sin(a) * endR;
+              const ln = ctx.createLinearGradient(x1, y1, x2, y2);
+              ln.addColorStop(0, "rgba(180,0,0,0)");
+              ln.addColorStop(0.6, `rgba(200,20,0,${ph1 * 0.18})`);
+              ln.addColorStop(1, `rgba(255,40,0,${ph1 * 0.55})`);
+              ctx.strokeStyle = ln;
+              ctx.lineWidth = 0.8 + ph1 * 1.2;
+              ctx.beginPath();
+              ctx.moveTo(x1, y1);
+              ctx.lineTo(x2, y2);
+              ctx.stroke();
+            }
+            // Central glow — the heart calling
+            const hg = ctx.createRadialGradient(
+              cx,
+              cy,
+              0,
+              cx,
+              cy,
+              Math.max(10, (1 - ph1) * 200 + 50)
+            );
+            hg.addColorStop(0, `rgba(220,0,0,${ph1 * 0.7})`);
+            hg.addColorStop(0.4, `rgba(180,0,0,${ph1 * 0.35})`);
+            hg.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = hg;
+            ctx.fillRect(0, 0, W, H);
+            // Heartbeat overlay starts early
+            if (ph1 > 0.5) {
+              const bo = document.getElementById("bo");
+              bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(${
+                160 + Math.floor(ph1 * 60)
+              },0,0,${isBeat ? ph1 * 0.5 : 0.08 * ph1}) 0%,transparent 65%)`;
+              bo.style.opacity = "1";
+            }
+            if (ph1 < 1) {
+              requestAnimationFrame(draw);
+              return;
+            }
+          }
+
+          // ══ PHASE 2: INSIDE VEIN — RUSH ══
+          // Background
+          ctx.fillStyle = `rgba(0,0,0,${0.13 + ph2 * 0.07})`;
+          ctx.fillRect(0, 0, W, H);
+          const amb = ctx.createRadialGradient(
             cx,
             cy,
             0,
             cx,
             cy,
-            350 + Math.sin(frame * 0.12) * 60
+            Math.max(W, H) * 0.62
           );
-          grd.addColorStop(
+          amb.addColorStop(
             0,
-            `rgba(${100 + Math.floor(progress * 60)},0,8,${0.45 * progress})`
+            `rgba(${100 + Math.floor(ph2 * 90)},${Math.floor(
+              ph2 * 8
+            )},${Math.floor(ph2 * 5)},${0.62 * ph2})`
           );
-          grd.addColorStop(0.5, `rgba(50,0,4,${0.35 * progress})`);
-          grd.addColorStop(1, "rgba(0,0,0,0)");
-          ctx.fillStyle = grd;
+          amb.addColorStop(
+            0.5,
+            `rgba(${46 + Math.floor(ph2 * 30)},0,3,${0.44 * ph2})`
+          );
+          amb.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = amb;
           ctx.fillRect(0, 0, W, H);
 
-          // Pulsing veins
-          veins.forEach((v) => {
-            const pulse = Math.sin(frame * 0.14 + v.phase) * 0.35 + 0.65;
-            const spread = progress * 500;
-            const x1 = cx + Math.cos(v.angle) * v.r,
-              y1 = cy + Math.sin(v.angle) * v.r;
-            const x2 = cx + Math.cos(v.angle + 0.25) * (v.r + spread),
-              y2 = cy + Math.sin(v.angle + 0.25) * (v.r + spread);
-            const r2 = Math.floor(180 + pulse * 75),
-              g2 = Math.floor(pulse * 18),
-              b2 = Math.floor(pulse * 18);
+          // ── VEIN TUBE — organic, pulsating ──
+          const DEPTH = 26;
+          for (let z = DEPTH; z > 0; z--) {
+            const depth = z / DEPTH;
+            const beatBulge = isBeat ? 0.14 * (1 - bPhase / 0.14) : 0;
+            // Non-uniform radius — organic wobble
+            const baseR =
+              Math.min(W, H) *
+              0.46 *
+              (1 / depth + ph2 * 0.45) *
+              (1 + beatBulge * 0.45);
+            const alpha = depth * 0.76 * (1 - depth * 0.24);
+            const vPulse =
+              Math.sin(frame * 0.1 + z * 0.28 + Math.PI * depth) * 0.14 + 0.86;
+            const r2 = Math.floor(
+              145 + depth * 98 + Math.sin(frame * 0.07 + z) * depth * 14
+            );
+            const g2 = Math.floor(depth * 10);
+            const wx = 1 + Math.sin(frame * 0.038 + z * 0.7) * 0.045,
+              wy = 1 + Math.cos(frame * 0.032 + z * 0.55) * 0.045;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.scale(wx, wy);
+            ctx.translate(-cx, -cy);
             ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            // Curved veins with control points
-            const cpx = cx + Math.cos(v.angle + 0.12) * v.r * 0.6,
-              cpy = cy + Math.sin(v.angle + 0.12) * v.r * 0.6;
-            ctx.quadraticCurveTo(x1, y1, x2, y2);
-            ctx.strokeStyle = `rgba(${r2},${g2},${b2},${pulse * 0.7})`;
-            ctx.lineWidth = v.width * (1 + progress * 2.5);
+            ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(${r2},${g2},${g2},${
+              alpha * vPulse * 0.62
+            })`;
+            ctx.lineWidth = 1.8 + depth * 3.2;
             ctx.stroke();
-            // Glow
-            ctx.strokeStyle = `rgba(255,${Math.floor(pulse * 30)},${Math.floor(
-              pulse * 30
-            )},${pulse * 0.25})`;
-            ctx.lineWidth = v.width * (1 + progress * 2.5) * 1.8;
-            ctx.stroke();
+            // Inner arterial membrane
+            if (z % 3 === 0) {
+              ctx.beginPath();
+              ctx.arc(cx, cy, baseR * 0.97, 0, Math.PI * 2);
+              ctx.strokeStyle = `rgba(255,${Math.floor(
+                vPulse * 20
+              )},${Math.floor(vPulse * 12)},${alpha * 0.32})`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+            ctx.restore();
+            // Longitudinal vein fibers
+            VEINS.forEach((v) => {
+              const wobA =
+                v.angle + Math.sin(frame * v.wobble + v.phase) * 0.12;
+              const bx = cx + Math.cos(wobA) * baseR,
+                by = cy + Math.sin(wobA) * baseR;
+              const nextR =
+                Math.min(W, H) *
+                0.46 *
+                (1 / Math.max(depth - 0.06, 0.01) + ph2 * 0.45) *
+                (1 + beatBulge * 0.45);
+              const nx = cx + Math.cos(wobA) * nextR,
+                ny = cy + Math.sin(wobA) * nextR;
+              const vA =
+                alpha *
+                (0.42 + Math.sin(frame * 0.12 + v.phase + depth) * 0.14);
+              const vr = v.isArtery
+                ? Math.floor(185 + vPulse * 70)
+                : Math.floor(150 + vPulse * 65);
+              ctx.strokeStyle = `rgba(${vr},${g2},${g2},${vA})`;
+              ctx.lineWidth =
+                v.thick *
+                depth *
+                v.bulge *
+                vPulse *
+                0.92 *
+                (1 + beatBulge * 1.3);
+              ctx.beginPath();
+              ctx.moveTo(bx, by);
+              ctx.lineTo(nx, ny);
+              ctx.stroke();
+              if (v.isArtery) {
+                ctx.strokeStyle = `rgba(255,${Math.floor(
+                  vPulse * 45
+                )},${Math.floor(vPulse * 28)},${vA * 0.6})`;
+                ctx.lineWidth = Math.max(0.6, v.thick * 0.3 * depth);
+                ctx.beginPath();
+                ctx.moveTo(bx, by);
+                ctx.lineTo(nx, ny);
+                ctx.stroke();
+              }
+            });
+          }
+
+          // ── BLOOD CELLS rushing past ──
+          CELLS.forEach((c) => {
+            c.z -= c.spd * (1 + ph2 * 1.3);
+            if (c.z < 0) {
+              c.z = 1;
+              c.angle = Math.random() * Math.PI * 2;
+              c.r = Math.random() * 0.9 + 0.05;
+            }
+            c.angle += Math.sin(frame * 0.04 + c.wobP) * c.wobA;
+            const d2 = 1 - c.z;
+            const tR = Math.min(W, H) * 0.46 * d2 * (1 + ph2 * 0.45);
+            const px = cx + Math.cos(c.angle) * (c.r * tR),
+              py = cy + Math.sin(c.angle) * (c.r * tR);
+            const csz = c.sz * (1 + d2 * 3.2) * (1 + ph2 * 0.75),
+              pA = Math.min(0.95, d2 * 1.4);
+            // Motion trail
+            const tx = cx + Math.cos(c.angle) * (c.r * tR * (1 + c.spd * 14));
+            const ty = cy + Math.sin(c.angle) * (c.r * tR * (1 + c.spd * 14));
+            if (c.isRBC) {
+              // Red blood cell — biconcave
+              const tg = ctx.createLinearGradient(px, py, tx, ty);
+              tg.addColorStop(0, `rgba(215,28,28,${pA * 0.9})`);
+              tg.addColorStop(1, "rgba(170,0,0,0)");
+              ctx.strokeStyle = tg;
+              ctx.lineWidth = csz * 0.65;
+              ctx.beginPath();
+              ctx.moveTo(px, py);
+              ctx.lineTo(tx, ty);
+              ctx.stroke();
+              ctx.save();
+              ctx.translate(px, py);
+              ctx.rotate(c.angle);
+              ctx.beginPath();
+              ctx.ellipse(0, 0, csz * 0.72, csz * 0.44, 0, 0, Math.PI * 2);
+              const rg = ctx.createRadialGradient(
+                -csz * 0.15,
+                -csz * 0.1,
+                0,
+                -csz * 0.15,
+                -csz * 0.1,
+                csz * 0.75
+              );
+              rg.addColorStop(0, `rgba(175,10,10,${pA * 0.7})`);
+              rg.addColorStop(0.5, `rgba(228,38,38,${pA * 0.88})`);
+              rg.addColorStop(1, `rgba(195,18,18,${pA * 0.58})`);
+              ctx.fillStyle = rg;
+              ctx.fill();
+              // Biconcave centre indent
+              ctx.beginPath();
+              ctx.ellipse(0, 0, csz * 0.28, csz * 0.17, 0, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(130,5,5,${pA * 0.52})`;
+              ctx.fill();
+              ctx.restore();
+            } else {
+              // Platelet
+              const pg = ctx.createRadialGradient(px, py, 0, px, py, csz * 1.6);
+              pg.addColorStop(0, `rgba(255,185,75,${pA * 0.85})`);
+              pg.addColorStop(1, "rgba(220,120,25,0)");
+              ctx.fillStyle = pg;
+              ctx.beginPath();
+              ctx.arc(px, py, csz * 1.6, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = `rgba(255,205,105,${pA})`;
+              ctx.beginPath();
+              ctx.arc(px, py, csz * 0.45, 0, Math.PI * 2);
+              ctx.fill();
+            }
           });
 
-          // Energy particles flowing toward center
-          for (let i = 0; i < 12; i++) {
-            const angle = frame * 0.06 * i + i * 1.3;
-            const r = Math.max(5, (1 - (progress % 1)) * 0.5) * 350;
-            const x = cx + Math.cos(angle) * r,
-              y = cy + Math.sin(angle) * r;
-            const pa = Math.max(0, 0.8 * (1 - r / 350));
-            ctx.beginPath();
-            ctx.arc(x, y, 4 + progress * 5, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255,50,50,${pa})`;
-            ctx.fill();
+          // ── HEARTBEAT OVERLAY ──
+          const bo = document.getElementById("bo");
+          if (isBeat) {
+            const bA = ((0.14 - bPhase) / 0.14) * (0.48 + ph2 * 0.52);
+            bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(${
+              185 + Math.floor(ph2 * 65)
+            },0,0,${bA}) 0%,rgba(${100 + Math.floor(ph2 * 40)},0,0,${
+              bA * 0.5
+            }) 45%,transparent 70%)`;
+            bo.style.opacity = "1";
+            // Physical screen shake on beat
+            if (ph2 > 0.2) {
+              const shk = ph2 * 5 + 2;
+              vc.style.transform = `translate(${
+                (Math.random() - 0.5) * shk
+              }px,${(Math.random() - 0.5) * shk}px)`;
+              setTimeout(() => (vc.style.transform = ""), 80);
+            }
+            // Flash on heavy late beats
+            if (ph2 > 0.5 && bPhase < 0.04) {
+              ctx.fillStyle = `rgba(205,0,0,${0.12 + ph2 * 0.14})`;
+              ctx.fillRect(0, 0, W, H);
+            }
+          } else {
+            bo.style.opacity = "0";
           }
 
-          // BOOM text appears at specific frames
-          if (frame === 50 || frame === 90 || frame === 130) {
-            boomAlpha = 1;
-            boomShown = true;
-            const bt = document.getElementById("boom-text");
-            bt.textContent = booms[boomIdx % 3];
-            boomIdx++;
-            bt.style.opacity = "1";
-            bt.style.transform = "translate(-50%,-50%) scale(1.2)";
-            bt.style.transition = "all .08s";
+          // ── EKG WAVEFORM ──
+          EKG[ekgHead] = isBeat
+            ? (ph2 > 0.15 ? 3.5 : 2) * (1 - bPhase / 0.14)
+            : Math.sin(frame * 0.09 + ekgHead * 0.06) * 0.12;
+          ekgHead = (ekgHead + 1) % 260;
+          ekCtx.clearRect(0, 0, ekEl.width, 72);
+          ekCtx.fillStyle = "rgba(0,0,0,.6)";
+          ekCtx.fillRect(0, 0, ekEl.width, 72);
+          // Grid
+          ekCtx.strokeStyle = "rgba(100,0,0,.25)";
+          ekCtx.lineWidth = 0.5;
+          for (let i = 0; i < ekEl.width; i += 60) {
+            ekCtx.beginPath();
+            ekCtx.moveTo(i, 0);
+            ekCtx.lineTo(i, 72);
+            ekCtx.stroke();
+          }
+          for (let i = 0; i < 72; i += 18) {
+            ekCtx.beginPath();
+            ekCtx.moveTo(0, i);
+            ekCtx.lineTo(ekEl.width, i);
+            ekCtx.stroke();
+          }
+          // EKG line
+          ekCtx.strokeStyle = `rgba(255,${Math.floor(
+            40 + ph2 * 20
+          )},${Math.floor(30 + ph2 * 10)},${0.58 + ph2 * 0.36})`;
+          ekCtx.lineWidth = 2;
+          ekCtx.beginPath();
+          for (let i = 0; i < 260; i++) {
+            const idx = (ekgHead + i) % 260;
+            const x = (i / 260) * ekEl.width;
+            const y = 36 - EKG[idx] * 24;
+            i === 0 ? ekCtx.moveTo(x, y) : ekCtx.lineTo(x, y);
+          }
+          ekCtx.stroke();
+          // BPM
+          ekCtx.fillStyle = `rgba(255,50,50,${0.45 + ph2 * 0.35})`;
+          ekCtx.font = "bold 9px Cinzel,serif";
+          ekCtx.fillText(
+            "BPM : " + (52 + Math.floor(ph2 * 120)) + "   ██████████████",
+            16,
+            14
+          );
+
+          // ── FEAR TEXT ──
+          if (
+            frame % (50 + Math.floor((1 - ph2) * 20)) === 0 &&
+            fearI < FEARS.length
+          ) {
+            ftEl.textContent = FEARS[fearI++];
+            ftEl.style.transition = "none";
+            ftEl.style.color = `rgba(210,20,20,${0.6 + Math.random() * 0.3})`;
+            ftEl.style.letterSpacing = `${0.3 + ph2 * 0.3}em`;
             setTimeout(() => {
-              bt.style.opacity = "0";
-              bt.style.transform = "translate(-50%,-50%) scale(.8)";
-              bt.style.transition = "all .4s";
-            }, 400);
+              ftEl.style.transition =
+                "color 1.4s ease,letter-spacing 1.4s ease";
+              ftEl.style.color = "rgba(210,20,20,0)";
+              ftEl.style.letterSpacing = ".7em";
+            }, 850);
           }
 
-          // Pulse flash sync with heartbeat
-          if (frame % 28 < 3) {
-            ctx.fillStyle = `rgba(180,0,0,${0.06 + progress * 0.08})`;
-            ctx.fillRect(0, 0, W, H);
+          // ── BLOOD SPRAY STREAKS (late) ──
+          if (ph2 > 0.42) {
+            const ns = Math.floor((ph2 - 0.42) * 22);
+            for (let i = 0; i < ns; i++) {
+              const ang = frame * 0.05 * (i + 1) + i * 2.4;
+              const sr = Math.min(W, H) * 0.05;
+              const er = Math.min(W, H) * 0.56;
+              ctx.strokeStyle = `rgba(185,12,12,${0.07 + ph2 * 0.1})`;
+              ctx.lineWidth = 0.9 + Math.sin(frame + i) * 0.4;
+              ctx.beginPath();
+              ctx.moveTo(cx + Math.cos(ang) * sr, cy + Math.sin(ang) * sr);
+              ctx.lineTo(cx + Math.cos(ang) * er, cy + Math.sin(ang) * er);
+              ctx.stroke();
+            }
           }
 
-          if (frame < totalFrames) {
+          // ── BOOM ──
+          if ([60, 105, 148, 188].includes(frame) && boomI < BOOMS.length) {
+            btEl.textContent = BOOMS[boomI++];
+            btEl.style.opacity = "1";
+            btEl.style.transform = "translate(-50%,-50%) scale(1.28)";
+            btEl.style.transition = "all .04s";
+            setTimeout(() => {
+              btEl.style.opacity = "0";
+              btEl.style.transform = "translate(-50%,-50%) scale(.62)";
+              btEl.style.transition = "all .58s ease-out";
+            }, 480);
+          }
+
+          // ── EDGE VIGNETTE ──
+          const vg2 = ctx.createRadialGradient(
+            cx,
+            cy,
+            Math.min(W, H) * 0.08,
+            cx,
+            cy,
+            Math.max(W, H) * 0.68
+          );
+          vg2.addColorStop(0, "rgba(0,0,0,0)");
+          vg2.addColorStop(1, `rgba(0,0,0,${0.65 + ph2 * 0.3})`);
+          ctx.fillStyle = vg2;
+          ctx.fillRect(0, 0, W, H);
+
+          // ══ PHASE 3: IMPACT + WHITOUT ══
+          if (ph3 > 0) {
+            // Screen goes deep red then white flash then black
+            if (ph3 < 0.4) {
+              ctx.fillStyle = `rgba(150,0,0,${ph3 * 2})`;
+              ctx.fillRect(0, 0, W, H);
+            } else if (ph3 < 0.65) {
+              ctx.fillStyle = `rgba(255,${Math.floor(
+                ((ph3 - 0.4) / 0.25) * 200
+              )},${Math.floor(((ph3 - 0.4) / 0.25) * 200)},${
+                (ph3 - 0.4) / 0.25
+              })`;
+              ctx.fillRect(0, 0, W, H);
+            } else {
+              ctx.fillStyle = `rgba(0,0,0,${(ph3 - 0.65) / 0.35})`;
+              ctx.fillRect(0, 0, W, H);
+            }
+            btEl.style.opacity = "0";
+            bo.style.opacity = "0";
+            if (ph3 >= 0.5 && !vc.dataset.fading) {
+              vc.dataset.fading = "1";
+              ekEl.style.transition = "opacity .5s";
+              ekEl.style.opacity = "0";
+              ftEl.style.color = "transparent";
+              const curt = document.getElementById("curtain");
+              curt.style.transition = "opacity 1.8s ease";
+              curt.classList.remove("gone");
+              curt.style.opacity = "1";
+            }
+          }
+
+          if (frame < TOTAL) {
             requestAnimationFrame(draw);
           } else {
-            // Black curtain → scene 4
-            document.getElementById("boom-text").style.opacity = "0";
-            const curt = document.getElementById("curtain");
-            curt.style.transition = "opacity 1.6s ease";
-            curt.classList.remove("gone");
-            curt.style.opacity = "1";
+            if (_hb) clearTimeout(_hb);
+            try {
+              window._dr?.o.stop();
+              window._ws?.s.stop();
+            } catch (e) {}
             setTimeout(() => {
               try {
-                localStorage.setItem("gaiaPlayerName", playerName);
+                localStorage.setItem("gaiaPlayerName", pName);
               } catch (e) {}
               window.location.href = "scene4.html";
             }, 1800);
@@ -2332,61 +3529,61 @@
         requestAnimationFrame(draw);
       }
 
-      // ── MINIMAP ──
-      const mmC = document.getElementById("minimap-canvas"),
+      // MINIMAP
+      const mmC = document.getElementById("mc"),
         mmX = mmC.getContext("2d");
-      function drawMinimap() {
+      function drawMM() {
         const W = 118,
           H = 118,
           cx = W / 2,
           cy = H / 2,
           R = W / 2 - 5;
         mmX.clearRect(0, 0, W, H);
-        mmX.fillStyle = "rgba(0,5,2,.88)";
+        mmX.fillStyle = "rgba(0,5,2,.92)";
         mmX.beginPath();
         mmX.arc(cx, cy, R, 0, Math.PI * 2);
         mmX.fill();
-        mmX.strokeStyle = "rgba(0,255,136,.14)";
+        mmX.strokeStyle = "rgba(0,255,136,.18)";
         mmX.lineWidth = 1.5;
         mmX.beginPath();
         mmX.arc(cx, cy, R, 0, Math.PI * 2);
         mmX.stroke();
         const cg = mmX.createRadialGradient(cx, cy, 0, cx, cy, 10);
-        cg.addColorStop(0, "rgba(0,255,136,.95)");
-        cg.addColorStop(1, "rgba(0,255,136,0)");
+        cg.addColorStop(0, "rgba(80,150,255,.95)");
+        cg.addColorStop(1, "rgba(80,150,255,0)");
         mmX.fillStyle = cg;
         mmX.beginPath();
         mmX.arc(cx, cy, 10, 0, Math.PI * 2);
         mmX.fill();
-        PORTALS.forEach((p, i) => {
+        P.forEach((p, i) => {
           const a = (p.angle * Math.PI) / 180,
             mx = cx + Math.sin(a) * R * 0.8,
             my = cy + Math.cos(a) * R * 0.8;
           mmX.beginPath();
           mmX.moveTo(cx, cy);
           mmX.lineTo(mx, my);
-          mmX.strokeStyle = p.hex + "2a";
-          mmX.lineWidth = 0.55;
+          mmX.strokeStyle = p.hex + "28";
+          mmX.lineWidth = 0.5;
           mmX.stroke();
-          const isN = nearPortalIdx === i;
+          const isN = nearIdx === i;
           mmX.beginPath();
-          mmX.arc(mx, my, isN ? 6.5 : 4, 0, Math.PI * 2);
+          mmX.arc(mx, my, isN ? 7 : 4.5, 0, Math.PI * 2);
           mmX.fillStyle = isN
             ? p.hex
             : p.locked
-            ? "rgba(70,70,70,.5)"
-            : p.hex + "99";
+            ? "rgba(80,80,80,.5)"
+            : p.hex + "aa";
           mmX.fill();
           if (isN) {
             mmX.strokeStyle = p.hex;
-            mmX.lineWidth = 1.5;
+            mmX.lineWidth = 1.8;
             mmX.beginPath();
-            mmX.arc(mx, my, 9.5, 0, Math.PI * 2);
+            mmX.arc(mx, my, 10, 0, Math.PI * 2);
             mmX.stroke();
           }
         });
-        const ppx = cx + (cam.x / PORTAL_R) * R * 0.8,
-          ppy = cy + (cam.z / PORTAL_R) * R * 0.8;
+        const ppx = cx + (cam.x / PR) * R * 0.8,
+          ppy = cy + (cam.z / PR) * R * 0.8;
         const dd = Math.sqrt((ppx - cx) ** 2 + (ppy - cy) ** 2);
         const fx = dd > R - 6 ? cx + ((ppx - cx) * (R - 6)) / dd : ppx,
           fy = dd > R - 6 ? cy + ((ppy - cy) * (R - 6)) / dd : ppy;
@@ -2394,7 +3591,7 @@
         mmX.beginPath();
         mmX.arc(fx, fy, 3.5, 0, Math.PI * 2);
         mmX.fill();
-        mmX.strokeStyle = "rgba(255,255,255,.7)";
+        mmX.strokeStyle = "rgba(255,255,255,.75)";
         mmX.lineWidth = 1.5;
         mmX.beginPath();
         mmX.moveTo(fx, fy);
@@ -2402,90 +3599,81 @@
         mmX.stroke();
       }
 
-      // ── RENDER LOOP ──
-      function animateBrain() {
-        requestAnimationFrame(animateBrain);
+      // RENDER LOOP
+      function loop3() {
+        requestAnimationFrame(loop3);
         if (PHASE === "tunnel") return;
-        const dt = Math.min(clock3.getDelta(), 0.05);
-        brainData.time += dt;
-        const t = brainData.time;
-        if (brainData.entryZoom) {
-          brainData.entryT += dt * 1.3;
-          const prog = Math.min(brainData.entryT / 2.8, 1);
-          camera3.fov = 115 - 40 * prog;
-          camera3.updateProjectionMatrix();
-          if (prog >= 1) {
-            brainData.entryZoom = false;
-            camera3.fov = 75;
-            camera3.updateProjectionMatrix();
+        const dt = Math.min(clk3.getDelta(), 0.05);
+        BD.time += dt;
+        const t = BD.time;
+        if (BD.zoom) {
+          BD.zt += dt * 1.2;
+          const pg = Math.min(BD.zt / 3, 1);
+          cam3.fov = 120 - 45 * pg;
+          cam3.updateProjectionMatrix();
+          if (pg >= 1) {
+            BD.zoom = false;
+            cam3.fov = 75;
+            cam3.updateProjectionMatrix();
           }
         }
-        moveCamera(dt);
-        if (PHASE === "brain" && !enteringPortal) {
+        moveCam(dt);
+        if (PHASE === "brain" && !entering) {
           updatePortals();
-          drawMinimap();
+          drawMM();
         }
-        cortexMat.uniforms.uT.value = t;
-        cgMat.uniforms.uT.value = t;
-        cortex.rotation.y = t * 0.07;
-        cortex.rotation.x = t * 0.04;
-        centerLight.intensity = 2 + Math.sin(t * 2.4) * 0.5 * 1.6;
-        pObjects.forEach(({ disc, dMat, rMat, ring }, i) => {
-          dMat.uniforms.uT.value = t;
-          const s = 1 + Math.sin(t * 2 + i * 1.1) * 0.055;
-          disc.scale.set(s, s, 1);
-          ring.scale.set(s, s, 1);
-          ring.rotation.z = t * 0.32 + i * 0.5;
-          rMat.opacity =
-            0.48 +
-            Math.sin(t * 1.7 + i) * 0.27 +
-            (nearPortalIdx === i ? 0.25 : 0);
-        });
+        mMat.uniforms.uT.value = t;
+        aMat.uniforms.uT.value = t;
+        mSph.rotation.y = t * 0.05;
+        mSph.rotation.x = Math.sin(t * 0.3) * 0.04;
+        cL.intensity = 2 + Math.sin(t * 2.2) * 0.8;
+        gL.intensity = 1 + Math.sin(t * 1.8 + 1) * 0.6;
         nMat.uniforms.uT.value = t;
         sMat.uniforms.uT.value = t;
         nLines.forEach(({ mat, base }, i) => {
-          mat.opacity = base * (Math.sin(t * 0.7 + i * 0.5) * 0.4 + 0.6);
+          mat.opacity = base * (Math.sin(t * 0.65 + i * 0.5) * 0.45 + 0.6);
         });
-        renderer3.render(scene3, camera3);
+        rdr3.render(sc3, cam3);
       }
 
-      // ── GAÏA VOICE — brain intro ──
-      function initBrainVoice() {
+      function brainVoice() {
         setTimeout(() => {
-          const text = `Bienvenue dans mon esprit... ${playerName}.\nVoici le centre de ma conscience.\nD'ici... je contrôle tout mon corps.\n\nChaque portail mène à un organe vital.\nMais je dois vous avertir...\n\nMes systèmes sont malades.\nCertains... sont au bord de l'effondrement.\n\nVous devez les visiter.\nLes diagnostiquer.\nLes guérir.\n\nMais l'ordre est important.\nCommencez par mon CŒUR.\nC'est là que tout commence...\nC'est là que tout peut finir.`;
-          speakAndType(text, () => {
-            setTimeout(() => hideVoiceBox(), 4000);
-          });
+          speak(
+            `Bienvenue dans mon esprit... ${pName}.\nVoici le centre de ma conscience.\nD'ici... je contrôle tout mon corps.\n\nChaque portail mène à un organe vital.\nMes systèmes sont malades.\nCertains au bord de l'effondrement.\n\nCommencez par mon CŒUR.\nC'est là que tout commence...\nC'est là que tout peut finir.`,
+            () => setTimeout(hideVB, 4000)
+          );
         }, 1200);
       }
 
-      function hideVoiceBox() {
-        const card = document.getElementById("vb-card");
-        card.style.transition = "opacity 1s";
-        card.style.opacity = "0";
-        setTimeout(() => {
-          card.classList.remove("show");
-          card.style.opacity = "";
-          card.style.transition = "";
-        }, 1000);
-        document.getElementById("vb-sep").classList.remove("show");
-      }
-
-      // ══ INIT ══
       function init() {
         initAudio();
-        const lbl = document.getElementById("tunnel-label");
-        lbl.textContent = LAYERS[0].name;
-        lbl.classList.add("show");
-        setTimeout(() => lbl.classList.remove("show"), 1300);
-        setTimeout(() => playTunnelAudio(), 400);
-        const curt = document.getElementById("curtain");
-        curt.style.transition = "opacity 1.1s ease";
-        setTimeout(() => curt.classList.add("gone"), 100);
-        animateBrain();
-        requestAnimationFrame(tunnelFrame);
+        const b = document.getElementById("bf");
+        b.style.background = "#00ff88";
+        b.style.opacity = ".9";
+        setTimeout(() => {
+          b.style.transition = "opacity .65s";
+          b.style.opacity = "0";
+        }, 70);
+        showTL(0);
+        setTimeout(() => playTunnel(), 400);
+        const cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.1s ease";
+        setTimeout(() => cu.classList.add("gone"), 100);
+        loop3();
+        requestAnimationFrame(tunnelFr);
       }
       window.addEventListener("load", init);
+      window.addEventListener("resize", () => {
+        TC.width = innerWidth;
+        TC.height = innerHeight;
+        BC.width = innerWidth;
+        BC.height = innerHeight;
+        OC.width = innerWidth;
+        OC.height = innerHeight;
+        rdr3.setSize(innerWidth, innerHeight);
+        cam3.aspect = innerWidth / innerHeight;
+        cam3.updateProjectionMatrix();
+      });
     </script>
   </body>
 </html>
