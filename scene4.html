@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAÏA — Scène 4 : Le Cœur</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #00ff88;
+        --red: #cc1133;
+        --redbright: #ff2244;
+        --soft: #d0f0e0;
+        --ui: rgba(0, 5, 2, 0.95);
+        --ub: rgba(204, 17, 51, 0.2);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+        opacity: 0;
+        animation: fi 0.7s ease 0.1s forwards;
+      }
+      @keyframes fi {
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* CURSEUR */
+      #cur {
+        position: fixed;
+        width: 16px;
+        height: 16px;
+        border: 1.5px solid rgba(204, 17, 51, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: width 0.12s, height 0.12s;
+      }
+      #cur::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--redbright);
+        border-radius: 50%;
+      }
+      #cur.big {
+        width: 26px;
+        height: 26px;
+        border-color: var(--redbright);
+        box-shadow: 0 0 10px var(--redbright);
+      }
+
+      /* CANVAS COUCHES */
+      #c3d {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+      }
+      #smoke-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+      #spark-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+      }
+
+      /* VIGNETTE */
+      #vig {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse 90% 90% at 50% 50%,
+          transparent 22%,
+          rgba(0, 0, 0, 0.22) 58%,
+          rgba(0, 0, 0, 0.88) 100%
+        );
+      }
+
+      /* OVERLAYS */
+      #bo {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+        opacity: 0;
+      }
+      #fl {
+        position: fixed;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        opacity: 0;
+      }
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 1.6s ease;
+      }
+      #curtain.gone {
+        opacity: 0;
+      }
+
+      /* HINT SOURIS */
+      #mouse-hint {
+        position: fixed;
+        bottom: 200px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 22;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.35em;
+        color: rgba(204, 17, 51, 0.45);
+        pointer-events: none;
+        animation: hint-fade 4s ease 3s forwards;
+      }
+      @keyframes hint-fade {
+        to {
+          opacity: 0;
+        }
+      }
+
+      /* HUD TOP */
+      #hud-top {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 28px 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+      #hud-top.show {
+        opacity: 1;
+      }
+      .ht-l {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.5em;
+        color: rgba(204, 17, 51, 0.45);
+      }
+      .ht-c {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.38em;
+        color: rgba(204, 17, 51, 0.28);
+      }
+      .ht-r {
+        display: flex;
+        gap: 20px;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.25em;
+        color: rgba(204, 17, 51, 0.4);
+      }
+
+      /* BPM */
+      #bpm-live {
+        position: fixed;
+        top: 56px;
+        left: 28px;
+        z-index: 20;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+      #bpm-live.show {
+        opacity: 1;
+      }
+      .bv {
+        font-family: "Cinzel", serif;
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        background: linear-gradient(135deg, #ff2244, #aa0022);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 12px rgba(255, 34, 68, 0.55));
+      }
+      .bl {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.4em;
+        color: rgba(204, 17, 51, 0.5);
+        margin-top: 2px;
+      }
+      .bb {
+        width: 80px;
+        height: 2px;
+        background: rgba(204, 17, 51, 0.12);
+        border-radius: 2px;
+        margin-top: 5px;
+        overflow: hidden;
+      }
+      .bf {
+        height: 100%;
+        background: linear-gradient(90deg, #cc1133, #ff4466);
+        border-radius: 2px;
+        transition: width 0.3s;
+      }
+
+      /* DIAGNOSTIC — pliable */
+      #diag {
+        position: fixed;
+        top: 56px;
+        right: 24px;
+        z-index: 20;
+        width: 272px;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(24px);
+        border-radius: 3px;
+        opacity: 0;
+        transform: translateX(20px);
+        transition: opacity 0.8s, transform 0.8s;
+        pointer-events: all;
+      }
+      #diag.show {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      #dh {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 15px;
+        cursor: pointer;
+        user-select: none;
+        border-bottom: 1px solid rgba(204, 17, 51, 0.12);
+      }
+      .dt {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.32em;
+        color: rgba(204, 17, 51, 0.72);
+      }
+      #darr {
+        font-size: 10px;
+        color: rgba(204, 17, 51, 0.45);
+        transition: transform 0.35s;
+      }
+      #diag.closed #darr {
+        transform: rotate(180deg);
+      }
+      #db {
+        overflow: hidden;
+        max-height: 400px;
+        transition: max-height 0.45s ease, padding 0.35s;
+      }
+      #db inner {
+        display: block;
+        padding: 12px 15px 14px;
+      }
+      #diag.closed #db {
+        max-height: 0;
+      }
+      #diag.closed #db inner {
+        padding: 0 15px;
+      }
+      .dr {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .dl {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.38);
+      }
+      .dv {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+      }
+      .dv.w {
+        color: #ffaa33;
+      }
+      .dv.c {
+        color: #ff4444;
+      }
+      .dv.g {
+        color: #00ff88;
+      }
+      .dk {
+        height: 2px;
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      .df {
+        height: 100%;
+        border-radius: 2px;
+      }
+      .dsep {
+        height: 1px;
+        background: rgba(204, 17, 51, 0.08);
+        margin: 8px 0;
+      }
+      .dcat {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.28em;
+        color: rgba(204, 17, 51, 0.4);
+        margin-bottom: 7px;
+      }
+
+      /* ZOOM ARTERE INFO */
+      #artery-zoom {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 35;
+        width: min(420px, 80vw);
+        background: rgba(0, 3, 1, 0.97);
+        border: 1px solid rgba(204, 17, 51, 0.35);
+        backdrop-filter: blur(28px);
+        border-radius: 3px;
+        padding: 24px 28px 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+        transform: translate(-50%, -50%) scale(0.92);
+      }
+      #artery-zoom.show {
+        opacity: 1;
+        pointer-events: all;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      .az-title {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.4em;
+        color: rgba(204, 17, 51, 0.7);
+        margin-bottom: 14px;
+      }
+      .az-body {
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        line-height: 1.9;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 16px;
+      }
+      .az-close {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.3em;
+        color: rgba(204, 17, 51, 0.55);
+        background: transparent;
+        border: 1px solid rgba(204, 17, 51, 0.25);
+        padding: 8px 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .az-close:hover {
+        color: var(--redbright);
+        border-color: var(--redbright);
+      }
+
+      /* BADGE */
+      #badge {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.9);
+        z-index: 40;
+        width: min(480px, 88vw);
+        background: rgba(0, 4, 2, 0.98);
+        border: 1px solid rgba(0, 255, 136, 0.25);
+        backdrop-filter: blur(30px);
+        border-radius: 4px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.7s ease, transform 0.7s ease;
+      }
+      #badge.show {
+        opacity: 1;
+        pointer-events: all;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      #bh {
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.12);
+      }
+      .bht {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.35em;
+        color: rgba(0, 255, 136, 0.7);
+      }
+      #bb {
+        padding: 14px 22px 18px;
+      }
+      .br {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .bi {
+        flex-shrink: 0;
+        font-size: 13px;
+        margin-top: 1px;
+      }
+      .bt {
+        font-family: "EB Garamond", serif;
+        font-size: 14px;
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .bsep {
+        height: 1px;
+        background: rgba(0, 255, 136, 0.1);
+        margin: 10px 0;
+      }
+      .brl {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.38);
+        margin-bottom: 7px;
+      }
+      .bri {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 5px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      #badge-btn {
+        display: block;
+        margin: 14px auto 0;
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: var(--redbright);
+        background: transparent;
+        border: 1px solid rgba(204, 17, 51, 0.55);
+        padding: 13px 40px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 2px;
+      }
+      #badge-btn:hover {
+        background: rgba(204, 17, 51, 0.1);
+        box-shadow: 0 0 40px rgba(204, 17, 51, 0.35);
+      }
+
+      /* VOIX */
+      #vp {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 25;
+        width: min(720px, 92vw);
+        padding: 0 0 22px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+      }
+      #vs {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(204, 17, 51, 0.45),
+          transparent
+        );
+        margin-bottom: 12px;
+        transition: width 1s ease;
+      }
+      #vs.show {
+        width: 100%;
+      }
+      #vbox {
+        width: 100%;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(26px);
+        border-radius: 3px;
+        padding: 16px 24px 14px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.8s, transform 0.8s;
+        pointer-events: all;
+      }
+      #vbox.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #vsr {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      #vnm {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(204, 17, 51, 0.5);
+      }
+      #vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 11px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: #cc1133;
+        transform-origin: bottom;
+        animation: vba 1s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .vb:nth-child(3) {
+        height: 5px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      .vb:nth-child(5) {
+        height: 4px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      .vb:nth-child(6) {
+        height: 8px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      @keyframes vba {
+        from {
+          transform: scaleY(0.18);
+          opacity: 0.5;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+      #vtx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.65vw, 16px);
+        line-height: 2;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 140px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vtx::-webkit-scrollbar {
+        display: none;
+      }
+      #twc {
+        display: inline-block;
+        width: 2px;
+        height: 14px;
+        background: var(--redbright);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* AUDIO */
+      #ab {
+        position: fixed;
+        bottom: 18px;
+        right: 20px;
+        z-index: 60;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        color: rgba(204, 17, 51, 0.22);
+        cursor: pointer;
+        transition: color 0.3s;
+      }
+      #ab:hover {
+        color: rgba(204, 17, 51, 0.7);
+      }
+
+      /* LUMIÈRE TRANSITION */
+      #transition-light {
+        position: fixed;
+        inset: 0;
+        z-index: 450;
+        pointer-events: none;
+        opacity: 0;
+        background: radial-gradient(
+          ellipse at 50% 50%,
+          rgba(255, 180, 100, 0.95) 0%,
+          rgba(255, 80, 0, 0.6) 35%,
+          rgba(200, 0, 0, 0.3) 65%,
+          transparent 100%
+        );
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cur"></div>
+    <canvas id="c3d"></canvas>
+    <canvas id="smoke-canvas"></canvas>
+    <canvas id="spark-canvas"></canvas>
+    <div id="vig"></div>
+    <div id="bo"></div>
+    <div id="fl"></div>
+
+    <!-- HUD -->
+    <div id="hud-top">
+      <div class="ht-l">G A Ï A</div>
+      <div class="ht-c">S Y S T È M E — C A R D I O V A S C U L A I R E</div>
+      <div class="ht-r">
+        <span id="sv">SCORE : 100</span><span id="tv">00:00</span>
+      </div>
+    </div>
+
+    <!-- BPM -->
+    <div id="bpm-live">
+      <div class="bv" id="bpm-val">85</div>
+      <div class="bl">BPM — FRÉQUENCE CARDIAQUE</div>
+      <div class="bb">
+        <div class="bf" id="bpm-fill" style="width: 62%"></div>
+      </div>
+    </div>
+
+    <!-- HINT -->
+    <div id="mouse-hint">CLIC + GLISSER POUR EXPLORER LE CŒUR</div>
+
+    <!-- DIAGNOSTIC pliable -->
+    <div id="diag">
+      <div id="dh" onclick="toggleDiag()">
+        <span class="dt">🫀 DIAGNOSTIC CARDIAQUE</span>
+        <span id="darr">▲</span>
+      </div>
+      <div id="db">
+        <inner>
+          <div class="dr">
+            <span class="dl">BPM</span><span class="dv w" id="d-bpm">85</span>
+          </div>
+          <div class="dk">
+            <div
+              class="df"
+              id="df-bpm"
+              style="
+                width: 62%;
+                background: linear-gradient(90deg, #00ff88, #ffaa33, #ff4444);
+              "
+            ></div>
+          </div>
+          <div class="dr">
+            <span class="dl">PRESSION</span
+            ><span class="dv c">150/100 mmHg</span>
+          </div>
+          <div class="dk">
+            <div class="df" style="width: 82%; background: #ff4444"></div>
+          </div>
+          <div class="dr">
+            <span class="dl">ÉTAT</span><span class="dv c">HYPERTENSION ⚠</span>
+          </div>
+          <div class="dsep"></div>
+          <div class="dcat">CAUSES IDENTIFIÉES</div>
+          <div class="dr">
+            <span class="dl">SURCHARGE FOSSILE</span
+            ><span class="dv c">62%</span>
+          </div>
+          <div class="dk">
+            <div class="df" style="width: 62%; background: #cc4400"></div>
+          </div>
+          <div class="dr">
+            <span class="dl">ARTÈRES BOUCHÉES</span
+            ><span class="dv c">5 / 8</span>
+          </div>
+          <div class="dk">
+            <div class="df" style="width: 62%; background: #550000"></div>
+          </div>
+          <div class="dr">
+            <span class="dl">CIRCULATION</span
+            ><span class="dv w">RALENTIE</span>
+          </div>
+          <div class="dk">
+            <div class="df" style="width: 35%; background: #885500"></div>
+          </div>
+          <div class="dr">
+            <span class="dl">ÉNERGIE VERTE</span><span class="dv g">38%</span>
+          </div>
+          <div class="dk">
+            <div class="df" style="width: 38%; background: #00aa55"></div>
+          </div>
+        </inner>
+      </div>
+    </div>
+
+    <!-- ZOOM artère noire -->
+    <div id="artery-zoom">
+      <div class="az-title">🔬 ARTÈRE FOSSILE — ANALYSE</div>
+      <div class="az-body">
+        Des plaques de carbone obstruent la paroi.<br />Le flux énergétique est
+        réduit de
+        <span style="color: #ff4444; font-weight: bold">73%</span
+        >.<br /><br />Source : combustion de charbon et pétrole<br />sur 200 ans
+        d'industrialisation.<br /><br />La circulation est
+        <span style="color: #ffaa33">gravement ralentie</span>.
+      </div>
+      <button class="az-close" onclick="closeZoom()">← RETOUR</button>
+    </div>
+
+    <!-- BADGE MISSION -->
+    <div id="badge">
+      <div id="bh">
+        <div class="bht">MISSION — RÉTABLIR LE FLUX ÉNERGÉTIQUE</div>
+      </div>
+      <div id="bb">
+        <div class="br">
+          <span class="bi">✅</span
+          ><span class="bt">Diagnostiquer le cœur de Gaïa</span>
+        </div>
+        <div class="br">
+          <span class="bi">⬜</span
+          ><span class="bt">Débloquer ses artères</span>
+        </div>
+        <div class="br">
+          <span class="bi">⬜</span
+          ><span class="bt">Comprendre les énergies fossiles</span>
+        </div>
+        <div class="br">
+          <span class="bi">⬜</span
+          ><span class="bt">Découvrir les alternatives vertes</span>
+        </div>
+        <div class="br">
+          <span class="bi">⬜</span
+          ><span class="bt">Simuler un futur énergétique</span>
+        </div>
+        <div class="bsep"></div>
+        <div class="brl">RÉCOMPENSES</div>
+        <div class="bri">🏆 Badge "Cardiologue de Gaïa"</div>
+        <div class="bri">🔓 Accès au Stage 2 — Poumons</div>
+        <div class="bri">💎 100 – 200 points selon performance</div>
+        <button id="badge-btn" onclick="enterHeart()">
+          🫀 ENTRER DANS LA CHAMBRE DU CŒUR
+        </button>
+      </div>
+    </div>
+
+    <!-- VOIX -->
+    <div id="vp">
+      <div id="vs"></div>
+      <div id="vbox">
+        <div id="vsr">
+          <span id="vnm">G A Ï A</span>
+          <span id="vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="vtx"></div>
+        <span id="twc"></span>
+      </div>
+    </div>
+
+    <div id="curtain"></div>
+    <div id="transition-light"></div>
+    <div id="ab" onclick="toggleMute()">🔊 SON</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      "use strict";
+      /* ═══════════════════════════════════════════════════════════════
+   GAÏA — SCÈNE 4 : LE CŒUR
+   • Cœur 3D anatomique rotatif (drag souris)
+   • Artères vertes fines + noires épaisses avec plaques
+   • Fumée noire canvas 2D sur artères fossiles
+   • Étincelles canvas 2D à chaque battement
+   • Battement volume bas pour entendre GAÏA
+   • Diagnostic pliable
+   • Zoom artère noire au moment du dialogue
+   • Badge + transition lumière vers scène 5
+═══════════════════════════════════════════════════════════════ */
+
+      let isMuted = false,
+        audioCtx = null,
+        typeIv = null;
+      let score = 100,
+        elapsed = 0,
+        bpmVal = 85;
+      let diagOpen = true,
+        zoomOpen = false;
+      let pName = "Gardien";
+      try {
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+      } catch (e) {}
+
+      // CURSEUR
+      const $cur = document.getElementById("cur");
+      document.addEventListener("mousemove", (e) => {
+        $cur.style.left = e.clientX + "px";
+        $cur.style.top = e.clientY + "px";
+      });
+
+      // TIMER
+      setInterval(() => {
+        elapsed++;
+        const m = String(Math.floor(elapsed / 60)).padStart(2, "0"),
+          s = String(elapsed % 60).padStart(2, "0");
+        document.getElementById("tv").textContent = m + ":" + s;
+      }, 1000);
+
+      // DIAGNOSTIC toggle
+      function toggleDiag() {
+        diagOpen = !diagOpen;
+        document.getElementById("diag").classList.toggle("closed", !diagOpen);
+      }
+
+      // ZOOM artère
+      function showZoom() {
+        document.getElementById("artery-zoom").classList.add("show");
+      }
+      function closeZoom() {
+        document.getElementById("artery-zoom").classList.remove("show");
+      }
+
+      // ══════════════════════════════════════════════════
+      // AUDIO — volume battement TRÈS BAS pour entendre GAÏA
+      // ══════════════════════════════════════════════════
+      function initAudio() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      function gm() {
+        if (!audioCtx) return null;
+        if (!window._M4) {
+          const c = audioCtx.createDynamicsCompressor();
+          c.threshold.value = -24;
+          c.knee.value = 10;
+          c.ratio.value = 4;
+          c.attack.value = 0.003;
+          c.release.value = 0.3;
+          c.connect(audioCtx.destination);
+          window._M4 = c;
+        }
+        return window._M4;
+      }
+      function rv(d = 4, dc = 2.5) {
+        if (!audioCtx) return null;
+        const sr = audioCtx.sampleRate,
+          l = sr * d,
+          b = audioCtx.createBuffer(2, l, sr);
+        for (let c = 0; c < 2; c++) {
+          const dd = b.getChannelData(c);
+          for (let i = 0; i < l; i++)
+            dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / l, dc);
+        }
+        const cv = audioCtx.createConvolver();
+        cv.buffer = b;
+        return cv;
+      }
+
+      // Ambiance douce — cordes + drone très doux
+      function playAmbient() {
+        if (!audioCtx || isMuted) return;
+        const m = gm(),
+          r = rv(5, 3);
+        r.connect(m);
+        [28, 42, 56].forEach((f, i) => {
+          const o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          o.type = "sawtooth";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(
+            [0.018, 0.01, 0.006][i],
+            audioCtx.currentTime + 5 + i * 0.5
+          );
+          const fl = audioCtx.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 180;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(r);
+          g.connect(m);
+          o.start();
+        });
+        [196, 220].forEach((f, i) => {
+          const o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          o.type = "triangle";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(
+            0.006 - i * 0.002,
+            audioCtx.currentTime + 7 + i
+          );
+          const fl = audioCtx.createBiquadFilter();
+          fl.type = "bandpass";
+          fl.frequency.value = 600;
+          fl.Q.value = 4;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(r);
+          o.start();
+        });
+      }
+
+      // BATTEMENT CŒUR — volume très faible pour ne pas couvrir la voix
+      let _hbIv = null;
+      function playHeartbeat() {
+        if (!audioCtx || isMuted) return;
+        const m = gm(),
+          r = rv(2, 2);
+        r.connect(m);
+        function beat() {
+          if (!audioCtx || isMuted) return;
+          // LUB — volume 0.12 seulement (très discret)
+          const o1 = audioCtx.createOscillator(),
+            g1 = audioCtx.createGain();
+          o1.type = "sine";
+          o1.frequency.setValueAtTime(80, audioCtx.currentTime);
+          o1.frequency.exponentialRampToValueAtTime(
+            28,
+            audioCtx.currentTime + 0.5
+          );
+          g1.gain.setValueAtTime(0.12, audioCtx.currentTime); // ← VOLUME BAS
+          g1.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 0.55
+          );
+          o1.connect(g1);
+          g1.connect(r);
+          g1.connect(m);
+          o1.start();
+          o1.stop(audioCtx.currentTime + 0.6);
+          // Sub bass très doux
+          const sb = audioCtx.createOscillator(),
+            sg = audioCtx.createGain();
+          sb.type = "sine";
+          sb.frequency.value = 26;
+          sg.gain.setValueAtTime(0.08, audioCtx.currentTime); // ← VOLUME BAS
+          sg.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 0.35
+          );
+          sb.connect(sg);
+          sg.connect(m);
+          sb.start();
+          sb.stop(audioCtx.currentTime + 0.4);
+          // DUB léger
+          setTimeout(() => {
+            if (!audioCtx || isMuted) return;
+            const o2 = audioCtx.createOscillator(),
+              g2 = audioCtx.createGain();
+            o2.type = "sine";
+            o2.frequency.setValueAtTime(60, audioCtx.currentTime);
+            o2.frequency.exponentialRampToValueAtTime(
+              22,
+              audioCtx.currentTime + 0.35
+            );
+            g2.gain.setValueAtTime(0.07, audioCtx.currentTime); // ← VOLUME BAS
+            g2.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 0.38
+            );
+            o2.connect(g2);
+            g2.connect(r);
+            g2.connect(m);
+            o2.start();
+            o2.stop(audioCtx.currentTime + 0.4);
+          }, (60000 / bpmVal) * 0.38);
+        }
+        beat();
+        _hbIv = setInterval(beat, 60000 / bpmVal);
+      }
+
+      // Son étincelle — discret
+      function playSparkSound() {
+        if (!audioCtx || isMuted) return;
+        const m = gm();
+        const o = audioCtx.createOscillator(),
+          g = audioCtx.createGain();
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(
+          600 + Math.random() * 300,
+          audioCtx.currentTime
+        );
+        o.frequency.exponentialRampToValueAtTime(
+          180,
+          audioCtx.currentTime + 0.06
+        );
+        g.gain.setValueAtTime(0.015, audioCtx.currentTime); // ← VOLUME BAS
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.07);
+        o.connect(g);
+        g.connect(m);
+        o.start();
+        o.stop(audioCtx.currentTime + 0.08);
+      }
+
+      function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("ab").textContent = isMuted
+          ? "🔇 MUET"
+          : "🔊 SON";
+        if (audioCtx) {
+          isMuted ? audioCtx.suspend() : audioCtx.resume();
+        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      // ══════════════════════════════════════════════════
+      // VOIX GAÏA
+      // ══════════════════════════════════════════════════
+      const syn = window.speechSynthesis;
+      function gv() {
+        const vs = syn ? syn.getVoices() : [];
+        return (
+          vs.find(
+            (x) =>
+              x.lang === "fr-FR" &&
+              /Marie|Amélie|Hortense|Lea|Julie/i.test(x.name)
+          ) ||
+          vs.find((x) => x.lang === "fr-FR") ||
+          vs.find((x) => x.lang.startsWith("fr")) ||
+          vs[0] ||
+          null
+        );
+      }
+      function speak(text, cb) {
+        const el = document.getElementById("vtx"),
+          cu = document.getElementById("twc");
+        el.textContent = "";
+        cu.style.display = "inline-block";
+        document.getElementById("vs").classList.add("show");
+        document.getElementById("vbox").classList.add("show");
+        let disp = 0,
+          tgt = 0,
+          vd = false;
+        function tick() {
+          if (typeIv) clearInterval(typeIv);
+          typeIv = setInterval(() => {
+            if (disp < tgt && disp < text.length) {
+              el.textContent += text[disp++];
+              el.scrollTop = el.scrollHeight;
+            } else {
+              clearInterval(typeIv);
+              typeIv = null;
+              if (disp >= text.length) {
+                cu.style.display = "none";
+                if (vd && cb) setTimeout(cb, 500);
+              }
+            }
+          }, 22);
+        }
+        if (syn && !isMuted) {
+          syn.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = "fr-FR";
+          u.rate = 0.7;
+          u.pitch = 0.62;
+          u.volume = 1.0; // voix GAÏA volume MAX
+          const sv = () => {
+            const v = gv();
+            if (v) u.voice = v;
+          };
+          syn.getVoices().length
+            ? sv()
+            : syn.addEventListener("voiceschanged", sv, { once: true });
+          u.onstart = () => document.getElementById("vbr").classList.add("on");
+          u.onboundary = (e) => {
+            if (e.name === "word") {
+              tgt = Math.min(e.charIndex + e.charLength, text.length);
+              tick();
+            }
+          };
+          u.onend = u.onerror = () => {
+            document.getElementById("vbr").classList.remove("on");
+            vd = true;
+            tgt = text.length;
+            tick();
+          };
+          syn.speak(u);
+        }
+        setTimeout(() => {
+          if (
+            disp === 0 &&
+            !document.getElementById("vbr").classList.contains("on")
+          ) {
+            if (typeIv) clearInterval(typeIv);
+            vd = true;
+            typeIv = setInterval(() => {
+              if (disp < text.length) {
+                el.textContent += text[disp++];
+                el.scrollTop = el.scrollHeight;
+              } else {
+                clearInterval(typeIv);
+                cu.style.display = "none";
+                if (cb) setTimeout(cb, 500);
+              }
+            }, 28);
+          }
+        }, 1600);
+      }
+
+      // ══════════════════════════════════════════════════
+      // THREE.JS — CŒUR 3D ANATOMIQUE AVEC ROTATION LIBRE
+      // ══════════════════════════════════════════════════
+      const c3d = document.getElementById("c3d");
+      c3d.width = innerWidth;
+      c3d.height = innerHeight;
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x050001, 0.025);
+      const camera = new THREE.PerspectiveCamera(
+        52,
+        innerWidth / innerHeight,
+        0.1,
+        200
+      );
+      camera.position.set(0, 0, 26);
+      camera.lookAt(0, 0, 0);
+      const renderer = new THREE.WebGLRenderer({
+        canvas: c3d,
+        antialias: true,
+        alpha: false,
+      });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.setClearColor(0x050001);
+      const clock = new THREE.Clock();
+
+      // Groupe du cœur (rotation libre par drag)
+      const heartGroup = new THREE.Group();
+      scene.add(heartGroup);
+
+      // LUMIÈRES
+      scene.add(new THREE.AmbientLight(0x110004, 0.6));
+      const hrtL = new THREE.PointLight(0xff2244, 5, 25);
+      hrtL.position.set(0, 0, 2);
+      heartGroup.add(hrtL);
+      const hrtL2 = new THREE.PointLight(0xff6600, 3, 18);
+      hrtL2.position.set(3, 4, 3);
+      scene.add(hrtL2);
+      scene.add(
+        new THREE.DirectionalLight(0x441122, 0.5).position.set(-4, 6, 4)
+      );
+      const greenL = new THREE.PointLight(0x00ff88, 1.5, 16);
+      greenL.position.set(-7, 3, 0);
+      scene.add(greenL);
+      // Rim light pour donner du volume
+      const rimL = new THREE.DirectionalLight(0xff1133, 0.4);
+      rimL.position.set(0, -5, -8);
+      scene.add(rimL);
+
+      // ── CŒUR ANATOMIQUE — Forme réaliste avec shader musculaire ──
+      // Geometrie de base : sphère déformée pour ressembler à un vrai cœur
+      const heartGeo = new THREE.SphereGeometry(4.5, 80, 80);
+
+      const heartMat = new THREE.ShaderMaterial({
+        uniforms: { uT: { value: 0 }, uBeat: { value: 0 } },
+        vertexShader: `
+    uniform float uT,uBeat;
+    varying vec3 vN,vP,vWP;varying vec2 vUv;
+    // Fonction de forme de coeur anatomique
+    void main(){
+      vUv=uv;
+      vec3 p=position;
+
+      // ── FORME ANATOMIQUE ──
+      // Indentation septale en haut (sillon entre les deux ventricules)
+      float topY=p.y/4.5;
+      float topIndent=smoothstep(.55,1.,topY)*smoothstep(.5,.0,abs(p.x/4.5))*2.2;
+      p.y-=topIndent;
+
+      // Apex pointu en bas
+      float botY=clamp(-p.y/4.5,0.,1.);float botTaper=pow(botY,.6)*1.1;
+      p.x*=1.-botTaper*.35;p.z*=1.-botTaper*.35;
+
+      // Légère asymétrie anatomique (ventricule gauche plus grand)
+      p.x+=smoothstep(-1.,1.,p.x)*.4;
+
+      // ── BATTEMENT ──
+      float beat=uBeat*(.22+sin(uT*1.4)*.05);
+      p+=normalize(p)*(beat+sin(p.y*2.2+uT*2.8)*.035);
+
+      // ── TEXTURE MUSCULAIRE ──
+      // Stries myocardiques (fibres musculaires)
+      float fibre=sin(p.x*6.+uT*.9)*sin(p.y*5.+uT*1.1)*sin(p.z*7.+uT*.7)*.038;
+      // Veines coronaires (sillons)
+      float coronV=sin(atan(p.z,p.x)*8.+uT*.15)*cos(p.y*.8)*.025;
+      p+=normalize(p)*(fibre+coronV);
+
+      vN=normalize(normalMatrix*normal);vP=p;
+      vWP=(modelMatrix*vec4(p,1.)).xyz;
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
+    }`,
+        fragmentShader: `
+    uniform float uT,uBeat;
+    varying vec3 vN,vP,vWP;varying vec2 vUv;
+    void main(){
+      vec3 vd=normalize(cameraPosition-vWP);
+      float NdotV=dot(vN,vd);
+      float fr=pow(1.-abs(NdotV),.6);
+
+      // Base couleur myocarde (rouge profond)
+      float depth=clamp(NdotV,.0,1.);
+      vec3 deepRed=vec3(.55,.03,.05);
+      vec3 surfRed=vec3(.75,.07,.1);
+      vec3 baseCol=mix(deepRed,surfRed,depth);
+
+      // Stries musculaires — réseau fibres
+      float fibres=sin(vUv.x*35.+uT*.6)*sin(vUv.y*28.+uT*.45)*.1+.9;
+      float fibres2=cos(vUv.x*22.-uT*.4)*cos(vUv.y*18.+uT*.3)*.06+.94;
+      baseCol*=fibres*fibres2;
+
+      // Sillons inter-ventriculaires (lignes sombres)
+      float groove=smoothstep(.86,.92,abs(sin(vUv.x*3.14)))*smoothstep(.0,.3,vUv.y);
+      baseCol*=1.-groove*.45;
+
+      // Reflets spéculaires (surface humide)
+      vec3 lightDir=normalize(vec3(1.,1.5,2.));
+      float spec=pow(max(0.,dot(reflect(-lightDir,vN),vd)),28.)*.55;
+      baseCol+=vec3(spec*.9,spec*.2,spec*.2);
+
+      // Battement — surbrillance rouge
+      float beat=uBeat*.42;
+      baseCol+=vec3(beat*.7,beat*.06,beat*.04);
+
+      // Halo de bord (fresnel)
+      baseCol+=vec3(fr*(.3+uBeat*.5),fr*.04,fr*.02);
+
+      // Ombres profondes dans les sillons
+      baseCol*=(.7+depth*.3)*(1.-fr*.18);
+
+      gl_FragColor=vec4(clamp(baseCol,0.,1.),1.);
+    }`,
+        transparent: false,
+      });
+
+      const heart = new THREE.Mesh(heartGeo, heartMat);
+      heartGroup.add(heart);
+
+      // Halo atmosphérique
+      const haloMat = new THREE.ShaderMaterial({
+        uniforms: { uT: { value: 0 } },
+        vertexShader: `varying vec3 vN,vP;void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+        fragmentShader: `uniform float uT;varying vec3 vN,vP;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),4.);float p=sin(uT*2.)*.1+.9;gl_FragColor=vec4(.88,.04,.07,fr*.5*p);}`,
+        transparent: true,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      heartGroup.add(
+        new THREE.Mesh(new THREE.SphereGeometry(6, 28, 28), haloMat)
+      );
+
+      // ── ARTÈRES ──
+      const ARTS = [
+        // Vertes (renouvelables) — fines, rayonnantes
+        { az: 0.35, el: 0.9, l: 13, t: "G", r: 0.18, lbl: "Éolien" },
+        { az: 1.2, el: 0.65, l: 15, t: "G", r: 0.17, lbl: "Solaire" },
+        { az: 2.1, el: 0.4, l: 12, t: "G", r: 0.16, lbl: "Hydraulique" },
+        { az: 3.6, el: -0.3, l: 11, t: "G", r: 0.17, lbl: "Biomasse" },
+        // Noires (fossiles) — épaisses, bouchées
+        { az: -0.2, el: 0.55, l: 17, t: "B", r: 0.52, lbl: "Charbon" },
+        { az: 0.9, el: -0.25, l: 19, t: "B", r: 0.58, lbl: "Pétrole" },
+        { az: 1.9, el: -0.65, l: 15, t: "B", r: 0.48, lbl: "Gaz naturel" },
+        { az: 2.9, el: 0.45, l: 16, t: "B", r: 0.55, lbl: "Fuel lourd" },
+        { az: 4.3, el: -0.15, l: 14, t: "B", r: 0.5, lbl: "Carbone" },
+      ];
+
+      // Positions 3D des artères noires pour la fumée
+      const blackArteryEnds = [];
+
+      const artGroups = [];
+      ARTS.forEach((art, i) => {
+        const grp = new THREE.Group();
+        const dir = new THREE.Vector3(
+          Math.cos(art.az) * Math.cos(art.el),
+          Math.sin(art.el),
+          Math.sin(art.az) * Math.cos(art.el)
+        ).normalize();
+        const startPos = dir.clone().multiplyScalar(4.7);
+        const endPos = dir.clone().multiplyScalar(4.7 + art.l);
+
+        // Courbe organique
+        const pts = [];
+        for (let s = 0; s <= 28; s++) {
+          const tt = s / 28;
+          const pos = startPos.clone().lerp(endPos, tt);
+          pos.x +=
+            Math.sin(tt * Math.PI * 1.8 + i * 0.9) *
+            (art.t === "G" ? 0.5 : 0.9);
+          pos.y +=
+            Math.cos(tt * Math.PI * 1.2 + i * 0.7) *
+            (art.t === "G" ? 0.4 : 0.7);
+          pts.push(pos);
+        }
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const tubeGeo = new THREE.TubeGeometry(curve, 36, art.r, 12, false);
+
+        let mat;
+        if (art.t === "G") {
+          // Artère verte — émissive, lumineuse
+          mat = new THREE.MeshPhongMaterial({
+            color: 0x00bb55,
+            emissive: new THREE.Color(0.0, 0.18, 0.04),
+            shininess: 55,
+            transparent: true,
+            opacity: 0.92,
+          });
+        } else {
+          // Artère noire — shader dépôts carbone
+          mat = new THREE.ShaderMaterial({
+            uniforms: { uT: { value: 0 }, uPulse: { value: 0 } },
+            vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+            fragmentShader: `
+        uniform float uT,uPulse;varying vec2 vUv;
+        void main(){
+          // Texture dépôt carbone
+          float deposit=sin(vUv.x*50.+uT*.15)*sin(vUv.y*20.)*.12+.88;
+          float layer=cos(vUv.x*30.)*sin(vUv.y*12.)*.08+.92;
+          vec3 col=vec3(.07,.03,.03)*deposit*layer;
+          // Craquelures
+          float crack=step(.97,abs(sin(vUv.x*100.)*.5+.5));
+          col+=vec3(.18,.06,.04)*crack;
+          // Légère lueur rouge du flux ralenti
+          col+=vec3(.06,.01,.01)*uPulse;
+          gl_FragColor=vec4(col,1.);
+        }`,
+            transparent: false,
+          });
+          window["bMat" + i] = mat;
+          // Stocker position de fin pour la fumée
+          blackArteryEnds.push({
+            pos: endPos.clone().multiplyScalar(0.9),
+            idx: i,
+          });
+        }
+
+        const tube = new THREE.Mesh(tubeGeo, mat);
+        grp.add(tube);
+
+        // Plaques de carbone sur artères noires
+        if (art.t === "B") {
+          const pqMat = new THREE.MeshPhongMaterial({
+            color: 0x0a0804,
+            emissive: new THREE.Color(0.04, 0.02, 0.01),
+            shininess: 2,
+          });
+          [0.25, 0.48, 0.72, 0.88].forEach((tt) => {
+            const pos = curve.getPointAt(tt);
+            const pq = new THREE.Mesh(
+              new THREE.SphereGeometry(art.r * 1.7, 10, 10),
+              pqMat
+            );
+            pq.position.copy(pos);
+            grp.add(pq);
+          });
+        }
+
+        // Particules circulant
+        const partCount = art.t === "G" ? 14 : 3;
+        const parts = [];
+        for (let p = 0; p < partCount; p++) {
+          const pm = new THREE.MeshBasicMaterial({
+            color: art.t === "G" ? 0x44ffaa : 0x551111,
+            transparent: true,
+            opacity: 0.85,
+          });
+          const part = new THREE.Mesh(
+            new THREE.SphereGeometry(art.t === "G" ? 0.11 : 0.07, 5, 5),
+            pm
+          );
+          grp.add(part);
+          parts.push({
+            mesh: part,
+            t: p / partCount,
+            spd: art.t === "G" ? 0.009 : 0.0015,
+            curve,
+          });
+        }
+
+        heartGroup.add(grp);
+        artGroups.push({ grp, art, curve, parts, mat, endPos });
+      });
+
+      // Fond sombre organique
+      scene.add(
+        new THREE.Mesh(
+          new THREE.SphereGeometry(80, 16, 16),
+          new THREE.MeshBasicMaterial({ color: 0x050001, side: THREE.BackSide })
+        )
+      );
+
+      // ── ÉTINCELLES 3D ──
+      const SPARKS = [];
+      for (let i = 0; i < 100; i++) {
+        const sm = new THREE.MeshBasicMaterial({
+          color: new THREE.Color().setHSL(
+            0.06 + Math.random() * 0.06,
+            0.95,
+            0.68
+          ),
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+        });
+        const s = new THREE.Mesh(new THREE.SphereGeometry(0.07, 4, 4), sm);
+        s.visible = false;
+        scene.add(s);
+        SPARKS.push({
+          mesh: s,
+          mat: sm,
+          life: 0,
+          maxLife: 0.5 + Math.random() * 0.4,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+          vz: (Math.random() - 0.5) * 0.35,
+        });
+      }
+
+      // ══════════════════════════════════════════════════
+      // CANVAS 2D — FUMÉE + ÉTINCELLES 2D
+      // ══════════════════════════════════════════════════
+      const smokeCanvas = document.getElementById("smoke-canvas");
+      smokeCanvas.width = innerWidth;
+      smokeCanvas.height = innerHeight;
+      const smokeCtx = smokeCanvas.getContext("2d");
+      const spkCanvas = document.getElementById("spark-canvas");
+      spkCanvas.width = innerWidth;
+      spkCanvas.height = innerHeight;
+      const spkCtx = spkCanvas.getContext("2d");
+
+      // Particules de fumée 2D — naissent aux bouts des artères noires projetées
+      const smokeParticles = [];
+      function spawnSmoke() {
+        // On projette les positions 3D des bouts d'artères noires en 2D
+        blackArteryEnds.forEach((ae) => {
+          if (Math.random() > 0.18) return;
+          const v = ae.pos.clone().applyMatrix4(heartGroup.matrixWorld);
+          const proj = v.clone().project(camera);
+          const sx = (proj.x * 0.5 + 0.5) * smokeCanvas.width;
+          const sy = (proj.y * -0.5 + 0.5) * smokeCanvas.height;
+          if (proj.z > 1) return; // derrière la caméra
+          smokeParticles.push({
+            x: sx,
+            y: sy,
+            vx: (Math.random() - 0.5) * 1.2,
+            vy: -(1.5 + Math.random() * 2.5),
+            life: 1,
+            size: 4 + Math.random() * 18,
+            gray: Math.floor(Math.random() * 35 + 15),
+            rot: Math.random() * Math.PI * 2,
+            rotSpd: (Math.random() - 0.5) * 0.04,
+          });
+        });
+      }
+
+      // Étincelles 2D
+      const sparks2D = [];
+      function spawnSpark2D() {
+        const v = new THREE.Vector3(0, 0, 0);
+        v.project(camera);
+        const sx = (v.x * 0.5 + 0.5) * spkCanvas.width,
+          sy = (v.y * -0.5 + 0.5) * spkCanvas.height;
+        const angle = Math.random() * Math.PI * 2;
+        const spd = 2 + Math.random() * 6;
+        sparks2D.push({
+          x: sx,
+          y: sy,
+          vx: Math.cos(angle) * spd,
+          vy: Math.sin(angle) * spd,
+          life: 1,
+          size: 1.5 + Math.random() * 3.5,
+          col: `hsl(${Math.floor(Math.random() * 35 + 5)},95%,${
+            58 + Math.floor(Math.random() * 30)
+          }%)`,
+        });
+      }
+
+      // ══════════════════════════════════════════════════
+      // ROTATION LIBRE — DRAG SOURIS
+      // ══════════════════════════════════════════════════
+      let isDragging = false,
+        lastMX = 0,
+        lastMY = 0;
+      let rotX = 0,
+        rotY = 0,
+        velX = 0,
+        velY = 0;
+
+      c3d.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        lastMX = e.clientX;
+        lastMY = e.clientY;
+        velX = 0;
+        velY = 0;
+      });
+      document.addEventListener("mouseup", () => {
+        isDragging = false;
+      });
+      document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - lastMX,
+          dy = e.clientY - lastMY;
+        velY = dx * 0.006;
+        velX = dy * 0.006;
+        rotX += velX;
+        rotY += velY;
+        lastMX = e.clientX;
+        lastMY = e.clientY;
+      });
+      // Touch
+      c3d.addEventListener("touchstart", (e) => {
+        isDragging = true;
+        lastMX = e.touches[0].clientX;
+        lastMY = e.touches[0].clientY;
+      });
+      document.addEventListener("touchend", () => {
+        isDragging = false;
+      });
+      document.addEventListener("touchmove", (e) => {
+        if (!isDragging) return;
+        const dx = e.touches[0].clientX - lastMX,
+          dy = e.touches[0].clientY - lastMY;
+        velY = dx * 0.006;
+        velX = dy * 0.006;
+        rotX += velX;
+        rotY += velY;
+        lastMX = e.touches[0].clientX;
+        lastMY = e.touches[0].clientY;
+      });
+
+      // ══════════════════════════════════════════════════
+      // BOUCLE ANIMATION PRINCIPALE
+      // ══════════════════════════════════════════════════
+      let globalT = 0,
+        beatPhase = 0,
+        camZTarget = 26,
+        camZCur = 26,
+        autoRot = true;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const dt = Math.min(clock.getDelta(), 0.05);
+        globalT += dt;
+        const t = globalT;
+
+        // Battement
+        const bInterval = 60 / bpmVal;
+        beatPhase = (beatPhase + dt) % bInterval;
+        const bn = beatPhase / bInterval;
+        const beat = Math.pow(Math.max(0, 1 - bn * 4.8), 0.5);
+        heartMat.uniforms.uT.value = t;
+        heartMat.uniforms.uBeat.value = beat;
+        haloMat.uniforms.uT.value = t;
+
+        // Scale cœur
+        const sf = 1 + beat * 0.1;
+        heartGroup.scale.set(sf, sf * 1.04, sf);
+
+        // Rotation — inertie + auto-rotation douce
+        if (!isDragging) {
+          velX *= 0.94;
+          velY *= 0.94;
+          rotX += velX;
+          rotY += velY;
+          if (autoRot) rotY += 0.0018; // rotation auto lente
+        }
+        heartGroup.rotation.x = rotX;
+        heartGroup.rotation.y = rotY;
+
+        // Lumières pulsent
+        hrtL.intensity = 3 + beat * 6;
+        hrtL2.intensity = 1.5 + beat * 2.5;
+        greenL.intensity = 1.2 + Math.sin(t * 0.7) * 0.4;
+
+        // Artères
+        artGroups.forEach((ag, i) => {
+          ag.parts.forEach((p) => {
+            p.t = (p.t + p.spd) % 1;
+            const pos = ag.curve.getPointAt(Math.min(p.t, 0.999));
+            p.mesh.position.copy(pos);
+            p.mesh.material.opacity =
+              (ag.art.t === "G" ? 0.85 : 0.3) * (beat * 0.15 + 0.85);
+          });
+          if (
+            ag.art.t === "B" &&
+            window["bMat" + i] &&
+            window["bMat" + i].uniforms
+          ) {
+            window["bMat" + i].uniforms.uT.value = t;
+            window["bMat" + i].uniforms.uPulse.value = beat * 0.25;
+          }
+          if (ag.art.t === "G" && ag.grp.children[0]) {
+            const m = ag.grp.children[0].material;
+            if (m && m.emissive)
+              m.emissive.setRGB(0, Math.sin(t * 1.4 + i) * 0.08 + 0.06, 0);
+          }
+        });
+
+        // Étincelles 3D
+        if (beat > 0.72 && Math.random() < 0.35) {
+          const sp = SPARKS[Math.floor(Math.random() * SPARKS.length)];
+          if (sp.life <= 0) {
+            const ang = Math.random() * Math.PI * 2,
+              el = (Math.random() - 0.5) * Math.PI;
+            sp.mesh.position.set(
+              Math.cos(ang) * Math.cos(el) * 5,
+              Math.sin(el) * 5,
+              Math.sin(ang) * Math.cos(el) * 5
+            );
+            // Appliquer la rotation du heartGroup
+            sp.mesh.position.applyEuler(heartGroup.rotation);
+            sp.life = sp.maxLife;
+            sp.mesh.visible = true;
+            sp.mat.opacity = 0.9;
+            if (!isMuted && Math.random() < 0.12) playSparkSound();
+          }
+        }
+        SPARKS.forEach((sp) => {
+          if (sp.life <= 0) {
+            sp.mesh.visible = false;
+            return;
+          }
+          sp.life -= dt;
+          sp.mesh.position.x += sp.vx * dt * 9;
+          sp.mesh.position.y += sp.vy * dt * 9;
+          sp.mesh.position.z += sp.vz * dt * 9;
+          sp.mat.opacity = Math.max(0, sp.life / sp.maxLife) * 0.88;
+          const s2 = sp.life / sp.maxLife;
+          sp.mesh.scale.set(s2, s2, s2);
+        });
+
+        // Étincelles 2D
+        if (beat > 0.75 && Math.random() < 0.45) spawnSpark2D();
+
+        // Fumée 2D — spawn régulier
+        if (Math.random() < 0.35) spawnSmoke();
+
+        // Caméra
+        camZCur += (camZTarget - camZCur) * 0.018;
+        camera.position.z = camZCur;
+        camera.position.x = Math.sin(t * 0.04) * 0.5;
+        camera.position.y = Math.sin(t * 0.025) * 0.25;
+        camera.lookAt(0, 0, 0);
+
+        // Flash rouge battement
+        const bo = document.getElementById("bo");
+        bo.style.background = `radial-gradient(ellipse at 50% 50%,rgba(${
+          195 + Math.floor(beat * 60)
+        },0,0,${beat * 0.28})0%,transparent 62%)`;
+        bo.style.opacity = beat > 0.08 ? "1" : "0";
+
+        // BPM display
+        const bd = Math.floor(bpmVal + Math.sin(t * 2) * 1.5);
+        document.getElementById("bpm-val").textContent = bd;
+        document.getElementById("d-bpm").textContent = bd + " (normal: 60)";
+        document.getElementById("bpm-fill").style.width =
+          Math.min(100, Math.round((bd / 200) * 100) + beat * 5) + "%";
+        $cur.classList.toggle("big", beat > 0.65);
+
+        // Render
+        renderer.render(scene, camera);
+
+        // ── FUMÉE CANVAS 2D ──
+        smokeCtx.clearRect(0, 0, smokeCanvas.width, smokeCanvas.height);
+        for (let i = smokeParticles.length - 1; i >= 0; i--) {
+          const s = smokeParticles[i];
+          s.x += s.vx;
+          s.y += s.vy;
+          s.life -= 0.008;
+          s.size += 0.35;
+          s.rot += s.rotSpd;
+          if (s.life <= 0) {
+            smokeParticles.splice(i, 1);
+            continue;
+          }
+          smokeCtx.save();
+          smokeCtx.translate(s.x, s.y);
+          smokeCtx.rotate(s.rot);
+          const alpha = s.life < 0.4 ? s.life / 0.4 : 1;
+          const grd = smokeCtx.createRadialGradient(0, 0, 0, 0, 0, s.size);
+          grd.addColorStop(
+            0,
+            `rgba(${s.gray},${s.gray - 5},${s.gray - 8},${alpha * 0.55})`
+          );
+          grd.addColorStop(
+            0.5,
+            `rgba(${s.gray},${s.gray - 5},${s.gray - 8},${alpha * 0.22})`
+          );
+          grd.addColorStop(1, "rgba(0,0,0,0)");
+          smokeCtx.fillStyle = grd;
+          smokeCtx.beginPath();
+          smokeCtx.arc(0, 0, s.size, 0, Math.PI * 2);
+          smokeCtx.fill();
+          smokeCtx.restore();
+        }
+
+        // ── ÉTINCELLES CANVAS 2D ──
+        spkCtx.clearRect(0, 0, spkCanvas.width, spkCanvas.height);
+        for (let i = sparks2D.length - 1; i >= 0; i--) {
+          const s = sparks2D[i];
+          s.x += s.vx;
+          s.y += s.vy;
+          s.vy += 0.1;
+          s.vx *= 0.97;
+          s.life -= 0.028;
+          if (s.life <= 0) {
+            sparks2D.splice(i, 1);
+            continue;
+          }
+          spkCtx.beginPath();
+          spkCtx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
+          spkCtx.fillStyle = s.col
+            .replace(")", `,${s.life})`)
+            .replace("hsl", "hsla");
+          spkCtx.fill();
+          spkCtx.beginPath();
+          spkCtx.moveTo(s.x, s.y);
+          spkCtx.lineTo(s.x - s.vx * 4, s.y - s.vy * 4);
+          spkCtx.strokeStyle = s.col
+            .replace(")", `,${s.life * 0.55})`)
+            .replace("hsl", "hsla");
+          spkCtx.lineWidth = s.size * 0.7;
+          spkCtx.stroke();
+        }
+      }
+
+      // ══════════════════════════════════════════════════
+      // SÉQUENCE NARRATIVE COMPLÈTE
+      // ══════════════════════════════════════════════════
+      function startScene() {
+        initAudio();
+        playAmbient();
+        const cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.5s ease";
+        setTimeout(() => cu.classList.add("gone"), 120);
+        setTimeout(() => playHeartbeat(), 900);
+        setTimeout(() => {
+          document.getElementById("hud-top").classList.add("show");
+          document.getElementById("bpm-live").classList.add("show");
+          document.getElementById("diag").classList.add("show");
+        }, 1400);
+        // BPM monte légèrement
+        let bpmTick = 0;
+        const biv = setInterval(() => {
+          bpmTick++;
+          if (bpmVal < 93) bpmVal += 0.4;
+          if (bpmTick > 25) clearInterval(biv);
+        }, 500);
+
+        // Voix GAÏA — dialogue complet
+        setTimeout(() => {
+          const txt = `Sentez-vous cette douleur dans ma poitrine ?
+C'est mon cœur qui lutte pour pomper l'énergie.
+
+Pendant 200 ans, j'ai brûlé du charbon, du pétrole, du gaz.
+Ces énergies noires obstruent mes artères.
+Mon sang ne circule plus correctement.
+Je m'étouffe de l'intérieur.
+
+Regardez... ces artères noires autour de moi.
+Des plaques de carbone partout.
+Elles ralentissent tout.
+
+Mais vous pouvez m'aider.
+Entrez dans mon système cardiovasculaire.
+Explorez chaque partie.
+Comprenez comment je fonctionne.
+Et trouvez... un moyen de me guérir.`;
+
+          speak(txt, () => {
+            // Après le discours → badge
+            setTimeout(
+              () => document.getElementById("badge").classList.add("show"),
+              800
+            );
+          });
+
+          // Au mot "Regardez" (~8s) → zoom sur artère noire
+          setTimeout(() => {
+            camZTarget = 16; // zoom avant
+            setTimeout(() => showZoom(), 1200);
+            setTimeout(() => {
+              camZTarget = 24;
+            }, 5000); // dezoom après
+          }, 9500);
+        }, 2500);
+      }
+
+      // ── ENTRER DANS LE CŒUR — Transition lumière ──
+      function enterHeart() {
+        if (_hbIv) clearInterval(_hbIv);
+        if (syn) syn.cancel();
+        document.getElementById("badge").classList.remove("show");
+
+        // Zoom avant rapide
+        camZTarget = 2;
+        autoRot = false;
+
+        // Lumière chaude qui monte du fond
+        const light = document.getElementById("transition-light");
+        let la = 0;
+        const lightIv = setInterval(() => {
+          la = Math.min(la + 0.04, 1);
+          light.style.opacity = la;
+          if (la >= 1) {
+            clearInterval(lightIv);
+          }
+        }, 16);
+
+        // Rideau
+        setTimeout(() => {
+          const cu = document.getElementById("curtain");
+          cu.style.transition = "opacity 2s ease";
+          cu.classList.remove("gone");
+          cu.style.opacity = "1";
+          setTimeout(() => {
+            try {
+              localStorage.setItem("gaiaPlayerName", pName);
+              localStorage.setItem("gaiaScore", (score + 100).toString());
+            } catch (e) {}
+            window.location.href = "scene5.html";
+          }, 2200);
+        }, 2000);
+      }
+
+      window.addEventListener("resize", () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+        c3d.width = innerWidth;
+        c3d.height = innerHeight;
+        smokeCanvas.width = innerWidth;
+        smokeCanvas.height = innerHeight;
+        spkCanvas.width = innerWidth;
+        spkCanvas.height = innerHeight;
+      });
+
+      animate();
+      window.addEventListener("load", startScene);
+    </script>
+  </body>
+</html>
