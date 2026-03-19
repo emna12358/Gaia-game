@@ -1038,12 +1038,238 @@
         box-shadow: 0 0 40px rgba(204, 17, 51, 0.35);
       }
 
+      /* ══ LESSON SCREEN — boîte centrée style mission ══ */
+      #lesson-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 65;
+        background: rgba(0, 5, 2, 0.96);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.8s ease;
+        padding: 16px;
+      }
+      #lesson-screen.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .lsn-box {
+        background: rgba(0, 8, 3, 0.97);
+        border: 1px solid rgba(0, 255, 136, 0.28);
+        border-radius: 5px;
+        padding: 28px 36px 22px;
+        max-width: 620px;
+        width: 100%;
+        box-shadow: 0 0 80px rgba(0, 255, 136, 0.1),
+          inset 0 0 40px rgba(0, 0, 0, 0.5);
+        max-height: 92vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 255, 136, 0.18) transparent;
+      }
+      .lsn-box::-webkit-scrollbar {
+        width: 3px;
+      }
+      .lsn-box::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 136, 0.18);
+        border-radius: 2px;
+      }
+      .lsn-top {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.45);
+        margin-bottom: 4px;
+      }
+      .lsn-sep {
+        height: 1px;
+        background: linear-gradient(90deg, rgba(0, 255, 136, 0.3), transparent);
+        margin: 10px 0 14px;
+      }
+      .lsn-sep2 {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.07);
+        margin: 12px 0;
+      }
+      /* Blocs */
+      .lsn-block {
+        margin-bottom: 4px;
+      }
+      .lsn-block-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(9px, 1.2vw, 11px);
+        letter-spacing: 0.25em;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 9px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .lsn-dim {
+        color: rgba(255, 100, 60, 0.65);
+        font-size: 9px;
+      }
+      .lsn-green {
+        color: rgba(0, 255, 136, 0.6);
+        font-size: 9px;
+      }
+      /* Barres */
+      .lsn-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 5px;
+      }
+      .lsn-bar-wrap {
+        flex: 1;
+        height: 9px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .lsn-bar {
+        display: block;
+        height: 100%;
+        width: 0%;
+        border-radius: 4px;
+        transition: width 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .lsn-bar.go {
+        width: var(--w);
+      }
+      .lsn-lbl {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(12px, 1.4vw, 14px);
+        color: rgba(255, 255, 255, 0.55);
+        width: 105px;
+        flex-shrink: 0;
+      }
+      .lsn-val {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.65);
+        width: 32px;
+        text-align: right;
+        flex-shrink: 0;
+      }
+      /* Items */
+      .lsn-item {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.5vw, 15px);
+        line-height: 1.55;
+        padding: 7px 13px;
+        border-radius: 3px;
+        margin-bottom: 5px;
+      }
+      .lsn-warn {
+        background: rgba(220, 50, 20, 0.07);
+        border: 1px solid rgba(220, 50, 20, 0.18);
+        color: rgba(255, 200, 180, 0.85);
+      }
+      .lsn-ok {
+        background: rgba(0, 220, 100, 0.06);
+        border: 1px solid rgba(0, 220, 100, 0.16);
+        color: rgba(190, 255, 215, 0.85);
+      }
+      /* Objectif */
+      .lsn-goal {
+        font-family: "Cinzel", serif;
+        font-size: clamp(11px, 1.5vw, 14px);
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        color: var(--g);
+        text-align: center;
+        padding: 12px 16px;
+        background: rgba(0, 255, 136, 0.07);
+        border: 1px solid rgba(0, 255, 136, 0.22);
+        border-radius: 3px;
+        text-shadow: 0 0 18px rgba(0, 255, 136, 0.45);
+      }
+      /* Voix Gaïa */
+      .lsn-voice-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 7px;
+        margin-top: 4px;
+      }
+      .lsn-vnm {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.4em;
+        color: rgba(204, 17, 51, 0.5);
+      }
+      #lsn-vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #lsn-vbr.on {
+        opacity: 1;
+      }
+      /* Zone texte typewriter */
+      .lsn-speech-box {
+        background: rgba(0, 4, 2, 0.85);
+        border: 1px solid rgba(204, 17, 51, 0.15);
+        border-radius: 3px;
+        padding: 12px 16px;
+        min-height: 64px;
+        margin-bottom: 16px;
+      }
+      #lsn-txt {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(14px, 1.7vw, 17px);
+        line-height: 1.9;
+        color: var(--soft);
+        white-space: pre-wrap;
+      }
+      #lsn-cur {
+        display: inline-block;
+        width: 2px;
+        height: 15px;
+        background: var(--rb);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      /* Bouton */
+      .lsn-footer {
+        display: flex;
+        justify-content: center;
+        margin-top: 4px;
+      }
+      .lsn-btn {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.32em;
+        color: var(--g);
+        background: rgba(0, 8, 3, 0.97);
+        border: 1px solid rgba(0, 255, 136, 0.5);
+        padding: 13px 42px;
+        cursor: pointer;
+        transition: all 0.35s;
+        border-radius: 2px;
+        box-shadow: 0 0 24px rgba(0, 255, 136, 0.12);
+      }
+      .lsn-btn:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 42px rgba(0, 255, 136, 0.38);
+      }
+
       #ab {
         position: fixed;
         bottom: 18px;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 60;
+        z-index: 70;
         font-family: "Cinzel", serif;
         font-size: 8px;
         letter-spacing: 0.28em;
@@ -1241,6 +1467,7 @@
 
     <div id="crack-fx">CRACK !</div>
 
+    <!-- SUCCÈS — écran 1 : résultats + bouton leçon -->
     <div id="success-screen">
       <div class="ss-icon">💚</div>
       <div class="ss-title">ARTÈRES DÉBLOQUÉES</div>
@@ -1248,9 +1475,125 @@
       <div id="ss-txt"></div>
       <div class="ss-pts" id="ss-pts">+150 POINTS</div>
       <div class="ss-badge">🏆 &nbsp;BADGE : "Cardiologue de Gaïa"</div>
-      <button id="ss-btn" onclick="goNext()">
-        ▶ &nbsp;CONTINUER VERS LES POUMONS
+      <button id="ss-btn" onclick="showLesson()">
+        📖 &nbsp;CE QUE VOUS VENEZ D'APPRENDRE
       </button>
+    </div>
+
+    <!-- LEÇON — boîte centrée style mission screen, voix Gaïa synchronisée -->
+    <div id="lesson-screen">
+      <div class="lsn-box">
+        <div class="lsn-top">GAÏA — CE QUE VOUS VENEZ D'APPRENDRE</div>
+        <div class="lsn-sep"></div>
+
+        <div class="lsn-block">
+          <div class="lsn-block-title">
+            🛢️ ÉNERGIES FOSSILES <span class="lsn-dim">(62% en 2025)</span>
+          </div>
+          <div class="lsn-row">
+            <span class="lsn-bar-wrap"
+              ><span
+                class="lsn-bar"
+                style="--w: 27%; background: #cc4422"
+              ></span></span
+            ><span class="lsn-lbl">Charbon</span
+            ><span class="lsn-val">27%</span>
+          </div>
+          <div class="lsn-row">
+            <span class="lsn-bar-wrap"
+              ><span
+                class="lsn-bar"
+                style="--w: 31%; background: #aa2200"
+              ></span></span
+            ><span class="lsn-lbl">Pétrole</span
+            ><span class="lsn-val">31%</span>
+          </div>
+          <div class="lsn-row">
+            <span class="lsn-bar-wrap"
+              ><span
+                class="lsn-bar"
+                style="--w: 24%; background: #dd7700"
+              ></span></span
+            ><span class="lsn-lbl">Gaz naturel</span
+            ><span class="lsn-val">24%</span>
+          </div>
+          <div class="lsn-row">
+            <span class="lsn-bar-wrap"
+              ><span
+                class="lsn-bar"
+                style="--w: 10%; background: #7733bb"
+              ></span></span
+            ><span class="lsn-lbl">Nucléaire</span
+            ><span class="lsn-val">10%</span>
+          </div>
+          <div class="lsn-row">
+            <span class="lsn-bar-wrap"
+              ><span
+                class="lsn-bar"
+                style="--w: 8%; background: #00cc66"
+              ></span></span
+            ><span class="lsn-lbl">Renouvelables</span
+            ><span class="lsn-val">8%</span>
+          </div>
+        </div>
+
+        <div class="lsn-sep2"></div>
+        <div class="lsn-block">
+          <div class="lsn-block-title">⚠️ PROBLÈMES</div>
+          <div class="lsn-item lsn-warn">
+            💨 36 milliards de tonnes de CO₂ par an
+          </div>
+          <div class="lsn-item lsn-warn">
+            🌡️ Réchauffement climatique : +1,2°C
+          </div>
+          <div class="lsn-item lsn-warn">
+            💀 Pollution de l'air : 7 millions de morts/an
+          </div>
+          <div class="lsn-item lsn-warn">
+            ⏳ Ressources limitées : 50 à 100 ans restants
+          </div>
+        </div>
+
+        <div class="lsn-sep2"></div>
+        <div class="lsn-block">
+          <div class="lsn-block-title">
+            ✅ SOLUTIONS <span class="lsn-green">— Les artères vertes</span>
+          </div>
+          <div class="lsn-item lsn-ok">
+            ☀️ Solaire — infini, coût en baisse constante
+          </div>
+          <div class="lsn-item lsn-ok">
+            🌬️ Éolien — fiable, créateur d'emplois
+          </div>
+          <div class="lsn-item lsn-ok">💧 Hydraulique — mature, stable</div>
+          <div class="lsn-item lsn-ok">🌍 Géothermie — constant, propre</div>
+        </div>
+
+        <div class="lsn-sep2"></div>
+        <div class="lsn-goal">💡 &nbsp;OBJECTIF 2050 : 100% RENOUVELABLE</div>
+
+        <div class="lsn-sep"></div>
+
+        <!-- Voix Gaïa — texte typewriter synchronisé -->
+        <div class="lsn-voice-row">
+          <span class="lsn-vnm">G A Ï A</span>
+          <span id="lsn-vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div class="lsn-speech-box">
+          <div id="lsn-txt"></div>
+          <span id="lsn-cur"></span>
+        </div>
+
+        <div class="lsn-footer">
+          <button class="lsn-btn" onclick="goNext()">
+            SALLE SUIVANTE &nbsp;→
+          </button>
+        </div>
+      </div>
     </div>
     <div id="fail-screen">
       <div class="fs-icon">💔</div>
@@ -2316,7 +2659,7 @@
         document.getElementById("sv").textContent = "SCORE : " + score;
         document.getElementById("ss-pts").textContent =
           "+" + (score - 100) + " POINTS";
-        const gt = `Oui... Je le sens !\nMon énergie circule à nouveau.\nMerci ${pName}. Vous m'avez soulagée.\nMais ce n'est qu'un début.`;
+        const gt = `Excellent travail ${pName}.\nMon énergie circule à nouveau.\nMon rythme cardiaque se stabilise.\nVous venez de comprendre quelque chose d'essentiel.`;
         document.getElementById("ss-txt").textContent = gt;
         setTimeout(() => {
           document.getElementById("success-screen").classList.add("show");
@@ -2338,6 +2681,110 @@
           }
         }, 600);
       }
+
+      // ══ ÉCRAN LEÇON — boîte centrée, voix + typewriter synchronisés ══
+      function showLesson() {
+        if (syn) syn.cancel();
+        // Cache succès
+        const ss = document.getElementById("success-screen");
+        ss.style.transition = "opacity .5s";
+        ss.style.opacity = "0";
+        setTimeout(() => (ss.style.display = "none"), 520);
+
+        // Affiche leçon
+        const ls = document.getElementById("lesson-screen");
+        ls.classList.add("show");
+
+        // Anime les barres après apparition
+        setTimeout(() => {
+          document
+            .querySelectorAll(".lsn-bar")
+            .forEach((b) => b.classList.add("go"));
+        }, 500);
+
+        // Texte que Gaïa lit — structuré pour le typewriter
+        const gaiaText =
+          `Ces plaques noires que vous venez d'arracher...\n` +
+          `Elles représentent deux cents ans d'énergies fossiles.\n\n` +
+          `En 2025, le charbon, le pétrole et le gaz fournissent encore soixante-deux pour cent de l'énergie mondiale.\n\n` +
+          `Le résultat :\n` +
+          `Trente-six milliards de tonnes de CO deux chaque année.\n` +
+          `Un réchauffement de un virgule deux degrés.\n` +
+          `Sept millions de morts par an à cause de la pollution.\n\n` +
+          `Mais regardez les artères vertes.\n` +
+          `Le solaire, l'éolien, l'hydraulique, la géothermie.\n` +
+          `Infinies. Propres. De moins en moins chères.\n\n` +
+          `L'objectif pour 2050 : cent pour cent renouvelable.\n` +
+          `Vous venez de faire le premier pas.`;
+
+        const txtEl = document.getElementById("lsn-txt");
+        const curEl = document.getElementById("lsn-cur");
+        const vbrEl = document.getElementById("lsn-vbr");
+        txtEl.textContent = "";
+        curEl.style.display = "inline-block";
+
+        let charIdx = 0,
+          tgtChar = 0,
+          twIv = null,
+          voiceDone = false;
+
+        // Typewriter continu
+        function runTypewriter() {
+          if (twIv) clearInterval(twIv);
+          twIv = setInterval(() => {
+            if (charIdx < tgtChar && charIdx < gaiaText.length) {
+              txtEl.textContent = gaiaText.slice(0, ++charIdx);
+              // Auto-scroll de la box si le texte déborde
+              const box = document.querySelector(".lsn-speech-box");
+              if (box) box.scrollTop = box.scrollHeight;
+            } else if (voiceDone && charIdx >= gaiaText.length) {
+              clearInterval(twIv);
+              curEl.style.display = "none";
+            }
+          }, 28);
+        }
+
+        // Lancer la voix
+        if (syn && !isMuted) {
+          const u = new SpeechSynthesisUtterance(gaiaText);
+          u.lang = "fr-FR";
+          u.rate = 0.82;
+          u.pitch = 0.78;
+          u.volume = 1;
+          const sv = () => {
+            const v = gv();
+            if (v) u.voice = v;
+          };
+          syn.getVoices().length
+            ? sv()
+            : syn.addEventListener("voiceschanged", sv, { once: true });
+          u.onstart = () => {
+            vbrEl.classList.add("on");
+            runTypewriter();
+          };
+          u.onboundary = (e) => {
+            if (e.name === "word") {
+              // Avance la cible au mot courant
+              tgtChar = Math.min(e.charIndex + e.charLength, gaiaText.length);
+            }
+          };
+          u.onend = u.onerror = () => {
+            vbrEl.classList.remove("on");
+            voiceDone = true;
+            tgtChar = gaiaText.length; // finir d'afficher
+          };
+          syn.speak(u);
+        } else {
+          // Fallback sans voix : typewriter seul
+          voiceDone = false;
+          tgtChar = gaiaText.length;
+          runTypewriter();
+          setTimeout(() => {
+            voiceDone = true;
+          }, gaiaText.length * 32 + 500);
+        }
+      }
+
       function triggerFail() {
         phase = "fail";
         if (_hbIv) clearInterval(_hbIv);
@@ -2372,11 +2819,16 @@
           localStorage.setItem("gaiaPlayerName", pName);
           localStorage.setItem("gaiaScore", score.toString());
         } catch (e) {}
+        // Fondu fluide vers scène 6
         const cu = document.getElementById("curtain");
-        cu.style.transition = "opacity 2s ease";
+        cu.style.transition = "opacity 2.2s ease";
         cu.classList.remove("gone");
         cu.style.opacity = "1";
-        setTimeout(() => (window.location.href = "scene6.html"), 2200);
+        // Cache l'écran leçon progressivement
+        const ls = document.getElementById("lesson-screen");
+        ls.style.transition = "opacity 1.5s ease";
+        ls.style.opacity = "0";
+        setTimeout(() => (window.location.href = "scene6.html"), 2400);
       }
 
       // ══ GUIDE ACTIONS ══
