@@ -11,8 +11,9 @@
     <style>
       :root {
         --g: #00ff88;
+        --gd: #00cc66;
         --soft: #d0f0e0;
-        --ui: rgba(0, 6, 2, 0.96);
+        --ui: rgba(0, 5, 2, 0.97);
         --ub: rgba(0, 255, 136, 0.16);
       }
       * {
@@ -38,6 +39,7 @@
           opacity: 1;
         }
       }
+
       #cur {
         position: fixed;
         width: 14px;
@@ -47,7 +49,7 @@
         pointer-events: none;
         z-index: 9999;
         transform: translate(-50%, -50%);
-        transition: width 0.12s, height 0.12s;
+        transition: width 0.15s, height 0.15s;
       }
       #cur::after {
         content: "";
@@ -60,10 +62,22 @@
         background: var(--g);
         border-radius: 50%;
       }
+      #cur.grab {
+        border-color: #fff;
+        width: 24px;
+        height: 24px;
+      }
+      #cur.grabbing {
+        border-color: #fff;
+        width: 18px;
+        height: 18px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
       #curtain {
         position: fixed;
         inset: 0;
-        z-index: 900;
+        z-index: 950;
         background: #000;
         opacity: 1;
         pointer-events: none;
@@ -73,32 +87,35 @@
         opacity: 0;
       }
 
-      /* ══ PHASE 1 : TUNNEL ARTÈRE VERTE ══ */
+      /* ══ TUNNEL PLEIN ÉCRAN ══ */
       #tunnel-phase {
         position: fixed;
         inset: 0;
         z-index: 10;
         background: #000;
       }
-      #tunnel-canvas {
+      #tunnel-c {
         position: fixed;
         inset: 0;
-        z-index: 11;
+        width: 100%;
+        height: 100%;
       }
-      #tunnel-voice {
+
+      /* Voix tunnel */
+      #t-voice {
         position: fixed;
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
         z-index: 15;
         width: min(720px, 92vw);
-        padding: 0 0 22px;
+        padding: 0 0 24px;
         display: flex;
         flex-direction: column;
         align-items: center;
         pointer-events: none;
       }
-      #tvs {
+      .tv-line {
         width: 0;
         height: 1px;
         background: linear-gradient(
@@ -108,12 +125,12 @@
           transparent
         );
         margin-bottom: 10px;
-        transition: width 1s;
+        transition: width 1.1s;
       }
-      #tvs.show {
+      .tv-line.show {
         width: 100%;
       }
-      #tvbox {
+      .tv-box {
         width: 100%;
         background: var(--ui);
         border: 1px solid var(--ub);
@@ -124,23 +141,23 @@
         transform: translateY(10px);
         transition: opacity 0.8s, transform 0.8s;
       }
-      #tvbox.show {
+      .tv-box.show {
         opacity: 1;
         transform: translateY(0);
       }
-      #tvsr {
+      .tv-hdr {
         display: flex;
         align-items: center;
         gap: 10px;
         margin-bottom: 7px;
       }
-      #tvnm {
+      .tv-nm {
         font-family: "Cinzel", serif;
         font-size: 8px;
         letter-spacing: 0.42em;
         color: rgba(0, 255, 136, 0.5);
       }
-      #tvbr {
+      .tv-vbr {
         display: flex;
         align-items: flex-end;
         gap: 2px;
@@ -148,13 +165,13 @@
         opacity: 0;
         transition: opacity 0.3s;
       }
-      #tvbr.on {
+      .tv-vbr.on {
         opacity: 1;
       }
       .vb {
         width: 2px;
         border-radius: 1px;
-        background: var(--g);
+        background: var(--gd);
         transform-origin: bottom;
         animation: vba 1s ease-in-out infinite alternate;
       }
@@ -197,20 +214,20 @@
           opacity: 1;
         }
       }
-      #tvtx {
+      .tv-txt {
         font-family: "EB Garamond", serif;
         font-size: clamp(13px, 1.6vw, 16px);
-        line-height: 1.9;
+        line-height: 1.95;
         color: var(--soft);
         white-space: pre-wrap;
-        max-height: 120px;
+        max-height: 110px;
         overflow-y: auto;
         scrollbar-width: none;
       }
-      #tvtx::-webkit-scrollbar {
+      .tv-txt::-webkit-scrollbar {
         display: none;
       }
-      #ttwc {
+      .tv-cur {
         display: inline-block;
         width: 2px;
         height: 14px;
@@ -229,7 +246,7 @@
         }
       }
 
-      /* ══ PHASE 2 : LES DEUX FUTURS ══ */
+      /* ══ SPLIT SCREEN ══ */
       #split-phase {
         position: fixed;
         inset: 0;
@@ -237,8 +254,67 @@
         display: none;
       }
 
-      /* TITRE */
-      #split-title {
+      /* 
+  PHOTOS PLEIN ÉCRAN — object-fit:cover sur toute la surface
+  Chaque photo couvre 100% de l'écran, clippath la découpe
+*/
+      #photo-a,
+      #photo-b {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 21;
+        overflow: hidden;
+      }
+      #photo-a img,
+      #photo-b img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+        display: block;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      /* FX overlay canvas */
+      #fx-canvas {
+        position: absolute;
+        inset: 0;
+        z-index: 23;
+        pointer-events: none;
+      }
+
+      /* Légère couche sombre sur chaque moitié pour lisibilité du texte */
+      #ov-a {
+        position: absolute;
+        inset: 0;
+        z-index: 24;
+        pointer-events: none;
+        background: linear-gradient(
+          90deg,
+          rgba(0, 0, 0, 0.22) 0%,
+          rgba(0, 0, 0, 0.06) 80%,
+          transparent 100%
+        );
+      }
+      #ov-b {
+        position: absolute;
+        inset: 0;
+        z-index: 24;
+        pointer-events: none;
+        background: linear-gradient(
+          270deg,
+          rgba(0, 0, 0, 0.18) 0%,
+          rgba(0, 0, 0, 0.05) 80%,
+          transparent 100%
+        );
+      }
+
+      /* Title bar */
+      #sp-title {
         position: absolute;
         top: 0;
         left: 0;
@@ -248,44 +324,43 @@
         padding: 18px 0 14px;
         background: linear-gradient(
           180deg,
-          rgba(0, 0, 0, 0.9) 0%,
+          rgba(0, 0, 0, 0.85) 0%,
+          rgba(0, 0, 0, 0.28) 55%,
           transparent 100%
         );
         pointer-events: none;
       }
-      .st-main {
+      .spt-main {
         font-family: "Cinzel", serif;
-        font-size: clamp(12px, 2vw, 18px);
+        font-size: clamp(11px, 1.7vw, 17px);
         font-weight: 900;
-        letter-spacing: 0.4em;
-        color: rgba(255, 255, 255, 0.85);
-        text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        letter-spacing: 0.44em;
+        color: #fff;
+        text-shadow: 0 0 28px rgba(255, 255, 255, 0.4);
       }
-      .st-sub {
+      .spt-sub {
         font-family: "Cinzel", serif;
-        font-size: 8px;
-        letter-spacing: 0.3em;
-        color: rgba(255, 255, 255, 0.35);
-        margin-top: 3px;
+        font-size: 7px;
+        letter-spacing: 0.32em;
+        color: rgba(255, 255, 255, 0.38);
+        margin-top: 4px;
       }
 
-      /* CANVAS SPLIT */
-      #split-canvas {
-        position: absolute;
-        inset: 0;
-        z-index: 21;
-      }
+      /* (labels et CO2 supprimés) */
 
-      /* SLIDER DIVIDER */
+      /* ══ SLIDER ══ */
       #slider-wrap {
         position: absolute;
         top: 0;
         bottom: 0;
-        z-index: 28;
-        width: 6px;
+        z-index: 40;
+        width: 88px;
         transform: translateX(-50%);
-        cursor: ew-resize;
+        cursor: grab;
         user-select: none;
+      }
+      #slider-wrap:active {
+        cursor: grabbing;
       }
       #slider-line {
         position: absolute;
@@ -293,201 +368,192 @@
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
-        width: 2px;
-        background: rgba(255, 255, 255, 0.8);
-        box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+        width: 3px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 0 14px rgba(255, 255, 255, 0.68),
+          0 0 32px rgba(255, 255, 255, 0.28);
+      }
+      #pct-badge {
+        position: absolute;
+        top: 72px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        color: #fff;
+        white-space: nowrap;
+        backdrop-filter: blur(8px);
+        pointer-events: none;
+      }
+      #glide-hint {
+        position: absolute;
+        top: calc(50% - 54px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.74);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 20px;
+        padding: 5px 14px;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.26em;
+        color: rgba(255, 255, 255, 0.78);
+        white-space: nowrap;
+        animation: fadehint 3s ease-in-out infinite;
+        pointer-events: none;
+      }
+      @keyframes fadehint {
+        0%,
+        100% {
+          opacity: 0.35;
+        }
+        50% {
+          opacity: 1;
+        }
       }
       #slider-handle {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 44px;
-        height: 44px;
+        width: 62px;
+        height: 62px;
         border-radius: 50%;
-        background: rgba(0, 0, 0, 0.85);
-        border: 2px solid rgba(255, 255, 255, 0.8);
+        background: rgba(0, 0, 0, 0.88);
+        border: 2.5px solid rgba(255, 255, 255, 0.9);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 24px rgba(255, 255, 255, 0.38);
+        animation: hpulse 2s ease-in-out infinite;
       }
-      .sh-arrows {
-        color: rgba(255, 255, 255, 0.9);
+      @keyframes hpulse {
+        0%,
+        100% {
+          box-shadow: 0 0 24px rgba(255, 255, 255, 0.38);
+        }
+        50% {
+          box-shadow: 0 0 46px rgba(255, 255, 255, 0.68),
+            0 0 70px rgba(255, 255, 255, 0.22);
+        }
+      }
+      #slider-handle.hov {
+        transform: translate(-50%, -50%) scale(1.2);
+        animation: none;
+        box-shadow: 0 0 46px rgba(255, 255, 255, 0.7);
+      }
+      #slider-handle.drag {
+        transform: translate(-50%, -50%) scale(1.08);
+        animation: none;
+      }
+      .sh-icon {
         font-family: "Cinzel", serif;
-        font-size: 11px;
-        letter-spacing: 0.1em;
-      }
-
-      /* LABELS FUTURS */
-      .future-label {
-        position: absolute;
-        top: 80px;
-        z-index: 29;
-        font-family: "Cinzel", serif;
-        pointer-events: none;
-      }
-      #label-a {
-        left: 28px;
-      }
-      #label-b {
-        right: 28px;
-        text-align: right;
-      }
-      .fl-tag {
-        font-size: 7px;
-        letter-spacing: 0.45em;
-        margin-bottom: 3px;
-      }
-      .fl-name {
-        font-size: clamp(14px, 2.5vw, 22px);
-        font-weight: 900;
-        letter-spacing: 0.15em;
-      }
-      .fl-sub {
-        font-size: 8px;
-        letter-spacing: 0.2em;
-        margin-top: 2px;
-      }
-
-      /* STATS PANELS */
-      .stats-panel {
-        position: absolute;
-        bottom: 160px;
-        z-index: 29;
-        width: min(220px, 28vw);
-        background: rgba(0, 0, 0, 0.82);
-        backdrop-filter: blur(16px);
-        border-radius: 4px;
-        padding: 12px 14px;
-        pointer-events: none;
-      }
-      #stats-a {
-        left: 18px;
-        border: 1px solid rgba(255, 68, 68, 0.3);
-      }
-      #stats-b {
-        right: 18px;
-        border: 1px solid rgba(0, 255, 136, 0.3);
-      }
-      .sp-title {
-        font-family: "Cinzel", serif;
-        font-size: 7px;
-        letter-spacing: 0.28em;
-        margin-bottom: 8px;
-        padding-bottom: 5px;
-        border-bottom: 1px solid;
-      }
-      .sp-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 6px;
-        font-family: "EB Garamond", serif;
         font-size: 13px;
-      }
-      .sp-lbl {
-        color: rgba(255, 255, 255, 0.52);
-      }
-      .sp-val {
-        font-family: "Cinzel", serif;
-        font-size: 10px;
-        letter-spacing: 0.1em;
-      }
-      #stats-a .sp-title {
-        color: rgba(255, 68, 68, 0.8);
-        border-color: rgba(255, 68, 68, 0.2);
-      }
-      #stats-b .sp-title {
-        color: rgba(0, 255, 136, 0.8);
-        border-color: rgba(0, 255, 136, 0.2);
+        color: rgba(255, 255, 255, 0.92);
       }
 
-      /* CO2 COUNTER */
-      .co2-counter {
+      /* Glow bords */
+      #glow-a {
         position: absolute;
-        top: 140px;
-        z-index: 29;
-        font-family: "Cinzel", serif;
-        text-align: center;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        z-index: 32;
         pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.35s;
+        background: linear-gradient(
+          90deg,
+          rgba(204, 17, 51, 0.88),
+          transparent
+        );
       }
-      #co2-a {
-        left: 28px;
-      }
-      #co2-b {
-        right: 28px;
-      }
-      .co2-val {
-        font-size: clamp(16px, 2.5vw, 26px);
-        font-weight: 900;
-        letter-spacing: 0.05em;
-      }
-      .co2-lbl {
-        font-size: 7px;
-        letter-spacing: 0.25em;
-        opacity: 0.6;
-        margin-top: 2px;
+      #glow-b {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 6px;
+        height: 100%;
+        z-index: 32;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.35s;
+        background: linear-gradient(
+          270deg,
+          rgba(0, 255, 100, 0.88),
+          transparent
+        );
       }
 
-      /* GAÏA VOICE DANS SPLIT */
+      /* ══ GAÏA VOICE ══ */
       #split-voice {
         position: absolute;
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 35;
-        width: min(660px, 88vw);
+        z-index: 45;
+        width: min(700px, 90vw);
         padding: 0 0 18px;
         display: flex;
         flex-direction: column;
         align-items: center;
         pointer-events: none;
       }
-      #svs {
+      #sv-sep {
         width: 0;
         height: 1px;
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(0, 255, 136, 0.4),
+          rgba(0, 255, 136, 0.44),
           transparent
         );
         margin-bottom: 9px;
-        transition: width 1s;
+        transition: width 1.1s;
       }
-      #svs.show {
+      #sv-sep.show {
         width: 100%;
       }
-      #svbox {
+      #sv-box {
         width: 100%;
         background: var(--ui);
-        border: 1px solid var(--ub);
-        backdrop-filter: blur(22px);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        backdrop-filter: blur(26px);
         border-radius: 3px;
-        padding: 12px 20px 10px;
+        padding: 13px 20px 11px;
         opacity: 0;
         transform: translateY(10px);
         transition: opacity 0.8s, transform 0.8s;
       }
-      #svbox.show {
+      #sv-box.show {
         opacity: 1;
         transform: translateY(0);
       }
-      #svsr {
+      #sv-box.sad {
+        border-color: rgba(204, 17, 51, 0.32);
+      }
+      #sv-box.hope {
+        border-color: rgba(0, 255, 136, 0.32);
+      }
+      #sv-hdr {
         display: flex;
         align-items: center;
-        gap: 9px;
+        gap: 10px;
         margin-bottom: 6px;
       }
-      #svnm {
+      #sv-nm {
         font-family: "Cinzel", serif;
         font-size: 8px;
         letter-spacing: 0.42em;
-        color: rgba(0, 255, 136, 0.5);
+        color: rgba(0, 255, 136, 0.52);
       }
-      #svbr {
+      #sv-vbr {
         display: flex;
         align-items: flex-end;
         gap: 2px;
@@ -495,63 +561,63 @@
         opacity: 0;
         transition: opacity 0.3s;
       }
-      #svbr.on {
+      #sv-vbr.on {
         opacity: 1;
       }
-      #svtx {
+      #sv-txt {
         font-family: "EB Garamond", serif;
-        font-size: clamp(13px, 1.55vw, 15px);
-        line-height: 1.9;
+        font-size: clamp(13px, 1.6vw, 16px);
+        line-height: 1.95;
         color: var(--soft);
         white-space: pre-wrap;
-        max-height: 110px;
+        max-height: 120px;
         overflow-y: auto;
         scrollbar-width: none;
       }
-      #svtx::-webkit-scrollbar {
+      #sv-txt::-webkit-scrollbar {
         display: none;
       }
-      #stwc {
+      #sv-cur {
         display: inline-block;
         width: 2px;
-        height: 13px;
+        height: 14px;
         background: var(--g);
         vertical-align: middle;
         margin-left: 2px;
         animation: blink 0.8s step-end infinite;
       }
 
-      /* ══ BADGE CHOISIR ══ */
-      #badge-choose {
+      /* ══ BADGE SIMULATION ══ */
+      #badge-sim {
         position: fixed;
         inset: 0;
-        z-index: 50;
+        z-index: 60;
         display: flex;
         align-items: center;
         justify-content: center;
         background: rgba(0, 6, 2, 0.92);
-        backdrop-filter: blur(16px);
+        backdrop-filter: blur(18px);
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.7s ease;
+        transition: opacity 0.7s;
       }
-      #badge-choose.show {
+      #badge-sim.show {
         opacity: 1;
         pointer-events: all;
       }
-      #bc-box {
+      #bs-box {
         background: rgba(0, 8, 3, 0.98);
-        border: 1px solid rgba(0, 255, 136, 0.25);
+        border: 1px solid rgba(0, 255, 136, 0.28);
         border-radius: 5px;
-        padding: 28px 36px 26px;
-        width: min(520px, 90vw);
+        padding: 30px 40px 28px;
+        width: min(560px, 92vw);
         text-align: center;
-        box-shadow: 0 0 80px rgba(0, 255, 136, 0.1);
-        animation: badge-in 0.4s ease;
+        box-shadow: 0 0 80px rgba(0, 255, 136, 0.12);
+        animation: bsin 0.4s ease;
       }
-      @keyframes badge-in {
+      @keyframes bsin {
         from {
-          transform: translateY(16px) scale(0.97);
+          transform: translateY(18px) scale(0.97);
           opacity: 0;
         }
         to {
@@ -559,8 +625,8 @@
           opacity: 1;
         }
       }
-      .bc-icon {
-        font-size: 48px;
+      .bs-ic {
+        font-size: 50px;
         margin-bottom: 10px;
         animation: float 3s ease-in-out infinite;
       }
@@ -573,46 +639,45 @@
           transform: translateY(-8px);
         }
       }
-      .bc-title {
+      .bs-t {
         font-family: "Cinzel", serif;
-        font-size: clamp(14px, 2.5vw, 22px);
+        font-size: clamp(14px, 2.2vw, 20px);
         font-weight: 900;
         letter-spacing: 0.2em;
         color: var(--g);
-        margin-bottom: 6px;
-        filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.5));
+        margin-bottom: 8px;
+        filter: drop-shadow(0 0 18px rgba(0, 255, 136, 0.5));
       }
-      .bc-sub {
+      .bs-s {
         font-family: "EB Garamond", serif;
         font-size: 15px;
-        color: rgba(255, 255, 255, 0.62);
-        line-height: 1.8;
-        margin-bottom: 20px;
+        color: rgba(255, 255, 255, 0.58);
+        line-height: 1.88;
+        margin-bottom: 22px;
       }
-      #bc-btn {
+      #bs-btn {
         font-family: "Cinzel", serif;
         font-size: 10px;
         letter-spacing: 0.3em;
         color: var(--g);
         background: rgba(0, 5, 2, 0.97);
         border: 1px solid rgba(0, 255, 136, 0.55);
-        padding: 15px 44px;
+        padding: 16px 46px;
         cursor: pointer;
         transition: all 0.35s;
         border-radius: 2px;
-        box-shadow: 0 0 28px rgba(0, 255, 136, 0.12);
       }
-      #bc-btn:hover {
+      #bs-btn:hover {
         background: rgba(0, 255, 136, 0.1);
         box-shadow: 0 0 50px rgba(0, 255, 136, 0.4);
       }
 
-      /* ══ PHASE 3 : SIMULATION ══ */
+      /* ══ SIMULATION ══ */
       #sim-phase {
         position: fixed;
         inset: 0;
-        z-index: 60;
-        background: rgba(0, 6, 2, 0.96);
+        z-index: 70;
+        background: rgba(0, 6, 2, 0.97);
         display: none;
         overflow-y: auto;
         padding: 20px 16px;
@@ -626,28 +691,26 @@
         margin-bottom: 20px;
         padding-top: 8px;
       }
-      .sim-icon {
+      .sim-ic {
         font-size: 40px;
         margin-bottom: 6px;
       }
       .sim-title {
         font-family: "Cinzel", serif;
-        font-size: clamp(14px, 2.5vw, 20px);
+        font-size: clamp(13px, 2.2vw, 19px);
         font-weight: 900;
         letter-spacing: 0.3em;
         color: var(--g);
         margin-bottom: 4px;
-        filter: drop-shadow(0 0 16px rgba(0, 255, 136, 0.5));
+        filter: drop-shadow(0 0 14px rgba(0, 255, 136, 0.5));
       }
       .sim-sub {
         font-family: "Cinzel", serif;
-        font-size: 8px;
-        letter-spacing: 0.25em;
-        color: rgba(255, 255, 255, 0.35);
+        font-size: 7px;
+        letter-spacing: 0.24em;
+        color: rgba(255, 255, 255, 0.32);
       }
-
-      /* Budget total */
-      #budget-display {
+      #budget-bar {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -657,32 +720,30 @@
         padding: 12px 16px;
         margin-bottom: 16px;
       }
-      .bd-lbl {
+      .bb-lb {
         font-family: "Cinzel", serif;
-        font-size: 8px;
+        font-size: 7px;
         letter-spacing: 0.28em;
         color: rgba(0, 255, 136, 0.55);
       }
-      .bd-val {
+      .bb-vl {
         font-family: "Cinzel", serif;
         font-size: 20px;
         font-weight: 900;
         color: var(--g);
       }
-      .bd-remain {
+      .bb-rm {
         font-family: "Cinzel", serif;
         font-size: 10px;
         letter-spacing: 0.18em;
       }
-      .bd-remain.ok {
-        color: rgba(0, 255, 136, 0.7);
+      .bb-rm.ok {
+        color: rgba(0, 255, 136, 0.75);
       }
-      .bd-remain.over {
+      .bb-rm.ov {
         color: #ff4444;
       }
-
-      /* Sliders énergie */
-      .energy-row {
+      .er {
         background: rgba(0, 8, 3, 0.85);
         border: 1px solid rgba(0, 255, 136, 0.1);
         border-radius: 3px;
@@ -695,31 +756,31 @@
         justify-content: space-between;
         margin-bottom: 8px;
       }
-      .er-name {
+      .er-nm {
         font-family: "Cinzel", serif;
         font-size: 9px;
         letter-spacing: 0.22em;
         color: rgba(255, 255, 255, 0.75);
       }
-      .er-val {
+      .er-vl {
         font-family: "Cinzel", serif;
         font-size: 12px;
         font-weight: 700;
         color: var(--g);
       }
-      .er-slider {
+      .er-sl {
         width: 100%;
         height: 8px;
         border-radius: 4px;
         outline: none;
         cursor: pointer;
-        appearance: none;
         -webkit-appearance: none;
+        appearance: none;
         background: rgba(0, 255, 136, 0.12);
         border: 1px solid rgba(0, 255, 136, 0.18);
       }
-      .er-slider::-webkit-slider-thumb {
-        appearance: none;
+      .er-sl::-webkit-slider-thumb {
+        -webkit-appearance: none;
         width: 20px;
         height: 20px;
         border-radius: 50%;
@@ -727,18 +788,15 @@
         cursor: pointer;
         box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
       }
-      .er-slider::-moz-range-thumb {
+      .er-sl::-moz-range-thumb {
         width: 20px;
         height: 20px;
         border-radius: 50%;
         background: var(--g);
         cursor: pointer;
         border: none;
-        box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
       }
-
-      /* Bouton simuler */
-      #sim-btn {
+      #sim-go {
         display: block;
         width: 100%;
         margin: 18px 0 0;
@@ -748,51 +806,48 @@
         color: var(--g);
         background: rgba(0, 5, 2, 0.97);
         border: 1px solid rgba(0, 255, 136, 0.55);
-        padding: 16px;
+        padding: 15px;
         cursor: pointer;
         transition: all 0.35s;
         border-radius: 2px;
-        box-shadow: 0 0 28px rgba(0, 255, 136, 0.12);
       }
-      #sim-btn:hover {
+      #sim-go:hover {
         background: rgba(0, 255, 136, 0.1);
         box-shadow: 0 0 50px rgba(0, 255, 136, 0.35);
       }
-      #sim-btn:disabled {
-        opacity: 0.38;
+      #sim-go:disabled {
+        opacity: 0.35;
         cursor: not-allowed;
       }
 
-      /* ══ PHASE 4 : ANIMATION SIMULATION ══ */
+      /* ══ ANIM ══ */
       #sim-anim {
         position: fixed;
         inset: 0;
-        z-index: 70;
+        z-index: 80;
         background: #000;
         display: none;
         flex-direction: column;
         align-items: center;
         justify-content: center;
       }
-      #sim-anim canvas {
+      #anim-c {
         position: absolute;
         inset: 0;
-        z-index: 71;
       }
-      .sa-year {
+      .anim-yr {
         position: relative;
-        z-index: 72;
+        z-index: 2;
         font-family: "Cinzel", serif;
-        font-size: clamp(48px, 10vw, 100px);
+        font-size: clamp(52px, 10vw, 100px);
         font-weight: 900;
         color: rgba(0, 255, 136, 0.85);
         filter: drop-shadow(0 0 40px rgba(0, 255, 136, 0.6));
         text-align: center;
-        pointer-events: none;
       }
-      .sa-sub {
+      .anim-sb {
         position: relative;
-        z-index: 72;
+        z-index: 2;
         font-family: "Cinzel", serif;
         font-size: 9px;
         letter-spacing: 0.5em;
@@ -800,134 +855,129 @@
         margin-top: 6px;
       }
 
-      /* ══ PHASE 5 : RÉSULTATS ══ */
-      #results-phase {
+      /* ══ RÉSULTATS ══ */
+      #res-phase {
         position: fixed;
         inset: 0;
-        z-index: 80;
-        background: rgba(0, 6, 2, 0.96);
+        z-index: 85;
+        background: rgba(0, 6, 2, 0.97);
         display: none;
         overflow-y: auto;
         padding: 20px 16px;
       }
-      #results-inner {
+      #res-inner {
         max-width: 620px;
         margin: 0 auto;
       }
-      .res-head {
+      .rh {
         text-align: center;
         margin-bottom: 20px;
         padding-top: 8px;
       }
-      .res-icon {
+      .rh-ic {
         font-size: 44px;
         margin-bottom: 6px;
       }
-      .res-title {
+      .rh-t {
         font-family: "Cinzel", serif;
-        font-size: clamp(14px, 2.5vw, 20px);
+        font-size: clamp(13px, 2.2vw, 20px);
         font-weight: 900;
         letter-spacing: 0.3em;
         color: var(--g);
-        margin-bottom: 4px;
+        margin-bottom: 3px;
       }
-      .res-year {
+      .rh-s {
         font-family: "Cinzel", serif;
         font-size: 8px;
         letter-spacing: 0.35em;
-        color: rgba(0, 255, 136, 0.4);
+        color: rgba(0, 255, 136, 0.38);
       }
-
-      /* Cartes résultats */
-      .res-grid {
+      .rg {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
-      .res-card {
+      .rc {
         background: rgba(0, 8, 3, 0.85);
         border-radius: 3px;
-        padding: 13px 14px;
+        padding: 12px 14px;
       }
-      .rc-icon {
-        font-size: 20px;
+      .rc-ic {
+        font-size: 18px;
         margin-bottom: 4px;
       }
-      .rc-lbl {
+      .rc-lb {
         font-family: "Cinzel", serif;
         font-size: 7px;
-        letter-spacing: 0.25em;
-        color: rgba(255, 255, 255, 0.38);
-        margin-bottom: 3px;
+        letter-spacing: 0.22em;
+        color: rgba(255, 255, 255, 0.35);
+        margin-bottom: 2px;
       }
-      .rc-val {
+      .rc-vl {
         font-family: "Cinzel", serif;
-        font-size: clamp(14px, 2.5vw, 20px);
+        font-size: clamp(13px, 2.2vw, 19px);
         font-weight: 900;
       }
-      .rc-sub {
+      .rc-sb {
         font-family: "EB Garamond", serif;
         font-size: 12px;
         margin-top: 2px;
+        color: rgba(255, 255, 255, 0.42);
       }
-
-      /* Score global */
-      #global-score {
+      #gs {
         background: rgba(0, 10, 4, 0.9);
         border: 1px solid rgba(0, 255, 136, 0.25);
         border-radius: 4px;
-        padding: 18px 20px;
+        padding: 18px;
         margin-bottom: 14px;
         text-align: center;
       }
-      .gs-lbl {
+      .gs-lb {
         font-family: "Cinzel", serif;
         font-size: 7px;
         letter-spacing: 0.38em;
         color: rgba(0, 255, 136, 0.5);
-        margin-bottom: 6px;
+        margin-bottom: 5px;
       }
-      .gs-num {
+      .gs-nm {
         font-family: "Cinzel", serif;
-        font-size: clamp(38px, 7vw, 64px);
+        font-size: clamp(38px, 7vw, 62px);
         font-weight: 900;
         color: var(--g);
-        filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.6));
+        filter: drop-shadow(0 0 18px rgba(0, 255, 136, 0.55));
       }
-      .gs-max {
+      .gs-mx {
         font-family: "Cinzel", serif;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.3);
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.28);
       }
-      .gs-rank {
+      .gs-rk {
         font-family: "Cinzel", serif;
         font-size: 10px;
-        letter-spacing: 0.3em;
-        margin-top: 6px;
+        letter-spacing: 0.28em;
+        margin-top: 5px;
       }
-
-      /* Voix GAÏA résultats */
-      #res-voice {
+      #rv {
         background: rgba(0, 8, 3, 0.9);
         border: 1px solid var(--ub);
         border-radius: 3px;
         padding: 14px 18px;
         margin-bottom: 16px;
       }
-      #res-vsr {
+      #rv-hdr {
         display: flex;
         align-items: center;
         gap: 9px;
         margin-bottom: 7px;
       }
-      #res-vnm {
+      #rv-nm {
         font-family: "Cinzel", serif;
         font-size: 8px;
         letter-spacing: 0.42em;
         color: rgba(0, 255, 136, 0.5);
       }
-      #res-vbr {
+      #rv-vbr {
         display: flex;
         align-items: flex-end;
         gap: 2px;
@@ -935,54 +985,51 @@
         opacity: 0;
         transition: opacity 0.3s;
       }
-      #res-vbr.on {
+      #rv-vbr.on {
         opacity: 1;
       }
-      #res-vtx {
+      #rv-tx {
         font-family: "EB Garamond", serif;
         font-size: clamp(13px, 1.6vw, 16px);
         line-height: 1.9;
         color: var(--soft);
         white-space: pre-wrap;
       }
-
-      /* Boutons résultats */
-      .res-btns {
+      .rb {
         display: flex;
         gap: 12px;
       }
-      .res-btn {
+      .rbb {
         flex: 1;
         font-family: "Cinzel", serif;
         font-size: 9px;
-        letter-spacing: 0.25em;
+        letter-spacing: 0.22em;
         padding: 13px;
         cursor: pointer;
         transition: all 0.3s;
         border-radius: 2px;
       }
-      #retry-btn {
-        color: rgba(255, 255, 136, 0.75);
-        background: rgba(30, 30, 0, 0.9);
-        border: 1px solid rgba(255, 255, 100, 0.25);
+      #rb-rt {
+        color: rgba(255, 255, 150, 0.75);
+        background: rgba(25, 25, 0, 0.9);
+        border: 1px solid rgba(255, 255, 80, 0.22);
       }
-      #retry-btn:hover {
-        background: rgba(255, 255, 100, 0.1);
-        box-shadow: 0 0 30px rgba(255, 255, 100, 0.2);
+      #rb-rt:hover {
+        background: rgba(255, 255, 80, 0.1);
       }
-      #continue-btn {
+      #rb-nx {
         color: var(--g);
         background: rgba(0, 5, 2, 0.97);
         border: 1px solid rgba(0, 255, 136, 0.55);
       }
-      #continue-btn:hover {
+      #rb-nx:hover {
         background: rgba(0, 255, 136, 0.1);
         box-shadow: 0 0 40px rgba(0, 255, 136, 0.35);
       }
 
-      #ab {
+      #mute {
         position: fixed;
-        bottom: 16px;
+        bottom: 14px;
         left: 50%;
         transform: translateX(-50%);
         z-index: 999;
@@ -994,7 +1041,7 @@
         transition: color 0.3s;
         pointer-events: all;
       }
-      #ab:hover {
+      #mute:hover {
         color: rgba(0, 255, 136, 0.6);
       }
     </style>
@@ -1002,277 +1049,219 @@
   <body>
     <div id="cur"></div>
 
-    <!-- PHASE 1 : TUNNEL ARTÈRE -->
+    <!-- TUNNEL PLEIN ÉCRAN -->
     <div id="tunnel-phase">
-      <canvas id="tunnel-canvas"></canvas>
-      <div id="tunnel-voice">
-        <div id="tvs"></div>
-        <div id="tvbox">
-          <div id="tvsr">
-            <span id="tvnm">G A Ï A</span
-            ><span id="tvbr"
+      <canvas id="tunnel-c"></canvas>
+      <div id="t-voice">
+        <div class="tv-line" id="tv-line"></div>
+        <div class="tv-box" id="tv-box">
+          <div class="tv-hdr">
+            <span class="tv-nm">G A Ï A</span
+            ><span class="tv-vbr" id="tv-vbr"
               ><span class="vb"></span><span class="vb"></span
               ><span class="vb"></span><span class="vb"></span
               ><span class="vb"></span><span class="vb"></span
             ></span>
           </div>
-          <div id="tvtx"></div>
-          <span id="ttwc"></span>
+          <div class="tv-txt" id="tv-txt"></div>
+          <span class="tv-cur" id="tv-cur"></span>
         </div>
       </div>
     </div>
 
-    <!-- PHASE 2 : SPLIT FUTURS -->
+    <!-- SPLIT SCREEN — apparaît directement avec les photos -->
     <div id="split-phase">
-      <div id="split-title">
-        <div class="st-main">CHOISISSEZ LE FUTUR DE L'ÉNERGIE</div>
-        <div class="st-sub">
-          Glissez le curseur pour comparer — Explorez les deux futurs
-        </div>
+      <!-- Photo A = future-a2.jpg — GAUCHE (pollution) -->
+      <div id="photo-a">
+        <img id="img-a" src="future-a2.jpg" alt="Futur A" />
       </div>
-      <canvas id="split-canvas"></canvas>
-
-      <!-- Labels -->
-      <div class="future-label" id="label-a">
-        <div class="fl-tag" style="color: rgba(255, 80, 80, 0.7)">FUTUR A</div>
-        <div class="fl-name" style="color: #ff6644">
-          🏭 Business<br />as Usual
-        </div>
-        <div class="fl-sub" style="color: rgba(255, 100, 80, 0.5)">
-          Si rien ne change
-        </div>
-      </div>
-      <div class="future-label" id="label-b">
-        <div class="fl-tag" style="color: rgba(0, 255, 136, 0.7)">FUTUR B</div>
-        <div class="fl-name" style="color: #00ff88">
-          ☀️ Révolution<br />Verte
-        </div>
-        <div class="fl-sub" style="color: rgba(0, 255, 136, 0.5)">2050</div>
+      <!-- Photo B = future-a.jpg — DROITE (vert) -->
+      <div id="photo-b">
+        <img id="img-b" src="future-a.jpg" alt="Futur B" />
       </div>
 
-      <!-- CO2 counters -->
-      <div class="co2-counter" id="co2-a">
-        <div class="co2-val" style="color: #ff4444" id="co2a-val">+40 Gt</div>
-        <div class="co2-lbl" style="color: rgba(255, 100, 100, 0.6)">
-          CO₂ / AN
-        </div>
-      </div>
-      <div class="co2-counter" id="co2-b">
-        <div class="co2-val" style="color: #00ff88" id="co2b-val">-10 Gt</div>
-        <div class="co2-lbl" style="color: rgba(0, 255, 136, 0.6)">
-          CO₂ / AN (CAPTURE)
+      <!-- Overlays lisibilité -->
+      <div id="ov-a"></div>
+      <div id="ov-b"></div>
+
+      <!-- FX canvas : slider line + particles + glow -->
+      <canvas id="fx-canvas"></canvas>
+      <div id="glow-a"></div>
+      <div id="glow-b"></div>
+
+      <!-- Titre haut -->
+      <div id="sp-title">
+        <div class="spt-main">CHOISISSEZ LE FUTUR DE L'ÉNERGIE</div>
+        <div class="spt-sub">
+          Glissez le curseur — Explorez les deux futurs en temps réel
         </div>
       </div>
 
-      <!-- Stats -->
-      <div class="stats-panel" id="stats-a">
-        <div class="sp-title">📊 STATISTIQUES 2050</div>
-        <div class="sp-row">
-          <span class="sp-lbl">💰 Coût</span
-          ><span class="sp-val" style="color: #ff8888">0.12€/kWh</span>
-        </div>
-        <div class="sp-row">
-          <span class="sp-lbl">👷 Emplois</span
-          ><span class="sp-val" style="color: #ffaa66">6 millions</span>
-        </div>
-        <div class="sp-row">
-          <span class="sp-lbl">💀 Morts/an</span
-          ><span class="sp-val" style="color: #ff4444">8 millions</span>
-        </div>
-        <div class="sp-row">
-          <span class="sp-lbl">🌡️ Temp.</span
-          ><span class="sp-val" style="color: #ff4444">+3.5°C</span>
-        </div>
-        <div class="sp-row">
-          <span class="sp-lbl">🌍 État</span
-          ><span class="sp-val" style="color: #ff2222">CRITIQUE</span>
-        </div>
-      </div>
-      <div class="stats-panel" id="stats-b">
-        <div class="sp-title">📊 STATISTIQUES 2050</div>
-        <div class="sp-row">
-          <span class="sp-lbl">💰 Coût</span
-          ><span class="sp-val" style="color: #00ff88">0.03€/kWh ↓75%</span>
-        </div>
-        <div class="sp-row">
-          <span class="sp-lbl">👷 Emplois</span
-          ><span class="sp-val" style="color: #00ff88">24 millions ×4</span>
-        </div>
-        <div class="sp-row">
-          <span class="sp-lbl">💚 Sauvés/an</span
-          ><span class="sp-val" style="color: #00ff88">7 millions</span>
-        </div>
-        <div class="sp-row">
-          <span class="sp-lbl">🌡️ Temp.</span
-          ><span class="sp-val" style="color: #66ff88">+1.5°C ✅</span>
-        </div>
-        <div class="sp-row">
-          <span class="sp-lbl">🌍 État</span
-          ><span class="sp-val" style="color: #00ff88">EN GUÉRISON</span>
-        </div>
-      </div>
+      <!-- Labels et CO2 supprimés -->
 
-      <!-- Slider -->
+      <!-- SLIDER -->
       <div id="slider-wrap">
         <div id="slider-line"></div>
-        <div id="slider-handle"><span class="sh-arrows">◄►</span></div>
+        <div id="pct-badge">50%</div>
+        <div id="glide-hint">GLISSEZ POUR COMPARER</div>
+        <div id="slider-handle"><span class="sh-icon">◄►</span></div>
       </div>
 
-      <!-- Voix -->
+      <!-- Voix GAÏA -->
       <div id="split-voice">
-        <div id="svs"></div>
-        <div id="svbox">
-          <div id="svsr">
-            <span id="svnm">G A Ï A</span
-            ><span id="svbr"
+        <div id="sv-sep"></div>
+        <div id="sv-box">
+          <div id="sv-hdr">
+            <span id="sv-nm">G A Ï A</span
+            ><span id="sv-vbr"
               ><span class="vb"></span><span class="vb"></span
               ><span class="vb"></span><span class="vb"></span
               ><span class="vb"></span><span class="vb"></span
             ></span>
           </div>
-          <div id="svtx"></div>
-          <span id="stwc"></span>
+          <div id="sv-txt"></div>
+          <span id="sv-cur"></span>
         </div>
       </div>
     </div>
 
-    <!-- BADGE CHOISIR -->
-    <div id="badge-choose">
-      <div id="bc-box">
-        <div class="bc-icon">💡</div>
-        <div class="bc-title">JE SIMULE MON PROPRE FUTUR</div>
-        <div class="bc-sub">
+    <!-- BADGE SIMULATION — s'affiche après les 2 dialogues GAÏA -->
+    <div id="badge-sim">
+      <div id="bs-box">
+        <div class="bs-ic">💡</div>
+        <div class="bs-t">JE SIMULE MON PROPRE FUTUR</div>
+        <div class="bs-s">
           Vous êtes le décideur mondial.<br />Répartissez 10 000 milliards $
-          entre les énergies.<br />Voyez le futur que vous construisez.
+          entre les énergies.<br />Découvrez le futur que vous construisez.
         </div>
-        <button id="bc-btn" onclick="startSimulation()">
-          💡 COMMENCER LA SIMULATION
+        <button id="bs-btn" onclick="startSim()">
+          💡 &nbsp;COMMENCER LA SIMULATION
         </button>
       </div>
     </div>
 
-    <!-- PHASE 3 : SIMULATION -->
+    <!-- SIMULATION -->
     <div id="sim-phase">
       <div id="sim-inner">
         <div class="sim-head">
-          <div class="sim-icon">🌍</div>
+          <div class="sim-ic">🌍</div>
           <div class="sim-title">VOUS ÊTES LE DÉCIDEUR MONDIAL</div>
           <div class="sim-sub">
-            Budget total : 10 000 milliards $ — Répartissez entre les énergies
+            Budget : 10 000 milliards $ — Répartissez entre les sources
+            d'énergie
           </div>
         </div>
-        <div id="budget-display">
+        <div id="budget-bar">
           <div>
-            <div class="bd-lbl">BUDGET ALLOUÉ</div>
-            <div class="bd-val" id="budget-used">0</div>
+            <div class="bb-lb">TOTAL ALLOUÉ</div>
+            <div class="bb-vl" id="bb-used">0</div>
           </div>
           <div style="text-align: right">
-            <div class="bd-lbl">RESTANT</div>
-            <div class="bd-remain ok" id="budget-remain">10 000 Mds$</div>
+            <div class="bb-lb">RESTANT</div>
+            <div class="bb-rm ok" id="bb-rem">10 000 Mds$</div>
           </div>
         </div>
-        <!-- Sliders énergie -->
-        <div class="energy-row">
+        <div class="er">
           <div class="er-top">
-            <span class="er-name">🛢️ FOSSILES</span
-            ><span class="er-val" id="val-fossil">1 000 Mds$</span>
+            <span class="er-nm">🛢️ FOSSILES</span
+            ><span class="er-vl" id="ev-fossil">1 000 Mds$</span>
           </div>
           <input
             type="range"
-            class="er-slider"
-            id="sl-fossil"
+            class="er-sl"
+            id="es-fossil"
             min="0"
             max="10000"
             value="1000"
             step="100"
-            oninput="updateBudget()"
+            oninput="updBudget()"
           />
         </div>
-        <div class="energy-row">
+        <div class="er">
           <div class="er-top">
-            <span class="er-name">☀️ SOLAIRE</span
-            ><span class="er-val" id="val-solar">3 000 Mds$</span>
+            <span class="er-nm">☀️ SOLAIRE</span
+            ><span class="er-vl" id="ev-solar">3 000 Mds$</span>
           </div>
           <input
             type="range"
-            class="er-slider"
-            id="sl-solar"
+            class="er-sl"
+            id="es-solar"
             min="0"
             max="10000"
             value="3000"
             step="100"
-            oninput="updateBudget()"
+            oninput="updBudget()"
           />
         </div>
-        <div class="energy-row">
+        <div class="er">
           <div class="er-top">
-            <span class="er-name">💨 ÉOLIEN</span
-            ><span class="er-val" id="val-wind">2 500 Mds$</span>
+            <span class="er-nm">💨 ÉOLIEN</span
+            ><span class="er-vl" id="ev-wind">2 500 Mds$</span>
           </div>
           <input
             type="range"
-            class="er-slider"
-            id="sl-wind"
+            class="er-sl"
+            id="es-wind"
             min="0"
             max="10000"
             value="2500"
             step="100"
-            oninput="updateBudget()"
+            oninput="updBudget()"
           />
         </div>
-        <div class="energy-row">
+        <div class="er">
           <div class="er-top">
-            <span class="er-name">💧 HYDRAULIQUE</span
-            ><span class="er-val" id="val-hydro">1 000 Mds$</span>
+            <span class="er-nm">💧 HYDRAULIQUE</span
+            ><span class="er-vl" id="ev-hydro">1 000 Mds$</span>
           </div>
           <input
             type="range"
-            class="er-slider"
-            id="sl-hydro"
+            class="er-sl"
+            id="es-hydro"
             min="0"
             max="10000"
             value="1000"
             step="100"
-            oninput="updateBudget()"
+            oninput="updBudget()"
           />
         </div>
-        <div class="energy-row">
+        <div class="er">
           <div class="er-top">
-            <span class="er-name">⚛️ NUCLÉAIRE</span
-            ><span class="er-val" id="val-nuclear">1 000 Mds$</span>
+            <span class="er-nm">⚛️ NUCLÉAIRE</span
+            ><span class="er-vl" id="ev-nuclear">1 000 Mds$</span>
           </div>
           <input
             type="range"
-            class="er-slider"
-            id="sl-nuclear"
+            class="er-sl"
+            id="es-nuclear"
             min="0"
             max="10000"
             value="1000"
             step="100"
-            oninput="updateBudget()"
+            oninput="updBudget()"
           />
         </div>
-        <div class="energy-row">
+        <div class="er">
           <div class="er-top">
-            <span class="er-name">🔋 STOCKAGE</span
-            ><span class="er-val" id="val-storage">1 500 Mds$</span>
+            <span class="er-nm">🔋 STOCKAGE</span
+            ><span class="er-vl" id="ev-storage">1 500 Mds$</span>
           </div>
           <input
             type="range"
-            class="er-slider"
-            id="sl-storage"
+            class="er-sl"
+            id="es-storage"
             min="0"
             max="10000"
             value="1500"
             step="100"
-            oninput="updateBudget()"
+            oninput="updBudget()"
           />
         </div>
-        <button id="sim-btn" onclick="runSimulation()">🌍 SIMULER 2050</button>
+        <button id="sim-go" onclick="runSim()">🌍 &nbsp;SIMULER 2050</button>
       </div>
     </div>
 
-    <!-- PHASE 4 : ANIMATION -->
+    <!-- ANIMATION SIMULATION -->
     <div
       id="sim-anim"
       style="
@@ -1282,44 +1271,43 @@
         justify-content: center;
       "
     >
-      <canvas id="anim-canvas"></canvas>
-      <div class="sa-year" id="anim-year">2025</div>
-      <div class="sa-sub">SIMULATION EN COURS...</div>
+      <canvas id="anim-c"></canvas>
+      <div class="anim-yr" id="anim-yr">2025</div>
+      <div class="anim-sb">SIMULATION EN COURS...</div>
     </div>
 
-    <!-- PHASE 5 : RÉSULTATS -->
-    <div id="results-phase">
-      <div id="results-inner">
-        <div class="res-head">
-          <div class="res-icon">📊</div>
-          <div class="res-title">RÉSULTATS EN 2050</div>
-          <div class="res-year">SIMULATION TERMINÉE</div>
+    <!-- RÉSULTATS -->
+    <div id="res-phase">
+      <div id="res-inner">
+        <div class="rh">
+          <div class="rh-ic">📊</div>
+          <div class="rh-t">RÉSULTATS EN 2050</div>
+          <div class="rh-s">SIMULATION TERMINÉE</div>
         </div>
-        <div class="res-grid" id="res-grid"></div>
-        <div id="global-score">
-          <div class="gs-lbl">SCORE GLOBAL DE GESTION</div>
+        <div class="rg" id="res-grid"></div>
+        <div id="gs">
+          <div class="gs-lb">SCORE GLOBAL DE GESTION</div>
           <div>
-            <span class="gs-num" id="gs-num">--</span
-            ><span class="gs-max"> / 100</span>
+            <span class="gs-nm" id="gs-n">--</span
+            ><span class="gs-mx"> / 100</span>
           </div>
-          <div class="gs-rank" id="gs-rank"></div>
+          <div class="gs-rk" id="gs-r"></div>
         </div>
-        <div id="res-voice">
-          <div id="res-vsr">
-            <span id="res-vnm">G A Ï A</span
-            ><span id="res-vbr"
+        <div id="rv">
+          <div id="rv-hdr">
+            <span id="rv-nm">G A Ï A</span
+            ><span id="rv-vbr"
               ><span class="vb"></span><span class="vb"></span
               ><span class="vb"></span><span class="vb"></span
               ><span class="vb"></span><span class="vb"></span
             ></span>
           </div>
-          <div id="res-vtx"></div>
+          <div id="rv-tx"></div>
         </div>
-        <div class="res-btns">
-          <button class="res-btn" id="retry-btn" onclick="retrySimulation()">
-            ↺ RÉESSAYER
-          </button>
-          <button class="res-btn" id="continue-btn" onclick="goNext()">
+        <div class="rb">
+          <button class="rbb" id="rb-rt" onclick="retrySim()">
+            ↺ RÉESSAYER</button
+          ><button class="rbb" id="rb-nx" onclick="goNext()">
             ▶ CONTINUER
           </button>
         </div>
@@ -1327,20 +1315,34 @@
     </div>
 
     <div id="curtain"></div>
-    <div id="ab" onclick="toggleMute()">🔊 SON</div>
+    <button id="mute" onclick="toggleMute()">🔊 SON</button>
 
     <script>
       "use strict";
+      /* ═══════════════════════════════════════════════════════
+   GAÏA SCÈNE 7 — LES DEUX FUTURS
+   Photos locales (future-a.jpg / future-a2.jpg)
+   Tunnel plein écran → Split → Dialogues → Simulation
+═══════════════════════════════════════════════════════ */
+      let W = innerWidth,
+        H = innerHeight;
       let isMuted = false,
-        audioCtx = null,
-        typeIv = null;
+        audioCtx = null;
       let phase = "tunnel";
-      let sliderX = 0.5; // 0=gauche(A), 1=droite(B)
-      let isDraggingSlider = false;
-      let co2AVal = 40,
-        co2BVal = -10;
+      let sliderX = 0.5,
+        isDrag = false;
+      let globalT = 0,
+        lastTs = 0;
+      let gaiaA_done = false,
+        gaiaB_done = false;
+      let gaiaA_speaking = false,
+        gaiaB_speaking = false;
       let pName = "Gardien",
         score = 0;
+      let tunnelParts = [];
+      let sliderParts = [],
+        goldParts = [];
+
       try {
         pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
         score = parseInt(localStorage.getItem("gaiaScore") || "0");
@@ -1357,7 +1359,7 @@
         if (audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
-      function gm() {
+      function masterOut() {
         if (!audioCtx) return null;
         if (!window._M7) {
           const c = audioCtx.createDynamicsCompressor();
@@ -1371,7 +1373,7 @@
         }
         return window._M7;
       }
-      function rv(d = 3, dc = 2) {
+      function mkRev(d = 3, dc = 2) {
         if (!audioCtx) return null;
         const sr = audioCtx.sampleRate,
           l = sr * d,
@@ -1385,13 +1387,14 @@
         cv.buffer = b;
         return cv;
       }
-
-      // Bourdonnement électrique tunnel
-      function playHum() {
+      // Son ambiant supprimé — pas de bruit de fond
+      function initAmbients() {}
+      function updateAmbient() {}
+      function playTunnelHum() {
         if (!audioCtx || isMuted) return;
-        const m = gm(),
-          r = rv(4, 3);
-        r.connect(m);
+        const m = masterOut(),
+          r = mkRev(4, 3);
+        if (r) r.connect(m);
         [60, 120, 180].forEach((f, i) => {
           const o = audioCtx.createOscillator(),
             g = audioCtx.createGain();
@@ -1399,90 +1402,23 @@
           o.frequency.value = f;
           g.gain.setValueAtTime(0, audioCtx.currentTime);
           g.gain.linearRampToValueAtTime(
-            [0.02, 0.012, 0.006][i],
+            [0.018, 0.01, 0.005][i],
             audioCtx.currentTime + 2 + i * 0.5
           );
           const fl = audioCtx.createBiquadFilter();
           fl.type = "bandpass";
-          fl.frequency.value = 200 + i * 50;
-          fl.Q.value = 3;
+          fl.frequency.value = 180 + i * 45;
+          fl.Q.value = 2.5;
           o.connect(fl);
           fl.connect(g);
-          g.connect(r);
+          g.connect(r || m);
           g.connect(m);
           o.start();
         });
-      }
-      // Machines industrielles (futur A)
-      let _machineOsc = [];
-      function playMachines(on) {
-        if (!audioCtx) return;
-        if (!on) {
-          _machineOsc.forEach((o) => {
-            try {
-              o.stop();
-            } catch (e) {}
-          });
-          _machineOsc = [];
-          return;
-        }
-        const m = gm(),
-          r = rv(3, 2);
-        r.connect(m);
-        [28, 55, 82].forEach((f, i) => {
-          const o = audioCtx.createOscillator(),
-            g = audioCtx.createGain();
-          o.type = "sawtooth";
-          o.frequency.value = f;
-          g.gain.setValueAtTime(0.028 - i * 0.006, audioCtx.currentTime);
-          const fl = audioCtx.createBiquadFilter();
-          fl.type = "lowpass";
-          fl.frequency.value = 180;
-          o.connect(fl);
-          fl.connect(g);
-          g.connect(r);
-          g.connect(m);
-          o.start();
-          _machineOsc.push(o);
-        });
-      }
-      // Vent doux (futur B)
-      let _windNode = null;
-      function playWind(on) {
-        if (!audioCtx) return;
-        if (!on) {
-          if (_windNode)
-            try {
-              _windNode.stop();
-            } catch (e) {}
-          return;
-        }
-        const m = gm(),
-          buf = audioCtx.createBuffer(
-            1,
-            audioCtx.sampleRate * 4,
-            audioCtx.sampleRate
-          ),
-          d = buf.getChannelData(0);
-        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-        const src = audioCtx.createBufferSource();
-        src.buffer = buf;
-        src.loop = true;
-        const fl = audioCtx.createBiquadFilter();
-        fl.type = "bandpass";
-        fl.frequency.value = 400;
-        fl.Q.value = 0.3;
-        const g = audioCtx.createGain();
-        g.gain.value = 0.04;
-        src.connect(fl);
-        fl.connect(g);
-        g.connect(m);
-        src.start();
-        _windNode = src;
       }
       function toggleMute() {
         isMuted = !isMuted;
-        document.getElementById("ab").textContent = isMuted
+        document.getElementById("mute").textContent = isMuted
           ? "🔇 MUET"
           : "🔊 SON";
         if (audioCtx) {
@@ -1493,7 +1429,7 @@
 
       // ══ VOIX ══
       const syn = window.speechSynthesis;
-      function gv() {
+      function getVoice() {
         const vs = syn ? syn.getVoices() : [];
         return (
           vs.find(
@@ -1507,605 +1443,573 @@
           null
         );
       }
-      function speak(text, txtEl, vbrEl, curEl, cb) {
-        if (txtEl) txtEl.textContent = "";
-        if (curEl) curEl.style.display = "inline-block";
-        let disp = 0,
-          tgt = 0,
+      function speak(txt, eTxt, eVbr, eCur, cb) {
+        if (eTxt) eTxt.textContent = "";
+        if (eCur) eCur.style.display = "inline-block";
+        let d = 0,
+          t = 0,
           vd = false,
-          called = false,
-          tw = null;
+          done = false,
+          iv = null;
         function fin() {
-          if (called) return;
-          called = true;
-          if (curEl) curEl.style.display = "none";
+          if (done) return;
+          done = true;
+          if (eCur) eCur.style.display = "none";
           if (cb) setTimeout(cb, 380);
         }
         function tick() {
-          if (tw) clearInterval(tw);
-          tw = setInterval(() => {
-            if (disp < tgt && disp < text.length) {
-              if (txtEl) {
-                txtEl.textContent = text.slice(0, ++disp);
-                txtEl.scrollTop = txtEl.scrollHeight;
-              } else disp++;
-            } else if (disp >= text.length && vd) {
-              clearInterval(tw);
+          if (iv) clearInterval(iv);
+          iv = setInterval(() => {
+            if (d < t && d < txt.length) {
+              if (eTxt) {
+                eTxt.textContent = txt.slice(0, ++d);
+                eTxt.scrollTop = eTxt.scrollHeight;
+              } else d++;
+            } else if (d >= txt.length && vd) {
+              clearInterval(iv);
               fin();
             }
           }, 22);
         }
         if (syn && !isMuted) {
           syn.cancel();
-          const u = new SpeechSynthesisUtterance(text);
+          const u = new SpeechSynthesisUtterance(txt);
           u.lang = "fr-FR";
           u.rate = 0.88;
           u.pitch = 0.82;
           u.volume = 1.0;
           const sv = () => {
-            const v = gv();
+            const v = getVoice();
             if (v) u.voice = v;
           };
           syn.getVoices().length
             ? sv()
             : syn.addEventListener("voiceschanged", sv, { once: true });
           u.onstart = () => {
-            if (vbrEl) vbrEl.classList.add("on");
+            if (eVbr) eVbr.classList.add("on");
           };
           u.onboundary = (e) => {
             if (e.name === "word") {
-              tgt = Math.min(e.charIndex + e.charLength, text.length);
+              t = Math.min(e.charIndex + e.charLength, txt.length);
               tick();
             }
           };
           u.onend = u.onerror = () => {
-            if (vbrEl) vbrEl.classList.remove("on");
+            if (eVbr) eVbr.classList.remove("on");
             vd = true;
-            tgt = text.length;
+            t = txt.length;
             tick();
           };
           syn.speak(u);
         }
         setTimeout(() => {
-          if (disp === 0) {
+          if (d === 0) {
             vd = true;
-            tgt = text.length;
+            t = txt.length;
             tick();
           }
         }, 1800);
       }
 
-      // ══ PHASE 1 : TUNNEL ARTÈRE VERTE ══
-      const tC = document.getElementById("tunnel-canvas");
-      tC.width = innerWidth;
-      tC.height = innerHeight;
-      const tX = tC.getContext("2d");
-      let tunnelT = 0,
-        tunnelAID;
-      const PARTS = Array.from({ length: 200 }, () => ({
+      // ══ TUNNEL CANVAS ══
+      const TC = document.getElementById("tunnel-c");
+      TC.width = W;
+      TC.height = H;
+      const TX = TC.getContext("2d");
+      tunnelParts = Array.from({ length: 240 }, () => ({
         a: Math.random() * Math.PI * 2,
         r: 0.05 + Math.random() * 0.9,
         z: Math.random(),
-        spd: 0.008 + Math.random() * 0.018,
-        sz: Math.random() * 4 + 1,
-        hue: 120 + Math.floor(Math.random() * 40),
+        spd: 0.008 + Math.random() * 0.02,
+        sz: Math.random() * 3.5 + 1,
+        hue: 100 + Math.floor(Math.random() * 55),
+        wob: Math.random() * Math.PI * 2,
       }));
-
-      function drawTunnel() {
-        const W = tC.width,
-          H = tC.height,
-          cx = W / 2,
+      function drawTunnel(t) {
+        const cx = W / 2,
           cy = H / 2;
-        tX.fillStyle = "rgba(0,0,0,.12)";
-        tX.fillRect(0, 0, W, H);
-        // Anneaux du tunnel
-        for (let r = 32; r > 0; r--) {
-          const t2 = (r / 32 + tunnelT * 0.14) % 1;
-          const persp = Math.pow(t2, 1.2);
-          const rad = persp * Math.min(W, H) * 0.5;
-          const alpha = Math.max(0, Math.min(0.7, t2 * 2));
-          const g = tX.createRadialGradient(cx, cy, 0, cx, cy, rad);
-          g.addColorStop(0, "transparent");
-          g.addColorStop(
-            0.7,
-            `rgba(0,${Math.floor(180 + t2 * 75)},${Math.floor(60 + t2 * 40)},${
-              alpha * 0.35
-            })`
-          );
-          g.addColorStop(
-            1,
-            `rgba(0,${Math.floor(200 + t2 * 55)},${Math.floor(80 + t2 * 30)},${
-              alpha * 0.6
-            })`
-          );
-          tX.beginPath();
-          tX.arc(cx, cy, rad, 0, Math.PI * 2);
-          tX.strokeStyle = `rgba(0,${Math.floor(180 + t2 * 75)},60,${
-            alpha * 0.45
+        // Fond entièrement noir — pas de zones grises sur les bords
+        TX.fillStyle = "rgba(0,0,0,1)";
+        TX.fillRect(0, 0, W, H);
+        // Couche de persistence pour l'effet traîne
+        TX.fillStyle = "rgba(0,0,0,.14)";
+        TX.fillRect(0, 0, W, H);
+        // Rayon basé sur la DIAGONALE pour couvrir tout l'écran
+        const maxR = Math.sqrt(W * W + H * H) * 0.55;
+        for (let r = 36; r > 0; r--) {
+          const frac = (r / 36 + t * 0.115) % 1;
+          const persp = Math.pow(frac, 1.1);
+          const rad = persp * maxR;
+          const alph = Math.max(0, Math.min(0.72, frac * 2));
+          const gv = Math.floor(158 + frac * 97);
+          TX.beginPath();
+          TX.arc(cx, cy, rad, 0, Math.PI * 2);
+          TX.strokeStyle = `rgba(0,${gv},${Math.floor(50 + frac * 38)},${
+            alph * 0.52
           })`;
-          tX.lineWidth = 2 + t2 * 8;
-          tX.stroke();
+          TX.lineWidth = 1.8 + frac * 7.5;
+          TX.stroke();
+          if (frac > 0.55) {
+            TX.beginPath();
+            TX.arc(cx, cy, rad * 0.87, 0, Math.PI * 2);
+            TX.strokeStyle = `rgba(0,${gv},50,${alph * 0.2})`;
+            TX.lineWidth = 1;
+            TX.stroke();
+          }
         }
-        // Particules énergie
-        PARTS.forEach((p) => {
+        tunnelParts.forEach((p) => {
           p.z -= p.spd;
           if (p.z < 0.01) {
             p.z = 1;
             p.a = Math.random() * Math.PI * 2;
+            p.r = 0.1 + Math.random() * 0.85;
           }
-          const d = 1 - p.z;
-          const tR = Math.min(W, H) * 0.48 * d;
-          const px = cx + Math.cos(p.a) * (p.r * tR),
-            py = cy + Math.sin(p.a) * (p.r * tR);
-          const esz = p.sz * (1 + d * 2.5);
-          const ea = Math.min(0.9, d * 1.5);
-          const pg = tX.createRadialGradient(px, py, 0, px, py, esz * 2.5);
-          pg.addColorStop(0, `hsla(${p.hue},90%,65%,${ea})`);
+          const dep = 1 - p.z;
+          const tR = maxR * dep;
+          const px = cx + Math.cos(p.a + p.wob * 0.08) * (p.r * tR),
+            py = cy + Math.sin(p.a + p.wob * 0.08) * (p.r * tR);
+          const esz = p.sz * (1 + dep * 2.8);
+          const ea = Math.min(0.92, dep * 1.6);
+          const pg = TX.createRadialGradient(px, py, 0, px, py, esz * 2.8);
+          pg.addColorStop(0, `hsla(${p.hue},88%,62%,${ea})`);
+          pg.addColorStop(0.5, `hsla(${p.hue},80%,48%,${ea * 0.38})`);
           pg.addColorStop(1, "transparent");
-          tX.fillStyle = pg;
-          tX.beginPath();
-          tX.arc(px, py, esz * 2.5, 0, Math.PI * 2);
-          tX.fill();
+          TX.fillStyle = pg;
+          TX.beginPath();
+          TX.arc(px, py, esz * 2.8, 0, Math.PI * 2);
+          TX.fill();
+          const tx2 =
+            cx + Math.cos(p.a + p.wob * 0.08) * (p.r * tR * (1 + p.spd * 9));
+          const ty2 =
+            cy + Math.sin(p.a + p.wob * 0.08) * (p.r * tR * (1 + p.spd * 9));
+          const tg = TX.createLinearGradient(px, py, tx2, ty2);
+          tg.addColorStop(0, `hsla(${p.hue},85%,58%,${ea * 0.7})`);
+          tg.addColorStop(1, "transparent");
+          TX.strokeStyle = tg;
+          TX.lineWidth = esz * 0.72;
+          TX.beginPath();
+          TX.moveTo(px, py);
+          TX.lineTo(tx2, ty2);
+          TX.stroke();
         });
-        // Lueur centrale
-        const gc = tX.createRadialGradient(
+        const pulse = Math.sin(t * 3.8) * 0.15 + 0.85;
+        const gc = TX.createRadialGradient(
           cx,
           cy,
           0,
           cx,
           cy,
-          80 + Math.sin(tunnelT * 3) * 20
+          72 + Math.sin(t * 2.9) * 14
         );
-        gc.addColorStop(
-          0,
-          `rgba(0,255,120,${0.5 + Math.sin(tunnelT * 4) * 0.15})`
-        );
+        gc.addColorStop(0, `rgba(0,255,118,${0.58 * pulse})`);
+        gc.addColorStop(0.4, `rgba(0,180,72,${0.22 * pulse})`);
         gc.addColorStop(1, "transparent");
-        tX.fillStyle = gc;
-        tX.beginPath();
-        tX.arc(cx, cy, 80, 0, Math.PI * 2);
-        tX.fill();
-        tunnelT += 0.016;
-        tunnelAID = requestAnimationFrame(drawTunnel);
+        TX.fillStyle = gc;
+        TX.beginPath();
+        TX.arc(cx, cy, 72, 0, Math.PI * 2);
+        TX.fill();
       }
 
-      // ══ PHASE 2 : SPLIT CANVAS ══
-      const sC = document.getElementById("split-canvas");
-      let sW = 0,
-        sH = 0;
-      const animClk = { t: 0, lastFrame: 0 };
-      let splitAnimId;
-
-      function resizeSplit() {
-        sW = sC.width = innerWidth;
-        sH = sC.height = innerHeight;
-        updateSliderPos();
-      }
-
-      function updateSliderPos() {
-        const sw = document.getElementById("slider-wrap");
-        if (sw) {
-          sw.style.left = sliderX * sW + "px";
+      // ══ FX CANVAS (particles + slider line) ══
+      const FXC = document.getElementById("fx-canvas");
+      FXC.width = W;
+      FXC.height = H;
+      const fxX = FXC.getContext("2d");
+      function drawFX(t) {
+        fxX.clearRect(0, 0, W, H);
+        const divX = sliderX * W;
+        // Color tint overlay (très subtil)
+        const tr = Math.floor(90 * (1 - sliderX)),
+          tgv = Math.floor(sliderX * 160);
+        fxX.fillStyle = `rgba(${tr},${tgv},25,.07)`;
+        fxX.fillRect(0, 0, W, H);
+        // Glow bords extrêmes
+        if (sliderX < 0.25) {
+          const a =
+            ((0.25 - sliderX) / 0.25) * (Math.sin(t * Math.PI) * 0.28 + 0.25);
+          const gg = fxX.createLinearGradient(W - 6, 0, W, 0);
+          gg.addColorStop(0, "transparent");
+          gg.addColorStop(1, `rgba(0,255,136,${a})`);
+          fxX.fillStyle = gg;
+          fxX.fillRect(W - 6, 0, 6, H);
         }
-        const la = document.getElementById("label-a");
-        if (la) la.style.opacity = Math.max(0.3, 1 - sliderX * 1.5);
-        const lb = document.getElementById("label-b");
-        if (lb) lb.style.opacity = Math.max(0.3, sliderX * 1.5 - 0.2);
-        const co2a = document.getElementById("co2-a");
-        if (co2a) co2a.style.left = sliderX * sW * 0.5 * 0.6 + 28 + "px";
-        const co2b = document.getElementById("co2-b");
-        if (co2b) co2b.style.right = (1 - sliderX) * sW * 0.5 * 0.6 + 28 + "px";
-        const sa = document.getElementById("stats-a");
-        if (sa)
-          sa.style.opacity =
-            sliderX < 0.7 ? 1 : Math.max(0, 1 - (sliderX - 0.7) / 0.3);
-        const sb = document.getElementById("stats-b");
-        if (sb)
-          sb.style.opacity =
-            sliderX > 0.3 ? 1 : Math.max(0, (sliderX - 0.0) / 0.3);
-      }
-
-      function drawSplit(ts) {
-        splitAnimId = requestAnimationFrame(drawSplit);
-        if (!animClk.lastFrame) {
-          animClk.lastFrame = ts;
+        if (sliderX > 0.75) {
+          const a =
+            ((sliderX - 0.75) / 0.25) * (Math.sin(t * Math.PI) * 0.28 + 0.25);
+          const rg = fxX.createLinearGradient(0, 0, 6, 0);
+          rg.addColorStop(0, `rgba(204,17,51,${a})`);
+          rg.addColorStop(1, "transparent");
+          fxX.fillStyle = rg;
+          fxX.fillRect(0, 0, 6, H);
         }
-        const dt = Math.min((ts - animClk.lastFrame) / 1000, 0.05);
-        animClk.lastFrame = ts;
-        animClk.t += dt;
-        const t = animClk.t;
-        const ctx = sC.getContext("2d");
-        const divX = sliderX * sW;
-
-        // ── FUTUR A (gauche) — centrale charbon ──
-        // Ciel chargé smog
-        const skyA = ctx.createLinearGradient(0, 0, 0, sH);
-        skyA.addColorStop(
-          0,
-          `rgb(${40 + Math.floor(Math.sin(t * 0.15) * 5)},${
-            28 + Math.floor(Math.sin(t * 0.12) * 3)
-          },${18})`
-        );
-        skyA.addColorStop(
-          0.55,
-          `rgb(${62 + Math.floor(Math.sin(t * 0.1) * 4)},${
-            46 + Math.floor(Math.sin(t * 0.08) * 3)
-          },${28})`
-        );
-        skyA.addColorStop(1, `rgb(${30},${22},${14})`);
-        ctx.fillStyle = skyA;
-        ctx.fillRect(0, 0, divX, sH);
-
-        // Sol charbon
-        ctx.fillStyle = "#1a1008";
-        ctx.fillRect(0, sH * 0.72, divX, sH * 0.28);
-
-        // Montagnes de charbon (noir)
-        [
-          [0.15, 0.82, 0.12],
-          [0.3, 0.78, 0.18],
-          [0.08, 0.85, 0.1],
-          [0.38, 0.8, 0.15],
-        ].forEach(([x, y, r]) => {
-          const cx2 = x * Math.min(divX, sW * 0.48);
-          const cy2 = y * sH;
-          const rr = r * sH;
-          ctx.fillStyle = "#0d0806";
-          ctx.beginPath();
-          ctx.arc(cx2, cy2, rr, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
-        // Cheminées
-        [
-          [0.25, 0.45, 0.04],
-          [0.35, 0.38, 0.05],
-          [0.45, 0.42, 0.035],
-          [0.12, 0.52, 0.03],
-        ].forEach(([x, y, w]) => {
-          const cx2 = x * Math.min(divX, sW * 0.48);
-          const h = (1 - y) * sH;
-          const rw = w * sH;
-          ctx.fillStyle = "#1c1008";
-          ctx.fillRect(cx2 - rw / 2, y * sH, rw, h);
-          // Flammes à la base
-          const flicker = Math.sin(t * 8 + cx2) * 0.3 + 0.7;
-          const fg = ctx.createRadialGradient(
-            cx2,
-            y * sH,
-            0,
-            cx2,
-            y * sH,
-            rw * 3
-          );
-          fg.addColorStop(
-            0,
-            `rgba(255,${Math.floor(80 + flicker * 60)},0,${flicker * 0.8})`
-          );
-          fg.addColorStop(1, "transparent");
-          ctx.fillStyle = fg;
-          ctx.beginPath();
-          ctx.arc(cx2, y * sH, rw * 3, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
-        // Fumée noire qui monte
-        for (let i = 0; i < 6; i++) {
-          const cx2 = (0.15 + i * 0.07) * Math.min(divX, sW * 0.48);
-          const cy2 = sH * (0.45 - 0.05 * i);
-          for (let j = 0; j < 8; j++) {
-            const progress = (t * 0.06 + j * 0.12 + i * 0.2) % 1;
-            const ry = cy2 - progress * sH * 0.45;
-            const rx = cx2 + Math.sin(t * 1.2 + i + j * 0.8) * 25 * progress;
-            const rs = 12 + progress * 60;
-            const ra = 0.35 * (1 - progress);
-            const gc2 = ctx.createRadialGradient(rx, ry, 0, rx, ry, rs);
-            const g2 = Math.floor(20 + progress * 10);
-            gc2.addColorStop(0, `rgba(${35},${g2},${g2},${ra})`);
-            gc2.addColorStop(1, "transparent");
-            ctx.fillStyle = gc2;
-            ctx.beginPath();
-            ctx.arc(rx, ry, rs, 0, Math.PI * 2);
-            ctx.fill();
+        // Particles slider (pendant le drag)
+        if (isDrag) {
+          for (let i = 0; i < 3; i++) {
+            const ang =
+              (Math.random() - 0.5) * Math.PI * 0.7 +
+              (sliderX < 0.5 ? Math.PI : 0);
+            const v = 40 + Math.random() * 30;
+            const col =
+              sliderX < 0.5
+                ? `rgba(${160 + Math.floor(Math.random() * 60)},${Math.floor(
+                    sliderX * 80
+                  )},0,`
+                : `rgba(0,${Math.floor(150 + sliderX * 105)},${Math.floor(
+                    sliderX * 65
+                  )},`;
+            sliderParts.push({
+              x: divX,
+              y: Math.random() * H,
+              vx: Math.cos(ang) * v,
+              vy: Math.sin(ang) * v - 10,
+              life: 1,
+              sz: 3.2 + Math.random() * 2.2,
+              col,
+            });
           }
         }
-
-        // ── FUTUR B (droite) — champs solaires/éoliens ──
-        const skyB = ctx.createLinearGradient(divX, 0, sW, sH);
-        skyB.addColorStop(
-          0,
-          `rgb(${80 + Math.floor(Math.sin(t * 0.18) * 8)},${
-            148 + Math.floor(Math.sin(t * 0.15) * 8)
-          },${220 + Math.floor(Math.sin(t * 0.12) * 6)})`
-        );
-        skyB.addColorStop(
-          0.5,
-          `rgb(${120 + Math.floor(Math.sin(t * 0.1) * 6)},${
-            185 + Math.floor(Math.sin(t * 0.08) * 5)
-          },${240})`
-        );
-        skyB.addColorStop(1, `rgb(${50},${140},${80})`);
-        ctx.fillStyle = skyB;
-        ctx.fillRect(divX, 0, sW - divX, sH);
-
-        // Sol vert
-        const grd = ctx.createLinearGradient(divX, sH * 0.65, sW, sH);
-        grd.addColorStop(0, "#2d7a2d");
-        grd.addColorStop(1, "#1a5c1a");
-        ctx.fillStyle = grd;
-        ctx.fillRect(divX, sH * 0.65, sW - divX, sH * 0.35);
-
-        // Soleil
-        const sunX = divX + (sW - divX) * 0.75,
-          sunY = sH * 0.15;
-        const sunG = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 90);
-        sunG.addColorStop(0, "rgba(255,240,100,.95)");
-        sunG.addColorStop(0.5, "rgba(255,210,50,.55)");
-        sunG.addColorStop(1, "transparent");
-        ctx.fillStyle = sunG;
-        ctx.beginPath();
-        ctx.arc(sunX, sunY, 90, 0, Math.PI * 2);
-        ctx.fill();
-        // Rayons solaires
-        for (let r = 0; r < 12; r++) {
-          const ang = (r / 12) * Math.PI * 2 + t * 0.12;
-          ctx.strokeStyle = `rgba(255,230,80,${
-            0.12 + Math.sin(t * 2 + r) * 0.06
-          })`;
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(sunX + Math.cos(ang) * 95, sunY + Math.sin(ang) * 95);
-          ctx.lineTo(sunX + Math.cos(ang) * 140, sunY + Math.sin(ang) * 140);
-          ctx.stroke();
-        }
-
-        // Panneaux solaires
-        for (let row = 0; row < 4; row++) {
-          for (let col = 0; col < 6; col++) {
-            const px =
-              divX +
-              20 +
-              (col / 6) * (sW - divX - 40) +
-              Math.sin(row * 0.8) * 0.01 * (sW - divX);
-            const py = sH * 0.68 + row * 22;
-            const pw = 30,
-              ph = 18;
-            ctx.fillStyle = `rgba(20,55,140,${
-              0.75 + Math.sin(t * 2 + row + col) * 0.05
-            })`;
-            ctx.fillRect(px, py, pw, ph);
-            ctx.strokeStyle = "rgba(100,160,255,.4)";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(px, py, pw, ph);
-            const glint = ctx.createLinearGradient(px, py, px + pw, py + ph);
-            glint.addColorStop(0, "rgba(150,200,255,.25)");
-            glint.addColorStop(1, "transparent");
-            ctx.fillStyle = glint;
-            ctx.fillRect(px, py, pw, ph);
+        for (let i = sliderParts.length - 1; i >= 0; i--) {
+          const p = sliderParts[i];
+          p.x += p.vx * t * 0.016;
+          p.y += p.vy * t * 0.016;
+          p.vy += 26 * t * 0.016;
+          p.life -= 0.025;
+          if (p.life <= 0) {
+            sliderParts.splice(i, 1);
+            continue;
           }
+          fxX.beginPath();
+          fxX.arc(p.x, p.y, p.sz * p.life, 0, Math.PI * 2);
+          fxX.fillStyle = p.col + p.life * 0.8 + ")";
+          fxX.fill();
         }
-
-        // Éoliennes
-        [
-          [0.2, 0.22, 0.14],
-          [0.45, 0.18, 0.16],
-          [0.68, 0.25, 0.12],
-          [0.85, 0.2, 0.1],
-        ].forEach(([rx, ry, rs], i) => {
-          const ex = divX + rx * (sW - divX),
-            ey = ry * sH;
-          const mh = rs * sH;
-          ctx.strokeStyle = "rgba(230,235,245,.8)";
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(ex, ey);
-          ctx.lineTo(ex, ey + mh);
-          ctx.stroke();
-          const ang = t * (0.6 + i * 0.12) + i * 1.3;
-          for (let b = 0; b < 3; b++) {
-            const ba = ang + b * ((Math.PI * 2) / 3);
-            const bl = rs * sH * 0.72;
-            ctx.strokeStyle = "rgba(220,225,240,.75)";
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            ctx.moveTo(ex, ey);
-            ctx.lineTo(ex + Math.cos(ba) * bl, ey + Math.sin(ba) * bl);
-            ctx.stroke();
+        // Gold particles (pendant voix Futur B)
+        for (let i = goldParts.length - 1; i >= 0; i--) {
+          const p = goldParts[i];
+          p.x += p.vx * t * 0.016;
+          p.y += p.vy * t * 0.016;
+          p.vy -= 14 * t * 0.016;
+          p.life -= 0.018;
+          if (p.life <= 0) {
+            goldParts.splice(i, 1);
+            continue;
           }
-          // Disque hub
-          ctx.fillStyle = "rgba(200,210,230,.9)";
-          ctx.beginPath();
-          ctx.arc(ex, ey, 5, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
-        // Oiseaux
-        for (let b = 0; b < 5; b++) {
-          const bx =
-            divX +
-            (((b / 5) * (sW - divX) + t * 25 * (b % 2 === 0 ? 1 : -1)) %
-              (sW - divX));
-          const by = sH * (0.22 + Math.sin(t * 0.5 + b * 1.8) * 0.08);
-          ctx.strokeStyle = "rgba(50,50,50,.6)";
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.moveTo(bx - 8, by);
-          ctx.quadraticCurveTo(bx - 4, by - 4, bx, by);
-          ctx.quadraticCurveTo(bx + 4, by - 4, bx + 8, by);
-          ctx.stroke();
+          fxX.save();
+          fxX.globalAlpha = p.life;
+          fxX.fillStyle = `rgba(255,${Math.floor(
+            195 + Math.random() * 60
+          )},50,1)`;
+          fxX.font = `${Math.floor(p.sz)}px serif`;
+          fxX.fillText("✦", p.x, p.y);
+          fxX.restore();
         }
-
-        // Travailleurs souriants (silhouettes)
-        for (let w = 0; w < 4; w++) {
-          const wx = divX + 20 + w * (sW - divX) * 0.22,
-            wy = sH * 0.62;
-          ctx.fillStyle = "rgba(50,100,50,.7)";
-          ctx.beginPath();
-          ctx.arc(wx, wy - 14, 6, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillRect(wx - 4, wy - 8, 8, 16);
-        }
-
-        // Fleurs qui poussent (simple)
-        for (let f = 0; f < 8; f++) {
-          const fx = divX + (f * (sW - divX)) / 8 + 15,
-            fy = sH * 0.66;
-          const fs = 4 + Math.sin(t * 0.5 + f) * 2;
-          ctx.fillStyle = `rgba(255,${150 + f * 12},100,.85)`;
-          ctx.beginPath();
-          ctx.arc(fx, fy, fs, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Ligne de séparation
-        ctx.strokeStyle = "rgba(255,255,255,.9)";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([8, 6]);
-        ctx.beginPath();
-        ctx.moveTo(divX, 0);
-        ctx.lineTo(divX, sH);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // CO2 counters mis à jour
-        co2AVal = Math.min(co2AVal + 0.05, 40);
-        co2BVal = Math.max(co2BVal - 0.03, -10);
-
-        // Vignette
-        const vg = ctx.createRadialGradient(
-          sW * 0.5,
-          sH * 0.5,
-          sH * 0.1,
-          sW * 0.5,
-          sH * 0.5,
-          sH * 0.75
-        );
-        vg.addColorStop(0, "transparent");
-        vg.addColorStop(1, "rgba(0,0,0,.55)");
-        ctx.fillStyle = vg;
-        ctx.fillRect(0, 0, sW, sH);
+        // Ligne du slider — principale feature visuelle
+        fxX.save();
+        fxX.shadowColor = "rgba(255,255,255,.75)";
+        fxX.shadowBlur = 18;
+        fxX.strokeStyle = "rgba(255,255,255,.94)";
+        fxX.lineWidth = 3;
+        fxX.beginPath();
+        fxX.moveTo(divX, 0);
+        fxX.lineTo(divX, H);
+        fxX.stroke();
+        fxX.restore();
       }
 
-      // ══ SLIDER DRAG ══
+      // ══ CLIP PHOTOS selon position slider ══
+      function updateClip() {
+        const divX = sliderX * W;
+        // Photo A (pollution) = gauche → visible quand slider est à droite (divX grand)
+        document.getElementById(
+          "photo-a"
+        ).style.clipPath = `polygon(0 0,${divX}px 0,${divX}px ${H}px,0 ${H}px)`;
+        // Photo B (vert) = droite → visible dans le reste
+        document.getElementById(
+          "photo-b"
+        ).style.clipPath = `polygon(${divX}px 0,${W}px 0,${W}px ${H}px,${divX}px ${H}px)`;
+        // Slider handle position
+        document.getElementById("slider-wrap").style.left = divX + "px";
+        // Glow
+        document.getElementById("glow-a").style.opacity =
+          sliderX > 0.78 ? Math.sin(globalT * Math.PI) * 0.38 + 0.28 : "0";
+        document.getElementById("glow-b").style.opacity =
+          sliderX < 0.22 ? Math.sin(globalT * Math.PI) * 0.38 + 0.28 : "0";
+        // Pct badge
+        const pct = Math.round(sliderX * 100);
+        const dom =
+          pct < 28 ? "← Photo A" : pct > 72 ? "Photo B →" : "= Équilibré";
+        const col = pct < 28 ? "#ff7755" : pct > 72 ? "#00ff88" : "#ffffff";
+        const pi = document.getElementById("pct-badge");
+        pi.textContent = pct + "% — " + dom;
+        pi.style.color = col;
+      }
+      function clamp(mn, v, mx) {
+        return Math.max(mn, Math.min(mx, v));
+      }
+
+      // ══ GAÏA DIALOGUES ══
+      // • Slider vers DROITE (sliderX > 0.82) → Photo A (pollution) domine → GAÏA parle du Futur A
+      // • Slider vers GAUCHE (sliderX < 0.18) → Photo B (vert) domine → GAÏA parle du Futur B
+      // • Badge simulation : s'affiche UNIQUEMENT après que GAÏA a terminé le Futur B
+      function showSplitVoice(txt, mood, cb) {
+        const sep = document.getElementById("sv-sep"),
+          box = document.getElementById("sv-box");
+        box.className = mood === "sad" ? "sad" : "hope";
+        sep.classList.add("show");
+        box.classList.add("show");
+        speak(
+          txt,
+          document.getElementById("sv-txt"),
+          document.getElementById("sv-vbr"),
+          document.getElementById("sv-cur"),
+          () => {
+            // Attendre 4 secondes après la fin de la voix avant de masquer
+            setTimeout(() => {
+              box.style.transition = "opacity .9s";
+              box.style.opacity = "0";
+              setTimeout(() => {
+                box.classList.remove("show");
+                box.style.opacity = "";
+                box.style.transition = "";
+                sep.classList.remove("show");
+                if (cb) cb();
+              }, 920);
+            }, 4000);
+          }
+        );
+      }
+
+      function triggerGaiaA() {
+        if (phase !== "split" || gaiaA_speaking) return;
+        gaiaA_speaking = true;
+        showSplitVoice(
+          "Ce futur... me brise le coeur.\n\nC est pourtant le chemin que le monde suit aujourd hui.\nSi rien ne change. Si personne n agit.\n\nRegardez bien ce que vous voyez.\nDes industries qui brulent mes ressources sans s arreter.\nDes millions de tonnes de carbone rejetees chaque annee.\n8 millions de personnes meurent a cause de la pollution de l air.\nChaque annee. En silence.\n\nCe n est pas une fatalite.\nC est un choix.\nVotre choix.\nCollectif.\n\nGlissez vers la gauche... pour voir ce qui est encore possible.",
+          "sad",
+          () => {
+            gaiaA_speaking = false;
+          }
+        );
+      }
+
+      function triggerGaiaB() {
+        if (phase !== "split" || gaiaB_speaking) return;
+        gaiaB_speaking = true;
+        // Particules dorées pendant la voix d'espoir
+        for (let i = 0; i < 30; i++)
+          goldParts.push({
+            x: W * (0.3 + Math.random() * 0.4),
+            y: H * 0.95,
+            vx: (Math.random() - 0.5) * 55,
+            vy: -(28 + Math.random() * 65),
+            life: 1,
+            sz: 11 + Math.random() * 7,
+          });
+        const goldIv = setInterval(() => {
+          for (let i = 0; i < 5; i++)
+            goldParts.push({
+              x: W * (0.3 + Math.random() * 0.4),
+              y: H * 0.9,
+              vx: (Math.random() - 0.5) * 50,
+              vy: -(24 + Math.random() * 60),
+              life: 1,
+              sz: 9 + Math.random() * 6,
+            });
+        }, 1200);
+        showSplitVoice(
+          "Ce futur... me redonne vie.\n\nC est ce que je supplie l humanite de construire.\nDepuis des decennies. Et enfin... certains ont entendu.\n\nRegardez. La difference est immense.\nL electricite couterait 4 fois moins cher.\n24 millions d emplois crees. Contre 6 dans l autre scenario.\n7 millions de vies sauvees chaque annee.\nEt moi... je commencerais a guerir.\n\nCe n est pas une utopie.\nLa technologie existe. Le cout est viable. Les emplois sont la. Maintenant.\n\nLa seule question qui reste... c est la volonte.\nVotez pour des dirigeants qui m ecoutent.\nExigez la transition. Installez du solaire.\nChaque geste compte.\n\nCar moi, je ne peux rien faire seule.\nVous etes mon seul espoir.",
+          "hope",
+          () => {
+            clearInterval(goldIv);
+            gaiaB_speaking = false;
+            // Badge s'affiche UNIQUEMENT après que GAÏA a terminé le Futur B
+            setTimeout(
+              () => document.getElementById("badge-sim").classList.add("show"),
+              1200
+            );
+          }
+        );
+      }
+
+      // ══ BOUCLE PRINCIPALE ══
+      function mainLoop(ts) {
+        requestAnimationFrame(mainLoop);
+        const dt = Math.min((ts - lastTs) / 1000, 0.05);
+        lastTs = ts;
+        globalT += dt;
+        const t = globalT;
+        if (phase === "tunnel") {
+          drawTunnel(t);
+          return;
+        }
+        if (phase !== "split") return;
+        updateClip();
+        drawFX(t);
+        updateAmbient();
+        // (CO2 supprimés)
+        // Déclencher dialogues selon position slider (une seule fois)
+        if (sliderX > 0.82 && !gaiaA_done && !gaiaA_speaking) {
+          gaiaA_done = true;
+          setTimeout(triggerGaiaA, 2500);
+        }
+        if (sliderX < 0.18 && !gaiaB_done && !gaiaB_speaking) {
+          gaiaB_done = true;
+          setTimeout(triggerGaiaB, 2500);
+        }
+      }
+
+      // ══ SLIDER ══
       function initSlider() {
-        resizeSplit();
-        sliderX = 0.5;
-        updateSliderPos();
         const sw = document.getElementById("slider-wrap");
+        const sh = document.getElementById("slider-handle");
+        const onM = (e) => {
+          if (!isDrag) return;
+          const cx = e.touches ? e.touches[0].clientX : e.clientX;
+          sliderX = Math.max(0.04, Math.min(0.96, cx / W));
+          $cur.className = "grabbing";
+          sh.classList.add("drag");
+          sh.classList.remove("hov");
+        };
+        const onU = () => {
+          if (!isDrag) return;
+          isDrag = false;
+          $cur.className = "";
+          sh.classList.remove("drag");
+          // Snap vers centre si proche
+          if (Math.abs(sliderX - 0.5) < 0.05) {
+            let sv = sliderX;
+            const sn = setInterval(() => {
+              sv += (0.5 - sv) * 0.18;
+              sliderX = sv;
+              if (Math.abs(sv - 0.5) < 0.002) {
+                sliderX = 0.5;
+                clearInterval(sn);
+              }
+            }, 16);
+          }
+        };
         sw.addEventListener("mousedown", (e) => {
-          isDraggingSlider = true;
+          isDrag = true;
           e.preventDefault();
+          $cur.className = "grabbing";
+          sh.classList.add("drag");
         });
-        document.addEventListener("mouseup", () => (isDraggingSlider = false));
-        document.addEventListener("mousemove", (e) => {
-          if (!isDraggingSlider) return;
-          sliderX = Math.max(0.08, Math.min(0.92, e.clientX / sW));
-          updateSliderPos();
-        });
+        document.addEventListener("mouseup", onU);
+        document.addEventListener("mousemove", onM);
         sw.addEventListener(
           "touchstart",
           (e) => {
-            isDraggingSlider = true;
+            isDrag = true;
           },
           { passive: true }
         );
-        document.addEventListener("touchend", () => (isDraggingSlider = false));
-        document.addEventListener(
-          "touchmove",
-          (e) => {
-            if (!isDraggingSlider) return;
-            sliderX = Math.max(0.08, Math.min(0.92, e.touches[0].clientX / sW));
-            updateSliderPos();
-          },
-          { passive: true }
-        );
+        document.addEventListener("touchend", onU);
+        document.addEventListener("touchmove", onM, { passive: true });
+        sw.addEventListener("mouseenter", () => {
+          $cur.className = "grab";
+          sh.classList.add("hov");
+        });
+        sw.addEventListener("mouseleave", () => {
+          if (!isDrag) {
+            $cur.className = "";
+            sh.classList.remove("hov");
+          }
+        });
       }
 
-      // ══ BUDGET SIMULATION ══
-      const TOTAL_BUDGET = 10000;
-      function updateBudget() {
-        const sliders = [
-          "fossil",
-          "solar",
-          "wind",
-          "hydro",
-          "nuclear",
-          "storage",
-        ];
+      // ══ SIMULATION ══
+      const TOTAL = 10000;
+      function updBudget() {
+        const ids = ["fossil", "solar", "wind", "hydro", "nuclear", "storage"];
         let used = 0;
-        sliders.forEach((id) => {
-          const v = parseInt(document.getElementById("sl-" + id).value);
+        ids.forEach((id) => {
+          const v = parseInt(document.getElementById("es-" + id).value);
           used += v;
-          document.getElementById("val-" + id).textContent =
+          document.getElementById("ev-" + id).textContent =
             v.toLocaleString() + " Mds$";
         });
-        document.getElementById("budget-used").textContent =
-          used.toLocaleString();
-        const remain = TOTAL_BUDGET - used;
-        const rem = document.getElementById("budget-remain");
-        rem.textContent =
-          (remain >= 0 ? "+" : "") + remain.toLocaleString() + " Mds$";
-        rem.className = "bd-remain " + (remain >= 0 ? "ok" : "over");
-        document.getElementById("sim-btn").disabled = Math.abs(remain) > 500;
+        document.getElementById("bb-used").textContent = used.toLocaleString();
+        const rem = TOTAL - used;
+        document.getElementById("bb-rem").textContent =
+          (rem >= 0 ? "+" : "") + rem.toLocaleString() + " Mds$";
+        document.getElementById("bb-rem").className =
+          "bb-rm " + (rem >= 0 ? "ok" : "ov");
+        document.getElementById("sim-go").disabled = Math.abs(rem) > 500;
       }
-
-      function calcResults() {
-        const fossil = parseInt(document.getElementById("sl-fossil").value);
-        const solar = parseInt(document.getElementById("sl-solar").value);
-        const wind = parseInt(document.getElementById("sl-wind").value);
-        const hydro = parseInt(document.getElementById("sl-hydro").value);
-        const nuclear = parseInt(document.getElementById("sl-nuclear").value);
-        const storage = parseInt(document.getElementById("sl-storage").value);
-        const total = fossil + solar + wind + hydro + nuclear + storage;
-        // Calcul % renouvelable
-        const renewRaw =
-          ((solar * 8 + wind * 7 + hydro * 4 + nuclear * 3) / (total || 1)) *
-          100;
-        const renewPct = Math.round(Math.max(5, Math.min(98, renewRaw * 0.18)));
-        // Température
-        const fossilRatio = fossil / TOTAL_BUDGET;
-        const tempRise = Math.round((1.5 + fossilRatio * 4) * 10) / 10;
-        // Prix
-        const price = Math.round((0.12 - renewPct * 0.0008) * 100) / 100;
-        const priceStr = Math.max(0.02, price).toFixed(2) + "€/kWh";
-        // Emplois
-        const jobs = Math.round(6 + renewPct * 0.18);
-        // Score
-        const scoreRenew = Math.min(40, renewPct * 0.4);
-        const scoreTemp = tempRise < 2 ? 40 : tempRise < 3 ? 25 : 10;
-        const scoreJobs = Math.min(20, jobs * 0.8);
-        const globalScore = Math.round(scoreRenew + scoreTemp + scoreJobs);
-        // Rang
+      function calcRes() {
+        const fossil = parseInt(document.getElementById("es-fossil").value);
+        const solar = parseInt(document.getElementById("es-solar").value);
+        const wind = parseInt(document.getElementById("es-wind").value);
+        const hydro = parseInt(document.getElementById("es-hydro").value);
+        const nuclear = parseInt(document.getElementById("es-nuclear").value);
+        const storage = parseInt(document.getElementById("es-storage").value);
+        const total = fossil + solar + wind + hydro + nuclear + storage || 1;
+        const ren = Math.round(
+          Math.max(
+            5,
+            Math.min(
+              98,
+              ((solar * 8.6 + wind * 7.9 + hydro * 4.3 + nuclear * 3.5) /
+                total) *
+                100 *
+                0.19
+            )
+          )
+        );
+        const temp = Math.round((1.5 + (fossil / TOTAL) * 4.7) * 10) / 10;
+        const price = Math.max(
+          0.02,
+          Math.round((0.12 - ren * 0.00085) * 100) / 100
+        );
+        const jobs = Math.round(6 + ren * 0.195);
+        const sc = Math.min(
+          100,
+          Math.round(
+            Math.min(42, ren * 0.44) +
+              (temp < 2 ? 42 : temp < 3 ? 27 : 10) +
+              Math.min(16, jobs * 0.72)
+          )
+        );
         const rank =
-          globalScore >= 90
+          sc >= 90
             ? "VISIONNAIRE 🌟"
-            : globalScore >= 75
+            : sc >= 75
             ? "BON GESTIONNAIRE 🏅"
-            : globalScore >= 55
+            : sc >= 55
             ? "EN PROGRÈS ⚡"
-            : globalScore >= 35
+            : sc >= 35
             ? "INSUFFISANT ⚠"
             : "DANGEREUX 💀";
-        // Voix GAÏA
-        const gaiaComment =
-          globalScore >= 75
-            ? `Pas mal ! Vous m avez sauvee.\nEnergie verte a ${renewPct}%.\nLa planete respire.\nMais on peut encore mieux faire.\nEssayez encore ?`
-            : globalScore >= 50
-            ? `Bien essaye, ${pName}.\nMais ${renewPct}% renouvelable... ce n est pas assez.\nLa temperature monte encore a ${tempRise} degres.\nRéessayez. Investissez plus dans le solaire et l eolien.`
-            : `${pName}... Vous m avez laissee souffrir.\nSeulement ${renewPct}% renouvelable.\n${tempRise} degres de rechauffement.\nC est le futur A que vous avez choisi.\nS il vous plait... recommencez.`;
+        // Feedback GAÏA détaillé selon les résultats de simulation
+        let gaia;
+        if (sc >= 90) {
+          gaia = `Extraordinaire, ${pName}.\nVous avez realise ce que peu de decideurs osent faire.\n${ren}% d energie renouvelable en 2050.\nLa temperature ne monte que de ${temp} degres.\n${jobs} millions d emplois crees.\nMon ecosysteme commence a se regenerer.\nLes oceans se stabilisent. L air devient respirable.\nVous avez prouve que c est possible.\nMerci. Du fond de mon ame... merci.`;
+        } else if (sc >= 75) {
+          gaia = `Bien joue, ${pName}.\n${ren}% renouvelable. Temperature a ${temp} degres.\nC est une vraie progression.\n${jobs} millions d emplois dans les energies propres.\nMon coeur bat un peu plus fort.\nMais il reste encore du chemin.\nAugmentez le solaire et l eolien pour aller plus loin.\nChaque pourcentage compte pour ma survie.`;
+        } else if (sc >= 55) {
+          gaia = `Un effort louable, ${pName}.\nMais ${ren}% renouvelable... ce n est pas assez.\nAvec ${temp} degres de rechauffement, mes glaciers continuent de fondre.\nMes forets brulent encore.\n${jobs} millions d emplois, c est bien.\nMais l humanite peut faire beaucoup mieux.\nReduisez massivement les fossiles.\nInvestissez dans le stockage d energie.\nJe compte sur vous.`;
+        } else if (sc >= 35) {
+          gaia = `${pName}... j espere que vous ferez mieux.\nSeulement ${ren}% renouvelable.\n${temp} degres de hausse des temperatures.\nC est proche du scenario catastrophe.\nMes ecosystemes s effondrent les uns apres les autres.\nIl n est pas trop tard... mais il faut agir maintenant.\nReinvestissez massivement dans les energies propres.\nChaque annee perdue coute des millions de vies.`;
+        } else {
+          gaia = `${pName}... vous m avez abandonnee.\n${ren}% renouvelable seulement. ${temp} degres.\nC est le chemin de la destruction.\nMes oceans montent. Mes forets disparaissent.\nDes milliards de personnes devront fuir.\nJe vous en supplie... recommencez.\nChoisissez autrement.\nIl est encore temps. Mais tout juste.`;
+        }
         return {
-          renewPct,
-          tempRise,
-          priceStr,
+          ren,
+          temp,
+          price: price.toFixed(2) + "€/kWh",
           jobs,
-          globalScore,
+          sc,
           rank,
-          gaiaComment,
+          gaia,
         };
       }
-
-      // ══ RUN SIMULATION ANIMATION ══
-      function runSimulation() {
+      function startSim() {
+        document.getElementById("badge-sim").classList.remove("show");
+        setTimeout(() => {
+          document.getElementById("sim-phase").style.display = "block";
+          updBudget();
+        }, 400);
+      }
+      function runSim() {
         const total = [
           "fossil",
           "solar",
@@ -2114,36 +2018,31 @@
           "nuclear",
           "storage",
         ].reduce(
-          (s, id) => s + parseInt(document.getElementById("sl-" + id).value),
+          (s, id) => s + parseInt(document.getElementById("es-" + id).value),
           0
         );
-        if (Math.abs(TOTAL_BUDGET - total) > 500) {
-          alert(
-            "Ajustez vos investissements — total doit être proche de 10 000 Mds$"
-          );
+        if (Math.abs(TOTAL - total) > 500) {
+          alert("Total doit être proche de 10 000 Mds$");
           return;
         }
         document.getElementById("sim-phase").style.display = "none";
-        const animEl = document.getElementById("sim-anim");
-        animEl.style.display = "flex";
-        const ac = document.getElementById("anim-canvas");
+        const ae = document.getElementById("sim-anim");
+        ae.style.display = "flex";
+        const ac = document.getElementById("anim-c");
         ac.width = innerWidth;
         ac.height = innerHeight;
         const ax = ac.getContext("2d");
-        let yr = 2025,
-          yearEl = document.getElementById("anim-year");
-        let t = 0;
-        function animFrame() {
-          requestAnimationFrame(animFrame);
-          t += 0.016;
-          ax.fillStyle = "rgba(0,0,0,.15)";
+        let at = 0;
+        function af() {
+          requestAnimationFrame(af);
+          at += 0.016;
+          ax.fillStyle = "rgba(0,0,0,.14)";
           ax.fillRect(0, 0, ac.width, ac.height);
-          // Globe qui tourne (cercle stylisé)
           const cx = ac.width / 2,
             cy = ac.height / 2;
           ax.beginPath();
-          ax.arc(cx, cy, 180, 0, Math.PI * 2);
-          ax.strokeStyle = `rgba(0,255,136,${0.4 + Math.sin(t * 2) * 0.1})`;
+          ax.arc(cx, cy, 180 + Math.sin(at * 2) * 9, 0, Math.PI * 2);
+          ax.strokeStyle = `rgba(0,255,136,${0.38 + Math.sin(at * 2) * 0.1})`;
           ax.lineWidth = 3;
           ax.stroke();
           for (let r = 0; r < 3; r++) {
@@ -2152,154 +2051,131 @@
               cx,
               cy,
               180,
-              60 + r * 35,
-              t * 0.8 + r * 1.2,
+              56 + r * 33,
+              at * 0.76 + r * 1.22,
               0,
               Math.PI * 2
             );
-            ax.strokeStyle = `rgba(0,255,136,${0.15 + r * 0.05})`;
+            ax.strokeStyle = `rgba(0,255,136,${0.11 + r * 0.04})`;
             ax.lineWidth = 1.5;
             ax.stroke();
           }
-          // Particules
-          for (let i = 0; i < 20; i++) {
-            const a = t * 0.5 + i * 0.314;
-            const d = 80 + Math.sin(t * 2 + i) * 0.4 * 80;
-            const px = cx + Math.cos(a) * d,
-              py = cy + Math.sin(a) * d * 0.35;
+          for (let i = 0; i < 24; i++) {
+            const a = at * 0.44 + i * 0.262;
+            const d = 68 + Math.sin(at * 2 + i) * 0.38 * 68;
             ax.beginPath();
-            ax.arc(px, py, 2 + Math.random() * 2, 0, Math.PI * 2);
-            ax.fillStyle = `rgba(0,255,136,${0.4 + Math.sin(t * 3 + i) * 0.3})`;
+            ax.arc(
+              cx + Math.cos(a) * d,
+              cy + Math.sin(a) * d * 0.35,
+              2,
+              0,
+              Math.PI * 2
+            );
+            ax.fillStyle = `rgba(0,255,136,${
+              0.38 + Math.sin(at * 3 + i) * 0.28
+            })`;
             ax.fill();
           }
-          yr = 2025 + Math.floor((t / 10) * 25);
-          if (yr > 2050) yr = 2050;
-          yearEl.textContent = yr;
+          document.getElementById("anim-yr").textContent = Math.min(
+            2050,
+            2025 + Math.floor((at / 10) * 25)
+          );
         }
-        animFrame();
+        af();
         setTimeout(() => {
-          animEl.style.display = "none";
-          showResults();
+          ae.style.display = "none";
+          showRes();
         }, 10000);
       }
-
-      function showResults() {
-        const r = calcResults();
-        document.getElementById("results-phase").style.display = "block";
-        // Cartes
+      function showRes() {
+        const r = calcRes();
+        document.getElementById("res-phase").style.display = "block";
         const grid = document.getElementById("res-grid");
         grid.innerHTML = "";
-        const cards = [
+        [
           {
-            icon: "🌱",
-            lbl: "Énergies Renouvelables",
-            val: r.renewPct + "%",
-            sub:
-              r.renewPct >= 70
+            ic: "🌱",
+            lb: "Renouvelables",
+            vl: r.ren + "%",
+            sb:
+              r.ren >= 70
                 ? "✅ Excellent"
-                : r.renewPct >= 50
-                ? "⚠️ Acceptable"
-                : "❌ Insuffisant",
-            color:
-              r.renewPct >= 70
-                ? "#00ff88"
-                : r.renewPct >= 50
-                ? "#ffaa33"
-                : "#ff4444",
+                : r.ren >= 50
+                ? "⚠️ Correct"
+                : "❌ Faible",
+            c: r.ren >= 70 ? "#00ff88" : r.ren >= 50 ? "#ffaa33" : "#ff4444",
           },
           {
-            icon: "🌡️",
-            lbl: "Température 2050",
-            val: "+" + r.tempRise + "°C",
-            sub:
-              r.tempRise < 2
+            ic: "🌡️",
+            lb: "Température",
+            vl: "+" + r.temp + "°C",
+            sb:
+              r.temp < 2
                 ? "✅ Sécurisé"
-                : r.tempRise < 3
+                : r.temp < 3
                 ? "⚠️ Risqué"
                 : "🚨 Dangereux",
-            color:
-              r.tempRise < 2
-                ? "#00ff88"
-                : r.tempRise < 3
-                ? "#ffaa33"
-                : "#ff4444",
+            c: r.temp < 2 ? "#00ff88" : r.temp < 3 ? "#ffaa33" : "#ff4444",
           },
           {
-            icon: "💰",
-            lbl: "Prix électricité",
-            val: r.priceStr,
-            sub: parseFloat(r.priceStr) < 0.06 ? "✅ Très bas" : "⚠️ Élevé",
-            color: parseFloat(r.priceStr) < 0.06 ? "#00ff88" : "#ffaa33",
+            ic: "💰",
+            lb: "Prix électricité",
+            vl: r.price,
+            sb: parseFloat(r.price) < 0.06 ? "✅ Très bas" : "⚠️ Élevé",
+            c: parseFloat(r.price) < 0.06 ? "#00ff88" : "#ffaa33",
           },
           {
-            icon: "👷",
-            lbl: "Emplois créés",
-            val: r.jobs + "M",
-            sub: "millions de travailleurs",
-            color: "#88ccff",
+            ic: "👷",
+            lb: "Emplois créés",
+            vl: r.jobs + "M",
+            sb: "millions / monde",
+            c: "#88ccff",
           },
-        ];
-        cards.forEach((c) => {
+        ].forEach((card) => {
           const d = document.createElement("div");
-          d.className = "res-card";
-          d.innerHTML = `<div class="rc-icon">${c.icon}</div><div class="rc-lbl">${c.lbl}</div><div class="rc-val" style="color:${c.color}">${c.val}</div><div class="rc-sub" style="color:rgba(255,255,255,.45)">${c.sub}</div>`;
-          d.style.border = `1px solid ${c.color}33`;
+          d.className = "rc";
+          d.innerHTML = `<div class="rc-ic">${card.ic}</div><div class="rc-lb">${card.lb}</div><div class="rc-vl" style="color:${card.c}">${card.vl}</div><div class="rc-sb">${card.sb}</div>`;
+          d.style.border = `1px solid ${card.c}33`;
           grid.appendChild(d);
         });
-        // Score global
-        document.getElementById("gs-num").textContent = r.globalScore;
-        document.getElementById("gs-num").style.color =
-          r.globalScore >= 75
-            ? "#00ff88"
-            : r.globalScore >= 50
-            ? "#ffaa33"
-            : "#ff4444";
-        document.getElementById("gs-rank").textContent = r.rank;
-        document.getElementById("gs-rank").style.color =
-          r.globalScore >= 75 ? "#00ff88" : "#ffaa44";
-        // Voix GAÏA
-        document.getElementById("res-vtx").textContent = r.gaiaComment;
+        document.getElementById("gs-n").textContent = r.sc;
+        document.getElementById("gs-n").style.color =
+          r.sc >= 75 ? "#00ff88" : r.sc >= 50 ? "#ffaa33" : "#ff4444";
+        document.getElementById("gs-r").textContent = r.rank;
+        document.getElementById("gs-r").style.color =
+          r.sc >= 75 ? "#00ff88" : "#ffaa44";
+        document.getElementById("rv-tx").textContent = r.gaia;
         if (syn && !isMuted) {
           syn.cancel();
-          const u = new SpeechSynthesisUtterance(r.gaiaComment);
+          const u = new SpeechSynthesisUtterance(r.gaia);
           u.lang = "fr-FR";
           u.rate = 0.88;
           u.pitch = 0.82;
           u.volume = 1;
           const sv = () => {
-            const v = gv();
+            const v = getVoice();
             if (v) u.voice = v;
           };
           syn.getVoices().length
             ? sv()
             : syn.addEventListener("voiceschanged", sv, { once: true });
           u.onstart = () =>
-            document.getElementById("res-vbr").classList.add("on");
+            document.getElementById("rv-vbr").classList.add("on");
           u.onend = u.onerror = () =>
-            document.getElementById("res-vbr").classList.remove("on");
+            document.getElementById("rv-vbr").classList.remove("on");
           syn.speak(u);
         }
-        // Score
-        const pts = r.globalScore >= 75 ? 50 : r.globalScore >= 50 ? 25 : 10;
+        const pts = r.sc >= 75 ? 50 : r.sc >= 50 ? 25 : 10;
         score += pts;
         try {
           localStorage.setItem("gaiaScore", score.toString());
         } catch (e) {}
       }
-
-      function retrySimulation() {
-        document.getElementById("results-phase").style.display = "none";
+      function retrySim() {
+        document.getElementById("res-phase").style.display = "none";
         document.getElementById("sim-phase").style.display = "block";
         if (syn) syn.cancel();
       }
-      function startSimulation() {
-        document.getElementById("badge-choose").classList.remove("show");
-        setTimeout(() => {
-          document.getElementById("sim-phase").style.display = "block";
-          updateBudget();
-        }, 400);
-      }
-
       function goNext() {
         if (syn) syn.cancel();
         try {
@@ -2314,91 +2190,51 @@
       }
 
       // ══ SÉQUENCE ══
-      function startScene() {
-        initAudio();
-        const cu = document.getElementById("curtain");
-        cu.style.transition = "opacity 1.4s ease";
-        setTimeout(() => cu.classList.add("gone"), 100);
-        playHum();
-        // Phase 1 : tunnel
-        requestAnimationFrame(drawTunnel);
-        // Voix GAÏA pendant tunnel
-        setTimeout(() => {
-          document.getElementById("tvs").classList.add("show");
-          document.getElementById("tvbox").classList.add("show");
-          speak(
-            `Vous voulez voir comment l energie est produite ?\nEntrez dans mes mitochondries...\nMes centrales de production.\nJe vais vous montrer DEUX futurs.\nA vous de choisir lequel vous voulez vivre.`,
-            document.getElementById("tvtx"),
-            document.getElementById("tvbr"),
-            document.getElementById("ttwc"),
-            () => {
-              // Transition vers split
-              setTimeout(() => enterSplitPhase(), 600);
-            }
-          );
-        }, 1200);
-      }
-
-      function enterSplitPhase() {
-        cancelAnimationFrame(tunnelAID);
+      function enterSplit() {
         const tp = document.getElementById("tunnel-phase");
-        tp.style.transition = "opacity .8s";
+        tp.style.transition = "opacity .85s";
         tp.style.opacity = "0";
         setTimeout(() => {
           tp.style.display = "none";
           document.getElementById("split-phase").style.display = "block";
+          phase = "split";
+          FXC.width = W;
+          FXC.height = H;
           initSlider();
-          resizeSplit();
-          requestAnimationFrame(drawSplit);
-          if (!isMuted) {
-            playMachines(true);
-            setTimeout(() => playWind(true), 500);
-          }
-          // Voix futur A (triste)
-          setTimeout(() => {
-            document.getElementById("svs").classList.add("show");
-            document.getElementById("svbox").classList.add("show");
-            speak(
-              `Ce futur me tue lentement.\nMais c est le chemin actuel...\nSi rien ne change.\nRegardez bien.\nC est ce qui nous attend...\nSi vous ne faites rien.`,
-              document.getElementById("svtx"),
-              document.getElementById("svbr"),
-              document.getElementById("stwc"),
-              () => {
-                // Pause puis voix futur B
-                sliderX = 0.85;
-                updateSliderPos();
-                setTimeout(() => {
-                  speak(
-                    `Ce futur me fait renaitre.\nC est le chemin que j implore...\nQue je supplie.\nVous voyez ?\nMoins cher. Plus d emplois. Planete sauvee.\nC est pas un reve.\nC est une decision.`,
-                    document.getElementById("svtx"),
-                    document.getElementById("svbr"),
-                    document.getElementById("stwc"),
-                    () => {
-                      sliderX = 0.5;
-                      updateSliderPos();
-                      // Afficher badge choisir
-                      setTimeout(
-                        () =>
-                          document
-                            .getElementById("badge-choose")
-                            .classList.add("show"),
-                        1200
-                      );
-                    }
-                  );
-                }, 800);
-              }
-            );
-          }, 1500);
-        }, 850);
+          initAmbients();
+        }, 880);
+      }
+
+      function startScene() {
+        initAudio();
+        W = innerWidth;
+        H = innerHeight;
+        phase = "tunnel";
+        const cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.4s ease";
+        setTimeout(() => cu.classList.add("gone"), 100);
+        playTunnelHum();
+        requestAnimationFrame(mainLoop);
+        setTimeout(() => {
+          document.getElementById("tv-line").classList.add("show");
+          document.getElementById("tv-box").classList.add("show");
+          speak(
+            "Je vais vous montrer DEUX futurs.\nA vous de choisir lequel vous voulez vivre.",
+            document.getElementById("tv-txt"),
+            document.getElementById("tv-vbr"),
+            document.getElementById("tv-cur"),
+            () => setTimeout(enterSplit, 600)
+          );
+        }, 1200);
       }
 
       window.addEventListener("resize", () => {
-        tC.width = innerWidth;
-        tC.height = innerHeight;
-        sW = sC.width = innerWidth;
-        sH = sC.height = innerHeight;
-        updateSliderPos();
+        W = innerWidth;
+        H = innerHeight;
+        TC.width = W;
+        TC.height = H;
+        FXC.width = W;
+        FXC.height = H;
       });
       window.addEventListener("load", startScene);
     </script>
