@@ -1,0 +1,2191 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAÏA — Scène 8 : Cœur Guéri & Quiz</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #00ff88;
+        --gd: #00cc66;
+        --soft: #d0f0e0;
+        --ui: rgba(0, 6, 2, 0.97);
+        --ub: rgba(0, 255, 136, 0.16);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+        opacity: 0;
+        animation: fi 0.5s ease 0.05s forwards;
+      }
+      @keyframes fi {
+        to {
+          opacity: 1;
+        }
+      }
+      #cur {
+        position: fixed;
+        width: 16px;
+        height: 16px;
+        border: 1.5px solid rgba(0, 255, 136, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: width 0.15s, height 0.15s;
+      }
+      #cur::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--g);
+        border-radius: 50%;
+      }
+      #entry-flash {
+        position: fixed;
+        inset: 0;
+        z-index: 800;
+        background: #00ff88;
+        opacity: 0;
+        pointer-events: none;
+      }
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 600;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 1.2s ease;
+      }
+      #curtain.gone {
+        opacity: 0;
+      }
+
+      /* ══ CANVAS TRANSITION VEINE ══ */
+      #vein-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 550;
+        display: none;
+        pointer-events: none;
+      }
+
+      #heart-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+      }
+      #vig {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse 80% 80% at 50%50%,
+          transparent 20%,
+          rgba(0, 0, 0, 0.1) 55%,
+          rgba(0, 0, 0, 0.85) 100%
+        );
+      }
+      #beat-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        opacity: 0;
+      }
+      #hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #hud.show {
+        opacity: 1;
+      }
+      .hl {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.5em;
+        color: rgba(0, 255, 136, 0.38);
+      }
+      .hc {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.35em;
+        color: rgba(0, 255, 136, 0.22);
+      }
+      .hr {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: rgba(0, 255, 136, 0.4);
+      }
+      #heart-stats {
+        position: fixed;
+        top: 52px;
+        left: 24px;
+        z-index: 20;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #heart-stats.show {
+        opacity: 1;
+      }
+      .hs-block {
+        margin-bottom: 10px;
+      }
+      .hs-lbl {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.32em;
+        color: rgba(0, 255, 136, 0.38);
+        margin-bottom: 2px;
+      }
+      .hs-val {
+        font-family: "Cinzel", serif;
+        font-size: 22px;
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.5));
+      }
+      .hs-sub {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.2em;
+        color: rgba(0, 255, 136, 0.38);
+        margin-top: 1px;
+      }
+      #diag {
+        position: fixed;
+        top: 52px;
+        right: 24px;
+        z-index: 20;
+        width: min(200px, 26vw);
+        background: var(--ui);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        backdrop-filter: blur(18px);
+        border-radius: 3px;
+        padding: 12px 14px;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #diag.show {
+        opacity: 1;
+      }
+      .dg-t {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.5);
+        margin-bottom: 8px;
+      }
+      .dg-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+      .dg-lb {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+      .dg-vl {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        color: var(--g);
+      }
+      .dg-status {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: var(--g);
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(0, 255, 136, 0.1);
+        text-align: center;
+        filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.5));
+      }
+
+      /* ══ VOIX GAÏA ══ */
+      #vp {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 40;
+        width: min(720px, 92vw);
+        padding: 0 0 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+      }
+      #vs {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.45),
+          transparent
+        );
+        margin-bottom: 9px;
+        transition: width 1s;
+      }
+      #vs.show {
+        width: 100%;
+      }
+      #vbox {
+        width: 100%;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(24px);
+        border-radius: 3px;
+        padding: 13px 20px 11px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.8s, transform 0.8s;
+      }
+      #vbox.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #vsr {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 6px;
+      }
+      #vnm {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      #vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 1s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .vb:nth-child(3) {
+        height: 5px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      .vb:nth-child(5) {
+        height: 4px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      .vb:nth-child(6) {
+        height: 8px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      @keyframes vba {
+        from {
+          transform: scaleY(0.18);
+          opacity: 0.5;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+      #vtx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.6vw, 16px);
+        line-height: 1.9;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 120px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vtx::-webkit-scrollbar {
+        display: none;
+      }
+      #twc {
+        display: inline-block;
+        width: 2px;
+        height: 13px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      #quiz-btn {
+        position: fixed;
+        bottom: clamp(90px, 12vh, 120px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 42;
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        color: var(--g);
+        background: var(--ui);
+        border: 1px solid rgba(0, 255, 136, 0.55);
+        padding: 15px 44px;
+        cursor: pointer;
+        transition: all 0.35s;
+        border-radius: 2px;
+        opacity: 0;
+        pointer-events: none;
+        box-shadow: 0 0 28px rgba(0, 255, 136, 0.12);
+      }
+      #quiz-btn.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #quiz-btn:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 50px rgba(0, 255, 136, 0.38);
+      }
+
+      /* ══ QUIZ ══ */
+      #quiz-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 6, 2, 0.96);
+        backdrop-filter: blur(22px);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      #quiz-overlay.show {
+        display: flex;
+      }
+      #quiz-timer-wrap {
+        width: min(600px, 90vw);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+      #qt-label {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.35em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      #qt-num {
+        font-family: "Cinzel", serif;
+        font-size: 28px;
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.6));
+        transition: color 0.3s;
+      }
+      #qt-num.warn {
+        color: #ffaa33;
+        filter: drop-shadow(0 0 10px rgba(255, 170, 51, 0.6));
+      }
+      #qt-num.danger {
+        color: #ff4444;
+        filter: drop-shadow(0 0 12px rgba(255, 68, 68, 0.7));
+      }
+      #qt-bar-wrap {
+        flex: 1;
+        margin: 0 14px;
+        height: 5px;
+        background: rgba(0, 255, 136, 0.12);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      #qt-bar {
+        height: 100%;
+        background: var(--g);
+        border-radius: 3px;
+        width: 100%;
+        transition: width 0.1s linear, background 0.3s;
+      }
+      #qt-score-disp {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        color: rgba(0, 255, 136, 0.6);
+      }
+      #quiz-card {
+        width: min(620px, 92vw);
+        background: rgba(0, 10, 4, 0.95);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        border-radius: 5px;
+        padding: 26px 28px 22px;
+        box-shadow: 0 0 60px rgba(0, 255, 136, 0.08);
+      }
+      #qnum {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.4);
+        margin-bottom: 8px;
+      }
+      #qtxt {
+        font-family: "Cinzel", serif;
+        font-size: clamp(13px, 2vw, 18px);
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: #fff;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        min-height: 60px;
+      }
+      #qopts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .qopt {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        color: rgba(255, 255, 255, 0.8);
+        background: rgba(0, 10, 4, 0.85);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        border-radius: 3px;
+        padding: 13px 16px;
+        cursor: pointer;
+        transition: all 0.25s;
+        text-align: left;
+      }
+      .qopt:hover:not(:disabled) {
+        background: rgba(0, 255, 136, 0.1);
+        border-color: rgba(0, 255, 136, 0.55);
+        color: #fff;
+      }
+      .qopt:disabled {
+        cursor: default;
+      }
+      .qopt.correct {
+        background: rgba(0, 200, 80, 0.15);
+        border-color: rgba(0, 255, 136, 0.8);
+        color: var(--g);
+      }
+      .qopt.wrong {
+        background: rgba(200, 20, 40, 0.12);
+        border-color: rgba(255, 68, 68, 0.6);
+        color: #ff8888;
+      }
+      .qopt.reveal {
+        background: rgba(0, 200, 80, 0.08);
+        border-color: rgba(0, 255, 136, 0.35);
+      }
+      #qfeedback {
+        margin-top: 16px;
+        background: rgba(0, 8, 3, 0.9);
+        border: 1px solid rgba(0, 255, 136, 0.15);
+        border-radius: 3px;
+        padding: 12px 16px;
+        opacity: 0;
+        transition: opacity 0.5s;
+        min-height: 60px;
+      }
+      #qfeedback.show {
+        opacity: 1;
+      }
+      #qf-hdr {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      #qf-nm {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      #qf-vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 9px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #qf-vbr.on {
+        opacity: 1;
+      }
+      #qf-txt {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.5vw, 15px);
+        line-height: 1.85;
+        color: var(--soft);
+        white-space: pre-wrap;
+      }
+      #qf-pts {
+        font-family: "Cinzel", serif;
+        font-size: 14px;
+        font-weight: 900;
+        color: var(--g);
+        margin-top: 8px;
+        filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.5));
+      }
+      .pts-anim {
+        animation: ptsup 0.6s ease forwards;
+      }
+      @keyframes ptsup {
+        0% {
+          transform: translateY(8px);
+          opacity: 0;
+        }
+        60% {
+          transform: translateY(-3px);
+        }
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      #part-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 61;
+        pointer-events: none;
+      }
+
+      /* ══ RÉSULTATS ══ */
+      #quiz-results {
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        background: rgba(0, 6, 2, 0.97);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        overflow-y: auto;
+      }
+      #quiz-results.show {
+        display: flex;
+      }
+      .qr-head {
+        text-align: center;
+        margin-bottom: 18px;
+      }
+      .qr-ic {
+        font-size: 50px;
+        margin-bottom: 8px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+      .qr-t {
+        font-family: "Cinzel", serif;
+        font-size: clamp(18px, 3.5vw, 36px);
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        margin-bottom: 6px;
+      }
+      .qr-s {
+        font-family: "Cinzel", serif;
+        font-size: clamp(36px, 7vw, 64px);
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 22px rgba(0, 255, 136, 0.6));
+      }
+      .qr-max {
+        font-family: "Cinzel", serif;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.3);
+      }
+      .qr-pct {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        margin-top: 4px;
+      }
+      #qr-voice {
+        width: min(580px, 90vw);
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        border-radius: 3px;
+        padding: 14px 20px;
+        margin-bottom: 16px;
+      }
+      #qr-hdr {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 7px;
+      }
+      #qr-nm {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      #qr-vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #qr-vbr.on {
+        opacity: 1;
+      }
+      #qr-tx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.6vw, 16px);
+        line-height: 1.9;
+        color: var(--soft);
+        white-space: pre-wrap;
+      }
+      #stage-badge {
+        width: min(560px, 90vw);
+        background: rgba(0, 8, 3, 0.98);
+        border: 1px solid rgba(0, 255, 136, 0.28);
+        border-radius: 4px;
+        padding: 20px 24px;
+        text-align: center;
+        display: none;
+      }
+      #stage-badge.show {
+        display: block;
+        animation: bsin 0.4s ease;
+      }
+      @keyframes bsin {
+        from {
+          transform: translateY(16px) scale(0.97);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+      .sb-t {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.35em;
+        color: rgba(0, 255, 136, 0.5);
+        border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        padding-bottom: 10px;
+        margin-bottom: 12px;
+      }
+      .sb-row {
+        font-family: "Cinzel", serif;
+        font-size: clamp(11px, 1.8vw, 15px);
+        letter-spacing: 0.15em;
+        color: var(--g);
+        margin-bottom: 7px;
+        filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.4));
+      }
+      .sb-bonus {
+        font-family: "Cinzel", serif;
+        font-size: clamp(16px, 3vw, 28px);
+        font-weight: 900;
+        color: var(--g);
+        margin: 10px 0 6px;
+        filter: drop-shadow(0 0 14px rgba(0, 255, 136, 0.6));
+      }
+      .qr-btns {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+        width: min(560px, 90vw);
+      }
+      .qr-btn {
+        flex: 1;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.25em;
+        padding: 13px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 2px;
+      }
+      #qr-retry {
+        color: rgba(255, 255, 150, 0.75);
+        background: rgba(25, 25, 0, 0.9);
+        border: 1px solid rgba(255, 255, 80, 0.22);
+      }
+      #qr-retry:hover {
+        background: rgba(255, 255, 80, 0.1);
+      }
+      #qr-hub {
+        color: var(--g);
+        background: var(--ui);
+        border: 1px solid rgba(0, 255, 136, 0.55);
+      }
+      #qr-hub:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 40px rgba(0, 255, 136, 0.35);
+      }
+      #fail-msg {
+        width: min(560px, 90vw);
+        background: rgba(8, 0, 2, 0.95);
+        border: 1px solid rgba(255, 68, 68, 0.3);
+        border-radius: 3px;
+        padding: 14px 18px;
+        text-align: center;
+        display: none;
+        margin-bottom: 14px;
+      }
+      #fail-msg.show {
+        display: block;
+      }
+      .fm-t {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: rgba(255, 80, 80, 0.8);
+        margin-bottom: 6px;
+      }
+      .fm-s {
+        font-family: "EB Garamond", serif;
+        font-size: 14px;
+        color: rgba(255, 180, 180, 0.65);
+        line-height: 1.7;
+      }
+      #mute-btn {
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.2);
+        cursor: pointer;
+        transition: color 0.3s;
+        pointer-events: all;
+        background: none;
+        border: none;
+      }
+      #mute-btn:hover {
+        color: rgba(0, 255, 136, 0.6);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cur"></div>
+    <div id="entry-flash"></div>
+    <canvas id="heart-canvas"></canvas>
+    <canvas id="vein-canvas"></canvas>
+    <div id="vig"></div>
+    <div id="beat-overlay"></div>
+
+    <div id="hud">
+      <div class="hl">G A Ï A</div>
+      <div class="hc">C Œ U R — S A N T É</div>
+      <div class="hr" id="score-disp">SCORE : 0</div>
+    </div>
+    <div id="heart-stats">
+      <div class="hs-block">
+        <div class="hs-lbl">BPM</div>
+        <div class="hs-val" id="bpm-val">72</div>
+        <div class="hs-sub">STABLE ✓</div>
+      </div>
+      <div class="hs-block">
+        <div class="hs-lbl">DÉBIT</div>
+        <div class="hs-val" id="flow-val">5.2</div>
+        <div class="hs-sub">L / MIN</div>
+      </div>
+    </div>
+    <div id="diag">
+      <div class="dg-t">DIAGNOSTIC CARDIAQUE</div>
+      <div class="dg-row">
+        <span class="dg-lb">Rythme</span><span class="dg-vl">SINUSAL ✓</span>
+      </div>
+      <div class="dg-row">
+        <span class="dg-lb">Artères</span><span class="dg-vl">DÉGAGÉES ✓</span>
+      </div>
+      <div class="dg-row">
+        <span class="dg-lb">Pression</span><span class="dg-vl">120/80 ✓</span>
+      </div>
+      <div class="dg-row">
+        <span class="dg-lb">Oxygène</span><span class="dg-vl">98% ✓</span>
+      </div>
+      <div class="dg-status">ÉTAT : TRÈS BONNE SANTÉ ✓</div>
+    </div>
+
+    <div id="vp">
+      <div id="vs"></div>
+      <div id="vbox">
+        <div id="vsr">
+          <span id="vnm">G A Ï A</span
+          ><span id="vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="vtx"></div>
+        <span id="twc"></span>
+      </div>
+    </div>
+    <button id="quiz-btn" onclick="openQuiz()">📋 &nbsp;PASSER LE QUIZ</button>
+
+    <div id="quiz-overlay">
+      <canvas id="part-canvas"></canvas>
+      <div id="quiz-timer-wrap">
+        <span id="qt-label">Q <span id="qt-qnum">1</span> / 5</span>
+        <div id="qt-bar-wrap"><div id="qt-bar"></div></div>
+        <span id="qt-num">20</span>
+        <span id="qt-score-disp" style="margin-left: 12px">0 pts</span>
+      </div>
+      <div id="quiz-card">
+        <div id="qnum">QUESTION 1 / 5</div>
+        <div id="qtxt"></div>
+        <div id="qopts"></div>
+        <div id="qfeedback">
+          <div id="qf-hdr">
+            <span id="qf-nm">G A Ï A</span
+            ><span id="qf-vbr"
+              ><span class="vb"></span><span class="vb"></span
+              ><span class="vb"></span><span class="vb"></span
+              ><span class="vb"></span><span class="vb"></span
+            ></span>
+          </div>
+          <div id="qf-txt"></div>
+          <div id="qf-pts"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="quiz-results">
+      <div class="qr-head">
+        <div class="qr-ic" id="qr-ic">🎯</div>
+        <div class="qr-t" id="qr-t" style="color: var(--g)">QUIZ TERMINÉ</div>
+        <div>
+          <span class="qr-s" id="qr-s">0</span
+          ><span class="qr-max"> / 100</span>
+        </div>
+        <div
+          class="qr-pct"
+          id="qr-pct"
+          style="color: rgba(0, 255, 136, 0.6)"
+        ></div>
+      </div>
+      <div id="fail-msg">
+        <div class="fm-t">⚠ SCORE INSUFFISANT — REFAIRE LE QUIZ</div>
+        <div class="fm-s">
+          Il faut obtenir au moins 65 points pour débloquer le Stage 2.<br />Révisez
+          les réponses de GAÏA et réessayez !
+        </div>
+      </div>
+      <div id="qr-voice">
+        <div id="qr-hdr">
+          <span id="qr-nm">G A Ï A</span
+          ><span id="qr-vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="qr-tx"></div>
+      </div>
+      <div id="stage-badge">
+        <div class="sb-t">STAGE 1 COMPLÉTÉ ✅</div>
+        <div class="sb-row">💚 BADGE DÉBLOQUÉ : "Guérisseur du Cœur"</div>
+        <div class="sb-row">🫁 STAGE 2 DÉBLOQUÉ : Poumons & Forêts</div>
+        <div class="sb-bonus" id="sb-bonus">+100 POINTS BONUS</div>
+      </div>
+      <div class="qr-btns">
+        <button class="qr-btn" id="qr-retry" onclick="retryQuiz()">
+          ↺ RÉESSAYER LE QUIZ
+        </button>
+        <button class="qr-btn" id="qr-hub" onclick="goHub()">
+          🏠 RETOUR AU HUB
+        </button>
+      </div>
+    </div>
+
+    <div id="curtain"></div>
+    <button id="mute-btn" onclick="toggleMute()">🔊 SON</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      "use strict";
+      // ══ STATE ══
+      let isMuted = false,
+        audioCtx = null;
+      let pName = "Gardien",
+        score = 0;
+      let bpm = 72,
+        globalT = 0,
+        beatPhase = 0;
+      try {
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+        score = parseInt(localStorage.getItem("gaiaScore") || "0");
+      } catch (e) {}
+      document.getElementById("score-disp").textContent = "SCORE : " + score;
+      const $cur = document.getElementById("cur");
+      document.addEventListener("mousemove", (e) => {
+        $cur.style.left = e.clientX + "px";
+        $cur.style.top = e.clientY + "px";
+      });
+
+      // ══ AUDIO ══
+      function initAudio() {
+        if (audioCtx) return;
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {}
+      }
+      function gm() {
+        if (!audioCtx) return null;
+        if (!window._M9) {
+          const c = audioCtx.createDynamicsCompressor();
+          c.threshold.value = -18;
+          c.knee.value = 8;
+          c.ratio.value = 3;
+          c.attack.value = 0.003;
+          c.release.value = 0.25;
+          c.connect(audioCtx.destination);
+          window._M9 = c;
+        }
+        return window._M9;
+      }
+      function rv(d = 3, dc = 2) {
+        if (!audioCtx) return null;
+        const sr = audioCtx.sampleRate,
+          l = sr * d,
+          b = audioCtx.createBuffer(2, l, sr);
+        for (let c = 0; c < 2; c++) {
+          const dd = b.getChannelData(c);
+          for (let i = 0; i < l; i++)
+            dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / l, dc);
+        }
+        const cv = audioCtx.createConvolver();
+        cv.buffer = b;
+        return cv;
+      }
+      function playAmbient() {
+        if (!audioCtx || isMuted) return;
+        const m = gm(),
+          r = rv(5, 3);
+        if (!m || !r) return;
+        r.connect(m);
+        [28, 42, 28.06].forEach((f, i) => {
+          const o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          o.type = "sine";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(
+            [0.015, 0.009, 0.012][i],
+            audioCtx.currentTime + 4 + i * 0.4
+          );
+          const fl = audioCtx.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 130;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(r);
+          g.connect(m);
+          o.start();
+        });
+      }
+      let _hbIv = null;
+      function startHeartbeat(b) {
+        if (_hbIv) clearInterval(_hbIv);
+        function beat() {
+          if (!audioCtx || isMuted) return;
+          const m = gm(),
+            r = rv(1.5, 2);
+          if (!m || !r) return;
+          r.connect(m);
+          const o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          o.type = "sine";
+          o.frequency.setValueAtTime(80, audioCtx.currentTime);
+          o.frequency.exponentialRampToValueAtTime(
+            28,
+            audioCtx.currentTime + 0.42
+          );
+          g.gain.setValueAtTime(0.18, audioCtx.currentTime);
+          g.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 0.45
+          );
+          o.connect(g);
+          g.connect(r);
+          g.connect(m);
+          o.start();
+          o.stop(audioCtx.currentTime + 0.48);
+          setTimeout(() => {
+            if (!audioCtx || isMuted) return;
+            const o2 = audioCtx.createOscillator(),
+              g2 = audioCtx.createGain();
+            o2.type = "sine";
+            o2.frequency.setValueAtTime(58, audioCtx.currentTime);
+            o2.frequency.exponentialRampToValueAtTime(
+              22,
+              audioCtx.currentTime + 0.28
+            );
+            g2.gain.setValueAtTime(0.11, audioCtx.currentTime);
+            g2.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 0.3
+            );
+            o2.connect(g2);
+            g2.connect(m);
+            o2.start();
+            o2.stop(audioCtx.currentTime + 0.32);
+          }, (60000 / b) * 0.38);
+        }
+        beat();
+        _hbIv = setInterval(beat, 60000 / b);
+      }
+      function playChime() {
+        if (!audioCtx || isMuted) return;
+        const m = gm(),
+          r = rv(2, 2);
+        if (!m || !r) return;
+        r.connect(m);
+        [523, 659, 784, 1046].forEach((f, i) =>
+          setTimeout(() => {
+            if (!audioCtx || isMuted) return;
+            const o = audioCtx.createOscillator(),
+              g = audioCtx.createGain();
+            o.type = "triangle";
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 1.4
+            );
+            o.connect(g);
+            g.connect(r);
+            o.start();
+            o.stop(audioCtx.currentTime + 1.5);
+          }, i * 100)
+        );
+      }
+      function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("mute-btn").textContent = isMuted
+          ? "🔇 MUET"
+          : "🔊 SON";
+        if (audioCtx) {
+          isMuted ? audioCtx.suspend() : audioCtx.resume();
+        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      // ══ VOIX — FIX COMPLET ══
+      // Problème original : audioCtx non initialisé lors de l'appel initial
+      // Solution : initAudio() forcé avant chaque speak + fallback typewriter garanti
+      const syn = window.speechSynthesis;
+      let _voicesLoaded = false;
+      function ensureVoices(cb) {
+        if (!syn) {
+          cb();
+          return;
+        }
+        const vs = syn.getVoices();
+        if (vs.length > 0) {
+          _voicesLoaded = true;
+          cb();
+          return;
+        }
+        // Attendre que les voix se chargent (nécessaire sur Chrome)
+        syn.addEventListener(
+          "voiceschanged",
+          () => {
+            _voicesLoaded = true;
+            cb();
+          },
+          { once: true }
+        );
+        // Fallback si voiceschanged ne fire pas
+        setTimeout(() => {
+          if (!_voicesLoaded) {
+            _voicesLoaded = true;
+            cb();
+          }
+        }, 1200);
+      }
+      function gv() {
+        const vs = syn ? syn.getVoices() : [];
+        return (
+          vs.find(
+            (x) =>
+              x.lang === "fr-FR" &&
+              /Marie|Amelie|Hortense|Lea|Julie/i.test(x.name)
+          ) ||
+          vs.find((x) => x.lang === "fr-FR") ||
+          vs.find((x) => x.lang.startsWith("fr")) ||
+          vs[0] ||
+          null
+        );
+      }
+      function speak(txt, eTxt, eVbr, eCur, cb) {
+        // TOUJOURS initAudio avant de parler
+        initAudio();
+        if (eTxt) eTxt.textContent = "";
+        if (eCur) eCur.style.display = "inline-block";
+        let d = 0,
+          t = 0,
+          vd = false,
+          done = false,
+          iv = null;
+        function fin() {
+          if (done) return;
+          done = true;
+          if (eCur) eCur.style.display = "none";
+          if (cb) setTimeout(cb, 380);
+        }
+        function tick() {
+          if (iv) clearInterval(iv);
+          iv = setInterval(() => {
+            if (d < t && d < txt.length) {
+              if (eTxt) {
+                eTxt.textContent = txt.slice(0, ++d);
+                eTxt.scrollTop = eTxt.scrollHeight;
+              } else d++;
+            } else if (d >= txt.length && vd) {
+              clearInterval(iv);
+              fin();
+            }
+          }, 22);
+        }
+        // Démarrer le typewriter immédiatement pour le texte visible
+        // La voix arrive en parallèle
+        function doSpeak() {
+          if (syn && !isMuted) {
+            syn.cancel();
+            const u = new SpeechSynthesisUtterance(txt);
+            u.lang = "fr-FR";
+            u.rate = 0.88;
+            u.pitch = 0.82;
+            u.volume = 1;
+            const v = gv();
+            if (v) u.voice = v;
+            u.onstart = () => {
+              if (eVbr) eVbr.classList.add("on");
+            };
+            u.onboundary = (e) => {
+              if (e.name === "word") {
+                t = Math.min(e.charIndex + e.charLength, txt.length);
+                tick();
+              }
+            };
+            u.onend = u.onerror = () => {
+              if (eVbr) eVbr.classList.remove("on");
+              vd = true;
+              t = txt.length;
+              tick();
+            };
+            syn.speak(u);
+            // Fallback : si la voix ne démarre pas dans 2s, typewriter full vitesse
+            setTimeout(() => {
+              if (d === 0 && !done) {
+                vd = true;
+                t = txt.length;
+                tick();
+              }
+            }, 2000);
+          } else {
+            // Pas de synthèse vocale : typewriter pur
+            vd = true;
+            t = txt.length;
+            tick();
+          }
+        }
+        // Charger les voix d'abord, puis parler
+        ensureVoices(doSpeak);
+      }
+      function showVoice(txt, cb) {
+        document.getElementById("vs").classList.add("show");
+        document.getElementById("vbox").classList.add("show");
+        speak(
+          txt,
+          document.getElementById("vtx"),
+          document.getElementById("vbr"),
+          document.getElementById("twc"),
+          cb
+        );
+      }
+      function hideVoice() {
+        const vb = document.getElementById("vbox");
+        vb.style.transition = "opacity .7s";
+        vb.style.opacity = "0";
+        setTimeout(() => {
+          vb.classList.remove("show");
+          vb.style.opacity = "";
+          vb.style.transition = "";
+          document.getElementById("vs").classList.remove("show");
+        }, 700);
+      }
+
+      // ══ THREE.JS — CŒUR SAIN ══
+      const HC = document.getElementById("heart-canvas");
+      HC.width = innerWidth;
+      HC.height = innerHeight;
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x001804, 0.045);
+      const camera = new THREE.PerspectiveCamera(
+        55,
+        innerWidth / innerHeight,
+        0.1,
+        200
+      );
+      camera.position.set(0, 0, 18);
+      const renderer = new THREE.WebGLRenderer({
+        canvas: HC,
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.setClearColor(0x001004, 0.95);
+      const clock = new THREE.Clock();
+      scene.add(new THREE.AmbientLight(0x003310, 1.4));
+      const hL = new THREE.PointLight(0x00ff88, 4.5, 22);
+      hL.position.set(0, 0, 5);
+      scene.add(hL);
+      const hL2 = new THREE.PointLight(0x00cc66, 2.8, 16);
+      hL2.position.set(4, 2, 3);
+      scene.add(hL2);
+      const hL3 = new THREE.PointLight(0x44ffaa, 2.2, 14);
+      hL3.position.set(-4, -2, 4);
+      scene.add(hL3);
+      scene.add(new THREE.HemisphereLight(0x00ff44, 0x001100, 0.55));
+      const heartMat = new THREE.ShaderMaterial({
+        uniforms: { uT: { value: 0 }, uBeat: { value: 0 } },
+        vertexShader: `uniform float uT,uBeat;varying vec3 vN,vP,vWP;varying vec2 vUv;void main(){vUv=uv;vec3 p=position;float topY=p.y/4.5;float topIndent=smoothstep(.5,1.,topY)*smoothstep(.55,.0,abs(p.x/4.5))*2.4;p.y-=topIndent;float lv=smoothstep(.0,1.,p.x/4.5)*smoothstep(.6,-.6,p.y/4.5)*.55;p+=normalize(p)*lv;float botY=clamp(-p.y/4.5,0.,1.);p.x*=1.-pow(botY,.7)*.38;p.z*=1.-pow(botY,.7)*.38;p.x+=smoothstep(-1.,1.,p.x/4.5)*.5;float beat=uBeat*(.22+sin(uT*1.5)*.04);p+=normalize(p)*(beat+sin(p.y*2.4+uT*2.6)*.025);float fibre=sin(p.x*7.+uT*.8)*sin(p.y*5.5+uT*1.)*sin(p.z*6.5+uT*.9)*.03;p+=normalize(p)*fibre;vN=normalize(normalMatrix*normal);vP=p;vWP=(modelMatrix*vec4(p,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+        fragmentShader: `uniform float uT,uBeat;varying vec3 vN,vP,vWP;varying vec2 vUv;void main(){vec3 vd=normalize(cameraPosition-vWP);float NdotV=dot(vN,vd);float fr=pow(1.-abs(NdotV),.55);float depth=clamp(NdotV,.0,1.);vec3 baseCol=mix(vec3(.62,.08,.12),vec3(.88,.18,.22),depth);float fibres=sin(vUv.x*38.+uT*.55)*sin(vUv.y*30.+uT*.4)*.08+.92;float fibres2=cos(vUv.x*24.-uT*.35)*cos(vUv.y*20.+uT*.28)*.05+.95;baseCol*=fibres*fibres2;float groove=smoothstep(.85,.93,abs(sin(vUv.x*3.14159)))*smoothstep(.0,.35,vUv.y);baseCol*=1.-groove*.38;vec2 uvC=vUv*2.-1.;float ladV=smoothstep(.035,0.,abs(uvC.x*.3+uvC.y*.8+.15-.5*uvC.y));float circumV=smoothstep(.025,0.,abs(cos(atan(uvC.y,uvC.x)*2.)*.5+.5-.38));float veins=max(ladV,circumV);baseCol=mix(baseCol,vec3(.1,.75,.35),veins*1.2);vec3 beatGlow=vec3(.04,.22,.08)*uBeat;vec3 fresnel=vec3(.06,.35,.15)*fr*.7;vec3 lD=normalize(vec3(1.,1.5,2.5));float spec=pow(max(0.,dot(reflect(-lD,vN),vd)),28.)*.35;vec3 finalCol=baseCol*(1.+uBeat*.18)+beatGlow+fresnel+vec3(spec*.6,spec*.1,spec*.12);finalCol+=vec3(.02,.12,.04)*fr*(.8+sin(uT*2.2)*.2);gl_FragColor=vec4(clamp(finalCol,0.,1.),1.);}`,
+      });
+      const heartMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(4.5, 72, 72),
+        heartMat
+      );
+      const haloMat = new THREE.ShaderMaterial({
+        uniforms: { uT: { value: 0 }, uBeat: { value: 0 } },
+        side: THREE.BackSide,
+        vertexShader: `varying vec3 vN,vP;void main(){vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+        fragmentShader: `uniform float uT,uBeat;varying vec3 vN,vP;void main(){vec3 vd=normalize(cameraPosition-vP);float fr=pow(1.-dot(vN,vd),3.8);float p=sin(uT*2.2)*.15+.85;float beat=uBeat*.35;gl_FragColor=vec4(.06,.55+beat*.3,.18+beat*.12,fr*(.55+beat*.3)*p);}`,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      scene.add(new THREE.Mesh(new THREE.SphereGeometry(5.8, 32, 32), haloMat));
+      const ARTERIES = [
+        { start: [0, 4, 0], end: [-6, 8, 2], r: 0.32 },
+        { start: [0, 4, 0], end: [6, 7, 2], r: 0.28 },
+        { start: [0, -3, 0], end: [-5, -7, 3], r: 0.38 },
+        { start: [0, -3, 0], end: [5, -7, 2], r: 0.35 },
+        { start: [3, 2, 0], end: [8, 1, 3], r: 0.26 },
+        { start: [-3, 2, 0], end: [-8, 0, 3], r: 0.26 },
+        { start: [0, 0, 2], end: [0, 9, 4], r: 0.42 },
+        { start: [0, 0, -2], end: [0, -9, -3], r: 0.38 },
+        { start: [2, -1, 2], end: [7, 3, 5], r: 0.22 },
+      ];
+      const artGroups = [];
+      const heartGroup = new THREE.Group();
+      scene.add(heartGroup);
+      heartGroup.add(heartMesh);
+      const gS = [
+        0x00cc55, 0x00dd66, 0x00bb44, 0x22ee77, 0x11dd55, 0x00cc44, 0x33ff88,
+        0x00aa33, 0x44ddaa,
+      ];
+      ARTERIES.forEach((art, i) => {
+        const grp = new THREE.Group();
+        const sP = new THREE.Vector3(...art.start),
+          eP = new THREE.Vector3(...art.end);
+        const pts = [];
+        for (let s = 0; s <= 28; s++) {
+          const tt = s / 28;
+          const pos = sP.clone().lerp(eP, tt);
+          pos.x += Math.sin(tt * Math.PI * 1.8 + i * 0.9) * 0.5;
+          pos.y += Math.cos(tt * Math.PI * 1.2 + i * 0.7) * 0.4;
+          pts.push(pos);
+        }
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const mat = new THREE.MeshPhongMaterial({
+          color: gS[i % gS.length],
+          emissive: new THREE.Color(0, 0.15, 0.04),
+          shininess: 55,
+          transparent: true,
+          opacity: 0.9,
+        });
+        grp.add(
+          new THREE.Mesh(
+            new THREE.TubeGeometry(curve, 36, art.r, 10, false),
+            mat
+          )
+        );
+        const parts = [];
+        for (let p = 0; p < 18; p++) {
+          const pm = new THREE.MeshBasicMaterial({
+            color: 0x44ffbb,
+            transparent: true,
+            opacity: 0.88,
+          });
+          const part = new THREE.Mesh(new THREE.SphereGeometry(0.1, 5, 5), pm);
+          grp.add(part);
+          parts.push({
+            mesh: part,
+            t: p / 18,
+            spd: 0.009 + Math.random() * 0.005,
+            curve,
+          });
+        }
+        heartGroup.add(grp);
+        artGroups.push({ grp, curve, parts, mat });
+      });
+      scene.add(
+        new THREE.Mesh(
+          new THREE.SphereGeometry(80, 16, 16),
+          new THREE.MeshBasicMaterial({ color: 0x001804, side: THREE.BackSide })
+        )
+      );
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const dt = Math.min(clock.getDelta(), 0.05);
+        globalT += dt;
+        const t = globalT;
+        const bI = 60 / bpm;
+        beatPhase = (beatPhase + dt) % bI;
+        const beat = Math.pow(Math.max(0, 1 - (beatPhase / bI) * 5), 0.5);
+        heartMat.uniforms.uT.value = t;
+        heartMat.uniforms.uBeat.value = beat;
+        haloMat.uniforms.uT.value = t;
+        haloMat.uniforms.uBeat.value = beat;
+        heartMesh.rotation.y = t * 0.12;
+        heartMesh.rotation.x = Math.sin(t * 0.18) * 0.04;
+        hL.intensity = 3.8 + beat * 4.2;
+        hL.color.setRGB(
+          0.02 + beat * 0.02,
+          0.95 + beat * 0.05,
+          0.3 + beat * 0.1
+        );
+        hL2.intensity = 2.2 + beat * 1.8;
+        hL3.intensity = 1.8 + beat * 1.4;
+        artGroups.forEach((a) => {
+          a.parts.forEach((p) => {
+            p.t = (p.t + p.spd) % 1;
+            const pos = p.curve.getPointAt(p.t);
+            p.mesh.position.copy(pos);
+            p.mesh.material.opacity = 0.6 + Math.sin(t * 3 + p.t * 10) * 0.28;
+          });
+        });
+        heartGroup.rotation.y = Math.sin(t * 0.08) * 0.12 + t * 0.025;
+        const bo = document.getElementById("beat-overlay");
+        bo.style.background = `radial-gradient(ellipse at 50%50%,rgba(0,${Math.floor(
+          180 + beat * 75
+        )},${Math.floor(60 + beat * 30)},${beat * 0.12})0%,transparent 56%)`;
+        bo.style.opacity = beat > 0.12 ? "1" : "0";
+        renderer.render(scene, camera);
+      }
+
+      // ══════════════════════════════════════════════════════════
+      // TRANSITION VEINE — Style scène 3→4, RESTE DANS LA MÊME PAGE
+      // S'active quand on clique "RETOUR AU HUB"
+      // ══════════════════════════════════════════════════════════
+      const VC = document.getElementById("vein-canvas");
+      function startVeinTransition(onComplete) {
+        VC.width = innerWidth;
+        VC.height = innerHeight;
+        VC.style.display = "block";
+        VC.style.zIndex = "550";
+        const ctx = VC.getContext("2d");
+        const W = VC.width,
+          H = VC.height,
+          cx = W / 2,
+          cy = H / 2;
+        // Sons de transition
+        if (audioCtx && !isMuted) {
+          const m = gm();
+          if (m) {
+            // Swoosh grave vert
+            [40, 60, 80].forEach((f, i) => {
+              const o = audioCtx.createOscillator(),
+                g = audioCtx.createGain();
+              o.type = "sawtooth";
+              o.frequency.setValueAtTime(f, audioCtx.currentTime);
+              o.frequency.exponentialRampToValueAtTime(
+                f * 3,
+                audioCtx.currentTime + 1.8
+              );
+              g.gain.setValueAtTime(0, audioCtx.currentTime);
+              g.gain.linearRampToValueAtTime(
+                0.02 - i * 0.004,
+                audioCtx.currentTime + 0.4
+              );
+              g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
+              const fl = audioCtx.createBiquadFilter();
+              fl.type = "lowpass";
+              fl.frequency.value = 300;
+              o.connect(fl);
+              fl.connect(g);
+              g.connect(m);
+              o.start();
+              o.stop(audioCtx.currentTime + 2.1);
+            });
+            // Battements cardiaques accélérés
+            let hbT = 0;
+            function hbPulse() {
+              if (!audioCtx || isMuted) return;
+              const o = audioCtx.createOscillator(),
+                g = audioCtx.createGain();
+              o.type = "sine";
+              o.frequency.setValueAtTime(75, audioCtx.currentTime);
+              o.frequency.exponentialRampToValueAtTime(
+                25,
+                audioCtx.currentTime + 0.35
+              );
+              g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+              g.gain.exponentialRampToValueAtTime(
+                0.001,
+                audioCtx.currentTime + 0.38
+              );
+              o.connect(g);
+              g.connect(m);
+              o.start();
+              o.stop(audioCtx.currentTime + 0.4);
+            }
+            hbPulse();
+            setTimeout(hbPulse, 380);
+            setTimeout(hbPulse, 700);
+            setTimeout(hbPulse, 960);
+            setTimeout(hbPulse, 1180);
+          }
+        }
+        // Géométrie veines
+        const VEINS = Array.from({ length: 32 }, (_, i) => ({
+          angle: (i / 32) * Math.PI * 2 + (Math.random() - 0.5) * 0.1,
+          phase: Math.random() * Math.PI * 2,
+          thick: Math.random() * 7 + 1.5,
+          wob: Math.random() * 0.04 + 0.005,
+          isMain: Math.random() < 0.4,
+        }));
+        const PARTS = Array.from({ length: 220 }, () => ({
+          angle: Math.random() * Math.PI * 2,
+          r: Math.random() * 0.88 + 0.05,
+          z: Math.random(),
+          spd: Math.random() * 0.028 + 0.008,
+          sz: Math.random() * 5 + 1.5,
+          wA: Math.random() * 0.06,
+          wP: Math.random() * Math.PI * 2,
+        }));
+        // Phases : F0=flash, F1=aspiration, F2=tunnel vert, F3=fade out
+        const F0 = 15,
+          F1 = 45,
+          F2 = 200,
+          F3 = 50,
+          FTOT = F0 + F1 + F2 + F3;
+        let frame = 0;
+        function draw() {
+          frame++;
+          const p0 = Math.min(frame / F0, 1);
+          const p1 = frame > F0 ? Math.min((frame - F0) / F1, 1) : 0;
+          const p2 = frame > F0 + F1 ? Math.min((frame - F0 - F1) / F2, 1) : 0;
+          const p3 =
+            frame > F0 + F1 + F2 ? Math.min((frame - F0 - F1 - F2) / F3, 1) : 0;
+          const bInt = Math.max(6, Math.floor(30 * (1 - p2 * 0.7)));
+          const bPh = (frame % bInt) / bInt;
+          const isBeat = bPh < 0.12;
+          // ── FLASH INITIAL vert ──
+          if (p0 < 1) {
+            const fa = p0 < 0.4 ? p0 / 0.4 : 1 - (p0 - 0.4) / 0.6;
+            ctx.fillStyle = `rgba(0,${Math.floor(fa * 180)},${Math.floor(
+              fa * 80
+            )},${fa * 0.9})`;
+            ctx.fillRect(0, 0, W, H);
+            requestAnimationFrame(draw);
+            return;
+          }
+          // ── ASPIRATION ──
+          if (p1 < 1) {
+            ctx.fillStyle = `rgba(0,0,0,${0.18 + p1 * 0.12})`;
+            ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 70 + Math.floor(p1 * 50); i++) {
+              const a =
+                (i / (70 + Math.floor(p1 * 50))) * Math.PI * 2 +
+                p1 * Math.PI * 0.6;
+              const x1 = cx + Math.cos(a) * Math.max(W, H) * 0.72,
+                y1 = cy + Math.sin(a) * Math.max(W, H) * 0.72;
+              const x2 =
+                  cx + Math.cos(a) * Math.max(8, Math.pow(1 - p1, 0.7) * 100),
+                y2 =
+                  cy + Math.sin(a) * Math.max(8, Math.pow(1 - p1, 0.7) * 100);
+              const lg = ctx.createLinearGradient(x1, y1, x2, y2);
+              const int = p1 * (Math.sin(frame * 0.08 + i * 0.15) * 0.2 + 0.8);
+              lg.addColorStop(0, "rgba(0,80,20,0)");
+              lg.addColorStop(
+                0.5,
+                `rgba(0,${Math.floor(140 + int * 60)},${Math.floor(int * 30)},${
+                  int * 0.2
+                })`
+              );
+              lg.addColorStop(
+                1,
+                `rgba(0,${Math.floor(200 + int * 55)},${Math.floor(int * 50)},${
+                  int * 0.6
+                })`
+              );
+              ctx.strokeStyle = lg;
+              ctx.lineWidth = 0.8 + p1 * 1.5;
+              ctx.beginPath();
+              ctx.moveTo(x1, y1);
+              ctx.lineTo(x2, y2);
+              ctx.stroke();
+            }
+            const vg = ctx.createRadialGradient(
+              cx,
+              cy,
+              0,
+              cx,
+              cy,
+              Math.max(W, H) * 0.75
+            );
+            vg.addColorStop(0, "rgba(0,0,0,0)");
+            vg.addColorStop(1, `rgba(0,0,0,${0.65 + p1 * 0.28})`);
+            ctx.fillStyle = vg;
+            ctx.fillRect(0, 0, W, H);
+            requestAnimationFrame(draw);
+            return;
+          }
+          // ── TUNNEL VEINE VERTE ──
+          ctx.fillStyle = `rgba(0,0,0,${0.1 + p2 * 0.055})`;
+          ctx.fillRect(0, 0, W, H);
+          const amb = ctx.createRadialGradient(
+            cx,
+            cy,
+            0,
+            cx,
+            cy,
+            Math.max(W, H) * 0.62
+          );
+          amb.addColorStop(
+            0,
+            `rgba(0,${80 + Math.floor(p2 * 100)},${20 + Math.floor(p2 * 40)},${
+              0.6 * p2
+            })`
+          );
+          amb.addColorStop(
+            0.5,
+            `rgba(0,${30 + Math.floor(p2 * 30)},8,${0.4 * p2})`
+          );
+          amb.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = amb;
+          ctx.fillRect(0, 0, W, H);
+          const DEPTH = 24;
+          for (let z = DEPTH; z > 0; z--) {
+            const depth = z / DEPTH;
+            const bb = isBeat ? 0.14 * (1 - bPh / 0.12) : 0;
+            const bR =
+              Math.min(W, H) * 0.47 * (1 / depth + p2 * 0.45) * (1 + bb * 0.5);
+            const alpha = depth * 0.75 * (1 - depth * 0.2);
+            const vP =
+              Math.sin(frame * 0.09 + z * 0.26 + depth * Math.PI) * 0.14 + 0.86;
+            const g2 = Math.floor(
+              100 + depth * 120 + Math.sin(frame * 0.065 + z) * depth * 15
+            );
+            ctx.save();
+            const wX = 1 + Math.sin(frame * 0.035 + z * 0.66 + 1.1) * 0.05,
+              wY = 1 + Math.cos(frame * 0.028 + z * 0.51 + 2.2) * 0.035;
+            ctx.translate(cx, cy);
+            ctx.scale(wX, wY);
+            ctx.translate(-cx, -cy);
+            ctx.beginPath();
+            ctx.arc(cx, cy, bR, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(0,${g2},${Math.floor(g2 * 0.35)},${
+              alpha * vP * 0.62
+            })`;
+            ctx.lineWidth = 1.5 + depth * 3.2;
+            ctx.stroke();
+            if (z % 3 === 0) {
+              ctx.beginPath();
+              ctx.arc(cx, cy, bR * 0.96, 0, Math.PI * 2);
+              ctx.strokeStyle = `rgba(0,255,136,${alpha * 0.28})`;
+              ctx.lineWidth = 0.8;
+              ctx.stroke();
+            }
+            ctx.restore();
+            VEINS.forEach((v) => {
+              const wA = v.angle + Math.sin(frame * v.wob + v.phase) * 0.12;
+              const bx = cx + Math.cos(wA) * bR,
+                by = cy + Math.sin(wA) * bR;
+              const nD = Math.max(depth - 0.05, 0.01);
+              const nR =
+                Math.min(W, H) * 0.47 * (1 / nD + p2 * 0.45) * (1 + bb * 0.5);
+              const nx = cx + Math.cos(wA) * nR,
+                ny = cy + Math.sin(wA) * nR;
+              const vA =
+                alpha * (0.4 + Math.sin(frame * 0.1 + v.phase + depth) * 0.14);
+              const vg2 = v.isMain
+                ? Math.floor(160 + vP * 80)
+                : Math.floor(110 + vP * 70);
+              ctx.strokeStyle = `rgba(0,${vg2},${Math.floor(vg2 * 0.3)},${vA})`;
+              ctx.lineWidth = v.thick * depth * vP * 0.9 * (1 + bb * 1.3);
+              ctx.beginPath();
+              ctx.moveTo(bx, by);
+              ctx.lineTo(nx, ny);
+              ctx.stroke();
+              if (v.isMain) {
+                ctx.strokeStyle = `rgba(0,255,136,${vA * 0.5})`;
+                ctx.lineWidth = Math.max(0.5, v.thick * 0.28 * depth);
+                ctx.beginPath();
+                ctx.moveTo(bx, by);
+                ctx.lineTo(nx, ny);
+                ctx.stroke();
+              }
+            });
+          }
+          // Particules vertes
+          PARTS.forEach((p) => {
+            p.z -= p.spd * (1 + p2 * 1.2);
+            if (p.z < 0) {
+              p.z = 1;
+              p.angle = Math.random() * Math.PI * 2;
+              p.r = Math.random() * 0.88 + 0.05;
+            }
+            p.angle += Math.sin(frame * 0.035 + p.wP) * p.wA;
+            const d2 = 1 - p.z;
+            const tR = Math.min(W, H) * 0.47 * d2 * (1 + p2 * 0.45);
+            const ex = cx + Math.cos(p.angle) * (p.r * tR),
+              ey = cy + Math.sin(p.angle) * (p.r * tR);
+            const esz = p.sz * (1 + d2 * 3.2) * (1 + p2 * 0.65);
+            const eA = Math.min(0.94, d2 * 1.4);
+            const tx2 = cx + Math.cos(p.angle) * (p.r * tR * (1 + p.spd * 12)),
+              ty2 = cy + Math.sin(p.angle) * (p.r * tR * (1 + p.spd * 12));
+            const tg = ctx.createLinearGradient(ex, ey, tx2, ty2);
+            tg.addColorStop(0, `rgba(0,255,136,${eA * 0.85})`);
+            tg.addColorStop(1, "rgba(0,180,60,0)");
+            ctx.strokeStyle = tg;
+            ctx.lineWidth = esz * 0.5;
+            ctx.beginPath();
+            ctx.moveTo(ex, ey);
+            ctx.lineTo(tx2, ty2);
+            ctx.stroke();
+            const eg = ctx.createRadialGradient(ex, ey, 0, ex, ey, esz * 2);
+            eg.addColorStop(0, `rgba(180,255,200,${eA * 0.75})`);
+            eg.addColorStop(1, "rgba(0,200,80,0)");
+            ctx.fillStyle = eg;
+            ctx.beginPath();
+            ctx.arc(ex, ey, esz * 2, 0, Math.PI * 2);
+            ctx.fill();
+          });
+          // Beat overlay vert
+          if (isBeat) {
+            const bA = ((0.12 - bPh) / 0.12) * (0.4 + p2 * 0.5);
+            const bG = ctx.createRadialGradient(
+              cx,
+              cy,
+              0,
+              cx,
+              cy,
+              Math.min(W, H) * (0.05 + bPh * 0.32) * (1 + p2)
+            );
+            bG.addColorStop(
+              0,
+              `rgba(0,${180 + Math.floor(p2 * 60)},${
+                50 + Math.floor(p2 * 30)
+              },${bA * 0.65})`
+            );
+            bG.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = bG;
+            ctx.beginPath();
+            ctx.arc(
+              cx,
+              cy,
+              Math.min(W, H) * (0.38 + bPh * 0.3) * (1 + p2),
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+            if (p2 > 0.15) {
+              const shk = p2 * 5 + 1.2;
+              VC.style.transform = `translate(${
+                (Math.random() - 0.5) * shk
+              }px,${(Math.random() - 0.5) * shk}px)`;
+              setTimeout(() => (VC.style.transform = ""), 60);
+            }
+          }
+          // Vignette
+          const vg3 = ctx.createRadialGradient(
+            cx,
+            cy,
+            Math.min(W, H) * 0.07,
+            cx,
+            cy,
+            Math.max(W, H) * 0.68
+          );
+          vg3.addColorStop(0, "rgba(0,0,0,0)");
+          vg3.addColorStop(1, `rgba(0,0,0,${0.65 + p2 * 0.25})`);
+          ctx.fillStyle = vg3;
+          ctx.fillRect(0, 0, W, H);
+          // ── FADE OUT + fondu vers noir ──
+          if (p3 > 0) {
+            if (p3 < 0.5) {
+              const f = p3 / 0.5;
+              ctx.fillStyle = `rgba(0,${Math.floor((1 - f) * 60)},0,${
+                f * 0.85
+              })`;
+              ctx.fillRect(0, 0, W, H);
+            } else {
+              ctx.fillStyle = `rgba(0,0,0,${(p3 - 0.5) / 0.5})`;
+              ctx.fillRect(0, 0, W, H);
+            }
+            if (p3 > 0.4 && !VC.dataset.fading) {
+              VC.dataset.fading = "1";
+              const cu = document.getElementById("curtain");
+              cu.style.transition = "opacity 1.6s ease";
+              cu.classList.remove("gone");
+              cu.style.opacity = "1";
+            }
+          }
+          if (frame < FTOT) {
+            requestAnimationFrame(draw);
+          } else {
+            setTimeout(onComplete, 500);
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+
+      // ══ QUIZ DATA ══
+      const QUESTIONS = [
+        {
+          q: "En 2025, quel pourcentage d'électricité mondiale provient des énergies renouvelables ?",
+          opts: ["A) 18%", "B) 25%", "C) 30%", "D) 40%"],
+          correct: 2,
+          goodFb:
+            "Exact. 30% en 2025.\nContre seulement 20% en 2015.\nOn progresse... mais trop lentement.\nL objectif 2030 est de 60%.\nIl faut encore doubler le rythme.",
+          badFb:
+            "La bonne reponse est C : 30%.\nC est beaucoup... mais pas assez.\nL objectif 2030 est d atteindre 60%.\nChaque annee perdue compte.",
+        },
+        {
+          q: "Quelle énergie renouvelable crée le PLUS d'emplois par dollar investi ?",
+          opts: ["A) Éolien", "B) Solaire", "C) Hydraulique", "D) Nucléaire"],
+          correct: 1,
+          goodFb:
+            "Oui. Le solaire cree 11 millions d emplois par trillion investi.\nContre seulement 6 millions pour les fossiles.\nCe n est pas seulement ecologique...\nC est profondement ECONOMIQUE.",
+          badFb:
+            "C est le solaire.\nIl cree 11 millions d emplois par trillion investi.\nContre 6 millions pour le charbon et le petrole.\nL argument economique est en faveur du vert.",
+        },
+        {
+          q: "Combien de personnes meurent chaque année à cause de la pollution de l'air liée aux fossiles ?",
+          opts: [
+            "A) 1 million",
+            "B) 3 millions",
+            "C) 7 millions",
+            "D) 10 millions",
+          ],
+          correct: 2,
+          goodFb:
+            "Malheureusement... oui. 7 millions.\nChaque annee. En silence.\nC est une pandemie invisible.\nPlus que le SIDA, le paludisme et la tuberculose... reunis.\nRetenez ce chiffre. Il devrait changer tout.",
+          badFb:
+            "Sept millions... par an.\nA cause de l air que je ne peux plus purifier.\nAsthme, cancers, maladies cardiaques.\nC est insoutenable. Et entierement evitable.",
+        },
+        {
+          q: 'Vrai ou Faux :\n"L\'énergie solaire peut fonctionner la nuit grâce aux batteries de stockage."',
+          opts: ["A) VRAI", "B) FAUX", "", ""],
+          correct: 0,
+          goodFb:
+            "Parfaitement vrai.\nBatteries domestiques, Power Walls, centrales a sel fondu...\nL energie du jour est stockee pour la nuit.\nLe probleme du solaire... est techniquement resolu.\nC est une technologie MATURE. Disponible. Maintenant.",
+          badFb:
+            "C est vrai.\nLes batteries de stockage permettent au solaire de fonctionner 24h sur 24.\nLe probleme de l intermittence est resolu.\nIl ne manque plus que la volonte politique.",
+        },
+        {
+          q: "Si le monde atteignait 100% d'énergies renouvelables en 2050, quelle serait la hausse de température globale en 2100 ?",
+          opts: ["A) +0.5°C", "B) +1.5°C", "C) +2.5°C", "D) +3.5°C"],
+          correct: 1,
+          goodFb: `EXACTEMENT. Plus 1.5 degres.\nL objectif de l Accord de Paris.\nDifficile... mais POSSIBLE.\nVous commencez a comprendre mon corps.\nJe suis fiere de vous, ${pName}.`,
+          badFb:
+            "La bonne reponse est B : plus 1.5 degres.\nC est l objectif de l Accord de Paris.\nAvec 100% renouvelable en 2050... c est atteignable.\nMais chaque annee d inaction nous en eloigne.",
+        },
+      ];
+
+      // ══ QUIZ ENGINE ══
+      let curQ = 0,
+        quizScore = 0,
+        timerIv = null,
+        timeLeft = 20,
+        answered = false;
+      const PC = document.getElementById("part-canvas");
+      PC.width = innerWidth;
+      PC.height = innerHeight;
+      const PX = PC.getContext("2d");
+      const particles = [];
+      let pfId;
+      function ploop() {
+        pfId = requestAnimationFrame(ploop);
+        PX.clearRect(0, 0, PC.width, PC.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.18;
+          p.life -= 0.022;
+          if (p.life <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          PX.beginPath();
+          PX.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+          PX.fillStyle = p.col.replace(",1)", "," + p.life + ")");
+          PX.fill();
+        }
+      }
+      ploop();
+      function spawnCorrectParts() {
+        for (let i = 0; i < 80; i++) {
+          const ang = Math.random() * Math.PI * 2,
+            spd = 3 + Math.random() * 10;
+          particles.push({
+            x: innerWidth / 2,
+            y: innerHeight / 2,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd - 4,
+            r: 3 + Math.random() * 4,
+            life: 1,
+            col: `rgba(0,${Math.floor(180 + Math.random() * 75)},${Math.floor(
+              80 + Math.random() * 55
+            )},1)`,
+          });
+        }
+      }
+
+      function openQuiz() {
+        document.getElementById("quiz-btn").classList.remove("show");
+        hideVoice();
+        curQ = 0;
+        quizScore = 0;
+        answered = false;
+        document.getElementById("quiz-overlay").classList.add("show");
+        setTimeout(() => loadQuestion(), 400);
+      }
+      function loadQuestion() {
+        const q = QUESTIONS[curQ];
+        answered = false;
+        document.getElementById("qnum").textContent = `QUESTION ${
+          curQ + 1
+        } / 5`;
+        document.getElementById("qt-qnum").textContent = curQ + 1;
+        document.getElementById("qtxt").textContent = q.q;
+        document.getElementById("qt-score-disp").textContent =
+          quizScore + " pts";
+        const fb = document.getElementById("qfeedback");
+        fb.classList.remove("show");
+        document.getElementById("qf-txt").textContent = "";
+        document.getElementById("qf-pts").textContent = "";
+        document.getElementById("qf-vbr").classList.remove("on");
+        const opts = document.getElementById("qopts");
+        opts.innerHTML = "";
+        q.opts.forEach((opt, i) => {
+          if (!opt) return;
+          const btn = document.createElement("button");
+          btn.className = "qopt";
+          btn.textContent = opt;
+          btn.onclick = () => answerQ(i);
+          opts.appendChild(btn);
+        });
+        timeLeft = 20;
+        updateTimer();
+        clearInterval(timerIv);
+        timerIv = setInterval(() => {
+          timeLeft--;
+          updateTimer();
+          if (timeLeft <= 0) {
+            clearInterval(timerIv);
+            if (!answered) autoTimeout();
+          }
+        }, 1000);
+      }
+      function updateTimer() {
+        const tn = document.getElementById("qt-num");
+        tn.textContent = timeLeft;
+        tn.className = timeLeft <= 5 ? "danger" : timeLeft <= 10 ? "warn" : "";
+        document.getElementById("qt-bar").style.width =
+          (timeLeft / 20) * 100 + "%";
+        document.getElementById("qt-bar").style.background =
+          timeLeft <= 5 ? "#ff4444" : timeLeft <= 10 ? "#ffaa33" : "var(--g)";
+      }
+      function autoTimeout() {
+        answerQ(-1);
+      }
+      function answerQ(idx) {
+        if (answered) return;
+        answered = true;
+        clearInterval(timerIv);
+        const q = QUESTIONS[curQ];
+        const correct = idx === q.correct;
+        document.querySelectorAll(".qopt").forEach((btn, i) => {
+          btn.disabled = true;
+          if (i === q.correct) btn.classList.add("correct");
+          else if (i === idx && !correct) btn.classList.add("wrong");
+          else btn.classList.add("reveal");
+        });
+        if (correct) {
+          quizScore += 20;
+          spawnCorrectParts();
+          if (!isMuted) playChime();
+        }
+        const fbTxt = correct ? q.goodFb : q.badFb;
+        const fb = document.getElementById("qfeedback");
+        const ptsEl = document.getElementById("qf-pts");
+        if (correct) {
+          ptsEl.textContent = "+20 POINTS";
+          ptsEl.style.color = "var(--g)";
+          ptsEl.classList.add("pts-anim");
+        } else {
+          ptsEl.textContent = "+0 POINTS";
+          ptsEl.style.color = "rgba(255,120,120,.7)";
+        }
+        setTimeout(() => {
+          fb.classList.add("show");
+          speak(
+            fbTxt,
+            document.getElementById("qf-txt"),
+            document.getElementById("qf-vbr"),
+            null,
+            () => {
+              setTimeout(() => {
+                if (curQ < 4) {
+                  curQ++;
+                  loadQuestion();
+                } else {
+                  showQuizResults();
+                }
+              }, 1800);
+            }
+          );
+        }, 400);
+      }
+      function showQuizResults() {
+        document.getElementById("quiz-overlay").classList.remove("show");
+        const res = document.getElementById("quiz-results");
+        res.classList.add("show");
+        const pct = quizScore;
+        const passed = pct >= 65;
+        document.getElementById("qr-ic").textContent =
+          pct >= 80 ? "🏆" : pct >= 65 ? "🎯" : pct >= 40 ? "💛" : "💔";
+        document.getElementById("qr-t").textContent =
+          pct >= 80
+            ? "EXCELLENT !"
+            : pct >= 65
+            ? "BIEN JOUÉ !"
+            : pct >= 40
+            ? "PAS MAL..."
+            : "INSUFFISANT";
+        document.getElementById("qr-t").style.color =
+          pct >= 65 ? "var(--g)" : "#ffaa44";
+        document.getElementById("qr-s").textContent = pct;
+        document.getElementById("qr-s").style.color =
+          pct >= 65 ? "var(--g)" : pct >= 40 ? "#ffaa44" : "#ff4444";
+        document.getElementById("qr-pct").textContent =
+          pct +
+          "/100 — " +
+          (pct >= 65
+            ? "Accès au Stage 2 DÉBLOQUÉ ✅"
+            : "Score minimum requis : 65 — ❌");
+        if (!passed) document.getElementById("fail-msg").classList.add("show");
+        document.getElementById("qr-hub").style.display = passed
+          ? "block"
+          : "none";
+        let gaiaFinal;
+        if (pct === 100)
+          gaiaFinal = `Incroyable, ${pName}. 100 sur 100.\nVous connaissez mon corps mieux que la plupart des scientifiques.\nJe vous confie mes poumons.\nMes forets. Mes oceans.\nProtegez-les comme vous avez protege mon coeur.`;
+        else if (pct >= 80)
+          gaiaFinal = `${pct} sur 100, ${pName}. Impressionnant.\nVous avez compris les enjeux fondamentaux.\nLes chiffres que vous connaissez maintenant... peuvent changer des vies.\nPartagez-les. Portez-les. Le Stage 2 vous attend.`;
+        else if (pct >= 65)
+          gaiaFinal = `${pct} sur 100. Bien joue, ${pName}.\nVous avez les bases. Vous commencez a comprendre.\nMais il reste des zones d ombre.\nContinuez a apprendre. Le Stage 2 vous donnera d autres cles.`;
+        else if (pct >= 40)
+          gaiaFinal = `${pct} sur 100... c est insuffisant pour le Stage 2.\nMais ne vous decouragez pas.\nRelisez les reponses de GAÏA. Comprenez les chiffres.\nEt reessayez. Je compte sur vous.`;
+        else
+          gaiaFinal = `${pct} sur 100, ${pName}.\nNous avons encore beaucoup de chemin ensemble.\nLes reponses que je vous ai donnees... relisez-les.\nChaque chiffre cache une realite que vous devez connaitre.\nReessayez. Vous pouvez y arriver.`;
+        document.getElementById("qr-tx").textContent = gaiaFinal;
+        setTimeout(() => {
+          speak(
+            gaiaFinal,
+            document.getElementById("qr-tx"),
+            document.getElementById("qr-vbr"),
+            null,
+            () => {
+              if (passed) {
+                setTimeout(() => {
+                  score += 100;
+                  document.getElementById("score-disp").textContent =
+                    "SCORE : " + score;
+                  try {
+                    localStorage.setItem("gaiaScore", score.toString());
+                  } catch (e) {}
+                  document.getElementById("stage-badge").classList.add("show");
+                  document.getElementById("sb-bonus").textContent =
+                    "+100 POINTS BONUS — TOTAL : " + score;
+                  if (!isMuted) playChime();
+                }, 800);
+              }
+            }
+          );
+        }, 600);
+      }
+      function retryQuiz() {
+        document.getElementById("quiz-results").classList.remove("show");
+        document.getElementById("fail-msg").classList.remove("show");
+        curQ = 0;
+        quizScore = 0;
+        answered = false;
+        document.getElementById("quiz-overlay").classList.add("show");
+        setTimeout(() => loadQuestion(), 400);
+      }
+
+      // ══ RETOUR AU HUB — Transition veine puis → scene9.html ══
+      function goHub() {
+        if (syn) syn.cancel();
+        try {
+          localStorage.setItem("gaiaPlayerName", pName);
+          localStorage.setItem("gaiaScore", score.toString());
+        } catch (e) {}
+        // Masquer quiz/résultats
+        document.getElementById("quiz-results").style.opacity = "0";
+        document.getElementById("quiz-overlay").style.display = "none";
+        // Lancer la transition veine verte, puis naviguer vers scene9.html (hub)
+        startVeinTransition(() => {
+          window.location.href = "scene9.html";
+        });
+      }
+
+      // ══ DÉMARRAGE SCÈNE — FIX VOIX ══
+      function startScene() {
+        // 1. INIT AUDIO immédiatement (nécessaire pour débloquer AudioContext sur user gesture)
+        initAudio();
+        // Flash vert d'entrée
+        const flash = document.getElementById("entry-flash");
+        flash.style.opacity = ".92";
+        flash.style.transition = "none";
+        setTimeout(() => {
+          flash.style.transition = "opacity .65s";
+          flash.style.opacity = "0";
+        }, 80);
+        // Rideau
+        const cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.2s ease";
+        setTimeout(() => cu.classList.add("gone"), 120);
+        // 2. Lancer ambient audio + heartbeat
+        playAmbient();
+        animate();
+        setTimeout(() => startHeartbeat(72), 900);
+        // HUD
+        setTimeout(() => {
+          document.getElementById("hud").classList.add("show");
+          document.getElementById("heart-stats").classList.add("show");
+          document.getElementById("diag").classList.add("show");
+        }, 1400);
+        // 3. VOIX GAÏA — délai suffisant pour que AudioContext + voix soient prêts
+        // On attend 2.2s pour laisser le navigateur charger les voix TTS
+        setTimeout(() => {
+          // Forcer le rechargement des voix disponibles
+          if (syn) {
+            syn.getVoices();
+          }
+          showVoice(
+            `${pName}, vous avez parcouru tout mon systeme cardiovasculaire.\nVous avez vu mon coeur, mes arteres, mes centrales energetiques.\nMais avez-vous VRAIMENT compris ?\n\nProuvez-le moi.\nRepondez a ces questions.\n\nSi vous reussissez...\nJe vous laisserai entrer dans mes POUMONS.`,
+            () => {
+              setTimeout(() => {
+                hideVoice();
+                setTimeout(
+                  () =>
+                    document.getElementById("quiz-btn").classList.add("show"),
+                  800
+                );
+              }, 1200);
+            }
+          );
+        }, 2200);
+      }
+
+      window.addEventListener("resize", () => {
+        HC.width = innerWidth;
+        HC.height = innerHeight;
+        PC.width = innerWidth;
+        PC.height = innerHeight;
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+      });
+      window.addEventListener("load", startScene);
+    </script>
+  </body>
+</html>
