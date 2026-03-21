@@ -1,0 +1,2815 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAIA Scene 11</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #00ff88;
+        --gd: #00cc66;
+        --soft: #d0f0e0;
+        --ui: rgba(0, 5, 2, 0.96);
+        --ub: rgba(0, 255, 136, 0.16);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0a1a08;
+      }
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+        opacity: 0;
+        animation: fi 0.6s ease 0.1s forwards;
+      }
+      @keyframes fi {
+        to {
+          opacity: 1;
+        }
+      }
+      #cur {
+        position: fixed;
+        width: 14px;
+        height: 14px;
+        border: 1.5px solid rgba(0, 255, 136, 0.7);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+      }
+      #cur::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--g);
+        border-radius: 50%;
+      }
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 950;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 1.4s ease;
+      }
+      #curtain.gone {
+        opacity: 0;
+      }
+      #entry-flash {
+        position: fixed;
+        inset: 0;
+        z-index: 850;
+        background: #00ff88;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ── LAYERS ── */
+      /* 3D canvas always at z:1 behind everything */
+      #three-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        display: block;
+      }
+      /* 2D canvases for scenes 2+3 */
+      #photo-canvas,
+      #forest-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        display: none;
+      }
+
+      /* Scene overlays */
+      .scene-ui {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: none;
+        pointer-events: none;
+      }
+      .scene-ui.active {
+        display: block;
+      }
+
+      /* Crosshair */
+      #crosshair {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 15;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+      #crosshair.show {
+        opacity: 1;
+      }
+      #crosshair::before,
+      #crosshair::after {
+        content: "";
+        position: absolute;
+        background: rgba(255, 255, 255, 0.55);
+      }
+      #crosshair::before {
+        width: 16px;
+        height: 1.5px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #crosshair::after {
+        width: 1.5px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      /* HUD canopy */
+      #hud-3d {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 16px 22px 0;
+        pointer-events: none;
+      }
+      .hd-lbl {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.45em;
+        color: rgba(0, 255, 136, 0.32);
+      }
+      /* Altitude */
+      #alt-gauge {
+        position: fixed;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 21;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #alt-gauge.show {
+        opacity: 1;
+      }
+      #ag-track {
+        width: 5px;
+        height: 140px;
+        background: rgba(0, 255, 136, 0.08);
+        border-radius: 3px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 255, 136, 0.12);
+        position: relative;
+      }
+      #ag-fill {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        border-radius: 3px;
+        background: linear-gradient(0deg, var(--g), rgba(0, 255, 136, 0.4));
+        transition: height 0.3s;
+      }
+      .ag-lbl {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.35);
+        writing-mode: vertical-lr;
+        transform: rotate(180deg);
+      }
+      #ag-val {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        color: var(--g);
+      }
+      /* Controls hint */
+      #ctrl-hint {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 21;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.26em;
+        color: rgba(0, 255, 136, 0.28);
+        background: rgba(0, 5, 2, 0.7);
+        border: 1px solid rgba(0, 255, 136, 0.1);
+        padding: 6px 16px;
+        border-radius: 2px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #ctrl-hint.show {
+        opacity: 1;
+      }
+      /* Minimap */
+      #minimap {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 22;
+        width: 130px;
+        height: 130px;
+        background: rgba(0, 5, 2, 0.88);
+        border: 1px solid rgba(0, 255, 136, 0.22);
+        border-radius: 50%;
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity 1s;
+        box-shadow: 0 0 18px rgba(0, 255, 136, 0.1);
+      }
+      #minimap.show {
+        opacity: 1;
+      }
+      #mm-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      #mm-lbl {
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.35);
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      /* Leaf tooltip */
+      #leaf-tip {
+        position: fixed;
+        z-index: 30;
+        background: rgba(0, 6, 2, 0.96);
+        border: 1px solid rgba(0, 255, 136, 0.28);
+        backdrop-filter: blur(16px);
+        border-radius: 3px;
+        padding: 9px 13px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        max-width: 180px;
+      }
+      #leaf-tip.show {
+        opacity: 1;
+      }
+      #lt-title {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: var(--g);
+        margin-bottom: 4px;
+      }
+      #lt-body {
+        font-family: "EB Garamond", serif;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.62);
+        line-height: 1.6;
+      }
+      /* Climb indicator */
+      #climb-ind {
+        position: fixed;
+        left: 50%;
+        bottom: clamp(70px, 8vh, 90px);
+        transform: translateX(-50%);
+        z-index: 22;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.55);
+        background: rgba(0, 5, 2, 0.8);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        padding: 6px 16px;
+        border-radius: 2px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+      #climb-ind.show {
+        opacity: 1;
+      }
+      /* Mobile climb buttons */
+      #mob-btns {
+        position: fixed;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 22;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #mob-btns.show {
+        opacity: 1;
+      }
+      .mob-b {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: var(--g);
+        background: rgba(0, 5, 2, 0.85);
+        border: 1px solid rgba(0, 255, 136, 0.35);
+        padding: 10px 14px;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.25s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-b:active {
+        background: rgba(0, 255, 136, 0.15);
+      }
+      /* Tree panel */
+      #tree-panel {
+        position: fixed;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 22;
+        width: min(250px, 28vw);
+        background: rgba(0, 4, 1, 0.96);
+        border: 1px solid rgba(0, 255, 136, 0.22);
+        backdrop-filter: blur(22px);
+        border-radius: 4px;
+        padding: 13px 15px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s;
+      }
+      #tree-panel.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .tp-name {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        color: var(--g);
+        margin-bottom: 1px;
+        filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.5));
+      }
+      .tp-sci {
+        font-family: "EB Garamond", serif;
+        font-size: 11px;
+        font-style: italic;
+        color: rgba(255, 255, 255, 0.35);
+        margin-bottom: 9px;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.08);
+        padding-bottom: 7px;
+      }
+      .tp-sec {
+        margin-bottom: 7px;
+      }
+      .tp-s {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.42);
+        margin-bottom: 4px;
+      }
+      .tp-r {
+        font-family: "EB Garamond", serif;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.52);
+        margin-bottom: 2px;
+        display: flex;
+        gap: 6px;
+      }
+      .tp-r span {
+        color: rgba(0, 255, 136, 0.78);
+      }
+      #tp-btn {
+        width: 100%;
+        margin-top: 9px;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.24em;
+        color: var(--g);
+        background: rgba(0, 255, 136, 0.07);
+        border: 1px solid rgba(0, 255, 136, 0.4);
+        padding: 9px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 2px;
+        pointer-events: all;
+      }
+      #tp-btn:hover {
+        background: rgba(0, 255, 136, 0.15);
+        box-shadow: 0 0 24px rgba(0, 255, 136, 0.28);
+      }
+
+      /* Voice GAIA scene 1 */
+      #vp {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 40;
+        width: min(720px, 92vw);
+        padding: 0 0 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+      }
+      #vsep {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.45),
+          transparent
+        );
+        margin-bottom: 8px;
+        transition: width 1s;
+      }
+      #vsep.show {
+        width: 100%;
+      }
+      #vbox {
+        width: 100%;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(26px);
+        border-radius: 3px;
+        padding: 13px 20px 11px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.8s, transform 0.8s;
+      }
+      #vbox.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #vhdr {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 6px;
+      }
+      #vnm {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      #vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 1s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .vb:nth-child(3) {
+        height: 5px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      .vb:nth-child(5) {
+        height: 4px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      .vb:nth-child(6) {
+        height: 8px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      @keyframes vba {
+        from {
+          transform: scaleY(0.18);
+          opacity: 0.5;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+      #vtx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.6vw, 16px);
+        line-height: 1.9;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 120px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vtx::-webkit-scrollbar {
+        display: none;
+      }
+      #twc {
+        display: inline-block;
+        width: 2px;
+        height: 14px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* ── SCENE 2: PHOTO UI ── */
+      #photo-ui {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 clamp(12px, 2vw, 24px);
+        pointer-events: none;
+      }
+      #photo-ui.active {
+        display: flex;
+      }
+      #leaf-panel {
+        width: min(235px, 23vw);
+        background: rgba(0, 6, 2, 0.94);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        backdrop-filter: blur(18px);
+        border-radius: 4px;
+        padding: 13px 14px;
+        pointer-events: all;
+      }
+      .lp-t {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: 0.2em;
+        color: var(--g);
+        margin-bottom: 9px;
+      }
+      .lp-layer {
+        font-family: "EB Garamond", serif;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.48);
+        padding: 3px 8px;
+        margin-bottom: 2px;
+        border-left: 2px solid;
+        border-radius: 1px;
+        transition: all 0.3s;
+      }
+      .lp-layer.active {
+        color: rgba(0, 255, 136, 0.9);
+        background: rgba(0, 255, 136, 0.06);
+      }
+      #eq-center {
+        flex: 1;
+        text-align: center;
+        padding: 0 14px;
+      }
+      #eq-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(9px, 1.3vw, 12px);
+        font-weight: 900;
+        letter-spacing: 0.32em;
+        color: rgba(0, 255, 136, 0.5);
+        margin-bottom: 9px;
+      }
+      #eq-box {
+        display: inline-block;
+        background: rgba(0, 6, 2, 0.94);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        border-radius: 4px;
+        padding: 14px 20px;
+      }
+      .eq-line {
+        font-family: "Cinzel", serif;
+        font-size: clamp(10px, 1.3vw, 13px);
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.72);
+        margin-bottom: 4px;
+        text-align: center;
+      }
+      .eq-line strong {
+        color: var(--g);
+      }
+      #eq-timer {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.32);
+        margin-top: 7px;
+      }
+      #counter-panel {
+        width: min(205px, 21vw);
+        background: rgba(0, 6, 2, 0.94);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        backdrop-filter: blur(18px);
+        border-radius: 4px;
+        padding: 13px 14px;
+        pointer-events: all;
+      }
+      .cp-t {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: 0.2em;
+        color: var(--g);
+        margin-bottom: 9px;
+      }
+      .cp-row {
+        margin-bottom: 7px;
+      }
+      .cp-lbl {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.26em;
+        color: rgba(0, 255, 136, 0.38);
+        margin-bottom: 2px;
+      }
+      .cp-val {
+        font-family: "Cinzel", serif;
+        font-size: clamp(14px, 1.9vw, 17px);
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 5px rgba(0, 255, 136, 0.4));
+      }
+      .cp-sub {
+        font-family: "EB Garamond", serif;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.32);
+        margin-top: 1px;
+      }
+      .cp-div {
+        height: 1px;
+        background: rgba(0, 255, 136, 0.1);
+        margin: 7px 0;
+      }
+      #forest-btn {
+        width: 100%;
+        margin-top: 9px;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        color: var(--g);
+        background: rgba(0, 255, 136, 0.07);
+        border: 1px solid rgba(0, 255, 136, 0.4);
+        padding: 9px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 2px;
+        pointer-events: all;
+        display: none;
+      }
+      #forest-btn:hover {
+        background: rgba(0, 255, 136, 0.15);
+        box-shadow: 0 0 24px rgba(0, 255, 136, 0.28);
+      }
+
+      /* ── SCENE 3: FOREST UI ── */
+      #forest-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        align-items: flex-start;
+        justify-content: flex-end;
+        padding: clamp(12px, 1.8vw, 18px);
+      }
+      #forest-overlay.active {
+        display: flex;
+      }
+      #amazon-panel {
+        width: min(310px, 29vw);
+        background: rgba(0, 4, 1, 0.95);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        backdrop-filter: blur(22px);
+        border-radius: 4px;
+        padding: 14px 16px;
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+      #amazon-panel.show {
+        opacity: 1;
+      }
+      .ap-title {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 0.2em;
+        color: var(--g);
+        margin-bottom: 2px;
+        filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.4));
+      }
+      .ap-sub {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.26em;
+        color: rgba(0, 255, 136, 0.35);
+        margin-bottom: 9px;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.08);
+        padding-bottom: 7px;
+      }
+      .ap-sec {
+        margin-bottom: 8px;
+      }
+      .ap-s-lbl {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.38);
+        margin-bottom: 4px;
+      }
+      .ap-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 3px;
+      }
+      .ap-rl {
+        font-family: "EB Garamond", serif;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.44);
+      }
+      .ap-rv {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        font-weight: 700;
+        color: rgba(0, 255, 136, 0.82);
+      }
+      /* Voice 2 */
+      #vp2 {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 40;
+        width: min(720px, 92vw);
+        padding: 0 0 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+      }
+      #vsep2 {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.45),
+          transparent
+        );
+        margin-bottom: 8px;
+        transition: width 1s;
+      }
+      #vsep2.show {
+        width: 100%;
+      }
+      #vbox2 {
+        width: 100%;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(26px);
+        border-radius: 3px;
+        padding: 13px 20px 11px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.8s, transform 0.8s;
+      }
+      #vbox2.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #vhdr2 {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 6px;
+      }
+      #vnm2 {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      #vbr2 {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr2.on {
+        opacity: 1;
+      }
+      #vtx2 {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.6vw, 16px);
+        line-height: 1.9;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 120px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vtx2::-webkit-scrollbar {
+        display: none;
+      }
+      #twc2 {
+        display: inline-block;
+        width: 2px;
+        height: 14px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      #forest-continue {
+        position: fixed;
+        bottom: clamp(78px, 9vh, 95px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 41;
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: var(--g);
+        background: var(--ui);
+        border: 1px solid rgba(0, 255, 136, 0.5);
+        padding: 13px 38px;
+        cursor: pointer;
+        transition: all 0.35s;
+        border-radius: 2px;
+        opacity: 0;
+        pointer-events: none;
+      }
+      #forest-continue.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #forest-continue:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 38px rgba(0, 255, 136, 0.28);
+      }
+
+      #mute-btn {
+        position: fixed;
+        bottom: 12px;
+        right: 18px;
+        z-index: 999;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.18);
+        cursor: pointer;
+        background: none;
+        border: none;
+        transition: color 0.3s;
+      }
+      #mute-btn:hover {
+        color: rgba(0, 255, 136, 0.55);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cur"></div>
+    <div id="entry-flash"></div>
+
+    <!-- ── 3D CANVAS (always present, Three.js renders here) ── -->
+    <canvas id="three-canvas"></canvas>
+
+    <!-- ── 2D CANVASES (hidden by default) ── -->
+    <canvas id="photo-canvas"></canvas>
+    <canvas id="forest-canvas"></canvas>
+
+    <!-- ── SCENE 1 UI (Canopy HUD) ── -->
+    <div class="scene-ui active" id="ui-canopy">
+      <div id="hud-3d">
+        <div class="hd-lbl">G A I A</div>
+        <div
+          class="hd-lbl"
+          style="color: rgba(0, 255, 136, 0.15); letter-spacing: 0.25em"
+        >
+          C A N O P E E - S T A G E 2
+        </div>
+        <div class="hd-lbl" id="score-lbl">SCORE : 0</div>
+      </div>
+      <div id="alt-gauge">
+        <div class="ag-lbl">ALT</div>
+        <div id="ag-track"><div id="ag-fill" style="height: 82%"></div></div>
+        <div id="ag-val">82 m</div>
+      </div>
+      <div id="ctrl-hint">
+        ZQSD/FLECHES-Deplacer | E/R-Monter/Descendre | SHIFT-Sprint |
+        SOURIS-Regarder | CLIC-Activer
+      </div>
+      <!-- Minimap -->
+      <div id="minimap">
+        <canvas id="mm-canvas" width="130" height="130"></canvas>
+        <div id="mm-lbl">CARTE</div>
+      </div>
+      <!-- Leaf tooltip -->
+      <div id="leaf-tip">
+        <div id="lt-title"></div>
+        <div id="lt-body"></div>
+      </div>
+      <!-- Climb indicator -->
+      <div id="climb-ind" id="climb-ind"></div>
+      <!-- Mobile climb buttons (visible on touch devices) -->
+      <div id="mob-btns">
+        <button
+          class="mob-b"
+          id="btn-up"
+          ontouchstart="keys2['KeyE']=true"
+          ontouchend="keys2['KeyE']=false"
+          onmousedown="keys2['KeyE']=true"
+          onmouseup="keys2['KeyE']=false"
+        >
+          &#9650; MONTER
+        </button>
+        <button
+          class="mob-b"
+          id="btn-dn"
+          ontouchstart="keys2['KeyQ']=true"
+          ontouchend="keys2['KeyQ']=false"
+          onmousedown="keys2['KeyQ']=true"
+          onmouseup="keys2['KeyQ']=false"
+        >
+          &#9660; DESCENDRE
+        </button>
+      </div>
+      <div id="tree-panel">
+        <div class="tp-name">SEQUOIA "TITAN"</div>
+        <div class="tp-sci">Sequoiadendron giganteum</div>
+        <div class="tp-sec">
+          <div class="tp-s">DIMENSIONS</div>
+          <div class="tp-r">Hauteur <span>100 m</span></div>
+          <div class="tp-r">Diametre <span>10 m</span></div>
+          <div class="tp-r">Age <span>2 000 ans</span></div>
+          <div class="tp-r">Poids <span>1 900 t</span></div>
+        </div>
+        <div class="tp-sec">
+          <div class="tp-s">FEUILLES</div>
+          <div class="tp-r">Nombre <span>2 millions</span></div>
+          <div class="tp-r">Surface <span>1 600 m2</span></div>
+        </div>
+        <div class="tp-sec">
+          <div class="tp-s">PRODUCTION / JOUR</div>
+          <div class="tp-r">O2 produit <span>120 kg</span></div>
+          <div class="tp-r">CO2 absorbe <span>22 kg</span></div>
+          <div class="tp-r">H2O evaporee <span>1 500 L</span></div>
+          <div class="tp-r">O2 pour <span>2 humains</span></div>
+        </div>
+        <button id="tp-btn" onclick="goToPhoto()">VOIR EN ACTION</button>
+      </div>
+      <div id="vp">
+        <div id="vsep"></div>
+        <div id="vbox">
+          <div id="vhdr">
+            <span id="vnm">G A I A</span
+            ><span id="vbr"
+              ><span class="vb"></span><span class="vb"></span
+              ><span class="vb"></span><span class="vb"></span
+              ><span class="vb"></span><span class="vb"></span
+            ></span>
+          </div>
+          <div id="vtx"></div>
+          <span id="twc"></span>
+        </div>
+      </div>
+    </div>
+    <div id="crosshair"></div>
+
+    <!-- ── SCENE 2 UI (Photo) ── -->
+    <div id="photo-ui">
+      <div id="leaf-panel">
+        <div class="lp-t">COUPE TRANSVERSALE</div>
+        <div
+          class="lp-layer"
+          id="ll-0"
+          style="border-color: rgba(200, 200, 100, 0.5)"
+        >
+          Cuticule (protection)
+        </div>
+        <div
+          class="lp-layer"
+          id="ll-1"
+          style="border-color: rgba(150, 220, 100, 0.5)"
+        >
+          Epiderme superieur
+        </div>
+        <div
+          class="lp-layer"
+          id="ll-2"
+          style="border-color: rgba(0, 200, 60, 0.8)"
+        >
+          Parenchyme palissadique<br /><small style="opacity: 0.55"
+            >(chloroplastes)</small
+          >
+        </div>
+        <div
+          class="lp-layer"
+          id="ll-3"
+          style="border-color: rgba(0, 160, 40, 0.6)"
+        >
+          Parenchyme lacuneux
+        </div>
+        <div
+          class="lp-layer"
+          id="ll-4"
+          style="border-color: rgba(100, 200, 200, 0.6)"
+        >
+          Stomates (pores)
+        </div>
+        <div
+          class="lp-layer"
+          id="ll-5"
+          style="border-color: rgba(150, 220, 100, 0.4)"
+        >
+          Epiderme inferieur
+        </div>
+      </div>
+      <div id="eq-center">
+        <div id="eq-title">PHOTOSYNTHESE EN DIRECT - x1000</div>
+        <div id="eq-box">
+          <div class="eq-line">FLUX ENTRANTS</div>
+          <div class="eq-line" style="color: #ffd700">Photons + H2O + CO2</div>
+          <div class="eq-line" style="color: rgba(0, 255, 136, 0.6)">
+            v CHLOROPLASTES v
+          </div>
+          <div
+            class="eq-line"
+            style="color: rgba(255, 255, 255, 0.5); font-size: 0.85em"
+          >
+            6 CO2 + 6 H2O + Lumiere
+          </div>
+          <div
+            class="eq-line"
+            style="color: rgba(255, 255, 255, 0.5); font-size: 0.85em"
+          >
+            -- > <strong>C6H12O6</strong> + <strong>6 O2</strong>
+          </div>
+          <div class="eq-line">FLUX SORTANTS</div>
+          <div class="eq-line"><strong>O2 libere</strong> + Glucose</div>
+        </div>
+        <div id="eq-timer">CYCLE : <span id="eq-t">0</span>s / 30s</div>
+      </div>
+      <div id="counter-panel">
+        <div class="cp-t">PRODUCTION</div>
+        <div class="cp-row">
+          <div class="cp-lbl">O2 CETTE FEUILLE</div>
+          <div class="cp-val" id="cp-o2">0.000 g/h</div>
+        </div>
+        <div class="cp-row">
+          <div class="cp-lbl">GLUCOSE</div>
+          <div class="cp-val" id="cp-gl">0.000 g/h</div>
+        </div>
+        <div class="cp-div"></div>
+        <div class="cp-row"><div class="cp-lbl">x 2 000 000 FEUILLES</div></div>
+        <div class="cp-row">
+          <div class="cp-lbl">O2 ARBRE ENTIER</div>
+          <div class="cp-val" id="cp-tree">0 kg/j</div>
+          <div class="cp-sub">objectif : 120 kg/j</div>
+        </div>
+        <div class="cp-div"></div>
+        <div class="cp-row">
+          <div class="cp-lbl">MOLECULES O2 LIBEREES</div>
+          <div
+            class="cp-val"
+            id="cp-mol"
+            style="font-size: clamp(16px, 2.2vw, 22px)"
+          >
+            0
+          </div>
+        </div>
+        <button id="forest-btn" onclick="goToForest()">
+          VOIR ECHELLE FORET
+        </button>
+      </div>
+    </div>
+
+    <!-- ── SCENE 3 UI (Forest) ── -->
+    <div id="forest-overlay">
+      <div id="amazon-panel">
+        <div class="ap-title">FORET AMAZONIENNE (1 km2)</div>
+        <div class="ap-sub">200 000 ARBRES - VUE SATELLITE</div>
+        <div class="ap-sec">
+          <div class="ap-s-lbl">PRODUCTION QUOTIDIENNE</div>
+          <div class="ap-row">
+            <span class="ap-rl">O2 produit</span
+            ><span class="ap-rv" id="ap-o2">0 t/j</span>
+          </div>
+          <div class="ap-row">
+            <span class="ap-rl">Humains alimentes</span
+            ><span class="ap-rv" id="ap-hum">0</span>
+          </div>
+          <div class="ap-row">
+            <span class="ap-rl">CO2 absorbe</span
+            ><span class="ap-rv" id="ap-co2">0 t/j</span>
+          </div>
+          <div class="ap-row">
+            <span class="ap-rl">Voitures compensees</span
+            ><span class="ap-rv" id="ap-car">0</span>
+          </div>
+          <div class="ap-row">
+            <span class="ap-rl">Eau evaporee</span
+            ><span class="ap-rv" id="ap-eau">0 ML/j</span>
+          </div>
+        </div>
+        <div class="ap-sec">
+          <div class="ap-s-lbl">BIODIVERSITE (1 km2)</div>
+          <div class="ap-row">
+            <span class="ap-rl">Especes arbres</span
+            ><span class="ap-rv">400</span>
+          </div>
+          <div class="ap-row">
+            <span class="ap-rl">Especes oiseaux</span
+            ><span class="ap-rv">1 500</span>
+          </div>
+          <div class="ap-row">
+            <span class="ap-rl">Especes insectes</span
+            ><span class="ap-rv">3 000</span>
+          </div>
+          <div class="ap-row">
+            <span class="ap-rl">Especes mammiferes</span
+            ><span class="ap-rv">430</span>
+          </div>
+        </div>
+        <div class="ap-sec">
+          <div class="ap-s-lbl">AMAZONIE TOTALE (5.5M km2)</div>
+          <div class="ap-row">
+            <span class="ap-rl">O2 mondial</span
+            ><span class="ap-rv" style="color: #ffd700">20%</span>
+          </div>
+          <div class="ap-row">
+            <span class="ap-rl">CO2 stocke</span
+            ><span class="ap-rv" style="color: #ffd700">150 Mds t</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="vp2">
+      <div id="vsep2"></div>
+      <div id="vbox2">
+        <div id="vhdr2">
+          <span id="vnm2">G A I A</span
+          ><span id="vbr2"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="vtx2"></div>
+        <span id="twc2"></span>
+      </div>
+    </div>
+    <button id="forest-continue" onclick="goNext()">CONTINUER</button>
+
+    <div id="curtain"></div>
+    <button id="mute-btn" onclick="toggleMute()">SON</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      "use strict";
+      var W = innerWidth,
+        H = innerHeight;
+      var isMuted = false,
+        audioCtx = null;
+      var pName = "Gardien",
+        score = 0;
+      var globalT = 0,
+        lastTs = 0,
+        animId = null;
+      var currentScene = "canopy";
+      var photoT = 0,
+        photoPhase = 0,
+        molCount = 0,
+        lastMolT = 0;
+      var forestT = 0;
+      var photoParts = [],
+        forestParts = [];
+
+      try {
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+        score = parseInt(localStorage.getItem("gaiaScore") || "0");
+      } catch (e) {}
+      document.getElementById("score-lbl").textContent = "SCORE : " + score;
+
+      var $cur = document.getElementById("cur");
+      document.addEventListener("mousemove", function (e) {
+        $cur.style.left = e.clientX + "px";
+        $cur.style.top = e.clientY + "px";
+      });
+
+      // ── AUDIO ──
+      function initAudio() {
+        if (audioCtx) return;
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {}
+      }
+      function mOut() {
+        if (!audioCtx) return null;
+        if (!window._m11) {
+          var c = audioCtx.createDynamicsCompressor();
+          c.threshold.value = -18;
+          c.knee.value = 8;
+          c.ratio.value = 3;
+          c.attack.value = 0.003;
+          c.release.value = 0.25;
+          c.connect(audioCtx.destination);
+          window._m11 = c;
+        }
+        return window._m11;
+      }
+      function mkRv(d, dc) {
+        d = d || 3;
+        dc = dc || 2;
+        if (!audioCtx) return null;
+        var sr = audioCtx.sampleRate,
+          l = sr * d,
+          b = audioCtx.createBuffer(2, l, sr);
+        for (var c = 0; c < 2; c++) {
+          var dd = b.getChannelData(c);
+          for (var i = 0; i < l; i++)
+            dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / l, dc);
+        }
+        var cv = audioCtx.createConvolver();
+        cv.buffer = b;
+        return cv;
+      }
+      function playAmb() {
+        if (!audioCtx || isMuted) return;
+        var m = mOut();
+        if (!m) return;
+        var r = mkRv(6, 3);
+        if (r) r.connect(m);
+        [55, 82, 110].forEach(function (f, i) {
+          var o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          o.type = "sine";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(
+            [0.015, 0.01, 0.007][i],
+            audioCtx.currentTime + 4 + i
+          );
+          var fl = audioCtx.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 200;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(r || m);
+          g.connect(m);
+          o.start();
+        });
+      }
+      function playBirds() {
+        if (!audioCtx || isMuted) return;
+        var m = mOut();
+        if (!m) return;
+        var fs = [880, 1320, 1760, 2200, 1100, 1650];
+        function bird() {
+          var f = fs[Math.floor(Math.random() * fs.length)];
+          var o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          var lfo = audioCtx.createOscillator(),
+            lg = audioCtx.createGain();
+          o.type = "sine";
+          o.frequency.setValueAtTime(f, audioCtx.currentTime);
+          o.frequency.exponentialRampToValueAtTime(
+            f * 1.4,
+            audioCtx.currentTime + 0.08
+          );
+          o.frequency.exponentialRampToValueAtTime(
+            f * 0.85,
+            audioCtx.currentTime + 0.22
+          );
+          lfo.frequency.value = 8 + Math.random() * 6;
+          lg.gain.value = f * 0.1;
+          lfo.connect(lg);
+          lg.connect(o.frequency);
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(
+            0.04 + Math.random() * 0.03,
+            audioCtx.currentTime + 0.04
+          );
+          g.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 0.5
+          );
+          o.connect(g);
+          g.connect(m);
+          lfo.start();
+          o.start();
+          o.stop(audioCtx.currentTime + 0.7);
+          lfo.stop(audioCtx.currentTime + 0.7);
+        }
+        bird();
+        setInterval(function () {
+          if (Math.random() < 0.65) bird();
+        }, 1600 + Math.random() * 1000);
+      }
+      function playDark() {
+        if (!audioCtx || isMuted) return;
+        var m = mOut();
+        if (!m) return;
+        var r = mkRv(5, 2);
+        if (r) r.connect(m);
+        [28, 42, 28.04].forEach(function (f, i) {
+          var o = audioCtx.createOscillator(),
+            g = audioCtx.createGain();
+          o.type = "sawtooth";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(
+            [0.018, 0.011, 0.014][i],
+            audioCtx.currentTime + 3 + i
+          );
+          var fl = audioCtx.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 80;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(r || m);
+          g.connect(m);
+          o.start();
+        });
+      }
+      function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("mute-btn").textContent = isMuted
+          ? "MUET"
+          : "SON";
+        if (audioCtx) {
+          isMuted ? audioCtx.suspend() : audioCtx.resume();
+        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      // ── VOICE ──
+      var syn = window.speechSynthesis;
+      function gv() {
+        var vs = syn ? syn.getVoices() : [];
+        return (
+          vs.find(function (x) {
+            return (
+              x.lang === "fr-FR" &&
+              /Marie|Amelie|Hortense|Lea|Julie/i.test(x.name)
+            );
+          }) ||
+          vs.find(function (x) {
+            return x.lang === "fr-FR";
+          }) ||
+          vs.find(function (x) {
+            return x.lang.startsWith("fr");
+          }) ||
+          vs[0] ||
+          null
+        );
+      }
+      function speak(txt, eTxt, eVbr, eCur, cb) {
+        if (eTxt) eTxt.textContent = "";
+        if (eCur) eCur.style.display = "inline-block";
+        var d = 0,
+          t = 0,
+          vd = false,
+          done = false,
+          iv = null;
+        function fin() {
+          if (done) return;
+          done = true;
+          if (eCur) eCur.style.display = "none";
+          if (cb) setTimeout(cb, 380);
+        }
+        function tick() {
+          if (iv) clearInterval(iv);
+          iv = setInterval(function () {
+            if (d < t && d < txt.length) {
+              if (eTxt) {
+                eTxt.textContent = txt.slice(0, ++d);
+                eTxt.scrollTop = eTxt.scrollHeight;
+              } else d++;
+            } else if (d >= txt.length && vd) {
+              clearInterval(iv);
+              fin();
+            }
+          }, 22);
+        }
+        if (syn && !isMuted) {
+          syn.cancel();
+          var u = new SpeechSynthesisUtterance(txt);
+          u.lang = "fr-FR";
+          u.rate = 0.84;
+          u.pitch = 0.8;
+          u.volume = 1;
+          var sv = function () {
+            var v = gv();
+            if (v) u.voice = v;
+          };
+          syn.getVoices().length
+            ? sv()
+            : syn.addEventListener("voiceschanged", sv, { once: true });
+          u.onstart = function () {
+            if (eVbr) eVbr.classList.add("on");
+          };
+          u.onboundary = function (e) {
+            if (e.name === "word") {
+              t = Math.min(e.charIndex + e.charLength, txt.length);
+              tick();
+            }
+          };
+          u.onend = u.onerror = function () {
+            if (eVbr) eVbr.classList.remove("on");
+            vd = true;
+            t = txt.length;
+            tick();
+          };
+          syn.speak(u);
+        }
+        setTimeout(function () {
+          if (d === 0) {
+            vd = true;
+            t = txt.length;
+            tick();
+          }
+        }, 1800);
+      }
+      function showV1(txt, cb) {
+        document.getElementById("vsep").classList.add("show");
+        document.getElementById("vbox").classList.add("show");
+        speak(
+          txt,
+          document.getElementById("vtx"),
+          document.getElementById("vbr"),
+          document.getElementById("twc"),
+          cb
+        );
+      }
+      function hideV1(cb) {
+        var vb = document.getElementById("vbox");
+        vb.style.transition = "opacity .7s";
+        vb.style.opacity = "0";
+        setTimeout(function () {
+          vb.classList.remove("show");
+          vb.style.opacity = "";
+          vb.style.transition = "";
+          document.getElementById("vsep").classList.remove("show");
+          if (cb) cb();
+        }, 720);
+      }
+      function showV2(txt, cb) {
+        document.getElementById("vsep2").classList.add("show");
+        document.getElementById("vbox2").classList.add("show");
+        speak(
+          txt,
+          document.getElementById("vtx2"),
+          document.getElementById("vbr2"),
+          document.getElementById("twc2"),
+          cb
+        );
+      }
+
+      // ── THREE.JS 3D ──
+      var renderer3 = new THREE.WebGLRenderer({
+        canvas: document.getElementById("three-canvas"),
+        antialias: true,
+        alpha: false,
+      });
+      renderer3.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer3.setSize(W, H);
+      renderer3.setClearColor(0x0d2010, 1);
+      renderer3.shadowMap.enabled = true;
+
+      var scene3 = new THREE.Scene();
+      scene3.fog = new THREE.FogExp2(0x0d2810, 0.02);
+
+      var camera = new THREE.PerspectiveCamera(72, W / H, 0.1, 800);
+      camera.position.set(0, 82, 8);
+
+      // Lights
+      scene3.add(new THREE.AmbientLight(0x336633, 1.1));
+      var sunL = new THREE.DirectionalLight(0xffdd88, 2.5);
+      sunL.position.set(100, 180, 60);
+      sunL.castShadow = true;
+      scene3.add(sunL);
+      scene3.add(new THREE.HemisphereLight(0x448844, 0x1a3a10, 0.8));
+      var sunPts = [];
+      [
+        [30, 95, 20],
+        [-50, 88, 35],
+        [15, 92, -45],
+        [-30, 95, -20],
+        [45, 90, 50],
+      ].forEach(function (p) {
+        var pl = new THREE.PointLight(0xffee88, 1.6, 50);
+        pl.position.set(p[0], p[1], p[2]);
+        scene3.add(pl);
+        sunPts.push(pl);
+      });
+
+      // Trunk
+      var trunkMat = new THREE.MeshPhongMaterial({
+        color: 0x6b3a1f,
+        emissive: 0x110804,
+        shininess: 5,
+      });
+      for (var ti = 0; ti < 4; ti++) {
+        var tg = new THREE.CylinderGeometry(
+          4.2 - ti * 0.08,
+          4.6 - ti * 0.05,
+          220,
+          18,
+          1
+        );
+        var tm = new THREE.Mesh(tg, trunkMat);
+        tm.position.set(Math.sin(ti * 1.2) * 0.6, 10, Math.cos(ti * 1.1) * 0.6);
+        scene3.add(tm);
+      }
+      // Bark details
+      var barkMat = new THREE.MeshPhongMaterial({
+        color: 0x5a2e12,
+        shininess: 2,
+      });
+      for (var bi = 0; bi < 35; bi++) {
+        var bh = 6 + Math.random() * 18;
+        var bbg = new THREE.BoxGeometry(0.5, bh, 0.3);
+        var bm = new THREE.Mesh(bbg, barkMat);
+        var ba = Math.random() * Math.PI * 2;
+        var br = 4.1 + Math.random() * 0.35;
+        bm.position.set(
+          Math.cos(ba) * br,
+          (Math.random() - 0.5) * 140,
+          Math.sin(ba) * br
+        );
+        bm.rotation.y = -ba;
+        scene3.add(bm);
+      }
+
+      // Main branch player stands on
+      var branchMat = new THREE.MeshPhongMaterial({
+        color: 0x5a3015,
+        shininess: 3,
+      });
+      var mbGeo = new THREE.CylinderGeometry(1.3, 1.7, 58, 12, 1);
+      var mb = new THREE.Mesh(mbGeo, branchMat);
+      mb.rotation.z = Math.PI / 2;
+      mb.position.set(29, 82, 0);
+      scene3.add(mb);
+      // Branch floor surface
+      var bfGeo = new THREE.BoxGeometry(58, 1.2, 3.8);
+      var bfMat = new THREE.MeshPhongMaterial({
+        color: 0x4a2808,
+        shininess: 1,
+      });
+      var bFloor = new THREE.Mesh(bfGeo, bfMat);
+      bFloor.position.set(29, 81.4, 0);
+      scene3.add(bFloor);
+      // Moss on branch
+      var mossMat = new THREE.MeshPhongMaterial({
+        color: 0x2d7a1a,
+        shininess: 1,
+      });
+      for (var mi = 0; mi < 18; mi++) {
+        var mg2 = new THREE.SphereGeometry(0.28 + Math.random() * 0.38, 6, 4);
+        var mm2 = new THREE.Mesh(mg2, mossMat);
+        mm2.position.set(
+          4 + mi * 2.8,
+          (Math.random() - 0.5) * 0.25 + 82.4,
+          (Math.random() - 0.5) * 1.5
+        );
+        scene3.add(mm2);
+      }
+
+      // Secondary branches
+      var secBranches = [
+        { p: [-30, 78, 12], rz: -0.28, l: 36 },
+        { p: [40, 90, -20], rz: 0.22, l: 30 },
+        { p: [-20, 95, -15], rz: 0.32, l: 26 },
+        { p: [28, 72, 18], rz: -0.18, l: 33 },
+        { p: [-40, 85, 8], rz: -0.24, l: 40 },
+        { p: [15, 105, 25], rz: 0.3, l: 24 },
+      ];
+      secBranches.forEach(function (b) {
+        var bg2 = new THREE.CylinderGeometry(
+          0.55 + Math.random() * 0.35,
+          1 + Math.random() * 0.35,
+          b.l,
+          10,
+          1
+        );
+        var bm2 = new THREE.Mesh(bg2, branchMat);
+        bm2.position.set(b.p[0], b.p[1], b.p[2]);
+        bm2.rotation.z = Math.PI / 2 + b.rz;
+        bm2.rotation.y = Math.random() * 0.5 - 0.25;
+        scene3.add(bm2);
+      });
+
+      // Foliage mats
+      var fMats = [
+        new THREE.MeshPhongMaterial({
+          color: 0x1a8c2a,
+          emissive: 0x041802,
+          shininess: 8,
+          transparent: true,
+          opacity: 0.9,
+        }),
+        new THREE.MeshPhongMaterial({
+          color: 0x1f7a22,
+          emissive: 0x030e01,
+          shininess: 6,
+          transparent: true,
+          opacity: 0.86,
+        }),
+        new THREE.MeshPhongMaterial({
+          color: 0x267a1c,
+          emissive: 0x040e01,
+          shininess: 9,
+          transparent: true,
+          opacity: 0.88,
+        }),
+        new THREE.MeshPhongMaterial({
+          color: 0x2a8c1a,
+          emissive: 0x041601,
+          shininess: 7,
+          transparent: true,
+          opacity: 0.92,
+        }),
+      ];
+      var foliageArr = [];
+      // Far canopy
+      for (var fi = 0; fi < 110; fi++) {
+        var fa = Math.random() * Math.PI * 2;
+        var fr = 9 + Math.random() * 170;
+        var fbH = 52 + Math.random() * 38;
+        var fch = 7 + Math.random() * 17;
+        var fgeo = new THREE.SphereGeometry(fch, 9, 6);
+        var fmesh = new THREE.Mesh(fgeo, fMats[fi % 4]);
+        fmesh.position.set(Math.cos(fa) * fr, fbH + fch / 2, Math.sin(fa) * fr);
+        fmesh.scale.y = 0.62 + Math.random() * 0.32;
+        scene3.add(fmesh);
+        foliageArr.push({
+          mesh: fmesh,
+          by: fmesh.position.y,
+          sp: 0.16 + Math.random() * 0.12,
+          ph: Math.random() * Math.PI * 2,
+        });
+      }
+      // Near canopy
+      for (var ni = 0; ni < 75; ni++) {
+        var na = Math.random() * Math.PI * 2;
+        var nr = 4 + Math.random() * 42;
+        var nh = 68 + Math.random() * 45;
+        var ngeo = new THREE.SphereGeometry(4 + Math.random() * 8, 8, 5);
+        var nmesh = new THREE.Mesh(ngeo, fMats[ni % 4]);
+        nmesh.position.set(Math.cos(na) * nr, nh, Math.sin(na) * nr);
+        nmesh.scale.set(
+          0.78 + Math.random() * 0.45,
+          0.58 + Math.random() * 0.32,
+          0.78 + Math.random() * 0.38
+        );
+        scene3.add(nmesh);
+        foliageArr.push({
+          mesh: nmesh,
+          by: nmesh.position.y,
+          sp: 0.2 + Math.random() * 0.14,
+          ph: Math.random() * Math.PI * 2,
+        });
+      }
+      // Overhead canopy
+      for (var oi = 0; oi < 55; oi++) {
+        var oa = Math.random() * Math.PI * 2;
+        var orc = Math.random() * 22;
+        var ogeo = new THREE.SphereGeometry(5 + Math.random() * 10, 8, 5);
+        var omesh = new THREE.Mesh(ogeo, fMats[oi % 4]);
+        omesh.position.set(
+          Math.cos(oa) * orc,
+          98 + Math.random() * 28,
+          Math.sin(oa) * orc
+        );
+        omesh.scale.y = 0.52 + Math.random() * 0.28;
+        scene3.add(omesh);
+        foliageArr.push({
+          mesh: omesh,
+          by: omesh.position.y,
+          sp: 0.12 + Math.random() * 0.09,
+          ph: Math.random() * Math.PI * 2,
+        });
+      }
+      // Distant trees
+      for (var di = 0; di < 55; di++) {
+        var da = Math.random() * Math.PI * 2;
+        var dr = 35 + Math.random() * 200;
+        var dh = 38 + Math.random() * 50;
+        var dtg = new THREE.CylinderGeometry(
+          0.7 + Math.random() * 1.4,
+          0.9 + Math.random() * 1.8,
+          dh,
+          8,
+          1
+        );
+        var dtm = new THREE.Mesh(dtg, trunkMat);
+        dtm.position.set(Math.cos(da) * dr, dh / 2 - 100, Math.sin(da) * dr);
+        scene3.add(dtm);
+      }
+      // Ground
+      var groundGeo = new THREE.PlaneGeometry(800, 800);
+      var groundMat = new THREE.MeshPhongMaterial({
+        color: 0x0d2808,
+        shininess: 0,
+      });
+      var ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -100;
+      scene3.add(ground);
+      // Haze layer
+      var hazeGeo = new THREE.PlaneGeometry(800, 800);
+      var hazeMat2 = new THREE.MeshBasicMaterial({
+        color: 0x1a5020,
+        transparent: true,
+        opacity: 0.32,
+        depthWrite: false,
+      });
+      var haze2 = new THREE.Mesh(hazeGeo, hazeMat2);
+      haze2.rotation.x = -Math.PI / 2;
+      haze2.position.y = -38;
+      scene3.add(haze2);
+
+      // Lianes
+      var lMat = new THREE.MeshPhongMaterial({ color: 0x2a5a10, shininess: 2 });
+      for (var li = 0; li < 20; li++) {
+        var lx = (Math.random() - 0.5) * 80,
+          lz = (Math.random() - 0.5) * 80;
+        var lh2 = 28 + Math.random() * 50;
+        var lgeo = new THREE.CylinderGeometry(0.07, 0.11, lh2, 5, 1);
+        var lmesh = new THREE.Mesh(lgeo, lMat);
+        lmesh.position.set(lx, 100 - lh2 / 2, lz);
+        lmesh.rotation.set(
+          (Math.random() - 0.5) * 0.18,
+          0,
+          (Math.random() - 0.5) * 0.22
+        );
+        scene3.add(lmesh);
+      }
+
+      // Birds (12)
+      var birds = [];
+      for (var bd = 0; bd < 12; bd++) {
+        var bg3 = new THREE.Group();
+        var bcols = [
+          [0xe03010, 0x00aa44],
+          [0x0055cc, 0xffcc00],
+          [0x008800, 0xff4400],
+          [0x882200, 0xffaa00],
+        ];
+        var bc = bcols[bd % 4];
+        var bbm = new THREE.MeshPhongMaterial({ color: bc[0] });
+        var bwm = new THREE.MeshPhongMaterial({ color: bc[1] });
+        var bbody = new THREE.Mesh(new THREE.SphereGeometry(0.38, 7, 5), bbm);
+        bg3.add(bbody);
+        var bhead = new THREE.Mesh(new THREE.SphereGeometry(0.26, 6, 5), bbm);
+        bhead.position.set(0.32, 0.2, 0);
+        bg3.add(bhead);
+        var bbeak = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.03, 0.1, 0.38, 5, 1),
+          new THREE.MeshPhongMaterial({ color: 0xffa500 })
+        );
+        bbeak.rotation.z = Math.PI / 2;
+        bbeak.position.set(0.66, 0.2, 0);
+        bg3.add(bbeak);
+        var bwl = new THREE.Mesh(
+          new THREE.SphereGeometry(0.32, 6, 4, 0, Math.PI * 0.8),
+          bwm
+        );
+        bwl.position.set(0, 0.04, 0.35);
+        bg3.add(bwl);
+        var bwr = bwl.clone();
+        bwr.position.z = -0.35;
+        bg3.add(bwr);
+        var ba2 = Math.random() * Math.PI * 2;
+        var br2 = 12 + Math.random() * 44;
+        bg3.position.set(
+          Math.cos(ba2) * br2,
+          76 + Math.random() * 16,
+          Math.sin(ba2) * br2
+        );
+        scene3.add(bg3);
+        birds.push({
+          g: bg3,
+          ang: ba2,
+          r: br2,
+          sp: 0.22 + Math.random() * 0.22,
+          wp: Math.random() * Math.PI * 2,
+          wl: bwl,
+          wr: bwr,
+        });
+      }
+
+      // Monkeys (6)
+      var monkeys = [];
+      for (var mk = 0; mk < 6; mk++) {
+        var mg3 = new THREE.Group();
+        var mkm = new THREE.MeshPhongMaterial({ color: 0x5a3a18 });
+        var mbody2 = new THREE.Mesh(new THREE.SphereGeometry(0.45, 7, 5), mkm);
+        mg3.add(mbody2);
+        var mhead = new THREE.Mesh(new THREE.SphereGeometry(0.34, 7, 5), mkm);
+        mhead.position.set(0.42, 0.32, 0);
+        mg3.add(mhead);
+        var marm = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.07, 0.09, 0.65, 5),
+          mkm
+        );
+        marm.position.set(0.14, 0.07, 0.42);
+        marm.rotation.z = 0.8;
+        mg3.add(marm);
+        var marm2 = marm.clone();
+        marm2.position.z = -0.42;
+        mg3.add(marm2);
+        var mtail = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.055, 0.075, 0.85, 5),
+          mkm
+        );
+        mtail.position.set(-0.46, -0.1, 0);
+        mtail.rotation.z = -0.8;
+        mg3.add(mtail);
+        var ma3 = Math.random() * Math.PI * 2;
+        var mr3 = 22 + Math.random() * 45;
+        mg3.position.set(
+          Math.cos(ma3) * mr3,
+          70 + Math.random() * 20,
+          Math.sin(ma3) * mr3
+        );
+        scene3.add(mg3);
+        monkeys.push({
+          g: mg3,
+          ang: ma3,
+          r: mr3,
+          sp: 0.1 + Math.random() * 0.1,
+          jt: Math.random() * 5,
+          baseY: mg3.position.y,
+          tail: mtail,
+        });
+      }
+
+      // Insects (18)
+      var insects = [];
+      for (var ins = 0; ins < 18; ins++) {
+        var ig = new THREE.Group();
+        var icols = [
+          0xff6b00, 0xffcc00, 0x4400cc, 0xff00aa, 0x00aaff, 0x00ff44,
+        ];
+        var im = new THREE.MeshBasicMaterial({
+          color: icols[ins % 6],
+          transparent: true,
+          opacity: 0.72,
+          side: THREE.DoubleSide,
+        });
+        var iw1 = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.2), im);
+        iw1.position.x = 0.18;
+        ig.add(iw1);
+        var iw2 = iw1.clone();
+        iw2.position.x = -0.18;
+        ig.add(iw2);
+        var ipa = Math.random() * Math.PI * 2;
+        var ipr = 2 + Math.random() * 16;
+        ig.position.set(
+          Math.cos(ipa) * ipr,
+          82 + Math.random() * 5,
+          Math.sin(ipa) * ipr
+        );
+        scene3.add(ig);
+        insects.push({
+          g: ig,
+          vx: (Math.random() - 0.5) * 0.06,
+          vy: (Math.random() - 0.5) * 0.04,
+          vz: (Math.random() - 0.5) * 0.06,
+          wp: Math.random() * Math.PI * 2,
+          w1: iw1,
+          w2: iw2,
+        });
+      }
+
+      // O2 particles
+      var o2P = [];
+      for (var op = 0; op < 50; op++) {
+        var om = new THREE.MeshBasicMaterial({
+          color: 0x00ff88,
+          transparent: true,
+          opacity: 0.6,
+        });
+        var omesh = new THREE.Mesh(new THREE.SphereGeometry(0.1, 4, 4), om);
+        scene3.add(omesh);
+        o2P.push({
+          mesh: omesh,
+          x: (Math.random() - 0.5) * 180,
+          y: 48 + Math.random() * 70,
+          z: (Math.random() - 0.5) * 180,
+          vy: 0.07 + Math.random() * 0.1,
+          lf: Math.random(),
+        });
+      }
+
+      // ── FPS CONTROLS (full freedom: ground to sky) ──
+      var isLocked = false,
+        yaw = 0,
+        pitch = 0,
+        camH = 82;
+      var GROUND_Y = -98,
+        SKY_Y = 138;
+      var keys2 = {};
+      document.addEventListener("keydown", function (e) {
+        keys2[e.code] = true;
+        if (e.code === "Space") e.preventDefault();
+      });
+      document.addEventListener("keyup", function (e) {
+        keys2[e.code] = false;
+      });
+
+      var cnv = document.getElementById("three-canvas");
+      cnv.addEventListener("click", function () {
+        if (!isLocked && currentScene === "canopy") cnv.requestPointerLock();
+      });
+      document.addEventListener("pointerlockchange", function () {
+        isLocked = document.pointerLockElement === cnv;
+        document.getElementById("crosshair").classList.toggle("show", isLocked);
+        document
+          .getElementById("ctrl-hint")
+          .classList.toggle("show", !isLocked);
+      });
+      document.addEventListener("mousemove", function (e) {
+        if (!isLocked || currentScene !== "canopy") return;
+        yaw -= e.movementX * 0.0018;
+        pitch -= e.movementY * 0.0015;
+        pitch = Math.max(-1.5, Math.min(1.5, pitch));
+      });
+
+      // Minimap canvas
+      var mmCnv = document.getElementById("mm-canvas");
+      var mmCtx = mmCnv.getContext("2d");
+      var MM = 130;
+      var treePositions = [];
+      for (var tpi = 0; tpi < 55; tpi++) {
+        var tpa = Math.random() * Math.PI * 2;
+        var tpr = 35 + Math.random() * 200;
+        treePositions.push({ x: Math.cos(tpa) * tpr, z: Math.sin(tpa) * tpr });
+      }
+      treePositions.push({ x: 0, z: 0 });
+
+      // Leaf tooltip raycaster
+      var raycaster = new THREE.Raycaster();
+      var tooltipTimeout = null;
+      var leafData = [
+        {
+          title: "Feuille de Sequoia",
+          body: "Surface: 0.8 cm2\nO2/h: 0.00003 g\nAge: ~2 ans",
+        },
+        {
+          title: "Chlorophylle active",
+          body: "Absorbe lumiere rouge et bleue\nReflete le vert",
+        },
+        {
+          title: "Stomate ouvert",
+          body: "Echange gazeux actif\nO2 sort / CO2 entre",
+        },
+        {
+          title: "Nervure principale",
+          body: "Transport de seve elaboree\nvers la branche",
+        },
+        { title: "Feuille jeune", body: "Croissance active\nO2/h: 0.00005 g" },
+      ];
+      cnv.addEventListener("mousedown", function (e) {
+        if (!isLocked && currentScene === "canopy") {
+          var rect = cnv.getBoundingClientRect();
+          var mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          var my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          raycaster.setFromCamera(new THREE.Vector2(mx, my), camera);
+          var fmeshes = foliageArr.map(function (f) {
+            return f.mesh;
+          });
+          var hits = raycaster.intersectObjects(fmeshes);
+          if (hits.length > 0) {
+            var idx = fmeshes.indexOf(hits[0].object);
+            var d = leafData[Math.abs(idx) % leafData.length];
+            var tip = document.getElementById("leaf-tip");
+            document.getElementById("lt-title").textContent = d.title;
+            document.getElementById("lt-body").textContent = d.body;
+            tip.style.left = Math.min(e.clientX + 12, W - 195) + "px";
+            tip.style.top = Math.max(e.clientY - 44, 8) + "px";
+            tip.classList.add("show");
+            if (tooltipTimeout) clearTimeout(tooltipTimeout);
+            tooltipTimeout = setTimeout(function () {
+              tip.classList.remove("show");
+            }, 3500);
+            return;
+          }
+          cnv.requestPointerLock();
+        }
+      });
+
+      // Climb indicator
+      var climbMsgT = 0;
+      function showClimbMsg(msg) {
+        climbMsgT = 2.5;
+        var ci = document.getElementById("climb-ind");
+        ci.textContent = msg;
+        ci.classList.add("show");
+      }
+
+      // Minimap draw
+      function drawMinimap() {
+        mmCtx.clearRect(0, 0, MM, MM);
+        mmCtx.fillStyle = "rgba(0,8,3,.88)";
+        mmCtx.beginPath();
+        mmCtx.arc(MM / 2, MM / 2, MM / 2, 0, Math.PI * 2);
+        mmCtx.fill();
+        var sc = 1 / 3,
+          cx2 = MM / 2,
+          cy2 = MM / 2;
+        treePositions.forEach(function (tp) {
+          var tx = cx2 + tp.x * sc,
+            ty = cy2 + tp.z * sc;
+          if (tx < 4 || tx > MM - 4 || ty < 4 || ty > MM - 4) return;
+          mmCtx.fillStyle = "rgba(20,120,30,.55)";
+          mmCtx.beginPath();
+          mmCtx.arc(tx, ty, 2, 0, Math.PI * 2);
+          mmCtx.fill();
+        });
+        // Main trunk
+        mmCtx.fillStyle = "rgba(110,58,18,.9)";
+        mmCtx.beginPath();
+        mmCtx.arc(cx2, cy2, 4, 0, Math.PI * 2);
+        mmCtx.fill();
+        // Main branch
+        mmCtx.strokeStyle = "rgba(80,42,12,.75)";
+        mmCtx.lineWidth = 3;
+        mmCtx.beginPath();
+        mmCtx.moveTo(cx2, cy2);
+        mmCtx.lineTo(cx2 + 29 * sc, cy2);
+        mmCtx.stroke();
+        // Player
+        var px = Math.max(8, Math.min(MM - 8, cx2 + camera.position.x * sc));
+        var pz = Math.max(8, Math.min(MM - 8, cy2 + camera.position.z * sc));
+        mmCtx.fillStyle = "rgba(0,255,136,.88)";
+        mmCtx.beginPath();
+        mmCtx.arc(px, pz, 4, 0, Math.PI * 2);
+        mmCtx.fill();
+        mmCtx.strokeStyle = "rgba(0,255,136,.65)";
+        mmCtx.lineWidth = 1.5;
+        mmCtx.beginPath();
+        mmCtx.moveTo(px, pz);
+        mmCtx.lineTo(px + Math.sin(yaw) * 11, pz + Math.cos(yaw) * 11);
+        mmCtx.stroke();
+        // Altitude on right edge
+        var af = (camH - GROUND_Y) / (SKY_Y - GROUND_Y);
+        var ay = Math.max(5, Math.min(MM - 5, MM - af * (MM - 10) - 5));
+        mmCtx.fillStyle = "rgba(255,200,60,.8)";
+        mmCtx.fillRect(MM - 9, ay - 2, 6, 4);
+        // Border
+        mmCtx.strokeStyle = "rgba(0,255,136,.18)";
+        mmCtx.lineWidth = 1.2;
+        mmCtx.beginPath();
+        mmCtx.arc(MM / 2, MM / 2, MM / 2 - 1, 0, Math.PI * 2);
+        mmCtx.stroke();
+      }
+
+      var treeNear = false;
+      function update3D(dt, t) {
+        var spd = keys2["ShiftLeft"] || keys2["ShiftRight"] ? 10 : 5;
+        var fwdH = new THREE.Vector3(
+          Math.sin(yaw),
+          0,
+          Math.cos(yaw)
+        ).normalize();
+        var rgt = new THREE.Vector3(
+          Math.cos(yaw),
+          0,
+          -Math.sin(yaw)
+        ).normalize();
+        if (keys2["KeyW"] || keys2["ArrowUp"])
+          camera.position.addScaledVector(fwdH, spd * dt);
+        if (keys2["KeyS"] || keys2["ArrowDown"])
+          camera.position.addScaledVector(fwdH, -spd * dt);
+        if (keys2["KeyA"] || keys2["ArrowLeft"])
+          camera.position.addScaledVector(rgt, -spd * dt);
+        if (keys2["KeyD"] || keys2["ArrowRight"])
+          camera.position.addScaledVector(rgt, spd * dt);
+        var vspd = keys2["ShiftLeft"] ? 12 : 6;
+        if (keys2["KeyE"] || keys2["PageUp"]) {
+          camH = Math.min(SKY_Y, camH + vspd * dt);
+          if (climbMsgT <= 0)
+            showClimbMsg(camH > 100 ? "Cime de la canopee" : "Grimper...");
+        }
+        if (keys2["KeyR"] || keys2["KeyQ"] || keys2["PageDown"]) {
+          camH = Math.max(GROUND_Y, camH - vspd * dt);
+          if (climbMsgT <= 0)
+            showClimbMsg(camH < -50 ? "Sol de la foret" : "Descendre...");
+        }
+        if (keys2["Space"] && !keys2["_jmp"]) {
+          keys2["_jmp"] = true;
+          camH = Math.min(SKY_Y, camH + 2.2);
+        }
+        if (!keys2["Space"]) keys2["_jmp"] = false;
+        camera.position.y = camH;
+        camera.position.x = Math.max(-220, Math.min(220, camera.position.x));
+        camera.position.z = Math.max(-220, Math.min(220, camera.position.z));
+        camera.rotation.order = "YXZ";
+        camera.rotation.y = yaw;
+        camera.rotation.x = pitch;
+        // Altitude HUD
+        var altM = Math.round(camH + 100);
+        var altZone =
+          camH < -80
+            ? "Sol de foret"
+            : camH < 0
+            ? "Sous-bois"
+            : camH < 50
+            ? "Mi-hauteur"
+            : camH < 95
+            ? "Canopee"
+            : "Cime";
+        document.getElementById("ag-val").textContent =
+          altZone + " " + altM + "m";
+        var af2 = Math.max(
+          0,
+          Math.min(1, (camH - GROUND_Y) / (SKY_Y - GROUND_Y))
+        );
+        document.getElementById("ag-fill").style.height = af2 * 100 + "%";
+        // Climb msg
+        if (climbMsgT > 0) {
+          climbMsgT -= dt;
+          if (climbMsgT <= 0)
+            document.getElementById("climb-ind").classList.remove("show");
+        }
+        // Tree proximity check (any tree)
+        var nearD = 999;
+        treePositions.forEach(function (tp) {
+          var dx = camera.position.x - tp.x,
+            dz = camera.position.z - tp.z;
+          var d = Math.sqrt(dx * dx + dz * dz);
+          if (d < nearD) nearD = d;
+        });
+        var mainD = Math.sqrt(
+          camera.position.x * camera.position.x +
+            camera.position.z * camera.position.z
+        );
+        if (nearD < 13 && !treeNear) {
+          treeNear = true;
+          if (mainD < 16)
+            document.getElementById("tree-panel").classList.add("show");
+          else showClimbMsg("Arbre proche - E pour grimper, R pour descendre");
+        } else if (nearD >= 13 && treeNear) {
+          treeNear = false;
+          document.getElementById("tree-panel").classList.remove("show");
+        }
+        // Foliage wind
+        foliageArr.forEach(function (f) {
+          f.mesh.position.y = f.by + Math.sin(t * f.sp + f.ph) * 1.1;
+        });
+        sunPts.forEach(function (pl, i) {
+          pl.intensity = 1.4 + Math.sin(t * 0.42 + i * 1.1) * 0.5;
+        });
+        // Birds
+        birds.forEach(function (b, i) {
+          b.ang += b.sp * dt;
+          b.g.position.x = Math.cos(b.ang) * b.r;
+          b.g.position.z = Math.sin(b.ang) * b.r;
+          b.g.position.y += Math.sin(t * 1.4 + i) * 0.015;
+          b.g.rotation.y = -b.ang + Math.PI / 2;
+          b.wp += 0.22;
+          var fl = Math.sin(b.wp) * 0.65;
+          b.wl.rotation.z = fl;
+          b.wr.rotation.z = -fl;
+        });
+        // Monkeys
+        monkeys.forEach(function (m, i) {
+          m.ang += m.sp * dt;
+          m.g.position.x = Math.cos(m.ang) * m.r;
+          m.g.position.z = Math.sin(m.ang) * m.r;
+          m.jt += dt;
+          m.g.position.y = m.baseY + Math.abs(Math.sin(m.jt * 0.75)) * 2.2;
+          m.g.rotation.y = -m.ang + Math.PI / 2;
+          m.tail.rotation.z = -0.8 + Math.sin(t * 2 + i) * 0.28;
+        });
+        // Insects
+        insects.forEach(function (ins2, i) {
+          ins2.g.position.x += ins2.vx + Math.sin(t * 2 + i) * 0.04;
+          ins2.g.position.y += ins2.vy + Math.cos(t * 2.4 + i) * 0.03;
+          ins2.g.position.z += ins2.vz;
+          ins2.wp += 0.18;
+          var wf = Math.sin(ins2.wp) * 0.38;
+          ins2.w1.rotation.z = wf;
+          ins2.w2.rotation.z = -wf;
+          if (Math.abs(ins2.g.position.x) > 18) ins2.vx *= -1;
+          if (Math.abs(ins2.g.position.z) > 18) ins2.vz *= -1;
+          if (ins2.g.position.y < -90 || ins2.g.position.y > 130) ins2.vy *= -1;
+        });
+        // O2 particles
+        o2P.forEach(function (p) {
+          p.y += p.vy;
+          p.lf += 0.004;
+          if (p.y > 175 || p.lf > 1) {
+            p.y = 48 + Math.random() * 15;
+            p.x = (Math.random() - 0.5) * 180;
+            p.z = (Math.random() - 0.5) * 180;
+            p.lf = 0;
+          }
+          p.mesh.position.set(p.x, p.y, p.z);
+          p.mesh.material.opacity = Math.sin(p.lf * Math.PI) * 0.45;
+        });
+        drawMinimap();
+        renderer3.render(scene3, camera);
+      }
+
+      // ── 2D CANVASES ──
+      var pctx = document.getElementById("photo-canvas").getContext("2d");
+      var fctx = document.getElementById("forest-canvas").getContext("2d");
+
+      function drawPhoto(t) {
+        pctx.clearRect(0, 0, W, H);
+        pctx.fillStyle = "#010e06";
+        pctx.fillRect(0, 0, W, H);
+        var cx = W / 2,
+          cy = H / 2;
+        var lw = Math.min(W * 0.48, 370),
+          lh = Math.min(H * 0.7, 460);
+        // Leaf shape
+        var lg = pctx.createLinearGradient(
+          cx - lw / 2,
+          cy - lh / 2,
+          cx + lw / 2,
+          cy + lh / 2
+        );
+        lg.addColorStop(0, "rgba(28,138,48,.9)");
+        lg.addColorStop(0.5, "rgba(18,175,55,.85)");
+        lg.addColorStop(1, "rgba(10,118,32,.9)");
+        pctx.fillStyle = lg;
+        pctx.beginPath();
+        pctx.ellipse(cx, cy, lw / 2, lh / 2, 0, 0, Math.PI * 2);
+        pctx.fill();
+        // Mid-rib
+        pctx.strokeStyle = "rgba(80,220,100,.65)";
+        pctx.lineWidth = 2.5;
+        pctx.beginPath();
+        pctx.moveTo(cx, cy - lh / 2 + 10);
+        pctx.bezierCurveTo(cx - 6, cy, cx + 6, cy, cx, cy + lh / 2 - 12);
+        pctx.stroke();
+        // Side veins
+        for (var n = 0; n < 7; n++) {
+          var nt = (n + 1) / 8;
+          var ny = cy - lh / 2 + lh * nt;
+          var nex =
+            cx +
+            (n % 2 === 0 ? 1 : -1) *
+              (lw * 0.32 * (1 - Math.abs(nt - 0.5) * 1.7));
+          pctx.strokeStyle = "rgba(65,195,82,.32)";
+          pctx.lineWidth = 1;
+          pctx.beginPath();
+          pctx.moveTo(cx, ny);
+          pctx.quadraticCurveTo(nex * 0.45 + cx * 0.55, ny - 7, nex, ny - 3);
+          pctx.stroke();
+        }
+        // Layers
+        var layers = [
+          { y: 0.08, h: 0.08, c: "rgba(215,205,148,.14)" },
+          { y: 0.16, h: 0.1, c: "rgba(175,225,128,.17)" },
+          { y: 0.26, h: 0.22, c: "rgba(0,195,58,.21)" },
+          { y: 0.48, h: 0.2, c: "rgba(0,155,38,.14)" },
+          { y: 0.68, h: 0.12, c: "rgba(95,195,195,.13)" },
+          { y: 0.8, h: 0.1, c: "rgba(155,215,118,.13)" },
+        ];
+        var lph = Math.floor((photoT % 30) / 5);
+        layers.forEach(function (l, i) {
+          pctx.fillStyle = l.c;
+          pctx.fillRect(
+            cx - lw / 2 + 8,
+            cy - lh / 2 + lh * l.y,
+            lw - 16,
+            lh * l.h
+          );
+          if (i === lph) {
+            pctx.strokeStyle = "rgba(0,255,136,.45)";
+            pctx.lineWidth = 1.3;
+            pctx.strokeRect(
+              cx - lw / 2 + 8,
+              cy - lh / 2 + lh * l.y,
+              lw - 16,
+              lh * l.h
+            );
+          }
+          var el = document.getElementById("ll-" + i);
+          if (el) el.classList.toggle("active", i === lph);
+        });
+        // Chloroplasts
+        for (var ci = 0; ci < 12; ci++) {
+          var ca = (ci / 12) * Math.PI * 2 + t * 0.08;
+          var cr2 = lw * 0.2;
+          var cpx = cx + Math.cos(ca) * cr2 * (1 + Math.sin(ca * 2) * 0.18),
+            cpy = cy + Math.sin(ca) * cr2 * 0.5;
+          var cpl = 1 + Math.sin(t * 2.4 + ci) * 0.1;
+          pctx.fillStyle =
+            "rgba(0," +
+            Math.floor(172 + Math.sin(t * 2 + ci) * 38) +
+            ",48," +
+            (0.7 + Math.sin(t * 2 + ci) * 0.14) +
+            ")";
+          pctx.beginPath();
+          pctx.ellipse(cpx, cpy, 8 * cpl, 5 * cpl, ca, 0, Math.PI * 2);
+          pctx.fill();
+        }
+        // Stomates
+        for (var si = 0; si < 3; si++) {
+          var sx = cx - lw * 0.25 + si * lw * 0.25;
+          var sy = cy + lh * 0.38;
+          var sop = 0.55 + Math.sin(t * 0.4 + si) * 0.32;
+          pctx.fillStyle = "rgba(0,0,0,.65)";
+          pctx.beginPath();
+          pctx.ellipse(sx, sy, 7 * sop, 4.5, 0, 0, Math.PI * 2);
+          pctx.fill();
+          pctx.strokeStyle = "rgba(95,195,195,.45)";
+          pctx.lineWidth = 0.9;
+          pctx.beginPath();
+          pctx.ellipse(sx, sy, 9, 6, 0, 0, Math.PI * 2);
+          pctx.stroke();
+        }
+        // Photo particles
+        if (lph <= 1) {
+          if (Math.random() < 0.12)
+            photoParts.push({
+              t: "ph",
+              x: cx - lw * 0.4 + Math.random() * lw * 0.8,
+              y: cy - lh * 0.45,
+              vy: 1.3 + Math.random(),
+              vx: (Math.random() - 0.5) * 0.25,
+              lf: 1,
+              r: 3.5 + Math.random() * 2.5,
+            });
+          if (Math.random() < 0.08)
+            photoParts.push({
+              t: "h2",
+              x: cx + (Math.random() - 0.5) * lw * 0.35,
+              y: cy + lh * 0.42,
+              vy: -1.1,
+              vx: (Math.random() - 0.5) * 0.3,
+              lf: 1,
+              r: 3.5,
+            });
+          if (Math.random() < 0.07)
+            photoParts.push({
+              t: "co",
+              x: cx - lw * 0.46 + Math.random() * 8,
+              y: cy + (Math.random() - 0.5) * lh * 0.28,
+              vy: (Math.random() - 0.5) * 0.3,
+              vx: 1.1,
+              lf: 1,
+              r: 3.5,
+            });
+        }
+        if (lph >= 3) {
+          if (Math.random() < 0.1)
+            photoParts.push({
+              t: "o2",
+              x: cx + (Math.random() - 0.5) * lw * 0.28,
+              y: cy + (Math.random() - 0.5) * lh * 0.22,
+              vy: -1.6 - Math.random(),
+              vx: (Math.random() - 0.5) * 0.5,
+              lf: 1,
+              r: 3.5,
+            });
+          if (Math.random() < 0.07)
+            photoParts.push({
+              t: "gl",
+              x: cx + (Math.random() - 0.5) * lw * 0.28,
+              y: cy,
+              vy: 0.7,
+              vx: (Math.random() - 0.5) * 0.3,
+              lf: 1,
+              r: 3,
+            });
+        }
+        for (var pi = photoParts.length - 1; pi >= 0; pi--) {
+          var pp = photoParts[pi];
+          pp.x += pp.vx;
+          pp.y += pp.vy;
+          pp.lf -= 0.016;
+          if (pp.lf <= 0) {
+            photoParts.splice(pi, 1);
+            continue;
+          }
+          var pcols = {
+            ph: "rgba(255,228,0,",
+            h2: "rgba(78,158,255,",
+            co: "rgba(158,158,158,",
+            o2: "rgba(0,255,100,",
+            gl: "rgba(255,138,0,",
+          };
+          var pc = pcols[pp.t] || "rgba(200,200,200,";
+          pctx.fillStyle = pc + pp.lf * 0.88 + ")";
+          pctx.beginPath();
+          pctx.arc(pp.x, pp.y, pp.r, 0, Math.PI * 2);
+          pctx.fill();
+        }
+      }
+
+      function drawForest(t) {
+        fctx.fillStyle = "#061208";
+        fctx.fillRect(0, 0, W, H);
+        var cx = W / 2,
+          cy = H / 2;
+        // Sky
+        var sk = fctx.createLinearGradient(0, 0, 0, H * 0.22);
+        sk.addColorStop(0, "rgba(24,82,148,.85)");
+        sk.addColorStop(1, "transparent");
+        fctx.fillStyle = sk;
+        fctx.fillRect(0, 0, W, H);
+        // Forest base
+        var fgr = fctx.createRadialGradient(
+          cx,
+          cy,
+          0,
+          cx,
+          cy,
+          Math.max(W, H) * 0.58
+        );
+        fgr.addColorStop(0, "rgba(7,46,13,.92)");
+        fgr.addColorStop(0.5, "rgba(4,28,8,.88)");
+        fgr.addColorStop(1, "rgba(1,12,3,.94)");
+        fctx.fillStyle = fgr;
+        fctx.fillRect(0, 0, W, H);
+        // Tree tops (satellite view)
+        for (var ft = 0; ft < 260; ft++) {
+          var ftx = (Math.sin(ft * 127.3 + 42) * 0.5 + 0.5) * W;
+          var fty = (Math.sin(ft * 251.7 + 84) * 0.5 + 0.5) * H;
+          var ftr = 11 + Math.sin(ft * 37.1) * 7;
+          var ftg2 = fctx.createRadialGradient(ftx, fty, 0, ftx, fty, ftr);
+          var fhue = 108 + Math.sin(ft * 13.7) * 18;
+          ftg2.addColorStop(
+            0,
+            "hsla(" +
+              fhue +
+              ",62%,36%," +
+              (0.9 + Math.sin(t * 0.2 + ft) * 0.06) +
+              ")"
+          );
+          ftg2.addColorStop(0.55, "hsla(" + fhue + ",54%,25%,.8)");
+          ftg2.addColorStop(0.85, "hsla(" + fhue + ",44%,15%,.45)");
+          ftg2.addColorStop(1, "transparent");
+          fctx.fillStyle = ftg2;
+          fctx.beginPath();
+          fctx.arc(ftx, fty, ftr, 0, Math.PI * 2);
+          fctx.fill();
+          fctx.fillStyle = "rgba(0,6,1,.35)";
+          fctx.beginPath();
+          fctx.ellipse(
+            ftx + ftr * 0.28,
+            fty + ftr * 0.28,
+            ftr * 0.65,
+            ftr * 0.45,
+            Math.PI * 0.3,
+            0,
+            Math.PI * 2
+          );
+          fctx.fill();
+        }
+        // River
+        fctx.strokeStyle = "rgba(38,115,195,.42)";
+        fctx.lineWidth = 7;
+        fctx.beginPath();
+        fctx.moveTo(W * 0.04, H * 0.28);
+        fctx.bezierCurveTo(
+          W * 0.18,
+          H * 0.38,
+          W * 0.38,
+          H * 0.24,
+          W * 0.58,
+          H * 0.43
+        );
+        fctx.bezierCurveTo(
+          W * 0.72,
+          H * 0.56,
+          W * 0.85,
+          H * 0.48,
+          W * 0.95,
+          H * 0.68
+        );
+        fctx.stroke();
+        // Clearings
+        for (var cl = 0; cl < 3; cl++) {
+          var clx = W * (0.22 + cl * 0.28),
+            cly = H * (0.28 + Math.sin(cl * 2.1) * 0.24);
+          var clg = fctx.createRadialGradient(
+            clx,
+            cly,
+            0,
+            clx,
+            cly,
+            32 + cl * 11
+          );
+          clg.addColorStop(0, "rgba(75,172,38,.22)");
+          clg.addColorStop(1, "transparent");
+          fctx.fillStyle = clg;
+          fctx.beginPath();
+          fctx.arc(clx, cly, 32 + cl * 11, 0, Math.PI * 2);
+          fctx.fill();
+        }
+        // O2 rising
+        if (Math.random() < 0.1)
+          forestParts.push({
+            x: Math.random() * W,
+            y: H * 0.82 + Math.random() * H * 0.18,
+            vx: (Math.random() - 0.5) * 0.7,
+            vy: -1.1 - Math.random() * 0.7,
+            lf: 1,
+            r: 2.5 + Math.random() * 2.5,
+          });
+        for (var fp = forestParts.length - 1; fp >= 0; fp--) {
+          var fpp = forestParts[fp];
+          fpp.x += fpp.vx;
+          fpp.y += fpp.vy;
+          fpp.lf -= 0.011;
+          if (fpp.lf <= 0 || fpp.y < 0) {
+            forestParts.splice(fp, 1);
+            continue;
+          }
+          fctx.fillStyle = "rgba(0,255,96," + fpp.lf * 0.44 + ")";
+          fctx.beginPath();
+          fctx.arc(fpp.x, fpp.y, fpp.r, 0, Math.PI * 2);
+          fctx.fill();
+        }
+        // Edge vignette
+        var vg = fctx.createRadialGradient(
+          cx,
+          cy,
+          Math.min(W, H) * 0.22,
+          cx,
+          cy,
+          Math.max(W, H) * 0.62
+        );
+        vg.addColorStop(0, "transparent");
+        vg.addColorStop(0.65, "transparent");
+        vg.addColorStop(1, "rgba(8,38,12,.58)");
+        fctx.fillStyle = vg;
+        fctx.fillRect(0, 0, W, H);
+      }
+
+      // ── PHOTO COUNTERS ──
+      function updatePhotoCtrs(t) {
+        var prog = Math.min(1, photoT / 24);
+        document.getElementById("cp-o2").textContent =
+          (prog * 0.06).toFixed(3) + " g/h";
+        document.getElementById("cp-gl").textContent =
+          (prog * 0.08).toFixed(3) + " g/h";
+        document.getElementById("cp-tree").textContent =
+          Math.floor(prog * 120) + " kg/j";
+        document.getElementById("eq-t").textContent = Math.floor(photoT % 30);
+        photoPhase = Math.floor((photoT % 30) / 5);
+        if (t - lastMolT > 1.1) {
+          molCount++;
+          document.getElementById("cp-mol").textContent = molCount;
+          lastMolT = t;
+        }
+        if (
+          photoT >= 26 &&
+          document.getElementById("forest-btn").style.display !== "block"
+        )
+          document.getElementById("forest-btn").style.display = "block";
+      }
+
+      // ── FOREST COUNTERS ──
+      var fTgt = { o2: 24000, hum: 400000, co2: 4400, car: 880000, eau: 300 };
+      var fCur = { o2: 0, hum: 0, co2: 0, car: 0, eau: 0 };
+      function updateForestCtrs(dt) {
+        Object.keys(fTgt).forEach(function (k) {
+          if (fCur[k] < fTgt[k]) {
+            fCur[k] = Math.min(fTgt[k], fCur[k] + fTgt[k] * dt * 0.042);
+            var el = document.getElementById("ap-" + k);
+            if (!el) return;
+            var v = Math.floor(fCur[k]);
+            var s = "";
+            if (k === "o2") s = v.toLocaleString() + " t/j";
+            else if (k === "hum") s = v.toLocaleString();
+            else if (k === "co2") s = v.toLocaleString() + " t/j";
+            else if (k === "car") s = v.toLocaleString();
+            else if (k === "eau") s = v.toLocaleString() + " ML/j";
+            el.textContent = s;
+          }
+        });
+      }
+
+      // ── MAIN LOOP ──
+      function mainLoop(ts) {
+        animId = requestAnimationFrame(mainLoop);
+        var dt = Math.min((ts - lastTs) / 1000, 0.05);
+        lastTs = ts;
+        globalT += dt;
+        var t = globalT;
+        if (currentScene === "canopy") {
+          update3D(dt, t);
+        } else if (currentScene === "photo") {
+          photoT += dt;
+          drawPhoto(t);
+          updatePhotoCtrs(t);
+        } else if (currentScene === "forest") {
+          forestT += dt;
+          drawForest(t);
+          updateForestCtrs(dt);
+        }
+      }
+
+      // ── NAVIGATION ──
+      function goToPhoto() {
+        if (syn) syn.cancel();
+        hideV1(function () {});
+        if (isLocked) document.exitPointerLock();
+        var cu = document.getElementById("curtain");
+        cu.classList.remove("gone");
+        cu.style.transition = "opacity .6s";
+        cu.style.opacity = "1";
+        setTimeout(function () {
+          // Switch canvases
+          document.getElementById("three-canvas").style.display = "none";
+          document.getElementById("photo-canvas").style.display = "block";
+          document.getElementById("ui-canopy").classList.remove("active");
+          document.getElementById("photo-ui").classList.add("active");
+          currentScene = "photo";
+          cu.style.transition = "opacity .8s";
+          cu.style.opacity = "0";
+          setTimeout(function () {
+            cu.classList.add("gone");
+          }, 850);
+        }, 650);
+      }
+      function goToForest() {
+        if (syn) syn.cancel();
+        var cu = document.getElementById("curtain");
+        cu.classList.remove("gone");
+        cu.style.transition = "opacity .6s";
+        cu.style.opacity = "1";
+        setTimeout(function () {
+          document.getElementById("photo-canvas").style.display = "none";
+          document.getElementById("forest-canvas").style.display = "block";
+          document.getElementById("photo-ui").classList.remove("active");
+          document.getElementById("forest-overlay").classList.add("active");
+          currentScene = "forest";
+          cu.style.transition = "opacity 1s";
+          cu.style.opacity = "0";
+          setTimeout(function () {
+            cu.classList.add("gone");
+            setTimeout(function () {
+              document.getElementById("amazon-panel").classList.add("show");
+            }, 600);
+            setTimeout(function () {
+              showV2(
+                "Vous voyez cette foret ?\n5,5 millions de kilometres carres.\n20 pourcent de l oxygene mondial.\nUn seul arbre... 2 humains.\nCette foret... 3 milliards d humains.\nC est MONUMENTAL.\nMes forets tropicales\nproduisent 28 pourcent de l oxygene terrestre.\nAbritent 80 pourcent de la biodiversite.\nElles sont le POUMON de la planete.\nMais...\nDepuis 50 ans...\nVous les coupez.\n10 millions d hectares par an.\n27 000 hectares par JOUR.\n18 hectares par MINUTE.\nPendant que vous regardiez cette foret...\n90 hectares ont ete rases.\nVenez.\nJe vais vous montrer\nce que la deforestation fait a mes poumons.",
+                function () {
+                  setTimeout(function () {
+                    document
+                      .getElementById("forest-continue")
+                      .classList.add("show");
+                  }, 1100);
+                }
+              );
+              playDark();
+            }, 1400);
+          }, 1060);
+        }, 650);
+      }
+      function goNext() {
+        if (syn) syn.cancel();
+        try {
+          localStorage.setItem("gaiaPlayerName", pName);
+          localStorage.setItem("gaiaScore", score.toString());
+        } catch (e) {}
+        var cu = document.getElementById("curtain");
+        cu.classList.remove("gone");
+        cu.style.transition = "opacity 2.2s ease";
+        cu.style.opacity = "1";
+        setTimeout(function () {
+          window.location.href = "scene12.html";
+        }, 2400);
+      }
+
+      // ── START ──
+      function startScene() {
+        initAudio();
+        var fl = document.getElementById("entry-flash");
+        fl.style.opacity = ".9";
+        fl.style.transition = "none";
+        setTimeout(function () {
+          fl.style.transition = "opacity .65s";
+          fl.style.opacity = "0";
+        }, 80);
+        var cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.2s ease";
+        setTimeout(function () {
+          cu.classList.add("gone");
+        }, 120);
+        lastTs = performance.now();
+        requestAnimationFrame(mainLoop);
+        playAmb();
+        setTimeout(playBirds, 1800);
+        setTimeout(function () {
+          document.getElementById("alt-gauge").classList.add("show");
+          document.getElementById("minimap").classList.add("show");
+          document.getElementById("mob-btns").classList.add("show");
+          setTimeout(function () {
+            document.getElementById("ctrl-hint").classList.add("show");
+          }, 700);
+        }, 1400);
+        setTimeout(function () {
+          showV1(
+            "Bienvenue dans ma canopee, " +
+              pName +
+              ".\nLe sommet de mes poumons.\nIci... l oxygene est fabrique.\nVous etes a 82 metres de haut.\nSur un sequoia de 2 000 ans.\nL un des etres vivants les plus anciens de la planete.\nRegardez autour de vous.\nCliquez pour regarder librement.\nApprochez-vous du tronc pour en apprendre plus.",
+            function () {
+              hideV1(function () {});
+            }
+          );
+        }, 2200);
+      }
+      window.addEventListener("resize", function () {
+        W = innerWidth;
+        H = innerHeight;
+        renderer3.setSize(W, H);
+        camera.aspect = W / H;
+        camera.updateProjectionMatrix();
+        var pc = document.getElementById("photo-canvas");
+        pc.width = W;
+        pc.height = H;
+        var fc = document.getElementById("forest-canvas");
+        fc.width = W;
+        fc.height = H;
+      });
+      window.addEventListener("load", startScene);
+    </script>
+  </body>
+</html>
