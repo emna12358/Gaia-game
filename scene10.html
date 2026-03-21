@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GAÏA — Scène 10 : L'Alvéole</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root{--g:#00ff88;--gd:#00cc66;--soft:#d0f0e0;--ui:rgba(0,5,2,.96);--ub:rgba(0,255,136,.16);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000500;}
+body{font-family:"EB Garamond",Georgia,serif;cursor:none;opacity:0;animation:fi .5s ease .05s forwards;}
+@keyframes fi{to{opacity:1}}
+#cur{position:fixed;width:14px;height:14px;border:1.5px solid rgba(0,255,136,.7);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .05s;}
+#cur::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:3px;height:3px;background:var(--g);border-radius:50%;}
+#curtain{position:fixed;inset:0;z-index:900;background:#000;opacity:1;pointer-events:none;transition:opacity 1.4s ease;}
+#curtain.gone{opacity:0;}
+#entry-flash{position:fixed;inset:0;z-index:850;background:#00ff88;opacity:0;pointer-events:none;}
+
+/* ══ CANVASES PLEIN ÉCRAN ══ */
+canvas{position:fixed;top:0;left:0;width:100%;height:100%;}
+#bg-c{z-index:1;}
+#tree-c{z-index:2;}
+#part-c{z-index:3;pointer-events:none;}
+#guide-c{z-index:4;pointer-events:none;}
+
+/* ══ HUD ══ */
+#hud{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:flex-start;justify-content:space-between;padding:18px 26px 0;pointer-events:none;opacity:0;transition:opacity 1s;}
+#hud.show{opacity:1;}
+.hud-lbl{font-family:"Cinzel",serif;font-size:9px;letter-spacing:.5em;color:rgba(0,255,136,.35);}
+
+/* Barre capacité — haut centre */
+#lung-wrap{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:21;width:min(380px,60vw);opacity:0;transition:opacity 1s;}
+#lung-wrap.show{opacity:1;}
+#lung-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+#lung-lbl{font-family:"Cinzel",serif;font-size:7px;letter-spacing:.38em;color:rgba(0,255,136,.45);}
+#lung-pct{font-family:"Cinzel",serif;font-size:22px;font-weight:900;color:var(--g);filter:drop-shadow(0 0 10px rgba(0,255,136,.6));transition:color .5s,text-shadow .5s;}
+#lung-track{height:7px;background:rgba(0,255,136,.08);border-radius:4px;overflow:hidden;border:1px solid rgba(0,255,136,.1);}
+#lung-fill{height:100%;border-radius:4px;width:78%;transition:width .6s ease,background .5s;}
+#lung-cycles{font-family:"Cinzel",serif;font-size:7px;letter-spacing:.22em;color:rgba(0,255,136,.3);margin-top:4px;text-align:right;}
+
+/* Synchro — droite */
+#sync-wrap{position:fixed;top:56px;right:22px;z-index:21;width:min(175px,20vw);background:rgba(0,5,2,.88);border:1px solid rgba(0,255,136,.12);backdrop-filter:blur(22px);border-radius:3px;padding:11px 13px;opacity:0;transition:opacity 1s;}
+#sync-wrap.show{opacity:1;}
+.sw-t{font-family:"Cinzel",serif;font-size:7px;letter-spacing:.32em;color:rgba(0,255,136,.42);margin-bottom:9px;}
+.sw-r{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.sw-rl{font-family:"EB Garamond",serif;font-size:12px;color:rgba(255,255,255,.4);min-width:52px;}
+.sw-rb{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
+.sw-rf{height:100%;border-radius:2px;width:0%;transition:width .4s;}
+#sw-status{font-family:"Cinzel",serif;font-size:9px;letter-spacing:.22em;color:var(--g);margin-top:7px;padding-top:7px;border-top:1px solid rgba(0,255,136,.08);text-align:center;}
+
+/* Score — gauche */
+#score-wrap{position:fixed;top:56px;left:22px;z-index:21;opacity:0;transition:opacity 1s;}
+#score-wrap.show{opacity:1;}
+#score-val{font-family:"Cinzel",serif;font-size:9px;letter-spacing:.28em;color:rgba(0,255,136,.4);}
+
+/* ══ BADGE GUIDE (avant le jeu) ══ */
+#guide-badge{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,4,1,.94);backdrop-filter:blur(28px);}
+#gb-box{width:min(580px,90vw);background:rgba(0,8,3,.99);border:1px solid rgba(0,255,136,.22);border-radius:5px;padding:32px 36px 28px;text-align:center;animation:gbin .5s ease;}
+@keyframes gbin{from{transform:translateY(22px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+#gb-icon{font-size:56px;margin-bottom:10px;animation:treepulse 3s ease-in-out infinite;}
+@keyframes treepulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+#gb-title{font-family:"Cinzel",serif;font-size:clamp(14px,2.5vw,22px);font-weight:900;letter-spacing:.2em;color:var(--g);margin-bottom:6px;filter:drop-shadow(0 0 14px rgba(0,255,136,.5));}
+#gb-sub{font-family:"Cinzel",serif;font-size:7px;letter-spacing:.4em;color:rgba(0,255,136,.35);margin-bottom:18px;}
+.gb-divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,136,.25),transparent);margin-bottom:18px;}
+.gb-section{margin-bottom:14px;text-align:left;}
+.gb-s-t{font-family:"Cinzel",serif;font-size:8px;letter-spacing:.3em;color:rgba(0,255,136,.5);margin-bottom:8px;}
+.gb-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:7px;}
+.gb-row-ic{font-size:18px;min-width:24px;text-align:center;margin-top:1px;}
+.gb-row-txt{font-family:"EB Garamond",serif;font-size:14px;color:rgba(255,255,255,.62);line-height:1.6;}
+.gb-row-txt strong{color:rgba(0,255,136,.85);font-style:normal;}
+/* Score table */
+.gb-score-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:10px;}
+.gb-sc{background:rgba(0,15,6,.8);border-radius:3px;padding:8px 10px;text-align:center;}
+.gb-sc-ic{font-size:16px;margin-bottom:3px;}
+.gb-sc-l{font-family:"Cinzel",serif;font-size:7px;letter-spacing:.18em;color:rgba(255,255,255,.35);margin-bottom:2px;}
+.gb-sc-v{font-family:"Cinzel",serif;font-size:11px;font-weight:900;}
+#gb-btn{margin-top:20px;width:100%;font-family:"Cinzel",serif;font-size:11px;letter-spacing:.35em;color:var(--g);background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.5);padding:16px;cursor:pointer;transition:all .35s;border-radius:2px;}
+#gb-btn:hover{background:rgba(0,255,136,.14);box-shadow:0 0 50px rgba(0,255,136,.35);letter-spacing:.42em;}
+
+/* ══ BADGE RESPIRATOIRE (centre, pendant le jeu) ══ */
+#breath-badge{position:fixed;left:50%;bottom:clamp(115px,14vh,150px);transform:translateX(-50%);z-index:25;text-align:center;opacity:0;pointer-events:none;transition:opacity .6s;}
+#breath-badge.show{opacity:1;}
+#bb-phase{font-family:"Cinzel",serif;font-size:clamp(22px,4vw,38px);font-weight:900;letter-spacing:.22em;text-shadow:0 0 28px currentColor;transition:color .3s,text-shadow .3s;}
+#bb-arrow{font-size:clamp(18px,3vw,30px);margin-top:3px;transition:color .3s;}
+#bb-sub{font-family:"EB Garamond",serif;font-size:13px;color:rgba(255,255,255,.45);margin-top:4px;}
+
+/* Barre espace */
+#space-bar{position:fixed;bottom:clamp(72px,8vh,90px);left:50%;transform:translateX(-50%);z-index:25;display:flex;align-items:center;gap:10px;opacity:0;transition:opacity .6s;}
+#space-bar.show{opacity:1;}
+#sb-key{font-family:"Cinzel",serif;font-size:8px;letter-spacing:.28em;color:rgba(0,255,136,.55);background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);padding:6px 18px;border-radius:2px;transition:all .2s;}
+#sb-key.pressed{background:rgba(0,255,136,.2);border-color:rgba(0,255,136,.7);color:var(--g);box-shadow:0 0 20px rgba(0,255,136,.3);}
+#sb-hint{font-family:"EB Garamond",serif;font-size:13px;color:rgba(255,255,255,.3);}
+
+/* ══ VOIX GAÏA ══ */
+#vp{position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:40;width:min(720px,92vw);padding:0 0 16px;display:flex;flex-direction:column;align-items:center;pointer-events:none;}
+#vsep{width:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,136,.45),transparent);margin-bottom:8px;transition:width 1s;}
+#vsep.show{width:100%;}
+#vbox{width:100%;background:var(--ui);border:1px solid var(--ub);backdrop-filter:blur(26px);border-radius:3px;padding:13px 20px 11px;opacity:0;transform:translateY(10px);transition:opacity .8s,transform .8s;}
+#vbox.show{opacity:1;transform:translateY(0);}
+#vhdr{display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+#vnm{font-family:"Cinzel",serif;font-size:8px;letter-spacing:.42em;color:rgba(0,255,136,.5);}
+#vbr{display:flex;align-items:flex-end;gap:2px;height:10px;opacity:0;transition:opacity .3s;}
+#vbr.on{opacity:1;}
+.vb{width:2px;border-radius:1px;background:var(--gd);transform-origin:bottom;animation:vba 1s ease-in-out infinite alternate;}
+.vb:nth-child(1){height:3px;animation-duration:.38s;}.vb:nth-child(2){height:9px;animation-duration:.52s;animation-delay:.04s;}
+.vb:nth-child(3){height:5px;animation-duration:.41s;animation-delay:.09s;}.vb:nth-child(4){height:11px;animation-duration:.58s;animation-delay:.07s;}
+.vb:nth-child(5){height:4px;animation-duration:.44s;animation-delay:.11s;}.vb:nth-child(6){height:8px;animation-duration:.49s;animation-delay:.03s;}
+@keyframes vba{from{transform:scaleY(.18);opacity:.5}to{transform:scaleY(1);opacity:1}}
+#vtx{font-family:"EB Garamond",serif;font-size:clamp(13px,1.6vw,16px);line-height:1.9;color:var(--soft);white-space:pre-wrap;max-height:120px;overflow-y:auto;scrollbar-width:none;}
+#vtx::-webkit-scrollbar{display:none;}
+#twc{display:inline-block;width:2px;height:14px;background:var(--g);vertical-align:middle;margin-left:2px;animation:blink .8s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ══ FEEDBACK POPUP ══ */
+#fb-popup{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);z-index:30;font-family:"Cinzel",serif;font-size:clamp(20px,3.5vw,36px);font-weight:900;letter-spacing:.22em;pointer-events:none;opacity:0;text-shadow:0 0 24px currentColor;}
+#fb-popup.pop{animation:fbpop .9s ease forwards;}
+@keyframes fbpop{0%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}70%{opacity:.8;transform:translate(-50%,-65%) scale(1)}100%{opacity:0;transform:translate(-50%,-80%) scale(.85)}}
+
+/* ══ RÉSULTATS ══ */
+#results{position:fixed;inset:0;z-index:70;background:rgba(0,5,2,.97);display:none;flex-direction:column;align-items:center;justify-content:center;padding:22px;overflow-y:auto;}
+#results.show{display:flex;}
+.r-ic{font-size:54px;margin-bottom:8px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.r-title{font-family:"Cinzel",serif;font-size:clamp(18px,3.5vw,36px);font-weight:900;letter-spacing:.15em;margin-bottom:4px;}
+.r-lung-big{font-family:"Cinzel",serif;font-size:clamp(44px,8vw,72px);font-weight:900;filter:drop-shadow(0 0 22px currentColor);}
+.r-lung-sub{font-family:"Cinzel",serif;font-size:10px;letter-spacing:.35em;margin-bottom:16px;}
+.r-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(520px,90vw);margin-bottom:14px;}
+.rg-cell{background:rgba(0,8,3,.85);border-radius:3px;padding:10px 8px;text-align:center;}
+.rg-ic{font-size:16px;margin-bottom:3px;}
+.rg-l{font-family:"Cinzel",serif;font-size:6px;letter-spacing:.2em;color:rgba(255,255,255,.3);margin-bottom:2px;}
+.rg-v{font-family:"Cinzel",serif;font-size:clamp(14px,2.5vw,22px);font-weight:900;}
+/* Voix résultats */
+#rv{width:min(540px,90vw);background:var(--ui);border:1px solid var(--ub);border-radius:3px;padding:14px 18px;margin-bottom:14px;}
+#rv-hdr{display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+#rv-nm{font-family:"Cinzel",serif;font-size:8px;letter-spacing:.42em;color:rgba(0,255,136,.5);}
+#rv-vbr{display:flex;align-items:flex-end;gap:2px;height:10px;opacity:0;transition:opacity .3s;}
+#rv-vbr.on{opacity:1;}
+#rv-tx{font-family:"EB Garamond",serif;font-size:clamp(13px,1.6vw,16px);line-height:1.9;color:var(--soft);white-space:pre-wrap;}
+/* Badge victoire */
+#vbadge{width:min(520px,90vw);background:rgba(0,9,3,.98);border:1px solid rgba(0,255,136,.28);border-radius:4px;padding:16px 20px;text-align:center;display:none;margin-bottom:12px;}
+#vbadge.show{display:block;animation:bsin .4s ease;}
+@keyframes bsin{from{transform:translateY(14px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.vb-t{font-family:"Cinzel",serif;font-size:7px;letter-spacing:.38em;color:rgba(0,255,136,.45);border-bottom:1px solid rgba(0,255,136,.1);padding-bottom:8px;margin-bottom:10px;}
+.vb-row{font-family:"Cinzel",serif;font-size:clamp(10px,1.7vw,14px);letter-spacing:.15em;color:var(--g);margin-bottom:5px;filter:drop-shadow(0 0 6px rgba(0,255,136,.4));}
+.vb-bonus{font-family:"Cinzel",serif;font-size:clamp(18px,3vw,28px);font-weight:900;color:var(--g);margin:8px 0 4px;filter:drop-shadow(0 0 14px rgba(0,255,136,.6));}
+/* Boutons */
+.r-btns{display:flex;gap:12px;width:min(480px,90vw);}
+.rb{flex:1;font-family:"Cinzel",serif;font-size:9px;letter-spacing:.25em;padding:13px;cursor:pointer;transition:all .3s;border-radius:2px;}
+#rb-retry{color:rgba(255,255,150,.75);background:rgba(25,25,0,.9);border:1px solid rgba(255,255,80,.22);}
+#rb-retry:hover{background:rgba(255,255,80,.1);}
+#rb-next{color:var(--g);background:var(--ui);border:1px solid rgba(0,255,136,.55);}
+#rb-next:hover{background:rgba(0,255,136,.1);box-shadow:0 0 40px rgba(0,255,136,.3);}
+
+#mute-btn{position:fixed;bottom:12px;right:20px;z-index:999;font-family:"Cinzel",serif;font-size:8px;letter-spacing:.28em;color:rgba(0,255,136,.18);cursor:pointer;background:none;border:none;transition:color .3s;}
+#mute-btn:hover{color:rgba(0,255,136,.6);}
+</style>
+</head>
+<body>
+<div id="cur"></div>
+<div id="entry-flash"></div>
+
+<!-- Canvases -->
+<canvas id="bg-c"></canvas>
+<canvas id="tree-c"></canvas>
+<canvas id="part-c"></canvas>
+<canvas id="guide-c"></canvas>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-lbl">G A Ï A</div>
+  <div class="hud-lbl" style="letter-spacing:.3em;color:rgba(0,255,136,.18)">A L V É O L E — S T A G E 2</div>
+  <div class="hud-lbl" id="score-lbl">SCORE : 0</div>
+</div>
+<div id="lung-wrap">
+  <div id="lung-top"><span id="lung-lbl">🫁 CAPACITÉ PULMONAIRE DE GAÏA</span><span id="lung-pct">78%</span></div>
+  <div id="lung-track"><div id="lung-fill"></div></div>
+  <div id="lung-cycles">10 cycles restants</div>
+</div>
+<div id="sync-wrap">
+  <div class="sw-t">SYNCHRONISATION</div>
+  <div class="sw-r"><span class="sw-rl">Parfait</span><div class="sw-rb"><div class="sw-rf" id="sf-p" style="background:#ffd700"></div></div></div>
+  <div class="sw-r"><span class="sw-rl">Bon</span><div class="sw-rb"><div class="sw-rf" id="sf-g" style="background:var(--g)"></div></div></div>
+  <div class="sw-r"><span class="sw-rl">Décalé</span><div class="sw-rb"><div class="sw-rf" id="sf-o" style="background:#ffaa33"></div></div></div>
+  <div id="sw-status">EN ATTENTE</div>
+</div>
+<div id="score-wrap"><div id="score-val">SCORE : 0</div></div>
+
+<!-- Badge guide PRÉ-JEU -->
+<div id="guide-badge">
+  <div id="gb-box">
+    <div id="gb-icon">🌳</div>
+    <div id="gb-title">EXERCICE DE RESPIRATION</div>
+    <div id="gb-sub">SYNCHRONISEZ VOTRE SOUFFLE AVEC GAÏA</div>
+    <div class="gb-divider"></div>
+    <div class="gb-section">
+      <div class="gb-s-t">COMMENT JOUER</div>
+      <div class="gb-row"><div class="gb-row-ic">🌬️</div><div class="gb-row-txt">Quand le cercle <strong>GROSSIT</strong> → Appuyez sur <strong>ESPACE</strong> et inspirez</div></div>
+      <div class="gb-row"><div class="gb-row-ic">💨</div><div class="gb-row-txt">Quand le cercle <strong>RÉTRÉCIT</strong> → Relâchez <strong>ESPACE</strong> et expirez</div></div>
+      <div class="gb-row"><div class="gb-row-ic">⏸️</div><div class="gb-row-txt">Quand le cercle reste <strong>STABLE</strong> → Retenez votre souffle 2 secondes</div></div>
+    </div>
+    <div class="gb-divider"></div>
+    <div class="gb-section">
+      <div class="gb-s-t">SYSTÈME DE POINTS — 10 CYCLES</div>
+      <div class="gb-score-grid">
+        <div class="gb-sc"><div class="gb-sc-ic">✨</div><div class="gb-sc-l">PARFAIT</div><div class="gb-sc-v" style="color:#ffd700">+2%</div></div>
+        <div class="gb-sc"><div class="gb-sc-ic">💚</div><div class="gb-sc-l">BON</div><div class="gb-sc-v" style="color:var(--g)">+1.5%</div></div>
+        <div class="gb-sc"><div class="gb-sc-ic">💛</div><div class="gb-sc-l">DÉCALÉ</div><div class="gb-sc-v" style="color:#ffaa33">+0.5%</div></div>
+        <div class="gb-sc"><div class="gb-sc-ic">❌</div><div class="gb-sc-l">RATÉ</div><div class="gb-sc-v" style="color:#ff4444">-1%</div></div>
+      </div>
+    </div>
+    <div class="gb-divider"></div>
+    <div class="gb-row" style="justify-content:center;gap:24px;margin:0">
+      <div style="text-align:center"><div style="font-family:'Cinzel',serif;font-size:18px;font-weight:900;color:var(--g)">≥ 95%</div><div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:.2em;color:rgba(0,255,136,.45)">VICTOIRE</div></div>
+      <div style="text-align:center"><div style="font-family:'Cinzel',serif;font-size:18px;font-weight:900;color:#ffaa33">85–94%</div><div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:.2em;color:rgba(255,170,51,.45)">PARTIEL</div></div>
+      <div style="text-align:center"><div style="font-family:'Cinzel',serif;font-size:18px;font-weight:900;color:#ff8888">&lt; 85%</div><div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:.2em;color:rgba(255,136,136,.45)">RECOMMENCER</div></div>
+    </div>
+    <button id="gb-btn" onclick="startGame()">🌿 &nbsp;COMMENCER LA RESPIRATION</button>
+  </div>
+</div>
+
+<!-- Badge INSPIREZ/EXPIREZ (centré bas pendant jeu) -->
+<div id="breath-badge">
+  <div id="bb-phase">INSPIREZ</div>
+  <div id="bb-arrow">↑</div>
+  <div id="bb-sub">Synchronisez avec Gaïa</div>
+</div>
+<div id="space-bar">
+  <div id="sb-key">⎵ &nbsp;ESPACE</div>
+  <div id="sb-hint">Appuyez pour respirer</div>
+</div>
+
+<!-- Feedback popup -->
+<div id="fb-popup"></div>
+
+<!-- Voix GAÏA -->
+<div id="vp">
+  <div id="vsep"></div>
+  <div id="vbox">
+    <div id="vhdr"><span id="vnm">G A Ï A</span><span id="vbr"><span class="vb"></span><span class="vb"></span><span class="vb"></span><span class="vb"></span><span class="vb"></span><span class="vb"></span></span></div>
+    <div id="vtx"></div><span id="twc"></span>
+  </div>
+</div>
+
+<!-- Résultats -->
+<div id="results">
+  <div class="r-ic" id="r-ic">🫁</div>
+  <div class="r-title" id="r-title" style="color:var(--g)">RÉSULTATS</div>
+  <div class="r-lung-big" id="r-lung" style="color:var(--g)">—</div>
+  <div class="r-lung-sub" id="r-lung-sub" style="color:rgba(0,255,136,.5)">CAPACITÉ PULMONAIRE FINALE</div>
+  <div class="r-grid">
+    <div class="rg-cell"><div class="rg-ic">✨</div><div class="rg-l">PARFAITS</div><div class="rg-v" id="rg-p" style="color:#ffd700">0</div></div>
+    <div class="rg-cell"><div class="rg-ic">💚</div><div class="rg-l">BONS</div><div class="rg-v" id="rg-g" style="color:var(--g)">0</div></div>
+    <div class="rg-cell"><div class="rg-ic">💛</div><div class="rg-l">DÉCALÉS</div><div class="rg-v" id="rg-o" style="color:#ffaa33">0</div></div>
+    <div class="rg-cell"><div class="rg-ic">❌</div><div class="rg-l">RATÉS</div><div class="rg-v" id="rg-m" style="color:#ff4444">0</div></div>
+  </div>
+  <div id="vbadge">
+    <div class="vb-t">GAÏA RESPIRE MIEUX ✅</div>
+    <div class="vb-row">🌿 BADGE : "Guérisseur des Poumons" débloqué</div>
+    <div class="vb-row">🌳 Forêts & Stage 2 débloqués</div>
+    <div class="vb-bonus" id="vb-pts">+80 POINTS BONUS</div>
+  </div>
+  <div id="rv">
+    <div id="rv-hdr"><span id="rv-nm">G A Ï A</span><span id="rv-vbr"><span class="vb"></span><span class="vb"></span><span class="vb"></span><span class="vb"></span><span class="vb"></span><span class="vb"></span></span></div>
+    <div id="rv-tx"></div>
+  </div>
+  <div class="r-btns">
+    <button class="rb" id="rb-retry" onclick="retryGame()">↺ RÉESSAYER</button>
+    <button class="rb" id="rb-next" onclick="goNext()">▶ CONTINUER</button>
+  </div>
+</div>
+
+<div id="curtain"></div>
+<button id="mute-btn" onclick="toggleMute()">🔊 SON</button>
+
+<script>
+"use strict";
+// ══ ÉTAT GLOBAL ══
+let W=innerWidth,H=innerHeight;
+let isMuted=false,audioCtx=null;
+let pName="Gardien",score=0;
+let globalT=0,lastTs=0,animId=null;
+// Jeu
+let gamePhase="idle";// idle|intro|playing|results
+let breathPhase="inspire";
+let breathT=0,cycleT=0;
+let cycleDone=false,cycle=0;
+const TOTAL_CYCLES=10;
+const DUR_IN=5,DUR_HOLD=2,DUR_OUT=5,DUR_TOT=12;
+let lungPct=78;
+let spaceDown=false,spaceDownAt=-1,spaceUpAt=-1;
+let scores={p:0,g:0,o:0,m:0};
+let treeScale=1,targetTreeScale=1;
+let guideR=75,targetGuideR=75;
+const R_MIN=60,R_MAX=200;
+let guideCol={r:0,g:220,b:100};
+let shakeT=0;
+const parts=[];
+
+try{pName=localStorage.getItem("gaiaPlayerName")||"Gardien";score=parseInt(localStorage.getItem("gaiaScore")||"0");}catch(e){}
+document.getElementById("score-lbl").textContent="SCORE : "+score;
+document.getElementById("score-val").textContent="SCORE : "+score;
+
+// Cursor
+const $cur=document.getElementById("cur");
+document.addEventListener("mousemove",e=>{$cur.style.left=e.clientX+"px";$cur.style.top=e.clientY+"px";});
+
+// ══ AUDIO ══
+function initAudio(){if(audioCtx)return;audioCtx=new(window.AudioContext||window.webkitAudioContext)();}
+function mOut(){if(!audioCtx)return null;if(!window._ma10){const c=audioCtx.createDynamicsCompressor();c.threshold.value=-18;c.knee.value=8;c.ratio.value=3;c.attack.value=.003;c.release.value=.25;c.connect(audioCtx.destination);window._ma10=c;}return window._ma10;}
+function mkRv(d=3,dc=2){if(!audioCtx)return null;const sr=audioCtx.sampleRate,l=sr*d,b=audioCtx.createBuffer(2,l,sr);for(let c=0;c<2;c++){const dd=b.getChannelData(c);for(let i=0;i<l;i++)dd[i]=(Math.random()*2-1)*Math.pow(1-i/l,dc);}const cv=audioCtx.createConvolver();cv.buffer=b;return cv;}
+let _hbIv=null;
+function startHB(){
+  if(_hbIv)clearInterval(_hbIv);
+  function hb(){if(!audioCtx||isMuted)return;const m=mOut(),r=mkRv(2,2);r.connect(m);const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.setValueAtTime(52,audioCtx.currentTime);o.frequency.exponentialRampToValueAtTime(18,audioCtx.currentTime+.38);g.gain.setValueAtTime(.055,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.42);o.connect(g);g.connect(r);g.connect(m);o.start();o.stop(audioCtx.currentTime+.45);}
+  hb();_hbIv=setInterval(hb,60000/68);
+}
+function playPads(){
+  if(!audioCtx||isMuted)return;const m=mOut(),r=mkRv(6,3);r.connect(m);
+  [42,63,84,42.04].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.value=f;g.gain.setValueAtTime(0,audioCtx.currentTime);g.gain.linearRampToValueAtTime([.014,.008,.006,.012][i],audioCtx.currentTime+5+i*.9);const fl=audioCtx.createBiquadFilter();fl.type="lowpass";fl.frequency.value=115;o.connect(fl);fl.connect(g);g.connect(r);g.connect(m);o.start();});
+}
+function playInspire(){if(!audioCtx||isMuted)return;const m=mOut();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.setValueAtTime(262,audioCtx.currentTime);o.frequency.linearRampToValueAtTime(392,audioCtx.currentTime+4.5);g.gain.setValueAtTime(0,audioCtx.currentTime);g.gain.linearRampToValueAtTime(.07,audioCtx.currentTime+.8);g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+5);o.connect(g);g.connect(m);o.start();o.stop(audioCtx.currentTime+5.2);}
+function playExpire(){if(!audioCtx||isMuted)return;const m=mOut();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.setValueAtTime(392,audioCtx.currentTime);o.frequency.linearRampToValueAtTime(220,audioCtx.currentTime+4.5);g.gain.setValueAtTime(0,audioCtx.currentTime);g.gain.linearRampToValueAtTime(.055,audioCtx.currentTime+.5);g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+5);o.connect(g);g.connect(m);o.start();o.stop(audioCtx.currentTime+5.2);}
+function playDing(type){
+  if(!audioCtx||isMuted)return;const m=mOut(),r=mkRv(1.5,2);r.connect(m);
+  const config={p:{f:[1046,1318,1568],v:.11},g:{f:[784,987],v:.08},o:{f:[523],v:.07},m:{f:[196],v:.06}};
+  const c=config[type]||config.o;
+  c.f.forEach((f,i)=>setTimeout(()=>{if(!audioCtx||isMuted)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(c.v,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+1.3);o.connect(g);g.connect(r);o.start();o.stop(audioCtx.currentTime+1.4);},i*75));
+}
+function toggleMute(){isMuted=!isMuted;document.getElementById("mute-btn").textContent=isMuted?"🔇 MUET":"🔊 SON";if(audioCtx){isMuted?audioCtx.suspend():audioCtx.resume();}if(isMuted&&window.speechSynthesis)window.speechSynthesis.cancel();}
+
+// ══ VOIX ══
+const syn=window.speechSynthesis;
+function gv(){const vs=syn?syn.getVoices():[];return vs.find(x=>x.lang==="fr-FR"&&/Marie|Amelie|Hortense|Lea|Julie/i.test(x.name))||vs.find(x=>x.lang==="fr-FR")||vs.find(x=>x.lang.startsWith("fr"))||vs[0]||null;}
+function speak(txt,eTxt,eVbr,eCur,cb){
+  if(eTxt)eTxt.textContent="";if(eCur)eCur.style.display="inline-block";
+  let d=0,t=0,vd=false,done=false,iv=null;
+  function fin(){if(done)return;done=true;if(eCur)eCur.style.display="none";if(cb)setTimeout(cb,400);}
+  function tick(){if(iv)clearInterval(iv);iv=setInterval(()=>{if(d<t&&d<txt.length){if(eTxt){eTxt.textContent=txt.slice(0,++d);eTxt.scrollTop=eTxt.scrollHeight;}else d++;}else if(d>=txt.length&&vd){clearInterval(iv);fin();}},22);}
+  if(syn&&!isMuted){syn.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang="fr-FR";u.rate=0.82;u.pitch=0.78;u.volume=1.0;const sv=()=>{const v=gv();if(v)u.voice=v;};syn.getVoices().length?sv():syn.addEventListener("voiceschanged",sv,{once:true});u.onstart=()=>{if(eVbr)eVbr.classList.add("on");};u.onboundary=(e)=>{if(e.name==="word"){t=Math.min(e.charIndex+e.charLength,txt.length);tick();}};u.onend=u.onerror=()=>{if(eVbr)eVbr.classList.remove("on");vd=true;t=txt.length;tick();};syn.speak(u);}
+  setTimeout(()=>{if(d===0){vd=true;t=txt.length;tick();}},1800);
+}
+function showVoice(txt,cb){document.getElementById("vsep").classList.add("show");document.getElementById("vbox").classList.add("show");speak(txt,document.getElementById("vtx"),document.getElementById("vbr"),document.getElementById("twc"),cb);}
+function hideVoice(cb){const vb=document.getElementById("vbox");vb.style.transition="opacity .7s";vb.style.opacity="0";setTimeout(()=>{vb.classList.remove("show");vb.style.opacity="";vb.style.transition="";document.getElementById("vsep").classList.remove("show");if(cb)cb();},720);}
+
+// ══ CANVAS SETUP ══
+const BGC=document.getElementById("bg-c"),TRC=document.getElementById("tree-c"),PRC=document.getElementById("part-c"),GDC=document.getElementById("guide-c");
+function resizeAll(){BGC.width=TRC.width=PRC.width=GDC.width=W=innerWidth;BGC.height=TRC.height=PRC.height=GDC.height=H=innerHeight;}
+resizeAll();
+const bgX=BGC.getContext("2d"),trX=TRC.getContext("2d"),prX=PRC.getContext("2d"),gdX=GDC.getContext("2d");
+
+// ══ PARTICULES ══
+function spawnO2(){
+  for(let i=0;i<5;i++){
+    const ang=Math.random()*Math.PI*2;
+    const wallR=Math.min(W,H)*.44;
+    const sx=W/2+Math.cos(ang)*wallR*(0.9+Math.random()*.1);
+    const sy=H/2+Math.sin(ang)*wallR*(0.9+Math.random()*.1);
+    const dx=W/2-sx,dy=H/2-sy;const dist=Math.sqrt(dx*dx+dy*dy)||1;
+    const spd=1.2+Math.random()*.7;
+    parts.push({x:sx,y:sy,vx:dx/dist*spd,vy:dy/dist*spd,life:1,type:"o2",r:3.5+Math.random()*2.5});
+  }
+}
+function spawnCO2(){
+  for(let i=0;i<3;i++){
+    const ang=Math.random()*Math.PI*2;const r2=15+Math.random()*25;
+    const wallR=Math.min(W,H)*.48;
+    const floorY=H/2+wallR*.46;
+    const treeH=Math.min(H*.38,220);
+    const treeTop=floorY-treeH*.85;// zone feuillage
+    const sx=W/2+Math.cos(ang)*r2,sy=treeTop+Math.sin(ang)*r2;
+    const spd=0.9+Math.random()*.6;
+    parts.push({x:sx,y:sy,vx:Math.cos(ang)*spd*2,vy:Math.sin(ang)*spd*2,life:1,type:"co2",r:3+Math.random()*2});
+  }
+}
+function spawnGold(){
+  for(let i=0;i<65;i++){const ang=Math.random()*Math.PI*2,spd=3.5+Math.random()*9;parts.push({x:W/2,y:H*.48,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-3,life:1,type:"gold",r:3.5+Math.random()*3});}
+}
+
+// ══ DESSIN FOND — ALVÉOLE PLEIN ÉCRAN ══
+function drawBg(t){
+  const cx=W/2,cy=H/2;
+  // Remplissage total — pas de zones noires
+  const bf=breathPhase==="inspire"?breathT:breathPhase==="expire"?1-breathT:1;
+  // Dégradé fond organique plein écran
+  const bgG=bgX.createRadialGradient(cx,cy*.9,0,cx,cy*.9,Math.max(W,H)*.75);
+  bgG.addColorStop(0,`rgba(${Math.floor(8+bf*14)},${Math.floor(32+bf*22)},${Math.floor(10+bf*14)},1)`);
+  bgG.addColorStop(.4,`rgba(4,18,6,1)`);bgG.addColorStop(.75,`rgba(2,10,3,1)`);bgG.addColorStop(1,`rgba(0,4,1,1)`);
+  bgX.fillStyle=bgG;bgX.fillRect(0,0,W,H);
+  // Paroi alvéolaire translucide — occupe TOUT l'écran
+  const wallR=Math.min(W,H)*.48;
+  // Lueur de fond globale
+  const glow=bgX.createRadialGradient(cx,cy*.92,wallR*.1,cx,cy*.92,wallR*1.05);
+  glow.addColorStop(0,"transparent");
+  glow.addColorStop(.72,`rgba(${Math.floor(180+bf*35)},${Math.floor(100+bf*28)},${Math.floor(130+bf*20)},${.07+bf*.05})`);
+  glow.addColorStop(.88,`rgba(160,88,120,${.12+bf*.07})`);
+  glow.addColorStop(1,`rgba(120,55,88,${.06})`);
+  bgX.fillStyle=glow;bgX.fillRect(0,0,W,H);
+  // Anneau de membrane (ondulation)
+  for(let pass=0;pass<2;pass++){
+    const baseR=wallR*(pass===0?.98:1.03);
+    bgX.beginPath();
+    for(let s=0;s<=64;s++){
+      const ang=(s/64)*Math.PI*2;
+      const wave=Math.sin(ang*4+t*.8+pass)*(8+bf*5)+Math.cos(ang*7-t*.5)*(4+bf*3);
+      const pr=baseR+wave;
+      if(s===0)bgX.moveTo(cx+Math.cos(ang)*pr,cy+Math.sin(ang)*pr);
+      else bgX.lineTo(cx+Math.cos(ang)*pr,cy+Math.sin(ang)*pr);
+    }
+    bgX.closePath();bgX.strokeStyle=`rgba(${Math.floor(200+bf*30)},${Math.floor(110+bf*25)},${Math.floor(145+bf*18)},${.12+bf*.08-pass*.04})`;bgX.lineWidth=pass===0?2:1;bgX.stroke();
+  }
+  // Capillaires sanguins sur la paroi (8 branches)
+  const capPositions=[[-.38,-.22],[.35,-.3],[-.22,.34],[.4,.16],[-.08,-.45],[.18,.42],[-.44,.08],[.44,-.12]];
+  capPositions.forEach(([rx,ry],idx)=>{
+    const x1=cx+rx*wallR*.82,y1=cy+ry*wallR*.82;
+    const x2=cx+rx*wallR*.97+Math.sin(t*.4+idx)*8,y2=cy+ry*wallR*.97+Math.cos(t*.35+idx)*8;
+    const flow=(t*.28+idx*.38)%1;
+    const cg=bgX.createLinearGradient(x1,y1,x2,y2);
+    cg.addColorStop(0,"rgba(180,15,35,.06)");cg.addColorStop(Math.max(0,flow-.05),"rgba(180,15,35,.06)");
+    cg.addColorStop(flow,"rgba(255,55,75,.42)");cg.addColorStop(Math.min(1,flow+.12),"rgba(180,15,35,.08)");cg.addColorStop(1,"rgba(120,8,22,.04)");
+    bgX.strokeStyle=cg;bgX.lineWidth=3;
+    bgX.beginPath();bgX.moveTo(x1,y1);bgX.quadraticCurveTo(cx+rx*wallR*.45,cy+ry*wallR*.45,x2,y2);bgX.stroke();
+  });
+  // Sol mousse (bas) — étire sur toute la largeur
+  const floorY=cy+wallR*.46;
+  const flG=bgX.createLinearGradient(0,floorY-20,0,H);
+  flG.addColorStop(0,"rgba(10,55,16,.75)");flG.addColorStop(.4,"rgba(5,32,8,.88)");flG.addColorStop(1,"rgba(1,10,2,.96)");
+  bgX.fillStyle=flG;
+  bgX.beginPath();bgX.moveTo(0,H);bgX.lineTo(W,H);bgX.lineTo(W,floorY);
+  // Bordure mousse ondulée
+  for(let mx=W;mx>=0;mx-=8){const my=floorY+Math.sin(mx*.022+t*.3)*9+Math.cos(mx*.015+t*.2)*5;bgX.lineTo(mx,my);}
+  bgX.closePath();bgX.fill();
+  // Touffes de mousse
+  for(let m=0;m<16;m++){
+    const mpc=m/16;const mx=mpc*W+(Math.sin(m*2.3)*.03)*W;
+    const my=floorY+Math.sin(m*1.7+t*.4)*7;const mh=12+Math.abs(Math.sin(m*1.2+t*.35))*18;
+    const alpha=.35+Math.sin(t*.4+m)*.1;
+    bgX.fillStyle=`rgba(${Math.floor(16+bf*12)},${Math.floor(88+bf*30)},${Math.floor(22+bf*15)},${alpha})`;
+    bgX.beginPath();bgX.ellipse(mx,my,10+m%4*3,mh*.35,0,0,Math.PI*2);bgX.fill();
+  }
+  // Vignette bords (léger)
+  const vig=bgX.createRadialGradient(cx,cy,Math.min(W,H)*.25,cx,cy,Math.max(W,H)*.7);
+  vig.addColorStop(0,"transparent");vig.addColorStop(.6,"transparent");vig.addColorStop(1,"rgba(0,2,0,.55)");
+  bgX.fillStyle=vig;bgX.fillRect(0,0,W,H);
+  // Lumière ambiante verte douce
+  const amb=bgX.createRadialGradient(cx,cy*.7,0,cx,cy*.7,Math.min(W,H)*.62);
+  amb.addColorStop(0,`rgba(8,${Math.floor(48+bf*32)},${Math.floor(14+bf*12)},${.18+bf*.1})`);amb.addColorStop(1,"transparent");
+  bgX.fillStyle=amb;bgX.fillRect(0,0,W,H);
+}
+
+// ══ DESSIN ARBRE — ANCRÉ AU SOL ══
+function drawTree(t){
+  trX.clearRect(0,0,W,H);
+  const cx=W/2;
+  const sc=treeScale;
+  const bf=breathPhase==="inspire"?breathT:breathPhase==="expire"?1-breathT:1;
+  // Sol de l'alvéole — l'arbre est ancré ici
+  const wallR=Math.min(W,H)*.48;
+  const floorY=H/2+wallR*.46;// niveau du sol (cohérent avec drawBg)
+  const treeH=Math.min(H*.38,220)*sc;
+  const trunkW=Math.max(14,treeH*.08);
+  const treeTopY=floorY-treeH;// sommet de l'arbre
+
+  // Halo global arbre
+  const aHalo=trX.createRadialGradient(cx,floorY-treeH*.45,0,cx,floorY-treeH*.45,treeH*.85);
+  aHalo.addColorStop(0,`rgba(0,255,80,${.07+bf*.08})`);aHalo.addColorStop(1,"transparent");
+  trX.fillStyle=aHalo;trX.beginPath();trX.arc(cx,floorY-treeH*.45,treeH*.85,0,Math.PI*2);trX.fill();
+
+  // Racines — partent de la base du tronc DANS le sol
+  const roots=[
+    [-0.28,.08],[.24,.06],[-.18,.12],[.3,.1],[0,.14],[-.38,.07],[.36,.09]
+  ];
+  roots.forEach(([rx,ry])=>{
+    // Les racines s'enfoncent SOUS le sol
+    const x2=cx+rx*treeH*.7,y2=floorY+ry*treeH*.6;
+    const rg=trX.createLinearGradient(cx,floorY,x2,y2);
+    rg.addColorStop(0,`rgba(60,255,120,${.55+bf*.22})`);
+    rg.addColorStop(.4,`rgba(30,160,60,${.35+bf*.12})`);
+    rg.addColorStop(1,"rgba(8,70,18,.05)");
+    trX.strokeStyle=rg;trX.lineWidth=Math.max(2,trunkW*.22);trX.lineCap="round";
+    trX.beginPath();trX.moveTo(cx,floorY);trX.quadraticCurveTo(cx+rx*treeH*.35,floorY+ry*treeH*.3,x2,y2);trX.stroke();
+    // Petite lueur à l'extrémité
+    const rGl=trX.createRadialGradient(x2,y2,0,x2,y2,7+bf*3);
+    rGl.addColorStop(0,`rgba(0,255,80,${.22+bf*.14})`);rGl.addColorStop(1,"transparent");
+    trX.fillStyle=rGl;trX.beginPath();trX.arc(x2,y2,7+bf*3,0,Math.PI*2);trX.fill();
+  });
+
+  // Tronc — base POSÉE sur floorY, monte vers treeTopY
+  const tgr=trX.createLinearGradient(cx,floorY,cx,treeTopY);
+  tgr.addColorStop(0,`rgba(50,210,85,${.72+bf*.1})`);
+  tgr.addColorStop(.35,`rgba(110,250,150,${.8+bf*.1})`);
+  tgr.addColorStop(.7,`rgba(170,255,195,${.84+bf*.08})`);
+  tgr.addColorStop(1,`rgba(215,255,228,${.88+bf*.07})`);
+  trX.fillStyle=tgr;
+  // Forme tronc : large en bas, s'affine vers le haut
+  trX.beginPath();
+  trX.moveTo(cx-trunkW*.65,floorY);// bas gauche
+  trX.bezierCurveTo(cx-trunkW*.7,floorY-treeH*.28,cx+trunkW*.45,floorY-treeH*.58,cx+trunkW*.38,treeTopY+10);
+  trX.lineTo(cx-trunkW*.36,treeTopY+8);
+  trX.bezierCurveTo(cx-trunkW*.43,floorY-treeH*.58,cx+trunkW*.68,floorY-treeH*.28,cx+trunkW*.65,floorY);
+  trX.closePath();trX.fill();
+  // Halo tronc
+  const thl=trX.createRadialGradient(cx,floorY-treeH*.4,0,cx,floorY-treeH*.4,trunkW*3.5);
+  thl.addColorStop(0,`rgba(80,255,130,${.14+bf*.1})`);thl.addColorStop(1,"transparent");
+  trX.fillStyle=thl;trX.beginPath();trX.arc(cx,floorY-treeH*.4,trunkW*3.5,0,Math.PI*2);trX.fill();
+
+  // Feuillage — 12 clusters autour du sommet
+  const leafOpen=breathPhase==="inspire"?(.82+breathT*.18):breathPhase==="expire"?(1-.14*breathT):.96;
+  const clusters=[
+    {ox:0,oy:-.98,r:.44},{ox:-.3,oy:-.78,r:.34},{ox:.32,oy:-.76,r:.32},
+    {ox:-.2,oy:-.58,r:.29},{ox:.22,oy:-.56,r:.27},{ox:0,oy:-.68,r:.4},
+    {ox:-.42,oy:-.64,r:.24},{ox:.44,oy:-.62,r:.22},{ox:0,oy:-.88,r:.3},
+    {ox:-.14,oy:-1.1,r:.19},{ox:.16,oy:-1.08,r:.17},{ox:0,oy:-1.18,r:.13},
+  ];
+  clusters.forEach(({ox,oy,r})=>{
+    const fx=cx+ox*treeH*sc;
+    const fy=floorY+oy*treeH*sc;// ancré à floorY
+    const fr=r*treeH*sc*leafOpen;
+    if(fr<2)return;
+    const fg=trX.createRadialGradient(fx,fy,0,fx,fy,fr);
+    fg.addColorStop(0,`rgba(${Math.floor(35+bf*28)},${Math.floor(195+bf*60)},${Math.floor(55+bf*20)},${.85+bf*.1})`);
+    fg.addColorStop(.55,`rgba(18,145,38,${.68+bf*.1})`);
+    fg.addColorStop(.85,`rgba(8,90,18,.38)`);fg.addColorStop(1,"transparent");
+    trX.fillStyle=fg;trX.beginPath();trX.arc(fx,fy,fr,0,Math.PI*2);trX.fill();
+    // Reflet
+    if(fr>12){
+      const sh=trX.createRadialGradient(fx+fr*.28,fy-fr*.28,0,fx+fr*.28,fy-fr*.28,fr*.3);
+      sh.addColorStop(0,"rgba(180,255,180,.22)");sh.addColorStop(1,"transparent");
+      trX.fillStyle=sh;trX.beginPath();trX.arc(fx+fr*.28,fy-fr*.28,fr*.3,0,Math.PI*2);trX.fill();
+    }
+  });
+}
+
+// ══ DESSIN PARTICULES ══
+function drawParticles(){
+  prX.clearRect(0,0,W,H);
+  if(gamePhase==="playing"){
+    if(breathPhase==="inspire"&&breathT>.08)spawnO2();
+    if(breathPhase==="expire"&&breathT>.08)spawnCO2();
+  }
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.life-=.016;
+    if(p.life<=0){parts.splice(i,1);continue;}
+    const a=p.life*.9;
+    if(p.type==="o2"){
+      prX.shadowColor="rgba(0,255,127,.6)";prX.shadowBlur=8;
+      prX.fillStyle=`rgba(0,255,127,${a})`;prX.beginPath();prX.arc(p.x,p.y,p.r*p.life,0,Math.PI*2);prX.fill();
+      prX.shadowBlur=0;
+    }else if(p.type==="co2"){
+      prX.fillStyle=`rgba(140,140,140,${a*.65})`;prX.beginPath();prX.arc(p.x,p.y,p.r*p.life,0,Math.PI*2);prX.fill();
+    }else{
+      p.vy+=.1;
+      prX.shadowColor="rgba(255,210,0,.7)";prX.shadowBlur=10;
+      prX.fillStyle=`rgba(255,${Math.floor(180+Math.random()*75)},20,${a})`;prX.beginPath();prX.arc(p.x,p.y,p.r*p.life,0,Math.PI*2);prX.fill();
+      prX.shadowBlur=0;
+    }
+  }
+}
+
+// ══ CERCLE DE GUIDANCE ══
+function drawGuide(t){
+  gdX.clearRect(0,0,W,H);
+  if(gamePhase!=="playing")return;
+  const cx=W/2,cy=H*.48;
+  let sx=0,sy=0;if(shakeT>0){sx=(Math.random()-.5)*10*shakeT;sy=(Math.random()-.5)*10*shakeT;shakeT=Math.max(0,shakeT-.05);}
+  const gx=cx+sx,gy=cy+sy;
+  const pulse=.88+Math.sin(t*2.8)*.12;
+  // Outer glow large
+  const og=gdX.createRadialGradient(gx,gy,guideR*.6,gx,gy,guideR*2);
+  og.addColorStop(0,`rgba(${guideCol.r},${guideCol.g},${guideCol.b},${.12*pulse})`);
+  og.addColorStop(.5,`rgba(${guideCol.r},${guideCol.g},${guideCol.b},${.06*pulse})`);
+  og.addColorStop(1,"transparent");
+  gdX.fillStyle=og;gdX.beginPath();gdX.arc(gx,gy,guideR*2,0,Math.PI*2);gdX.fill();
+  // Fill intérieur
+  const fA=breathPhase==="inspire"?.07+breathT*.07:breathPhase==="expire"?.14*(1-breathT*.8):.05;
+  gdX.fillStyle=`rgba(${guideCol.r},${guideCol.g},${guideCol.b},${fA})`;
+  gdX.beginPath();gdX.arc(gx,gy,guideR,0,Math.PI*2);gdX.fill();
+  // Anneau principal
+  gdX.shadowColor=`rgba(${guideCol.r},${guideCol.g},${guideCol.b},.8)`;
+  gdX.shadowBlur=20;gdX.strokeStyle=`rgba(${guideCol.r},${guideCol.g},${guideCol.b},${.82+Math.sin(t*3)*.12})`;
+  gdX.lineWidth=5;gdX.beginPath();gdX.arc(gx,gy,guideR,0,Math.PI*2);gdX.stroke();
+  gdX.shadowBlur=0;
+  // Arc de progression
+  gdX.strokeStyle=`rgba(${guideCol.r},${guideCol.g},${guideCol.b},.28)`;gdX.lineWidth=2;
+  gdX.beginPath();gdX.arc(gx,gy,guideR+18,-Math.PI/2,-Math.PI/2+breathT*Math.PI*2);gdX.stroke();
+  // Second anneau intérieur fin
+  gdX.strokeStyle=`rgba(${guideCol.r},${guideCol.g},${guideCol.b},${.2+Math.sin(t*2.5)*.08})`;gdX.lineWidth=1.5;
+  gdX.beginPath();gdX.arc(gx,gy,guideR*.7,0,Math.PI*2);gdX.stroke();
+}
+
+// ══ UPDATE LUNG BAR ══
+function updateLungBar(){
+  const pct=Math.round(Math.max(50,Math.min(100,lungPct)));
+  document.getElementById("lung-pct").textContent=pct+"%";
+  document.getElementById("lung-fill").style.width=pct+"%";
+  const col=pct>=95?"#00ff00":pct>=90?"#88ee00":pct>=80?"#ffaa00":"#ff5544";
+  document.getElementById("lung-fill").style.background=`linear-gradient(90deg,${col}88,${col})`;
+  document.getElementById("lung-pct").style.color=col;
+}
+
+// ══ UPDATE BREATH BADGE ══
+function updateBreathBadge(){
+  const phase=document.getElementById("bb-phase");
+  const arrow=document.getElementById("bb-arrow");
+  if(breathPhase==="inspire"){
+    phase.textContent="INSPIREZ";phase.style.color="rgba(0,255,136,.95)";phase.style.textShadow="0 0 28px rgba(0,255,136,.7)";
+    arrow.textContent="↑";arrow.style.color="rgba(0,255,136,.7)";
+  }else if(breathPhase==="expire"){
+    phase.textContent="EXPIREZ";phase.style.color="rgba(160,220,160,.88)";phase.style.textShadow="0 0 20px rgba(160,220,160,.5)";
+    arrow.textContent="↓";arrow.style.color="rgba(160,220,160,.6)";
+  }else{
+    phase.textContent="RETENEZ";phase.style.color="rgba(200,255,200,.75)";phase.style.textShadow="0 0 14px rgba(200,255,200,.4)";
+    arrow.textContent="···";arrow.style.color="rgba(200,255,200,.5)";
+  }
+}
+
+// ══ BOUCLE PRINCIPALE ══
+function mainLoop(ts){
+  animId=requestAnimationFrame(mainLoop);
+  const dt=Math.min((ts-lastTs)/1000,.05);lastTs=ts;globalT+=dt;const t=globalT;
+  guideR+=(targetGuideR-guideR)*.09;
+  treeScale+=(targetTreeScale-treeScale)*.07;
+  if(gamePhase==="playing"){
+    cycleT+=dt;
+    if(cycleT<=DUR_IN){
+      breathPhase="inspire";breathT=cycleT/DUR_IN;
+      targetGuideR=R_MIN+(R_MAX-R_MIN)*eio(breathT);
+      targetTreeScale=1+.13*breathT;
+      guideCol={r:0,g:Math.floor(200+breathT*55),b:Math.floor(80+breathT*30)};
+    }else if(cycleT<=DUR_IN+DUR_HOLD){
+      breathPhase="hold";breathT=(cycleT-DUR_IN)/DUR_HOLD;
+      targetGuideR=R_MAX;targetTreeScale=1.13;
+      guideCol={r:0,g:220,b:90};
+    }else if(cycleT<=DUR_TOT){
+      breathPhase="expire";breathT=(cycleT-DUR_IN-DUR_HOLD)/DUR_OUT;
+      targetGuideR=R_MAX-(R_MAX-R_MIN)*eio(breathT);
+      targetTreeScale=1.13-.13*breathT;
+      guideCol={r:90,g:165,b:100};
+    }else{
+      if(!cycleDone){cycleDone=true;onCycleEnd();}
+    }
+    updateBreathBadge();
+  }
+  drawBg(t);drawTree(t);drawParticles();drawGuide(t);
+}
+function eio(x){return x<.5?2*x*x:(1-Math.pow(-2*x+2,2)/2);}
+
+// ══ JEUX ══
+// Séquence : page charge → GAÏA parle → voix finie → badge guide apparaît → joueur clique JOUER → cycles commencent
+function startGame(){
+  // Cacher le badge guide
+  const gb=document.getElementById("guide-badge");
+  gb.style.transition="opacity .5s";gb.style.opacity="0";
+  setTimeout(()=>{gb.style.display="none";},520);
+  document.getElementById("hud").classList.add("show");
+  document.getElementById("lung-wrap").classList.add("show");
+  document.getElementById("sync-wrap").classList.add("show");
+  document.getElementById("score-wrap").classList.add("show");
+  updateLungBar();
+  beginCycles();
+}
+
+function beginCycles(){
+  gamePhase="playing";
+  document.getElementById("breath-badge").classList.add("show");
+  document.getElementById("space-bar").classList.add("show");
+  cycleT=0;breathPhase="inspire";breathT=0;cycleDone=false;
+  playInspire();
+}
+
+// GAÏA parle d'abord — badge guide s'affiche APRÈS la voix
+function showIntroVoice(){
+  document.getElementById("hud").classList.add("show");
+  document.getElementById("lung-wrap").classList.add("show");
+  document.getElementById("sync-wrap").classList.add("show");
+  document.getElementById("score-wrap").classList.add("show");
+  updateLungBar();
+  setTimeout(()=>{
+    showVoice(
+      `Bienvenue dans une de mes alveoles, ${pName}.\nIci, la magie se produit.\nMes arbres RESPIRENT pour moi.\nIls inspirent du dioxyde de carbone.\nIls expirent de l oxygene.\nC est le processus de PHOTOSYNTHESE.\nLa base de toute vie sur Terre.\nMais actuellement...\nMa capacite pulmonaire n est que de 78 pourcent.\nContre 100 pourcent en l an 1800.\nJe veux que vous RESSENTIEZ ce que je ressens.\nSynchronisez votre respiration avec la mienne.\nInspirez quand j inspire.\nExpirez quand j expire.\nRespirons... ensemble.`,
+      ()=>{
+        hideVoice(()=>{
+          // Badge guide apparaît APRÈS que GAÏA a terminé
+          setTimeout(()=>{
+            document.getElementById("guide-badge").style.display="flex";
+            document.getElementById("guide-badge").style.opacity="0";
+            document.getElementById("guide-badge").style.transition="opacity .7s";
+            setTimeout(()=>{document.getElementById("guide-badge").style.opacity="1";},30);
+          },400);
+        });
+      }
+    );
+  },800);
+}
+
+function onCycleEnd(){
+  cycle++;
+  const result=evalSynchro();
+  let bonus=0;
+  if(result==="p"){bonus=2;scores.p++;playDing("p");spawnGold();showFb("✨ PARFAIT !","#ffd700");}
+  else if(result==="g"){bonus=1.5;scores.g++;playDing("g");showFb("💚 BON","#00ff88");}
+  else if(result==="o"){bonus=.5;scores.o++;playDing("o");showFb("💛 DÉCALÉ","#ffaa33");}
+  else{bonus=-1;scores.m++;playDing("m");showFb("❌ RATÉ","#ff4444");shakeT=1;}
+  lungPct=Math.max(50,Math.min(100,lungPct+bonus));
+  updateLungBar();
+  updateSyncWrap(result);
+  document.getElementById("lung-cycles").textContent=Math.max(0,TOTAL_CYCLES-cycle)+" cycles restants";
+  spaceDownAt=-1;spaceUpAt=-1;
+  if(cycle>=TOTAL_CYCLES){setTimeout(endGame,1200);}
+  else{cycleT=0;breathPhase="inspire";breathT=0;cycleDone=false;setTimeout(playInspire,350);}
+}
+
+function evalSynchro(){
+  if(spaceDownAt<0)return"m";
+  const downErr=Math.abs(spaceDownAt);// idéal=0 début cycle
+  const upIdeal=DUR_IN+DUR_HOLD;
+  const upErr=spaceUpAt>0?Math.abs(spaceUpAt-upIdeal):99;
+  const avg=(downErr+Math.min(upErr,3))/2;
+  if(avg<.55)return"p";if(avg<1.3)return"g";if(avg<2.6)return"o";return"m";
+}
+
+function showFb(txt,col){
+  const el=document.getElementById("fb-popup");el.textContent=txt;el.style.color=col;
+  el.className="";void el.offsetWidth;el.className="pop";
+}
+function updateSyncWrap(r){
+  const tot=scores.p+scores.g+scores.o+scores.m||1;
+  document.getElementById("sf-p").style.width=(scores.p/tot*100)+"%";
+  document.getElementById("sf-g").style.width=(scores.g/tot*100)+"%";
+  document.getElementById("sf-o").style.width=(scores.o/tot*100)+"%";
+  const sm={p:"✨ PARFAIT",g:"💚 BON",o:"💛 DÉCALÉ",m:"❌ RATÉ"};
+  const cm={p:"#ffd700",g:"var(--g)",o:"#ffaa33",m:"#ff4444"};
+  document.getElementById("sw-status").textContent=sm[r]||"—";
+  document.getElementById("sw-status").style.color=cm[r]||"var(--g)";
+}
+
+// ══ KEYBOARD ══
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space"&&!e.repeat){e.preventDefault();
+    if(gamePhase==="playing"&&spaceDownAt<0){spaceDownAt=cycleT;spaceDown=true;}
+    document.getElementById("sb-key").classList.add("pressed");}
+});
+document.addEventListener("keyup",e=>{
+  if(e.code==="Space"){e.preventDefault();
+    if(gamePhase==="playing"&&spaceDown){spaceUpAt=cycleT;spaceDown=false;}
+    document.getElementById("sb-key").classList.remove("pressed");}
+});
+
+// ══ FIN DE JEU ══
+function endGame(){
+  gamePhase="results";if(_hbIv)clearInterval(_hbIv);if(syn)syn.cancel();
+  document.getElementById("breath-badge").classList.remove("show");
+  document.getElementById("space-bar").classList.remove("show");
+  const pct=Math.round(lungPct);const victory=pct>=95,partial=pct>=85;
+  document.getElementById("r-ic").textContent=victory?"🌿":partial?"🫁":"😮‍💨";
+  document.getElementById("r-title").textContent=victory?"VICTOIRE — GAÏA RESPIRE !":partial?"SUCCÈS PARTIEL":"À RÉESSAYER";
+  document.getElementById("r-title").style.color=victory?"var(--g)":partial?"#ffaa33":"#ff8888";
+  document.getElementById("r-lung").textContent=pct+"%";
+  document.getElementById("r-lung").style.color=victory?"var(--g)":partial?"#ffaa33":"#ff8888";
+  document.getElementById("rg-p").textContent=scores.p;document.getElementById("rg-g").textContent=scores.g;
+  document.getElementById("rg-o").textContent=scores.o;document.getElementById("rg-m").textContent=scores.m;
+  let voice;
+  if(victory){
+    voice=`Ahhhh... ${pName}.\nQuelle sensation extraordinaire.\n${pct}% de capacité pulmonaire.\nPour la première fois depuis si longtemps...\nJe respire profondément.\nMon sang est oxygéné. Mon cœur bat plus lentement.\nMes cellules... s'épanouissent.\nMais soyons honnêtes.\nC'était une simulation.\nMa capacité réelle reste bloquée à 78%.\nPourquoi ? Parce que chaque jour...\nOn coupe mes forêts.\nVenez. Je vais vous montrer ce qui se passe vraiment.`;
+    score+=80;try{localStorage.setItem("gaiaScore",score.toString());}catch(e){}
+    document.getElementById("vb-pts").textContent="+80 POINTS — TOTAL : "+score;
+    setTimeout(()=>document.getElementById("vbadge").classList.add("show"),700);
+  }else if(partial){
+    voice=`${pct}%, ${pName}. C'est bien.\nMieux que mon état actuel.\nMais une respiration complète...\nc'est quelque chose d'incomparable.\nVoulez-vous réessayer ?\nOu continuer pour comprendre\npourquoi je ne respire plus qu'à 78% ?`;
+  }else{
+    voice=`${pct}%... Je comprends, ${pName}.\nSynchroniser sa respiration demande de la patience.\nMais imaginez-moi.\nDepuis deux siècles...\nJ'essaie de respirer normalement.\nMais chaque forêt abattue...\nc'est comme si quelqu'un appuyait sur ma poitrine.\nEn permanence.\nVoulez-vous comprendre pourquoi ?`;
+  }
+  document.getElementById("rv-tx").textContent=voice;
+  document.getElementById("rb-retry").style.display=victory?"none":"block";
+  document.getElementById("results").classList.add("show");
+  setTimeout(()=>speak(voice,document.getElementById("rv-tx"),document.getElementById("rv-vbr"),null,null),500);
+}
+
+function retryGame(){
+  document.getElementById("results").classList.remove("show");
+  document.getElementById("vbadge").classList.remove("show");
+  lungPct=78;cycle=0;scores={p:0,g:0,o:0,m:0};
+  spaceDownAt=-1;spaceUpAt=-1;parts.length=0;shakeT=0;
+  updateLungBar();
+  document.getElementById("lung-cycles").textContent="10 cycles restants";
+  if(syn)syn.cancel();startHB();
+  // Montrer le badge guide directement (sans rejouer la voix)
+  document.getElementById("guide-badge").style.display="flex";
+  document.getElementById("guide-badge").style.opacity="1";
+  document.getElementById("guide-badge").style.transition="none";
+  document.getElementById("breath-badge").classList.remove("show");
+  document.getElementById("space-bar").classList.remove("show");
+  gamePhase="idle";
+}
+function goNext(){
+  if(syn)syn.cancel();
+  try{localStorage.setItem("gaiaPlayerName",pName);localStorage.setItem("gaiaScore",score.toString());}catch(e){}
+  const cu=document.getElementById("curtain");cu.style.transition="opacity 2s ease";cu.classList.remove("gone");cu.style.opacity="1";
+  setTimeout(()=>window.location.href="scene11.html",2200);
+}
+
+// ══ DÉMARRAGE ══
+function startScene(){
+  initAudio();
+  // Badge guide masqué au départ — sera affiché APRÈS la voix GAÏA
+  document.getElementById("guide-badge").style.display="none";
+  const fl=document.getElementById("entry-flash");fl.style.opacity=".9";fl.style.transition="none";
+  setTimeout(()=>{fl.style.transition="opacity .65s";fl.style.opacity="0";},80);
+  const cu=document.getElementById("curtain");cu.style.transition="opacity 1.2s ease";setTimeout(()=>cu.classList.add("gone"),120);
+  requestAnimationFrame(ts=>{lastTs=ts;requestAnimationFrame(mainLoop);});
+  playPads();setTimeout(startHB,1100);
+  // GAÏA parle en premier, badge guide après
+  setTimeout(showIntroVoice,1400);
+}
+window.addEventListener("resize",()=>{resizeAll();});
+window.addEventListener("load",startScene);
+</script>
+</body>
+</html>
