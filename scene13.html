@@ -1,0 +1,2515 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAIA — Scene 13 : Projet Reboisement</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #00ff88;
+        --gd: #00cc66;
+        --soft: #d0f0e0;
+        --ui: rgba(0, 8, 4, 0.97);
+        --ub: rgba(0, 255, 136, 0.15);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #060e06;
+      }
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+      }
+      /* ── CURSOR ── */
+      #cur {
+        position: fixed;
+        width: 14px;
+        height: 14px;
+        border: 1.5px solid rgba(0, 255, 136, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: width 0.1s, height 0.1s, border-color 0.2s;
+      }
+      #cur::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--g);
+        border-radius: 50%;
+      }
+      #cur.seed {
+        width: 26px;
+        height: 26px;
+        border-color: rgba(255, 220, 80, 0.9);
+        background: rgba(255, 200, 60, 0.08);
+      }
+      #cur.seed::after {
+        content: "🌱";
+        font-size: 14px;
+        background: none;
+        width: auto;
+        height: auto;
+        transform: translate(-50%, -60%);
+      }
+      /* ── CANVAS ── */
+      #gc3d {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        display: block;
+      }
+      /* ── CURTAIN ── */
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 700;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 1.4s;
+      }
+      #curtain.gone {
+        opacity: 0;
+      }
+      /* ── CROSSHAIR ── */
+      #xhair {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 15;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #xhair.show {
+        opacity: 1;
+      }
+      #xhair::before,
+      #xhair::after {
+        content: "";
+        position: absolute;
+        background: rgba(255, 255, 255, 0.45);
+      }
+      #xhair::before {
+        width: 14px;
+        height: 1.5px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #xhair::after {
+        width: 1.5px;
+        height: 14px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      /* ── HUD TOP ── */
+      #hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 14px 24px 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #hud.show {
+        opacity: 1;
+      }
+      .hl {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.5em;
+        color: rgba(0, 255, 136, 0.28);
+      }
+      .hc {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.32em;
+        color: rgba(0, 255, 136, 0.18);
+      }
+      .hr {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: rgba(0, 255, 136, 0.3);
+      }
+      /* ── HINT DEPLACEMENT ── */
+      #move-hint {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 22;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.26em;
+        color: rgba(0, 255, 136, 0.3);
+        background: rgba(0, 5, 2, 0.72);
+        border: 1px solid rgba(0, 255, 136, 0.12);
+        padding: 6px 18px;
+        border-radius: 2px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+        white-space: nowrap;
+      }
+      #move-hint.show {
+        opacity: 1;
+      }
+      /* ── LEFT PANEL ── */
+      #lp {
+        position: fixed;
+        top: 52px;
+        left: 16px;
+        z-index: 30;
+        width: 230px;
+        background: var(--ui);
+        border: 1px solid rgba(0, 255, 136, 0.17);
+        border-radius: 4px;
+        backdrop-filter: blur(24px);
+        padding: 13px 14px;
+        opacity: 0;
+        transition: opacity 0.9s;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.75);
+      }
+      #lp.show {
+        opacity: 1;
+      }
+      #lp.dim {
+        opacity: 0.22;
+        pointer-events: none;
+      }
+      .pt {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.35em;
+        color: rgba(0, 255, 136, 0.48);
+        margin-bottom: 10px;
+      }
+      .ps {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.24em;
+        color: rgba(255, 255, 255, 0.2);
+        margin-bottom: 8px;
+      }
+      .slbl {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.32);
+        margin-bottom: 6px;
+      }
+      .tb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 8px 9px;
+        margin-bottom: 4px;
+        background: rgba(0, 12, 4, 0.9);
+        border: 1px solid rgba(0, 255, 136, 0.1);
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .tb:hover {
+        background: rgba(0, 255, 136, 0.07);
+        border-color: rgba(0, 255, 136, 0.38);
+      }
+      .tb.on {
+        background: rgba(0, 255, 136, 0.13);
+        border-color: rgba(0, 255, 136, 0.62);
+      }
+      .tb .ti {
+        font-size: 17px;
+        flex-shrink: 0;
+      }
+      .tb .tn {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.16em;
+        color: rgba(255, 255, 255, 0.5);
+        transition: color 0.2s;
+      }
+      .tb.on .tn,
+      .tb:hover .tn {
+        color: var(--g);
+      }
+      .tb .ts {
+        font-family: "EB Garamond", serif;
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.25);
+        font-style: italic;
+        display: block;
+        margin-top: 1px;
+      }
+      .pdiv {
+        height: 1px;
+        background: rgba(0, 255, 136, 0.08);
+        margin: 9px 0;
+      }
+      .mb {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        width: 100%;
+        padding: 7px 9px;
+        margin-bottom: 4px;
+        background: rgba(0, 10, 4, 0.9);
+        border: 1px solid rgba(0, 255, 136, 0.09);
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.18em;
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .mb:hover {
+        background: rgba(0, 255, 136, 0.06);
+        border-color: rgba(0, 255, 136, 0.32);
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .mb.on {
+        background: rgba(0, 255, 136, 0.11);
+        border-color: rgba(0, 255, 136, 0.52);
+        color: var(--g);
+      }
+      /* ── RIGHT PANEL ── */
+      #rp {
+        position: fixed;
+        top: 52px;
+        right: 16px;
+        z-index: 30;
+        width: 190px;
+        background: var(--ui);
+        border: 1px solid rgba(0, 255, 136, 0.15);
+        border-radius: 4px;
+        backdrop-filter: blur(24px);
+        padding: 13px 14px;
+        opacity: 0;
+        transition: opacity 0.9s;
+      }
+      #rp.show {
+        opacity: 1;
+      }
+      .sl {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.28em;
+        color: rgba(255, 255, 255, 0.3);
+        margin-bottom: 2px;
+      }
+      .sv {
+        font-family: "Cinzel", serif;
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 7px rgba(0, 255, 136, 0.4));
+        transition: all 0.25s;
+      }
+      .sb {
+        font-family: "EB Garamond", serif;
+        font-size: 10px;
+        color: rgba(0, 255, 136, 0.32);
+        margin-bottom: 8px;
+      }
+      .pw {
+        height: 3px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 9px;
+      }
+      .pf {
+        height: 100%;
+        background: linear-gradient(90deg, var(--gd), var(--g));
+        border-radius: 2px;
+        transition: width 0.3s;
+      }
+      /* ── AUTO PANEL ── */
+      #ap {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 42;
+        width: min(360px, 90vw);
+        background: rgba(0, 6, 3, 0.99);
+        border: 1px solid rgba(0, 255, 136, 0.22);
+        border-radius: 5px;
+        backdrop-filter: blur(28px);
+        padding: 22px;
+        display: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.92);
+      }
+      #ap.show {
+        display: block;
+      }
+      .apt {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.32em;
+        color: rgba(0, 255, 136, 0.48);
+        margin-bottom: 14px;
+      }
+      .apl {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.22em;
+        color: rgba(255, 255, 255, 0.38);
+        margin-bottom: 6px;
+      }
+      #tsl {
+        width: 100%;
+        -webkit-appearance: none;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.08);
+        outline: none;
+        margin-bottom: 4px;
+      }
+      #tsl::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--g);
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(0, 255, 136, 0.55);
+      }
+      #slv {
+        font-family: "Cinzel", serif;
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--g);
+        text-align: center;
+        margin-bottom: 14px;
+      }
+      .rg {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+      .ro {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.18em;
+        color: rgba(255, 255, 255, 0.4);
+        transition: color 0.2s;
+        padding: 3px 0;
+      }
+      .ro:hover,
+      .ro.on {
+        color: var(--g);
+      }
+      .ro input {
+        accent-color: var(--g);
+        cursor: pointer;
+      }
+      .apb {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+      }
+      .apbtn {
+        flex: 1;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.2em;
+        padding: 10px 8px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.25s;
+        border: none;
+      }
+      #bpl {
+        color: var(--g);
+        background: rgba(0, 8, 3, 0.9);
+        border: 1px solid rgba(0, 255, 136, 0.48);
+      }
+      #bpl:hover {
+        background: rgba(0, 255, 136, 0.1);
+      }
+      #bca {
+        color: rgba(255, 255, 255, 0.4);
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      /* ── TIMELAPSE HUD ── */
+      #tlhud {
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 36;
+        background: rgba(0, 6, 3, 0.92);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        border-radius: 3px;
+        padding: 9px 22px;
+        text-align: center;
+        display: none;
+      }
+      #tlhud.show {
+        display: block;
+      }
+      #tlyear {
+        font-family: "Cinzel", serif;
+        font-size: 24px;
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
+      }
+      #tlphase {
+        font-family: "EB Garamond", serif;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.38);
+        font-style: italic;
+        margin-top: 2px;
+      }
+      /* ── VOICE BOX (GAIA) ── */
+      #vp {
+        position: fixed;
+        bottom: clamp(14px, 2.5vh, 30px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 28;
+        width: min(700px, 88vw);
+        padding: 0 0 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+      #vp.show {
+        opacity: 1;
+      }
+      #vs {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.4),
+          transparent
+        );
+        margin-bottom: 7px;
+        transition: width 0.9s;
+      }
+      #vs.show {
+        width: 100%;
+      }
+      #vbox {
+        width: 100%;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(24px);
+        border-radius: 3px;
+        padding: 11px 18px 9px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: transform 0.8s, opacity 0.8s;
+      }
+      #vbox.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #vsr {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      #vnm {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.42);
+      }
+      #vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 0.9s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .vb:nth-child(3) {
+        height: 4px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      .vb:nth-child(5) {
+        height: 3px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      .vb:nth-child(6) {
+        height: 7px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      @keyframes vba {
+        from {
+          transform: scaleY(0.18);
+          opacity: 0.5;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+      #vtx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(12px, 1.4vw, 14px);
+        line-height: 1.85;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 110px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vtx::-webkit-scrollbar {
+        display: none;
+      }
+      #twc {
+        display: inline-block;
+        width: 2px;
+        height: 12px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+      /* ── GUIDE OVERLAY ── */
+      #guide {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 0, 0, 0.88);
+        backdrop-filter: blur(14px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.6s;
+        pointer-events: none;
+      }
+      #guide.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #guide-box {
+        width: min(580px, 90vw);
+        background: rgba(0, 8, 4, 0.99);
+        border: 1px solid rgba(0, 255, 136, 0.25);
+        border-radius: 6px;
+        padding: 28px 30px;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.95);
+      }
+      .gb-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(13px, 2vw, 18px);
+        font-weight: 900;
+        letter-spacing: 0.22em;
+        color: var(--g);
+        text-align: center;
+        margin-bottom: 4px;
+        filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.4));
+      }
+      .gb-sub {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.35);
+        text-align: center;
+        margin-bottom: 22px;
+        font-style: italic;
+      }
+      .gb-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+      .gb-num {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        font-weight: 900;
+        color: var(--g);
+        background: rgba(0, 255, 136, 0.1);
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .gb-text {
+        flex: 1;
+      }
+      .gb-text strong {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.72);
+        display: block;
+        margin-bottom: 4px;
+      }
+      .gb-text span {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.42);
+        line-height: 1.6;
+      }
+      .gb-keys {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .kb {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.2em;
+        color: rgba(0, 255, 136, 0.7);
+        background: rgba(0, 255, 136, 0.08);
+        border: 1px solid rgba(0, 255, 136, 0.25);
+        border-radius: 3px;
+        padding: 4px 9px;
+      }
+      #guide-play {
+        width: 100%;
+        margin-top: 18px;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.32em;
+        color: var(--g);
+        background: rgba(0, 255, 136, 0.08);
+        border: 1px solid rgba(0, 255, 136, 0.48);
+        border-radius: 3px;
+        padding: 13px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #guide-play:hover {
+        background: rgba(0, 255, 136, 0.14);
+        box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+      }
+      /* ── ACTION BUTTON ── */
+      #abn {
+        position: fixed;
+        bottom: clamp(18px, 4vh, 42px);
+        right: 22px;
+        z-index: 32;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.26em;
+        color: var(--g);
+        background: rgba(0, 8, 4, 0.97);
+        border: 1px solid rgba(0, 255, 136, 0.48);
+        border-radius: 3px;
+        padding: 11px 26px;
+        cursor: pointer;
+        transition: all 0.3s;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      #abn.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #abn:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 40px rgba(0, 255, 136, 0.28);
+      }
+      /* ── NOTIFICATION ── */
+      #ntf {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 55;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        color: rgba(255, 120, 80, 0.9);
+        background: rgba(14, 2, 0, 0.97);
+        border: 1px solid rgba(255, 80, 50, 0.28);
+        border-radius: 3px;
+        padding: 8px 18px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+        white-space: nowrap;
+      }
+      #ntf.show {
+        opacity: 1;
+      }
+      /* ── IMPACT PANEL ── */
+      #imp {
+        position: fixed;
+        inset: 0;
+        z-index: 48;
+        background: rgba(0, 0, 0, 0.96);
+        backdrop-filter: blur(22px);
+        display: none;
+        overflow-y: auto;
+        padding: 32px 20px 60px;
+      }
+      #imp.show {
+        display: block;
+      }
+      .iw {
+        max-width: 680px;
+        margin: 0 auto;
+      }
+      .ititle {
+        font-family: "Cinzel", serif;
+        font-size: clamp(15px, 2.4vw, 22px);
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        color: var(--g);
+        text-align: center;
+        margin-bottom: 5px;
+        filter: drop-shadow(0 0 14px rgba(0, 255, 136, 0.4));
+      }
+      .isub {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.5vw, 15px);
+        color: rgba(255, 255, 255, 0.38);
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .isec {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.3em;
+        color: rgba(255, 255, 136, 0.48);
+        margin: 16px 0 10px;
+        padding: 8px 14px;
+        background: rgba(18, 18, 0, 0.6);
+        border: 1px solid rgba(255, 255, 136, 0.12);
+        border-radius: 3px;
+        text-align: center;
+      }
+      .igrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 6px;
+      }
+      @media (max-width: 480px) {
+        .igrid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .icard {
+        background: rgba(0, 10, 4, 0.9);
+        border: 1px solid rgba(0, 255, 136, 0.13);
+        border-radius: 4px;
+        padding: 13px 14px;
+      }
+      .icard.bil {
+        border-color: rgba(255, 220, 80, 0.18);
+        background: rgba(12, 10, 0, 0.9);
+      }
+      .ict {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.42);
+        margin-bottom: 7px;
+      }
+      .icard.bil .ict {
+        color: rgba(255, 220, 80, 0.45);
+      }
+      .icv {
+        font-family: "Cinzel", serif;
+        font-size: clamp(15px, 2.2vw, 20px);
+        font-weight: 900;
+        color: var(--g);
+        filter: drop-shadow(0 0 7px rgba(0, 255, 136, 0.4));
+        margin-bottom: 3px;
+      }
+      .icard.bil .icv {
+        color: #ffdd55;
+        filter: drop-shadow(0 0 7px rgba(255, 220, 80, 0.4));
+      }
+      .icd {
+        font-family: "EB Garamond", serif;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.35);
+        line-height: 1.5;
+      }
+      /* Gaia dans impact: PAS de texte — seulement barres audio */
+      #gaia-impact-audio {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(0, 8, 4, 0.92);
+        border: 1px solid rgba(0, 255, 136, 0.15);
+        border-radius: 3px;
+        margin-top: 18px;
+      }
+      #gaia-impact-audio.show {
+        display: flex;
+      }
+      #gia-name {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.38em;
+        color: rgba(0, 255, 136, 0.42);
+      }
+      #gia-bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 14px;
+      }
+      #gia-bars span {
+        width: 2.5px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 0.9s ease-in-out infinite alternate;
+      }
+      #gia-bars span:nth-child(1) {
+        height: 4px;
+        animation-duration: 0.38s;
+      }
+      #gia-bars span:nth-child(2) {
+        height: 12px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      #gia-bars span:nth-child(3) {
+        height: 6px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      #gia-bars span:nth-child(4) {
+        height: 14px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      #gia-bars span:nth-child(5) {
+        height: 5px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      #gia-bars span:nth-child(6) {
+        height: 10px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      .ifoot {
+        display: flex;
+        justify-content: center;
+        margin-top: 24px;
+      }
+      .ifbtn {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.26em;
+        color: var(--g);
+        background: rgba(0, 8, 4, 0.97);
+        border: 1px solid rgba(0, 255, 136, 0.48);
+        border-radius: 3px;
+        padding: 13px 36px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .ifbtn:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 40px rgba(0, 255, 136, 0.28);
+      }
+      /* ── MUTE ── */
+      #ab {
+        position: fixed;
+        bottom: 14px;
+        left: 16px;
+        z-index: 62;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.26em;
+        color: rgba(0, 255, 136, 0.2);
+        cursor: pointer;
+        transition: color 0.3s;
+        background: none;
+        border: none;
+      }
+      #ab:hover {
+        color: rgba(0, 255, 136, 0.55);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cur"></div>
+    <canvas id="gc3d"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hl">G A I A</div>
+      <div class="hc">P R O J E T — R E B O I S E M E N T</div>
+      <div class="hr" id="scd">SCORE : 0</div>
+    </div>
+
+    <!-- Move hint -->
+    <div id="move-hint">
+      ZQSD / FLECHES — Deplacer &nbsp;|&nbsp; SOURIS — Regarder &nbsp;|&nbsp;
+      CLIC — Planter
+    </div>
+    <div id="xhair"></div>
+
+    <!-- LEFT PANEL -->
+    <div id="lp">
+      <div class="pt">PROJET REBOISEMENT</div>
+      <div class="ps">TERRAIN : 1 HECTARE (10 000 m²)</div>
+      <div class="slbl">TYPE D'ARBRE</div>
+      <button class="tb" data-t="sequoia" onclick="selTree('sequoia')">
+        <span class="ti">&#127795;</span>
+        <div>
+          <div class="tn">SEQUOIA</div>
+          <span class="ts">Croissance lente · Longevite max</span>
+        </div>
+      </button>
+      <button class="tb" data-t="pin" onclick="selTree('pin')">
+        <span class="ti">&#127794;</span>
+        <div>
+          <div class="tn">PIN</div>
+          <span class="ts">Croissance moyenne · Resistant</span>
+        </div>
+      </button>
+      <button class="tb" data-t="palmier" onclick="selTree('palmier')">
+        <span class="ti">&#127796;</span>
+        <div>
+          <div class="tn">PALMIER</div>
+          <span class="ts">Croissance rapide · Zone tropicale</span>
+        </div>
+      </button>
+      <button class="tb on" data-t="mixte" onclick="selTree('mixte')">
+        <span class="ti">&#127811;</span>
+        <div>
+          <div class="tn">ARBRES MIXTES</div>
+          <span class="ts">Recommande · Biodiversite maximale</span>
+        </div>
+      </button>
+      <div class="pdiv"></div>
+      <div class="slbl">MODE</div>
+      <button class="mb on" id="mbm" onclick="setMode('manual')">
+        &#9995;&nbsp; Plantation manuelle
+      </button>
+      <button class="mb" id="mba" onclick="openAuto()">
+        &#128640;&nbsp; Plantation automatique
+      </button>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div id="rp">
+      <div class="pt">STATISTIQUES</div>
+      <div class="sl">ARBRES PLANTES</div>
+      <div class="sv" id="stv">
+        0
+        <span
+          style="
+            font-size: 10px;
+            color: rgba(0, 255, 136, 0.3);
+            font-weight: 400;
+          "
+          >/ 200</span
+        >
+      </div>
+      <div class="pw"><div class="pf" id="pf" style="width: 0%"></div></div>
+      <div class="sl">CO2 ABSORBE (30 ANS)</div>
+      <div class="sv" id="sco2" style="font-size: 13px">0 t</div>
+      <div class="pdiv"></div>
+      <div class="sl">ESPECES</div>
+      <div
+        id="ssp"
+        style="
+          font-family: 'EB Garamond', serif;
+          font-size: 11px;
+          color: rgba(0, 255, 136, 0.5);
+          min-height: 14px;
+          font-style: italic;
+        "
+      >
+        —
+      </div>
+      <div id="yr-row2" style="display: none; margin-top: 8px">
+        <div class="sl">ANNEE SIMULEE</div>
+        <div
+          id="yr-val"
+          style="
+            font-family: 'Cinzel', serif;
+            font-size: 28px;
+            font-weight: 900;
+            color: #88ff88;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
+          "
+        >
+          0
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTO PANEL -->
+    <div id="ap">
+      <div class="apt">PLANTATION AUTOMATIQUE</div>
+      <div class="apl">COMBIEN D'ARBRES PLANTER ?</div>
+      <input
+        type="range"
+        id="tsl"
+        min="10"
+        max="200"
+        value="150"
+        oninput="updSl()"
+      />
+      <div id="slv">150 arbres</div>
+      <div class="apl">DISPOSITION</div>
+      <div class="rg">
+        <label class="ro" onclick="setDisp('random')"
+          ><input type="radio" name="dp" value="random" /> Aleatoire
+          (naturel)</label
+        >
+        <label class="ro on" onclick="setDisp('grid')"
+          ><input type="radio" name="dp" value="grid" checked /> Grille optimale
+          (recommande)</label
+        >
+        <label class="ro" onclick="setDisp('circles')"
+          ><input type="radio" name="dp" value="circles" /> Cercles
+          concentriques</label
+        >
+      </div>
+      <div class="apb">
+        <button class="apbtn" id="bpl" onclick="doAutoPlant()">PLANTER</button>
+        <button class="apbtn" id="bca" onclick="closeAuto()">ANNULER</button>
+      </div>
+    </div>
+
+    <!-- VOICE GAIA -->
+    <div id="vp">
+      <div id="vs"></div>
+      <div id="vbox">
+        <div id="vsr">
+          <span id="vnm">G A I A</span
+          ><span id="vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="vtx"></div>
+        <span id="twc"></span>
+      </div>
+    </div>
+
+    <!-- TIMELAPSE HUD -->
+    <div id="tlhud">
+      <div id="tlyear">AN 0</div>
+      <div id="tlphase">Preparation...</div>
+    </div>
+
+    <!-- ACTION BUTTON -->
+    <button id="abn"></button>
+
+    <!-- NOTIFICATION -->
+    <div id="ntf"></div>
+
+    <!-- GUIDE OVERLAY -->
+    <div id="guide">
+      <div id="guide-box">
+        <div class="gb-title">PROJET REBOISEMENT</div>
+        <div class="gb-sub">Guide de plantation — Salle 4</div>
+        <div class="gb-step">
+          <div class="gb-num">1</div>
+          <div class="gb-text">
+            <strong>SE DEPLACER DANS LE TERRAIN</strong
+            ><span
+              >Vous etes en vue 3D libre. Marchez sur votre hectare de terre
+              fertile, explorez les bords, sentez l'espace disponible.</span
+            >
+            <div class="gb-keys">
+              <span class="kb">Z / W</span><span class="kb">S</span
+              ><span class="kb">Q / A</span><span class="kb">D</span
+              ><span class="kb">SOURIS</span>
+            </div>
+          </div>
+        </div>
+        <div class="gb-step">
+          <div class="gb-num">2</div>
+          <div class="gb-text">
+            <strong>CHOISIR SON ARBRE</strong
+            ><span
+              >Panneau gauche : Sequoia, Pin, Palmier ou Mixte (recommande). Le
+              curseur devient une graine.</span
+            >
+          </div>
+        </div>
+        <div class="gb-step">
+          <div class="gb-num">3</div>
+          <div class="gb-text">
+            <strong>PLANTER</strong
+            ><span
+              >Cliquez sur le terrain pour planter. Graine → Germe → Jeune arbre
+              en quelques secondes. Espacement minimum 5m entre chaque arbre.
+              Maximum 200 arbres/hectare.</span
+            >
+          </div>
+        </div>
+        <div class="gb-step">
+          <div class="gb-num">4</div>
+          <div class="gb-text">
+            <strong>VOIR LA CROISSANCE</strong
+            ><span
+              >Apres avoir plante au moins 3 arbres, lancez le time-lapse :
+              regardez votre foret pousser sur 30 ans en 30 secondes.</span
+            >
+          </div>
+        </div>
+        <button id="guide-play" onclick="startGame()">
+          JOUER — COMMENCER LA PLANTATION
+        </button>
+      </div>
+    </div>
+
+    <!-- IMPACT PANEL -->
+    <div id="imp">
+      <div class="iw">
+        <div class="ititle">IMPACT COLLECTIF DU REBOISEMENT</div>
+        <div class="isub">Les chiffres reels si le monde agit ensemble</div>
+        <div class="isec">
+          SI 1 MILLION DE PERSONNES PLANTENT 1 HECTARE CHACUNE...
+        </div>
+        <div class="igrid" id="ig1"></div>
+        <div
+          class="isec"
+          style="
+            color: rgba(255, 220, 80, 0.55);
+            border-color: rgba(255, 220, 80, 0.15);
+            background: rgba(18, 14, 0, 0.7);
+          "
+        >
+          ET SI 1 MILLIARD DE PERSONNES AGISSAIENT ?
+        </div>
+        <div class="igrid" id="ig2"></div>
+        <!-- GAIA : audio seulement, pas de texte -->
+        <div id="gaia-impact-audio">
+          <span id="gia-name">G A I A</span>
+          <span id="gia-bars"
+            ><span></span><span></span><span></span><span></span><span></span
+            ><span></span
+          ></span>
+        </div>
+        <div class="ifoot">
+          <button class="ifbtn" onclick="goS14()">CONTINUER — SALLE 5</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="curtain"></div>
+    <button id="ab" onclick="togMute()">SON</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      "use strict";
+      // ══ GLOBALS ══
+      var isMuted = false,
+        AC = null;
+      var score = 0,
+        pName = "Gardien";
+      var selType = "mixte",
+        mode = "manual",
+        disp = "grid";
+      var autoN = 150;
+      var trees = [];
+      var tlYear = 0,
+        tlActive = false;
+      var phase = "guide"; // guide|plant|timelapse|impact
+      var entering = false;
+      var frameN = 0;
+      var waving = false,
+        waveX = 0;
+      var camYaw = 0,
+        camPitch = 0,
+        camH = 1.8;
+      var isLocked = false;
+      var keysW = {};
+      var TERRAIN_SIZE = 100; // 1 hectare = 100x100m
+      var CELL_SIZE = 5; // espacement min 5m
+      var MIN_PX_DIST = 0; // calculé dynamiquement
+      var treeObjs3D = []; // objets Three.js des arbres
+      var tlTreeScales = []; // scale targets pour time-lapse
+      var tlY = 0;
+
+      try {
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+        score = parseInt(localStorage.getItem("gaiaScore") || "0");
+      } catch (e) {}
+      document.getElementById("scd").textContent = "SCORE : " + score;
+
+      var $cur = document.getElementById("cur");
+      document.addEventListener("mousemove", function (e) {
+        $cur.style.left = e.clientX + "px";
+        $cur.style.top = e.clientY + "px";
+      });
+
+      // ══ THREE.JS SETUP ══
+      var renderer, scene3, camera3;
+      var W = innerWidth,
+        H = innerHeight;
+      var terrainMesh, borderMesh;
+      var treeMat3D = [];
+      var ambientParts3D = []; // particles O2
+      var birdObjs = [];
+      var skyDome;
+
+      function init3D() {
+        renderer = new THREE.WebGLRenderer({
+          canvas: document.getElementById("gc3d"),
+          antialias: true,
+          alpha: false,
+        });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.setSize(W, H);
+        renderer.setClearColor(0x050e06, 1);
+        renderer.shadowMap.enabled = true;
+
+        scene3 = new THREE.Scene();
+        scene3.fog = new THREE.FogExp2(0x0d2810, 0.018);
+
+        camera3 = new THREE.PerspectiveCamera(72, W / H, 0.1, 800);
+        camera3.position.set(0, camH, 0);
+
+        // ── Lights ──
+        scene3.add(new THREE.AmbientLight(0x2a6030, 1.0));
+        var sun = new THREE.DirectionalLight(0xffee88, 2.0);
+        sun.position.set(80, 140, 60);
+        sun.castShadow = true;
+        scene3.add(sun);
+        scene3.add(new THREE.HemisphereLight(0x3a7028, 0x0d2008, 0.75));
+
+        // ── Ground / Terrain ──
+        var groundGeo = new THREE.PlaneGeometry(600, 600);
+        var groundMat = new THREE.MeshPhongMaterial({
+          color: 0x0d2808,
+          shininess: 0,
+        });
+        var ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = 0;
+        scene3.add(ground);
+
+        // Terrain fertile (1 hectare = 100x100m)
+        var terrGeo = new THREE.PlaneGeometry(
+          TERRAIN_SIZE,
+          TERRAIN_SIZE,
+          20,
+          20
+        );
+        var terrMat = new THREE.MeshPhongMaterial({
+          color: 0x3a2208,
+          shininess: 1,
+        });
+        terrainMesh = new THREE.Mesh(terrGeo, terrMat);
+        terrainMesh.rotation.x = -Math.PI / 2;
+        terrainMesh.position.y = 0.01;
+        scene3.add(terrainMesh);
+
+        // Terrain border (green glowing)
+        var borderGeo = new THREE.EdgesGeometry(
+          new THREE.BoxGeometry(TERRAIN_SIZE, 0.1, TERRAIN_SIZE)
+        );
+        var borderMat2 = new THREE.LineBasicMaterial({
+          color: 0x00ff88,
+          transparent: true,
+          opacity: 0.4,
+        });
+        borderMesh = new THREE.LineSegments(borderGeo, borderMat2);
+        borderMesh.position.y = 0.05;
+        scene3.add(borderMesh);
+
+        // Grid lines on terrain
+        for (var gi = 0; gi <= 10; gi++) {
+          var gx = (gi / 10) * TERRAIN_SIZE - TERRAIN_SIZE / 2;
+          var gl1 = new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([
+              new THREE.Vector3(gx, 0.02, -TERRAIN_SIZE / 2),
+              new THREE.Vector3(gx, 0.02, TERRAIN_SIZE / 2),
+            ]),
+            new THREE.LineBasicMaterial({
+              color: 0x4a3010,
+              transparent: true,
+              opacity: 0.3,
+            })
+          );
+          scene3.add(gl1);
+          var gl2 = new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([
+              new THREE.Vector3(-TERRAIN_SIZE / 2, 0.02, gx),
+              new THREE.Vector3(TERRAIN_SIZE / 2, 0.02, gx),
+            ]),
+            new THREE.LineBasicMaterial({
+              color: 0x4a3010,
+              transparent: true,
+              opacity: 0.3,
+            })
+          );
+          scene3.add(gl2);
+        }
+
+        // ── Surrounding forest (forêt existante au loin) ──
+        var fMat = new THREE.MeshPhongMaterial({
+          color: 0x0a3010,
+          emissive: 0x020801,
+          shininess: 2,
+          transparent: true,
+          opacity: 0.82,
+        });
+        var fMat2 = new THREE.MeshPhongMaterial({
+          color: 0x0d4018,
+          emissive: 0x030a02,
+          shininess: 3,
+          transparent: true,
+          opacity: 0.78,
+        });
+        for (var fi = 0; fi < 180; fi++) {
+          var fa = (fi / 180) * Math.PI * 2;
+          var fr = 90 + Math.sin(fi * 37.3) * 40 + Math.random() * 30;
+          var fh = 8 + Math.random() * 12;
+          var fg = new THREE.SphereGeometry(fh * 0.55, 7, 5);
+          var fm = new THREE.Mesh(fg, fi % 2 === 0 ? fMat : fMat2);
+          fm.position.set(Math.cos(fa) * fr, fh * 0.4, Math.sin(fa) * fr);
+          fm.scale.y = 0.65 + Math.random() * 0.3;
+          scene3.add(fm);
+          // Tronc
+          var ftg = new THREE.CylinderGeometry(0.4, 0.6, fh * 0.5, 6);
+          var ftm = new THREE.Mesh(
+            ftg,
+            new THREE.MeshPhongMaterial({ color: 0x3a1808 })
+          );
+          ftm.position.set(Math.cos(fa) * fr, fh * 0.25, Math.sin(fa) * fr);
+          scene3.add(ftm);
+        }
+
+        // ── Sky dome hint ──
+        var skyGeo = new THREE.SphereGeometry(400, 16, 8);
+        var skyMat = new THREE.MeshBasicMaterial({
+          color: 0x050e06,
+          side: THREE.BackSide,
+        });
+        skyDome = new THREE.Mesh(skyGeo, skyMat);
+        scene3.add(skyDome);
+
+        // ── Tree materials pre-built ──
+        treeMat3D = [
+          {
+            trunk: new THREE.MeshPhongMaterial({ color: 0x4a2808 }),
+            foliage: new THREE.MeshPhongMaterial({
+              color: 0x145214,
+              emissive: 0x021002,
+              shininess: 6,
+              transparent: true,
+              opacity: 0.92,
+            }),
+          },
+          {
+            trunk: new THREE.MeshPhongMaterial({ color: 0x3a2206 }),
+            foliage: new THREE.MeshPhongMaterial({
+              color: 0x1e5a1e,
+              emissive: 0x030c03,
+              shininess: 5,
+              transparent: true,
+              opacity: 0.88,
+            }),
+          },
+          {
+            trunk: new THREE.MeshPhongMaterial({ color: 0x302010 }),
+            foliage: new THREE.MeshPhongMaterial({
+              color: 0x267a1c,
+              emissive: 0x040e02,
+              shininess: 7,
+              transparent: true,
+              opacity: 0.9,
+            }),
+          },
+          {
+            trunk: new THREE.MeshPhongMaterial({ color: 0x3e2208 }),
+            foliage: new THREE.MeshPhongMaterial({
+              color: 0x1a6a1a,
+              emissive: 0x021402,
+              shininess: 6,
+              transparent: true,
+              opacity: 0.86,
+            }),
+          },
+        ];
+
+        // ── FPS Controls ──
+        document.addEventListener("keydown", function (e) {
+          keysW[e.code] = true;
+          if (e.code === "Space") e.preventDefault();
+        });
+        document.addEventListener("keyup", function (e) {
+          keysW[e.code] = false;
+        });
+
+        var cnv3d = document.getElementById("gc3d");
+        cnv3d.addEventListener("click", function (e) {
+          if (phase === "plant" && mode === "manual") {
+            if (!isLocked) {
+              cnv3d.requestPointerLock();
+              return;
+            }
+            plantFromClick(e);
+          }
+        });
+        document.addEventListener("pointerlockchange", function () {
+          isLocked =
+            document.pointerLockElement === document.getElementById("gc3d");
+          document.getElementById("xhair").classList.toggle("show", isLocked);
+          document
+            .getElementById("move-hint")
+            .classList.toggle("show", !isLocked && phase === "plant");
+        });
+        document.addEventListener("mousemove", function (e) {
+          if (!isLocked || phase !== "plant") return;
+          camYaw -= e.movementX * 0.0018;
+          camPitch -= e.movementY * 0.0014;
+          camPitch = Math.max(-0.9, Math.min(0.9, camPitch));
+        });
+
+        // Raycaster for planting
+        window._raycasterG = new THREE.Raycaster();
+      }
+
+      // ══ PLANT FROM CLICK (raycast) ══
+      function plantFromClick(e) {
+        if (document.getElementById("ap").classList.contains("show")) return;
+        // When pointer locked, plant directly ahead (center screen)
+        var ray = window._raycasterG;
+        var dir = new THREE.Vector3(0, 0, -1).applyQuaternion(
+          camera3.quaternion
+        );
+        ray.set(camera3.position, dir);
+        var hits = ray.intersectObject(terrainMesh);
+        if (hits.length === 0) {
+          showNtf("Visez le terrain pour planter");
+          return;
+        }
+        var pt = hits[0].point;
+        plantAt3D(pt.x, pt.z, true);
+      }
+
+      // ══ ADD TREE 3D ══
+      function plantAt3D(wx, wz, anim) {
+        if (trees.length >= 200) {
+          showNtf("Maximum 200 arbres/hectare atteint");
+          return false;
+        }
+        // Check spacing
+        for (var i = 0; i < trees.length; i++) {
+          var dx = trees[i].x - wx,
+            dz = trees[i].z - wz;
+          if (Math.sqrt(dx * dx + dz * dz) < CELL_SIZE) {
+            showNtf("Trop proche — l arbre ne poussera pas");
+            return false;
+          }
+        }
+        // Check within terrain
+        var hs = TERRAIN_SIZE / 2;
+        if (Math.abs(wx) > hs - 1 || Math.abs(wz) > hs - 1) {
+          showNtf("Plantez sur le terrain fertile");
+          return false;
+        }
+
+        var tp = pickType3D();
+        var sz = 0.6 + Math.random() * 0.4; // base scale (grows during timelapse)
+        trees.push({ x: wx, z: wz, type: tp, sz: sz });
+
+        // Create 3D object
+        var g3 = new THREE.Group();
+        var mi =
+          ["sequoia", "pin", "palmier", "chene", "bouleau", "erable"].indexOf(
+            tp
+          ) % treeMat3D.length;
+        var mat = treeMat3D[Math.max(0, mi)];
+        // Trunk
+        var th = 2.5 + Math.random() * 0.8;
+        var trMesh = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.12 * sz, 0.18 * sz, th * sz, 7),
+          mat.trunk
+        );
+        trMesh.position.y = th * sz * 0.5;
+        g3.add(trMesh);
+        // Foliage (2 spheres)
+        var fr2 = 1.1 + Math.random() * 0.4;
+        var fo1 = new THREE.Mesh(
+          new THREE.SphereGeometry(fr2 * sz, 8, 6),
+          mat.foliage
+        );
+        fo1.position.y = th * sz + fr2 * sz * 0.4;
+        g3.add(fo1);
+        var fo2 = new THREE.Mesh(
+          new THREE.SphereGeometry(fr2 * sz * 0.65, 7, 5),
+          mat.foliage
+        );
+        fo2.position.y = th * sz + fr2 * sz * 0.9;
+        g3.add(fo2);
+
+        g3.position.set(wx, 0, wz);
+        if (anim) {
+          g3.scale.set(0.01, 0.01, 0.01);
+          // Animate scale up
+          var tgt = 1;
+          var scaleUp = function () {
+            var s = g3.scale.x;
+            if (s < tgt - 0.01) {
+              g3.scale.setScalar(s + (tgt - s) * 0.12);
+              requestAnimationFrame(scaleUp);
+            } else {
+              g3.scale.setScalar(tgt);
+            }
+          };
+          requestAnimationFrame(scaleUp);
+          sfxPlant();
+          setTimeout(function () {
+            sfxGrow(trees.length);
+          }, 350);
+        }
+        scene3.add(g3);
+        treeObjs3D.push({ group: g3, baseScale: sz });
+        tlTreeScales.push(1);
+        updStats();
+        return true;
+      }
+
+      var TT_DATA = {
+        sequoia: { name: "Sequoia", co2: 3.3 },
+        pin: { name: "Pin", co2: 2.8 },
+        palmier: { name: "Palmier", co2: 2.0 },
+        chene: { name: "Chene", co2: 3.5 },
+        bouleau: { name: "Bouleau", co2: 2.2 },
+        erable: { name: "Erable", co2: 2.6 },
+      };
+      var MIX_POOL = [
+        "sequoia",
+        "pin",
+        "chene",
+        "bouleau",
+        "erable",
+        "pin",
+        "chene",
+      ];
+      function pickType3D() {
+        return selType === "mixte"
+          ? MIX_POOL[Math.floor(Math.random() * MIX_POOL.length)]
+          : selType;
+      }
+
+      // ══ ORBIT CAMERA (timelapse 360°) ══
+      // During timelapse: camera orbits the terrain automatically
+      // orbitAngle = current angle in radians
+      // orbitRadius / orbitHeight change with tlYear for dramatic effect
+      var orbitAngle = 0;
+      var orbitActive = false;
+      // Camera orbit speeds per phase (radians/sec)
+      // Total 30s = ~3 full rotations (2π×3 ≈ 18.85 rad / 30s = 0.628 rad/s)
+      var ORBIT_SPEED = 0.58; // ~3 tours complets en 30s
+
+      // Phase-based orbit: different radius+height per era
+      function getOrbitParams(yr) {
+        if (yr < 5) return { r: 85, h: 28, pitch: -0.32 }; // loin, vue large, légèrement inclinée
+        if (yr < 10) return { r: 72, h: 35, pitch: -0.38 }; // se rapproche, plus haut
+        if (yr < 20) return { r: 60, h: 45, pitch: -0.48 }; // plus près, vue plongeante
+        return { r: 50, h: 60, pitch: -0.58 }; // vue aérienne finale
+      }
+
+      // ══ UPDATE3D LOOP ══
+      function update3D(dt) {
+        if (!camera3 || phase === "impact") return;
+
+        if (phase === "timelapse" && orbitActive) {
+          // ── ROTATION 360° AUTOMATIQUE ──
+          orbitAngle += ORBIT_SPEED * dt;
+          var p = getOrbitParams(tlY);
+          // Smooth transition toward target radius/height
+          var tx = Math.sin(orbitAngle) * p.r;
+          var tz = Math.cos(orbitAngle) * p.r;
+          // Smooth lerp toward target position
+          camera3.position.x += (tx - camera3.position.x) * 0.06;
+          camera3.position.z += (tz - camera3.position.z) * 0.06;
+          camera3.position.y += (p.h - camera3.position.y) * 0.04;
+          // Always look at terrain center (0,0,0) + slight elevation
+          camera3.lookAt(0, p.h * 0.15, 0);
+          // No manual rotation during orbit
+        } else if (phase === "plant") {
+          // ── DÉPLACEMENT FPS LIBRE ──
+          var spd = keysW["ShiftLeft"] ? 8 : 4;
+          var fwd = new THREE.Vector3(
+            Math.sin(camYaw) * Math.cos(camPitch),
+            0,
+            Math.cos(camYaw) * Math.cos(camPitch)
+          ).normalize();
+          var rgt = new THREE.Vector3(
+            Math.cos(camYaw),
+            0,
+            -Math.sin(camYaw)
+          ).normalize();
+          if (keysW["KeyW"] || keysW["ArrowUp"])
+            camera3.position.addScaledVector(fwd, spd * dt);
+          if (keysW["KeyS"] || keysW["ArrowDown"])
+            camera3.position.addScaledVector(fwd, -spd * dt);
+          if (keysW["KeyA"] || keysW["ArrowLeft"])
+            camera3.position.addScaledVector(rgt, -spd * dt);
+          if (keysW["KeyD"] || keysW["ArrowRight"])
+            camera3.position.addScaledVector(rgt, spd * dt);
+          camera3.position.y = camH;
+          camera3.position.x = Math.max(
+            -200,
+            Math.min(200, camera3.position.x)
+          );
+          camera3.position.z = Math.max(
+            -200,
+            Math.min(200, camera3.position.z)
+          );
+          camera3.rotation.order = "YXZ";
+          camera3.rotation.y = camYaw;
+          camera3.rotation.x = camPitch;
+        }
+
+        // Border pulse
+        if (borderMesh) {
+          borderMesh.material.opacity =
+            0.3 + Math.sin(Date.now() * 0.002) * 0.15;
+        }
+        renderer.render(scene3, camera3);
+      }
+
+      // ══ RENDER LOOP ══
+      var lastT = 0;
+      function renderLoop(ts) {
+        requestAnimationFrame(renderLoop);
+        var dt = Math.min((ts - lastT) / 1000, 0.05);
+        lastT = ts;
+        frameN++;
+        update3D(dt);
+      }
+
+      // ══ AUDIO ══
+      function initAC() {
+        if (AC) return;
+        try {
+          AC = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {}
+      }
+      function gm() {
+        if (!AC) return null;
+        if (!window._M13) {
+          var c = AC.createDynamicsCompressor();
+          c.threshold.value = -18;
+          c.knee.value = 8;
+          c.ratio.value = 3;
+          c.attack.value = 0.003;
+          c.release.value = 0.25;
+          c.connect(AC.destination);
+          window._M13 = c;
+        }
+        return window._M13;
+      }
+      function sfxPlant() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        var o = AC.createOscillator(),
+          g = AC.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(300, AC.currentTime);
+        o.frequency.exponentialRampToValueAtTime(90, AC.currentTime + 0.15);
+        g.gain.setValueAtTime(0.07, AC.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.18);
+        o.connect(g);
+        g.connect(m);
+        o.start();
+        o.stop(AC.currentTime + 0.2);
+      }
+      function sfxGrow(idx) {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        [523, 659, 784, 1046].forEach(function (f, i) {
+          setTimeout(function () {
+            if (!AC || isMuted) return;
+            var o = AC.createOscillator(),
+              g = AC.createGain();
+            o.type = "triangle";
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.055, AC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.38);
+            o.connect(g);
+            g.connect(m);
+            o.start();
+            o.stop(AC.currentTime + 0.42);
+          }, i * 50);
+        });
+      }
+      function sfxAuto(i) {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        var sc = [
+          261.6, 293.7, 329.6, 349.2, 392, 440, 493.9, 523.3, 587.3, 659.3,
+        ];
+        var f = sc[i % sc.length];
+        var o = AC.createOscillator(),
+          g = AC.createGain();
+        o.type = "triangle";
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0.04, AC.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.32);
+        o.connect(g);
+        g.connect(m);
+        o.start();
+        o.stop(AC.currentTime + 0.35);
+      }
+      function sfxBird() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        [800, 1200, 900, 1400].forEach(function (f, i) {
+          setTimeout(function () {
+            if (!AC || isMuted) return;
+            var o = AC.createOscillator(),
+              g = AC.createGain();
+            o.type = "sine";
+            o.frequency.setValueAtTime(f, AC.currentTime);
+            o.frequency.exponentialRampToValueAtTime(
+              f * 1.3,
+              AC.currentTime + 0.1
+            );
+            g.gain.setValueAtTime(0.02, AC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.18);
+            o.connect(g);
+            g.connect(m);
+            o.start();
+            o.stop(AC.currentTime + 0.2);
+          }, i * 120);
+        });
+      }
+      function sfxAmb() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        [55, 82].forEach(function (f, i) {
+          var o = AC.createOscillator(),
+            g = AC.createGain();
+          o.type = "sine";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, AC.currentTime);
+          g.gain.linearRampToValueAtTime(0.008 + i * 0.004, AC.currentTime + 4);
+          var fl = AC.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 180;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(m);
+          o.start();
+        });
+      }
+      function togMute() {
+        isMuted = !isMuted;
+        document.getElementById("ab").textContent = isMuted ? "MUET" : "SON";
+        if (AC) {
+          isMuted ? AC.suspend() : AC.resume();
+        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      // ══ VOICE ══
+      var syn = window.speechSynthesis;
+      function gv() {
+        var vs = syn ? syn.getVoices() : [];
+        return (
+          vs.find(function (x) {
+            return (
+              x.lang === "fr-FR" &&
+              /Marie|Amelie|Hortense|Lea|Julie/i.test(x.name)
+            );
+          }) ||
+          vs.find(function (x) {
+            return x.lang === "fr-FR";
+          }) ||
+          vs.find(function (x) {
+            return x.lang.startsWith("fr");
+          }) ||
+          vs[0] ||
+          null
+        );
+      }
+      function speak(txt, cb, showText) {
+        showText = showText !== false;
+        initAC();
+        if (AC && AC.state === "suspended") AC.resume();
+        var el = document.getElementById("vtx"),
+          cu = document.getElementById("twc");
+        if (showText) {
+          el.textContent = "";
+          cu.style.display = "inline-block";
+          document.getElementById("vs").classList.add("show");
+          document.getElementById("vbox").classList.add("show");
+          document.getElementById("vp").classList.add("show");
+        }
+        var d = 0,
+          t = 0,
+          vd = false,
+          done = false,
+          iv = null;
+        function fin() {
+          if (done) return;
+          done = true;
+          if (showText) cu.style.display = "none";
+          if (cb) setTimeout(cb, 400);
+        }
+        function tick() {
+          if (iv) clearInterval(iv);
+          if (!showText) {
+            setTimeout(function () {
+              vd = true;
+              t = txt.length;
+            }, 100);
+            return;
+          }
+          iv = setInterval(function () {
+            if (d < t && d < txt.length) {
+              el.textContent = txt.slice(0, ++d);
+              el.scrollTop = el.scrollHeight;
+            } else if (d >= txt.length && vd) {
+              clearInterval(iv);
+              fin();
+            }
+          }, 22);
+        }
+        if (syn && !isMuted) {
+          syn.cancel();
+          var u = new SpeechSynthesisUtterance(txt);
+          u.lang = "fr-FR";
+          u.rate = 0.78;
+          u.pitch = 0.72;
+          u.volume = 1;
+          var v = gv();
+          if (v) u.voice = v;
+          u.onstart = function () {
+            document.getElementById("vbr").classList.add("on");
+          };
+          u.onboundary = function (e) {
+            if (e.name === "word" && showText) {
+              t = Math.min(e.charIndex + e.charLength, txt.length);
+              tick();
+            }
+          };
+          u.onend = u.onerror = function () {
+            document.getElementById("vbr").classList.remove("on");
+            vd = true;
+            if (showText) {
+              t = txt.length;
+              tick();
+            } else fin();
+          };
+          syn.speak(u);
+          setTimeout(function () {
+            if (d === 0 && !done && showText) {
+              vd = true;
+              t = txt.length;
+              tick();
+            }
+          }, 2200);
+        } else {
+          vd = true;
+          t = txt.length;
+          if (showText) tick();
+          else setTimeout(fin, 100);
+        }
+      }
+      function speakImpact(txt, cb) {
+        // Voix uniquement, pas de texte affiché
+        initAC();
+        if (AC && AC.state === "suspended") AC.resume();
+        document.getElementById("gaia-impact-audio").classList.add("show");
+        var bars = document.getElementById("gia-bars");
+        if (syn && !isMuted) {
+          syn.cancel();
+          var u = new SpeechSynthesisUtterance(txt);
+          u.lang = "fr-FR";
+          u.rate = 0.78;
+          u.pitch = 0.72;
+          u.volume = 1;
+          var v = gv();
+          if (v) u.voice = v;
+          u.onstart = function () {
+            bars.style.display = "flex";
+          };
+          u.onend = u.onerror = function () {
+            bars.style.display = "none";
+            document
+              .getElementById("gaia-impact-audio")
+              .classList.remove("show");
+            if (cb) setTimeout(cb, 400);
+          };
+          syn.speak(u);
+        } else {
+          if (cb) setTimeout(cb, 1000);
+        }
+      }
+      function hideV() {
+        var vb = document.getElementById("vbox");
+        vb.style.transition = "opacity .7s";
+        vb.style.opacity = "0";
+        setTimeout(function () {
+          vb.classList.remove("show");
+          vb.style.opacity = "";
+          vb.style.transition = "";
+          document.getElementById("vs").classList.remove("show");
+          document.getElementById("vp").classList.remove("show");
+        }, 700);
+      }
+      function showNtf(msg) {
+        var n = document.getElementById("ntf");
+        n.textContent = msg;
+        n.classList.add("show");
+        setTimeout(function () {
+          n.classList.remove("show");
+        }, 2400);
+      }
+
+      // ══ STATS ══
+      function updStats() {
+        var c = trees.length;
+        document.getElementById("stv").innerHTML =
+          c +
+          ' <span style="font-size:10px;color:rgba(0,255,136,.3);font-weight:400;">/ 200</span>';
+        document.getElementById("pf").style.width = (c / 200) * 100 + "%";
+        var co2 = trees.reduce(function (s, t) {
+          return s + (TT_DATA[t.type] ? TT_DATA[t.type].co2 : 2.8);
+        }, 0);
+        document.getElementById("sco2").textContent = co2.toFixed(0) + " t";
+        if (c > 0) {
+          var sp = [
+            ...new Set(
+              trees.map(function (t) {
+                return TT_DATA[t.type] ? TT_DATA[t.type].name : t.type;
+              })
+            ),
+          ];
+          document.getElementById("ssp").textContent = sp.join(", ");
+        }
+        if (c >= 3 && phase === "plant") {
+          var btn = document.getElementById("abn");
+          btn.textContent = "VOIR CROISSANCE (30 ANS)";
+          btn.onclick = startTL;
+          btn.classList.add("show");
+        }
+      }
+
+      // ══ CONTROLS ══
+      function selTree(t) {
+        selType = t;
+        document.querySelectorAll(".tb").forEach(function (b) {
+          b.classList.toggle("on", b.dataset.t === t);
+        });
+        if (mode === "manual") $cur.className = "seed";
+      }
+      function setMode(m) {
+        mode = m;
+        document.getElementById("mbm").classList.toggle("on", m === "manual");
+        document.getElementById("mba").classList.toggle("on", m === "auto");
+        $cur.className = m === "manual" ? "seed" : "";
+      }
+      function openAuto() {
+        document.getElementById("ap").classList.add("show");
+      }
+      function closeAuto() {
+        document.getElementById("ap").classList.remove("show");
+        setMode("manual");
+      }
+      function updSl() {
+        var v = parseInt(document.getElementById("tsl").value);
+        autoN = v;
+        document.getElementById("slv").textContent = v + " arbres";
+      }
+      function setDisp(d) {
+        disp = d;
+        document.querySelectorAll(".ro").forEach(function (r) {
+          r.classList.toggle("on", r.querySelector("input").value === d);
+        });
+      }
+
+      // ══ AUTO PLANT ══
+      function doAutoPlant() {
+        closeAuto();
+        trees = [];
+        treeObjs3D.forEach(function (t) {
+          scene3.remove(t.group);
+        });
+        treeObjs3D = [];
+        tlTreeScales = [];
+        var pos = genPos(autoN, disp);
+        var idx = 0;
+        var iv = setInterval(function () {
+          if (idx >= pos.length) {
+            clearInterval(iv);
+            phase = "plant";
+            setMode("manual");
+            updStats();
+            return;
+          }
+          var p = pos[idx];
+          plantAt3D(p.x, p.z, false);
+          if (idx % 3 === 0) sfxAuto(idx);
+          idx++;
+          updStats();
+        }, 1000 / 15);
+      }
+      function genPos(count, dp) {
+        var hs = TERRAIN_SIZE / 2 - 3;
+        var res = [];
+        if (dp === "grid") {
+          var cols = Math.ceil(Math.sqrt(count * 1));
+          var rows = Math.ceil(count / cols);
+          var sx = TERRAIN_SIZE / cols,
+            sz2 = TERRAIN_SIZE / rows;
+          for (var r = 0; r < rows && res.length < count; r++)
+            for (var c = 0; c < cols && res.length < count; c++) {
+              var jx = (Math.random() - 0.5) * sx * 0.25,
+                jz = (Math.random() - 0.5) * sz2 * 0.25;
+              res.push({
+                x: -hs + (c + 0.5) * sx + jx,
+                z: -hs + (r + 0.5) * sz2 + jz,
+              });
+            }
+        } else if (dp === "circles") {
+          var done2 = 0,
+            ring = 0;
+          while (done2 < count) {
+            var rad = ring * CELL_SIZE * 1.15;
+            var n =
+              ring === 0
+                ? 1
+                : Math.max(1, Math.floor((2 * Math.PI * rad) / CELL_SIZE));
+            for (var k = 0; k < n && done2 < count; k++) {
+              var a = (k / n) * Math.PI * 2;
+              var x2 = Math.cos(a) * rad,
+                z2 = Math.sin(a) * rad;
+              if (Math.abs(x2) < hs && Math.abs(z2) < hs) {
+                res.push({ x: x2, z: z2 });
+                done2++;
+              }
+            }
+            ring++;
+          }
+        } else {
+          var tries = 0;
+          while (res.length < count && tries < count * 25) {
+            tries++;
+            var rx = -hs + Math.random() * TERRAIN_SIZE,
+              rz = -hs + Math.random() * TERRAIN_SIZE;
+            var ok = true;
+            for (var pi = 0; pi < res.length; pi++) {
+              var dx = res[pi].x - rx,
+                dz3 = res[pi].z - rz;
+              if (Math.sqrt(dx * dx + dz3 * dz3) < CELL_SIZE) {
+                ok = false;
+                break;
+              }
+            }
+            if (ok) res.push({ x: rx, z: rz });
+          }
+        }
+        return res;
+      }
+
+      // ══ TIMELAPSE ══
+      function startTL() {
+        if (trees.length === 0) {
+          showNtf("Plantez des arbres d abord !");
+          return;
+        }
+        phase = "timelapse";
+        if (syn) syn.cancel();
+        document.getElementById("abn").classList.remove("show");
+        document.getElementById("tlhud").classList.add("show");
+        document.getElementById("lp").classList.add("dim");
+        document.getElementById("yr-row2").style.display = "block";
+        tlYear = 0;
+        tlActive = true;
+        tlY = 0;
+        if (isLocked) document.exitPointerLock();
+
+        // ── Démarrage orbite 360° ──
+        // Positionner la caméra au point de départ de l'orbite (face avant)
+        orbitAngle = 0;
+        orbitActive = true;
+        // Position initiale : loin, vue large
+        camera3.position.set(0, 28, 85);
+        camera3.lookAt(0, 0, 0);
+
+        var phaseDefs = [
+          { yr: 5, lbl: "AN 5 — Jeunes pousses (1-2 m) · Sol encore visible" },
+          { yr: 10, lbl: "AN 10 — Croissance acceleree · Canopee naissante" },
+          {
+            yr: 20,
+            lbl: "AN 20 — Grands arbres (15-20 m) · Biodiversite explose",
+          },
+          { yr: 30, lbl: "AN 30 — Foret mature · Ecosysteme complet" },
+        ];
+        var pi = 0,
+          birdT = 0;
+
+        var TL = setInterval(function () {
+          tlYear += 0.5;
+          tlY = tlYear;
+          document.getElementById("tlyear").textContent =
+            "AN " + Math.floor(tlYear);
+          document.getElementById("yr-val").textContent = Math.floor(tlYear);
+
+          // Phase label
+          if (pi < phaseDefs.length && tlYear >= phaseDefs[pi].yr) {
+            document.getElementById("tlphase").textContent = phaseDefs[pi].lbl;
+            pi++;
+          }
+
+          // Sons
+          if (tlYear > 6 && birdT++ % 18 === 0) sfxBird();
+
+          // Croissance des arbres
+          var growFactor = 1 + tlYear * 0.09;
+          treeObjs3D.forEach(function (t) {
+            t.group.scale.setScalar(growFactor);
+          });
+
+          // Verdissement du terrain
+          if (terrainMesh) {
+            var g = Math.min(1, tlYear / 25);
+            terrainMesh.material.color.setRGB(
+              0.12 + g * 0.18,
+              0.13 + g * 0.22,
+              0.02 + g * 0.02
+            );
+          }
+
+          if (tlYear >= 30) {
+            clearInterval(TL);
+            tlActive = false;
+            setTimeout(endTL, 600);
+          }
+        }, 1000 / 2);
+      }
+
+      function endTL() {
+        document.getElementById("tlhud").classList.remove("show");
+        // Arrêter l'orbite — passer à vue aérienne finale fixe
+        orbitActive = false;
+        // Zoom out final : vue aérienne plongeante (îlot d'espoir)
+        var zoomT = 0;
+        var startPos = {
+          x: camera3.position.x,
+          y: camera3.position.y,
+          z: camera3.position.z,
+        };
+        var endPos = { x: 0, y: 110, z: 0 };
+        var zoomIv = setInterval(function () {
+          zoomT += 0.032;
+          if (zoomT >= 1) {
+            zoomT = 1;
+            clearInterval(zoomIv);
+          }
+          var ease = 1 - Math.pow(1 - zoomT, 3);
+          camera3.position.x = startPos.x + (endPos.x - startPos.x) * ease;
+          camera3.position.y = startPos.y + (endPos.y - startPos.y) * ease;
+          camera3.position.z = startPos.z + (endPos.z - startPos.z) * ease;
+          camera3.lookAt(0, 0, 0);
+        }, 16);
+
+        speak(
+          pName +
+            "...\nDe la terre nue... a une foret vivante.\n30 ans de vie.\nDes centaines d especes revenues.\nLes oiseaux chantent a nouveau.\nEt ce dioxyde de carbone que je ne pouvais plus absorber...\nje peux a nouveau le respirer.\nVotre foret est un ilot d espoir.\nImaginez maintenant...\nque 1 milliard de personnes fassent la meme chose.",
+          function () {
+            hideV();
+            setTimeout(function () {
+              var btn = document.getElementById("abn");
+              btn.textContent = "VOIR L IMPACT GLOBAL";
+              btn.onclick = showImpact;
+              btn.classList.add("show");
+              document.getElementById("lp").classList.remove("dim");
+            }, 1200);
+          }
+        );
+      }
+
+      // ══ IMPACT ══
+      function showImpact() {
+        document.getElementById("abn").classList.remove("show");
+        document.getElementById("imp").classList.add("show");
+        var m1 = [
+          {
+            i: "&#127795;",
+            t: "ARBRES PLANTES",
+            v: "150 millions",
+            d: "Si chacun plante 150 arbres/hectare",
+          },
+          {
+            i: "&#128207;",
+            t: "SURFACE REBOISEE",
+            v: "1 million ha",
+            d: "= 10 000 km2 · Taille de la Jamaique",
+          },
+          {
+            i: "&#127783;&#65039;",
+            t: "CO2 ABSORBE (30 ANS)",
+            v: "495 M tonnes",
+            d: "= 10% emissions annuelles France",
+          },
+          {
+            i: "&#128168;",
+            t: "O2 PRODUIT (AN 30)",
+            v: "18 Mt/an",
+            d: "= Respiration de 300 millions humains",
+          },
+          {
+            i: "&#127777;&#65039;",
+            t: "IMPACT CLIMAT",
+            v: "-0.01 C",
+            d: "Contribution estimee (1M personnes — petit mais reel)",
+          },
+        ];
+        var g1 = document.getElementById("ig1");
+        g1.innerHTML = "";
+        m1.forEach(function (c) {
+          g1.innerHTML +=
+            '<div class="icard"><div class="ict">' +
+            c.i +
+            " " +
+            c.t +
+            '</div><div class="icv">' +
+            c.v +
+            '</div><div class="icd">' +
+            c.d +
+            "</div></div>";
+        });
+        var m2 = [
+          {
+            i: "&#127795;",
+            t: "ARBRES PLANTES",
+            v: "150 milliards",
+            d: "150 000 000 000 arbres",
+          },
+          {
+            i: "&#128207;",
+            t: "SURFACE REBOISEE",
+            v: "1 milliard ha",
+            d: "10 M km2 · Taille du Canada",
+          },
+          {
+            i: "&#127783;&#65039;",
+            t: "CO2 ABSORBE (30 ANS)",
+            v: "495 Md tonnes",
+            d: "= 10 ANS d emissions mondiales !!",
+          },
+          {
+            i: "&#127777;&#65039;",
+            t: "IMPACT REEL",
+            v: "-0.5 a -1 C",
+            d: "Effet significatif sur le rechauffement global",
+          },
+          {
+            i: "&#9989;",
+            t: "REALISABLE",
+            v: "OBJECTIF ATTEIGNABLE",
+            d: "Des projets existent deja partout dans le monde",
+          },
+        ];
+        var g2 = document.getElementById("ig2");
+        g2.innerHTML = "";
+        m2.forEach(function (c) {
+          g2.innerHTML +=
+            '<div class="icard bil"><div class="ict">' +
+            c.i +
+            " " +
+            c.t +
+            '</div><div class="icv">' +
+            c.v +
+            '</div><div class="icd">' +
+            c.d +
+            "</div></div>";
+        });
+        // Score
+        try {
+          localStorage.setItem(
+            "gaiaScore",
+            (
+              parseInt(localStorage.getItem("gaiaScore") || "0") + 200
+            ).toString()
+          );
+        } catch (e) {}
+        // GAIA parle — audio seulement, ZERO texte affiché
+        setTimeout(function () {
+          var gaiaTxt =
+            "Vous voyez ?\n1 personne. 1 hectare. 495 tonnes de dioxyde de carbone.\nCa semble petit.\nMais...\n1 million de personnes... 495 MILLIONS de tonnes.\n1 milliard... 495 MILLIARDS de tonnes.\nC est... ENORME.\nLe reboisement n est pas une utopie.\nC est une SOLUTION.\nConcrète. Mesurable. Efficace.\nDes projets existent DEJA :\nGreat Green Wall en Afrique : 8000 kilometres de foret.\nTrillion Trees : 1000 milliards d arbres dans le monde.\nPakistan : 10 milliards d arbres plantes entre 2018 et 2023.\nVous voyez ?\nVous POUVEZ me rendre mes poumons.\nUn arbre a la fois.";
+          speakImpact(gaiaTxt, null);
+        }, 700);
+      }
+
+      // ══ NAVIGATE ══
+      function goS14() {
+        if (entering) return;
+        entering = true;
+        if (syn) syn.cancel();
+        try {
+          localStorage.setItem("gaiaPlayerName", pName);
+        } catch (e) {}
+        var cu = document.getElementById("curtain");
+        cu.style.background = "linear-gradient(135deg,#001508,#000)";
+        cu.style.transition = "opacity 2s ease";
+        cu.classList.remove("gone");
+        cu.style.opacity = "1";
+        setTimeout(function () {
+          window.location.href = "scene14.html";
+        }, 2200);
+      }
+
+      // ══ GUIDE → START ══
+      function startGame() {
+        document.getElementById("guide").classList.remove("show");
+        phase = "plant";
+        setMode("manual");
+        selTree("mixte");
+        document.getElementById("hud").classList.add("show");
+        document.getElementById("lp").classList.add("show");
+        document.getElementById("rp").classList.add("show");
+        setTimeout(function () {
+          document.getElementById("move-hint").classList.add("show");
+        }, 400);
+        sfxAmb();
+        setTimeout(function () {
+          speak(
+            pName +
+              "...\nBienvenue sur votre terrain de plantation.\n1 hectare. 10 000 metres carres.\nTerre fertile. Prete a recevoir des arbres.\nChoisissez votre type d arbre dans le panneau gauche.\nCliquez pour activer la souris.\nPuis cliquez sur le terrain pour planter.\nChaque arbre compte.\nCommencez.",
+            function () {
+              hideV();
+            }
+          );
+        }, 600);
+      }
+
+      // ══ INIT ══
+      function init() {
+        initAC();
+        document.addEventListener(
+          "click",
+          function () {
+            if (AC && AC.state === "suspended") AC.resume();
+          },
+          { once: true }
+        );
+        init3D();
+        var cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.4s";
+        setTimeout(function () {
+          cu.classList.add("gone");
+        }, 150);
+        // Show guide after curtain
+        setTimeout(function () {
+          document.getElementById("guide").classList.add("show");
+        }, 800);
+        requestAnimationFrame(renderLoop);
+      }
+      window.addEventListener("load", init);
+      window.addEventListener("resize", function () {
+        W = innerWidth;
+        H = innerHeight;
+        if (renderer) {
+          renderer.setSize(W, H);
+        }
+        if (camera3) {
+          camera3.aspect = W / H;
+          camera3.updateProjectionMatrix();
+        }
+      });
+    </script>
+  </body>
+</html>
