@@ -585,25 +585,319 @@
         }
       }
 
-      /* ── SCENE 2: PHOTO UI ── */
+      /* ── SCENE 2: PHOTO SIMULATION FULLSCREEN ── */
+      /* Fullscreen simulation — canvas fills screen, UI overlays */
       #photo-ui {
         position: fixed;
         inset: 0;
         z-index: 20;
         display: none;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 clamp(12px, 2vw, 24px);
         pointer-events: none;
       }
       #photo-ui.active {
-        display: flex;
+        display: block;
       }
-      #leaf-panel {
-        width: min(235px, 23vw);
-        background: rgba(0, 6, 2, 0.94);
+      /* ── VIDEO PLAYER (replaces canvas photo) ── */
+      #video-scene {
+        position: fixed;
+        inset: 0;
+        z-index: 18;
+        display: none;
+        background: #000;
+      }
+      #video-scene.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #photo-vid {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        outline: none;
+      }
+      /* Video GAIA voice overlay */
+      #vid-gaia-box {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 25;
+        width: min(700px, 94vw);
+        padding: 0 0 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+      #vid-gaia-box.show {
+        opacity: 1;
+      }
+      #vgb-sep {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.5),
+          transparent
+        );
+        margin-bottom: 7px;
+        transition: width 1.1s;
+      }
+      #vgb-sep.show {
+        width: 100%;
+      }
+      #vgb-inner {
+        width: 100%;
+        background: rgba(0, 5, 2, 0.97);
         border: 1px solid rgba(0, 255, 136, 0.18);
-        backdrop-filter: blur(18px);
+        backdrop-filter: blur(28px);
+        border-radius: 3px;
+        padding: 11px 20px 10px;
+      }
+      #vgb-hdr {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 5px;
+      }
+      #vgb-name {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      #vgb-bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vgb-bars.on {
+        opacity: 1;
+      }
+      #vgb-bars span {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 1s ease-in-out infinite alternate;
+      }
+      #vgb-bars span:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      #vgb-bars span:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      #vgb-bars span:nth-child(3) {
+        height: 5px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      #vgb-bars span:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      #vgb-bars span:nth-child(5) {
+        height: 4px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      #vgb-bars span:nth-child(6) {
+        height: 8px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      #vgb-txt {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(14px, 1.7vw, 17px);
+        line-height: 1.95;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 110px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vgb-txt::-webkit-scrollbar {
+        display: none;
+      }
+      #vgb-cur {
+        display: inline-block;
+        width: 2px;
+        height: 14px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      /* Video overlay HUD */
+      #vid-hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 24;
+        padding: 14px 20px;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 8, 2, 0.85) 0%,
+          transparent 100%
+        );
+        display: none;
+        pointer-events: none;
+      }
+      #vid-hud.active {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #vid-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(10px, 1.6vw, 14px);
+        font-weight: 900;
+        letter-spacing: 0.32em;
+        color: var(--g);
+        filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.4));
+      }
+      #vid-phase {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.45);
+      }
+      /* Skip/Forest buttons */
+      #vid-skip {
+        position: fixed;
+        bottom: clamp(90px, 11vh, 110px);
+        right: 20px;
+        z-index: 25;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: rgba(0, 255, 136, 0.4);
+        background: rgba(0, 5, 2, 0.75);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        padding: 7px 14px;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.3s;
+        display: none;
+      }
+      #vid-skip.show {
+        display: block;
+      }
+      #vid-skip:hover {
+        color: var(--g);
+        border-color: rgba(0, 255, 136, 0.5);
+      }
+      #vid-forest-btn {
+        position: fixed;
+        bottom: clamp(52px, 7vh, 70px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 25;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.26em;
+        color: var(--g);
+        background: rgba(0, 5, 2, 0.92);
+        border: 1px solid rgba(0, 255, 136, 0.45);
+        padding: 12px 36px;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.35s;
+        display: none;
+      }
+      #vid-forest-btn.show {
+        display: block;
+      }
+      #vid-forest-btn:hover {
+        background: rgba(0, 255, 136, 0.12);
+        box-shadow: 0 0 28px rgba(0, 255, 136, 0.28);
+      }
+      /* Progress bar */
+      #vid-progress {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 24;
+        height: 3px;
+        background: rgba(0, 255, 136, 0.1);
+      }
+      #vid-prog-fill {
+        height: 100%;
+        background: var(--g);
+        width: 0%;
+        transition: width 0.2s linear;
+      }
+      /* Title bar */
+      #ph-title-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        padding: 14px 0 10px;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 8, 2, 0.92) 0%,
+          rgba(0, 8, 2, 0.4) 70%,
+          transparent 100%
+        );
+        pointer-events: none;
+      }
+      #ph-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(11px, 1.8vw, 16px);
+        font-weight: 900;
+        letter-spacing: 0.35em;
+        color: var(--g);
+        filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
+      }
+      #ph-sub {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.38);
+        margin-top: 3px;
+      }
+      /* Phase indicator */
+      #ph-phase {
+        position: absolute;
+        top: 58px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.35em;
+        color: rgba(0, 255, 136, 0.55);
+        background: rgba(0, 6, 2, 0.85);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        padding: 5px 16px;
+        border-radius: 2px;
+        pointer-events: none;
+        transition: color 0.5s;
+      }
+      /* LEFT PANEL - Coupe anatomique */
+      #leaf-panel {
+        position: absolute;
+        left: clamp(10px, 2vw, 22px);
+        top: 50%;
+        transform: translateY(-50%);
+        width: min(210px, 22vw);
+        background: rgba(0, 5, 2, 0.96);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        backdrop-filter: blur(22px);
         border-radius: 4px;
         padding: 13px 14px;
         pointer-events: all;
@@ -612,78 +906,105 @@
         font-family: "Cinzel", serif;
         font-size: 8px;
         font-weight: 900;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.22em;
         color: var(--g);
-        margin-bottom: 9px;
+        margin-bottom: 10px;
+        padding-bottom: 7px;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.1);
       }
       .lp-layer {
         font-family: "EB Garamond", serif;
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.48);
-        padding: 3px 8px;
+        color: rgba(255, 255, 255, 0.45);
+        padding: 4px 8px;
         margin-bottom: 2px;
         border-left: 2px solid;
         border-radius: 1px;
-        transition: all 0.3s;
+        transition: all 0.4s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
       .lp-layer.active {
-        color: rgba(0, 255, 136, 0.9);
-        background: rgba(0, 255, 136, 0.06);
+        color: rgba(0, 255, 136, 0.95);
+        background: rgba(0, 255, 136, 0.07);
+        border-left-color: rgba(0, 255, 136, 0.8) !important;
       }
-      #eq-center {
-        flex: 1;
+      .lp-arrow {
+        font-size: 10px;
+        color: rgba(0, 255, 136, 0.35);
+        display: block;
         text-align: center;
-        padding: 0 14px;
+        margin: 1px 0;
       }
-      #eq-title {
-        font-family: "Cinzel", serif;
-        font-size: clamp(9px, 1.3vw, 12px);
-        font-weight: 900;
-        letter-spacing: 0.32em;
-        color: rgba(0, 255, 136, 0.5);
-        margin-bottom: 9px;
+      /* RIGHT PANEL - Equation + Counters */
+      #right-panel {
+        position: absolute;
+        right: clamp(10px, 2vw, 22px);
+        top: 50%;
+        transform: translateY(-50%);
+        width: min(220px, 23vw);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: all;
       }
+      /* Equation box */
       #eq-box {
-        display: inline-block;
-        background: rgba(0, 6, 2, 0.94);
-        border: 1px solid rgba(0, 255, 136, 0.2);
-        border-radius: 4px;
-        padding: 14px 20px;
-      }
-      .eq-line {
-        font-family: "Cinzel", serif;
-        font-size: clamp(10px, 1.3vw, 13px);
-        letter-spacing: 0.1em;
-        color: rgba(255, 255, 255, 0.72);
-        margin-bottom: 4px;
-        text-align: center;
-      }
-      .eq-line strong {
-        color: var(--g);
-      }
-      #eq-timer {
-        font-family: "Cinzel", serif;
-        font-size: 8px;
-        letter-spacing: 0.28em;
-        color: rgba(0, 255, 136, 0.32);
-        margin-top: 7px;
-      }
-      #counter-panel {
-        width: min(205px, 21vw);
-        background: rgba(0, 6, 2, 0.94);
+        background: rgba(0, 5, 2, 0.96);
         border: 1px solid rgba(0, 255, 136, 0.18);
-        backdrop-filter: blur(18px);
+        backdrop-filter: blur(22px);
         border-radius: 4px;
         padding: 13px 14px;
-        pointer-events: all;
+      }
+      .eq-sec {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.5);
+        margin-bottom: 6px;
+      }
+      .eq-mol {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.65);
+        margin-bottom: 3px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .eq-mol.active {
+        color: #fff;
+      }
+      .eq-arrow {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        color: rgba(0, 255, 136, 0.5);
+        text-align: center;
+        margin: 4px 0;
+        letter-spacing: 0.1em;
+      }
+      .eq-highlight {
+        color: var(--g);
+        font-weight: bold;
+      }
+      /* Counter box */
+      #counter-panel {
+        background: rgba(0, 5, 2, 0.96);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        backdrop-filter: blur(22px);
+        border-radius: 4px;
+        padding: 13px 14px;
       }
       .cp-t {
         font-family: "Cinzel", serif;
         font-size: 8px;
         font-weight: 900;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.22em;
         color: var(--g);
-        margin-bottom: 9px;
+        margin-bottom: 10px;
+        padding-bottom: 7px;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.1);
       }
       .cp-row {
         margin-bottom: 7px;
@@ -691,21 +1012,26 @@
       .cp-lbl {
         font-family: "Cinzel", serif;
         font-size: 6px;
-        letter-spacing: 0.26em;
+        letter-spacing: 0.24em;
         color: rgba(0, 255, 136, 0.38);
         margin-bottom: 2px;
       }
       .cp-val {
         font-family: "Cinzel", serif;
-        font-size: clamp(14px, 1.9vw, 17px);
+        font-size: clamp(14px, 1.8vw, 17px);
         font-weight: 900;
         color: var(--g);
         filter: drop-shadow(0 0 5px rgba(0, 255, 136, 0.4));
+        transition: color 0.3s;
+      }
+      .cp-val.flash {
+        color: #ffd700;
+        filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.7));
       }
       .cp-sub {
         font-family: "EB Garamond", serif;
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.32);
+        color: rgba(255, 255, 255, 0.3);
         margin-top: 1px;
       }
       .cp-div {
@@ -713,12 +1039,42 @@
         background: rgba(0, 255, 136, 0.1);
         margin: 7px 0;
       }
+      /* Timer bar */
+      #timer-bar-wrap {
+        position: absolute;
+        bottom: clamp(90px, 10vh, 110px);
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(500px, 80vw);
+        pointer-events: none;
+      }
+      #timer-label {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.42);
+        text-align: center;
+        margin-bottom: 5px;
+      }
+      #timer-track {
+        height: 4px;
+        background: rgba(0, 255, 136, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      #timer-fill {
+        height: 100%;
+        border-radius: 2px;
+        background: linear-gradient(90deg, rgba(0, 255, 136, 0.6), var(--g));
+        width: 0%;
+        transition: width 0.1s linear;
+      }
       #forest-btn {
         width: 100%;
-        margin-top: 9px;
+        margin-top: 10px;
         font-family: "Cinzel", serif;
         font-size: 8px;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.22em;
         color: var(--g);
         background: rgba(0, 255, 136, 0.07);
         border: 1px solid rgba(0, 255, 136, 0.4);
@@ -733,60 +1089,274 @@
         background: rgba(0, 255, 136, 0.15);
         box-shadow: 0 0 24px rgba(0, 255, 136, 0.28);
       }
+      /* ── GAIA VOICE in photo scene ── */
+      #gaia-voice-photo {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 45;
+        width: min(680px, 94vw);
+        padding: 0 0 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+      #gaia-voice-photo.show {
+        opacity: 1;
+      }
+      #gvp-sep {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.5),
+          transparent
+        );
+        margin-bottom: 7px;
+        transition: width 1s;
+      }
+      #gvp-sep.show {
+        width: 100%;
+      }
+      #gvp-box {
+        width: 100%;
+        background: rgba(0, 5, 2, 0.97);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        backdrop-filter: blur(28px);
+        border-radius: 3px;
+        padding: 11px 20px 10px;
+      }
+      #gvp-hdr {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 5px;
+      }
+      #gvp-name {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      #gvp-bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #gvp-bars.on {
+        opacity: 1;
+      }
+      #gvp-bars span {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 1s ease-in-out infinite alternate;
+      }
+      #gvp-bars span:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      #gvp-bars span:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      #gvp-bars span:nth-child(3) {
+        height: 5px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      #gvp-bars span:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      #gvp-bars span:nth-child(5) {
+        height: 4px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      #gvp-bars span:nth-child(6) {
+        height: 8px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      #gvp-txt {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(14px, 1.7vw, 17px);
+        line-height: 1.95;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 100px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #gvp-txt::-webkit-scrollbar {
+        display: none;
+      }
+      #gvp-cur {
+        display: inline-block;
+        width: 2px;
+        height: 14px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      /* Phase indicator pill */
+      #ph-phase {
+        position: fixed;
+        top: 58px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.35em;
+        color: rgba(0, 255, 136, 0.55);
+        background: rgba(0, 6, 2, 0.88);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        padding: 5px 18px;
+        border-radius: 2px;
+        z-index: 42;
+        pointer-events: none;
+        transition: color 0.5s;
+      }
 
       /* ── SCENE 3: FOREST UI ── */
+      /* forest-overlay: transparent, juste pour positionner le panneau gauche */
       #forest-overlay {
         position: fixed;
         inset: 0;
         z-index: 20;
         display: none;
         align-items: flex-start;
-        justify-content: flex-end;
-        padding: clamp(12px, 1.8vw, 18px);
+        justify-content: flex-start;
+        padding: clamp(12px, 1.8vw, 16px);
+        pointer-events: none;
+        background: transparent;
       }
       #forest-overlay.active {
         display: flex;
       }
       #amazon-panel {
-        width: min(310px, 29vw);
-        background: rgba(0, 4, 1, 0.95);
-        border: 1px solid rgba(0, 255, 136, 0.2);
+        width: min(300px, 28vw);
+        background: rgba(0, 4, 1, 0.97);
+        border: 1px solid rgba(0, 255, 136, 0.22);
         backdrop-filter: blur(22px);
-        border-radius: 4px;
-        padding: 14px 16px;
+        border-radius: 5px;
+        padding: 13px 15px;
         opacity: 0;
-        transition: opacity 0.8s;
+        transition: opacity 0.9s;
+        pointer-events: all;
+        max-height: 92vh;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #amazon-panel::-webkit-scrollbar {
+        display: none;
       }
       #amazon-panel.show {
         opacity: 1;
+      }
+      .ap-header {
+        margin-bottom: 9px;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        padding-bottom: 7px;
       }
       .ap-title {
         font-family: "Cinzel", serif;
         font-size: 9px;
         font-weight: 900;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.18em;
         color: var(--g);
         margin-bottom: 2px;
         filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.4));
+      }
+      /* forest controls */
+      #forest-ctrl {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 25;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.26em;
+        color: rgba(0, 255, 136, 0.3);
+        background: rgba(0, 5, 2, 0.72);
+        border: 1px solid rgba(0, 255, 136, 0.12);
+        padding: 6px 18px;
+        border-radius: 2px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #forest-ctrl.show {
+        opacity: 1;
+      }
+      #forest-crosshair {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 25;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #forest-crosshair.show {
+        opacity: 1;
+      }
+      #forest-crosshair::before,
+      #forest-crosshair::after {
+        content: "";
+        position: absolute;
+        background: rgba(255, 255, 255, 0.45);
+      }
+      #forest-crosshair::before {
+        width: 14px;
+        height: 1px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #forest-crosshair::after {
+        width: 1px;
+        height: 14px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
       }
       .ap-sub {
         font-family: "Cinzel", serif;
         font-size: 6px;
         letter-spacing: 0.26em;
         color: rgba(0, 255, 136, 0.35);
-        margin-bottom: 9px;
-        border-bottom: 1px solid rgba(0, 255, 136, 0.08);
-        padding-bottom: 7px;
       }
       .ap-sec {
-        margin-bottom: 8px;
+        margin-bottom: 9px;
+      }
+      .ap-global {
+        background: rgba(0, 255, 136, 0.04);
+        border-radius: 3px;
+        padding: 7px;
+        border: 1px solid rgba(0, 255, 136, 0.1);
       }
       .ap-s-lbl {
         font-family: "Cinzel", serif;
         font-size: 6px;
         letter-spacing: 0.28em;
-        color: rgba(0, 255, 136, 0.38);
-        margin-bottom: 4px;
+        color: rgba(0, 255, 136, 0.4);
+        margin-bottom: 5px;
       }
       .ap-row {
         display: flex;
@@ -794,16 +1364,33 @@
         align-items: center;
         margin-bottom: 3px;
       }
+      .ap-sub-row {
+        margin-bottom: 5px;
+        padding-left: 6px;
+      }
+      .ap-eq {
+        font-family: "EB Garamond", serif;
+        font-size: 11px;
+        color: rgba(0, 255, 136, 0.4);
+        font-style: italic;
+      }
       .ap-rl {
         font-family: "EB Garamond", serif;
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.44);
+        color: rgba(255, 255, 255, 0.45);
+        flex: 1;
+        padding-right: 6px;
       }
       .ap-rv {
         font-family: "Cinzel", serif;
         font-size: 10px;
         font-weight: 700;
-        color: rgba(0, 255, 136, 0.82);
+        color: rgba(0, 255, 136, 0.85);
+        white-space: nowrap;
+      }
+      .ap-gold {
+        color: #ffd700 !important;
+        filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.3));
       }
       /* Voice 2 */
       #vp2 {
@@ -951,6 +1538,53 @@
     <!-- ── 2D CANVASES (hidden by default) ── -->
     <canvas id="photo-canvas"></canvas>
     <canvas id="forest-canvas"></canvas>
+    <canvas
+      id="forest-three-canvas"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+        display: none;
+      "
+    ></canvas>
+
+    <!-- ── VIDEO SCENE ── -->
+    <div id="video-scene">
+      <video id="photo-vid" preload="auto" playsinline>
+        <source src="Photosynthesis_Animation_yUi-ugiw.mp4" type="video/mp4" />
+        <source src="photosynthese.mp4" type="video/mp4" />
+        Votre navigateur ne supporte pas la video HTML5.
+      </video>
+    </div>
+    <!-- Video HUD -->
+    <div id="vid-hud">
+      <div id="vid-title">PHOTOSYNTHESE EN DIRECT</div>
+      <div id="vid-phase">ACCELERE x1000 — FEUILLE DE SEQUOIA</div>
+    </div>
+    <!-- Video GAIA voice box -->
+    <div id="vid-gaia-box">
+      <div id="vgb-sep"></div>
+      <div id="vgb-inner">
+        <div id="vgb-hdr">
+          <span id="vgb-name">G A I A</span
+          ><span id="vgb-bars"
+            ><span></span><span></span><span></span><span></span><span></span
+            ><span></span
+          ></span>
+        </div>
+        <div id="vgb-txt"></div>
+        <span id="vgb-cur"></span>
+      </div>
+    </div>
+    <!-- Video controls overlay -->
+    <button id="vid-skip" onclick="skipToForest()">PASSER &#9654;</button>
+    <button id="vid-forest-btn" onclick="goToForest()">
+      &#127758; VOIR ECHELLE FORET
+    </button>
+    <div id="vid-progress"><div id="vid-prog-fill"></div></div>
 
     <!-- ── SCENE 1 UI (Canopy HUD) ── -->
     <div class="scene-ui active" id="ui-canopy">
@@ -1050,154 +1684,221 @@
     </div>
     <div id="crosshair"></div>
 
-    <!-- ── SCENE 2 UI (Photo) ── -->
+    <!-- ── SCENE 2 UI (Photosynthese Simulation Fullscreen) ── -->
     <div id="photo-ui">
+      <!-- Title -->
+      <div id="ph-title-bar">
+        <div id="ph-title">PHOTOSYNTHESE EN DIRECT</div>
+        <div id="ph-sub">ACCELERE x1000 — FEUILLE DE SEQUOIA</div>
+      </div>
+      <div id="ph-phase">0-5s : ENTREE DES REACTIFS</div>
+      <!-- LEFT: Anatomical cross-section -->
       <div id="leaf-panel">
         <div class="lp-t">COUPE TRANSVERSALE</div>
         <div
           class="lp-layer"
           id="ll-0"
-          style="border-color: rgba(200, 200, 100, 0.5)"
+          style="border-left-color: rgba(200, 195, 105, 0.55)"
         >
-          Cuticule (protection)
+          <span>&#9618;</span> Cuticule (protection)
         </div>
+        <div class="lp-arrow">&#8595;</div>
         <div
           class="lp-layer"
           id="ll-1"
-          style="border-color: rgba(150, 220, 100, 0.5)"
+          style="border-left-color: rgba(145, 215, 100, 0.55)"
         >
-          Epiderme superieur
+          <span>&#9617;</span> Epiderme superieur
         </div>
+        <div class="lp-arrow">&#8595;</div>
         <div
           class="lp-layer"
           id="ll-2"
-          style="border-color: rgba(0, 200, 60, 0.8)"
+          style="border-left-color: rgba(0, 195, 58, 0.85)"
         >
-          Parenchyme palissadique<br /><small style="opacity: 0.55"
+          <span>&#9632;</span> Parenchyme palissadique<br /><small
+            style="opacity: 0.55; padding-left: 18px"
             >(chloroplastes)</small
           >
         </div>
+        <div class="lp-arrow">&#8595;</div>
         <div
           class="lp-layer"
           id="ll-3"
-          style="border-color: rgba(0, 160, 40, 0.6)"
+          style="border-left-color: rgba(0, 155, 40, 0.65)"
         >
-          Parenchyme lacuneux
+          <span>&#9633;</span> Parenchyme lacuneux
         </div>
+        <div class="lp-arrow">&#8595;</div>
         <div
           class="lp-layer"
           id="ll-4"
-          style="border-color: rgba(100, 200, 200, 0.6)"
+          style="border-left-color: rgba(90, 190, 195, 0.65)"
         >
-          Stomates (pores)
+          <span>&#8857;</span> Stomates (pores)
         </div>
+        <div class="lp-arrow">&#8595;</div>
         <div
           class="lp-layer"
           id="ll-5"
-          style="border-color: rgba(150, 220, 100, 0.4)"
+          style="border-left-color: rgba(145, 215, 100, 0.45)"
         >
-          Epiderme inferieur
+          <span>&#9617;</span> Epiderme inferieur
         </div>
       </div>
-      <div id="eq-center">
-        <div id="eq-title">PHOTOSYNTHESE EN DIRECT - x1000</div>
+      <!-- RIGHT: Equation + Counters -->
+      <div id="right-panel">
         <div id="eq-box">
-          <div class="eq-line">FLUX ENTRANTS</div>
-          <div class="eq-line" style="color: #ffd700">Photons + H2O + CO2</div>
-          <div class="eq-line" style="color: rgba(0, 255, 136, 0.6)">
-            v CHLOROPLASTES v
+          <div class="eq-sec">FLUX ENTRANTS</div>
+          <div class="eq-mol" id="em-ph">
+            <span>&#9728;&#65039;</span> <span>Photons solaires</span>
           </div>
+          <div class="eq-mol" id="em-h2">
+            <span>&#128167;</span> <span>H2O (molecules bleues)</span>
+          </div>
+          <div class="eq-mol" id="em-co">
+            <span>&#127787;&#65039;</span> <span>CO2 (molecules grises)</span>
+          </div>
+          <div class="eq-arrow">&#9660; REACTION CHIMIQUE &#9660;</div>
           <div
-            class="eq-line"
-            style="color: rgba(255, 255, 255, 0.5); font-size: 0.85em"
+            style="
+              font-family: 'EB Garamond', serif;
+              font-size: 12px;
+              color: rgba(255, 255, 255, 0.45);
+              text-align: center;
+              margin: 4px 0;
+            "
           >
             6 CO2 + 6 H2O + Lumiere
           </div>
-          <div
-            class="eq-line"
-            style="color: rgba(255, 255, 255, 0.5); font-size: 0.85em"
-          >
-            -- > <strong>C6H12O6</strong> + <strong>6 O2</strong>
+          <div class="eq-arrow">
+            &#8659; <span class="eq-highlight">CHLOROPLASTES</span> &#8659;
           </div>
-          <div class="eq-line">FLUX SORTANTS</div>
-          <div class="eq-line"><strong>O2 libere</strong> + Glucose</div>
+          <div
+            style="
+              font-family: 'EB Garamond', serif;
+              font-size: 12px;
+              color: rgba(255, 255, 255, 0.45);
+              text-align: center;
+              margin: 4px 0;
+            "
+          >
+            <span class="eq-highlight">C6H12O6</span> +
+            <span class="eq-highlight">6 O2</span>
+          </div>
+          <div class="eq-arrow">&#9660; FLUX SORTANTS &#9660;</div>
+          <div class="eq-mol" id="em-o2">
+            <span>&#127810;&#65039;</span> <span>O2 libere (vert)</span>
+          </div>
+          <div class="eq-mol" id="em-gl">
+            <span>&#127854;</span> <span>Glucose (energie)</span>
+          </div>
         </div>
-        <div id="eq-timer">CYCLE : <span id="eq-t">0</span>s / 30s</div>
+        <div id="counter-panel">
+          <div class="cp-t">PRODUCTION (Cette feuille)</div>
+          <div class="cp-row">
+            <div class="cp-lbl">O2 / HEURE</div>
+            <div class="cp-val" id="cp-o2">0.000 g/h</div>
+          </div>
+          <div class="cp-row">
+            <div class="cp-lbl">GLUCOSE / HEURE</div>
+            <div class="cp-val" id="cp-gl">0.000 g/h</div>
+          </div>
+          <div class="cp-div"></div>
+          <div class="cp-row">
+            <div class="cp-lbl" style="color: rgba(255, 215, 0, 0.55)">
+              x 2 000 000 FEUILLES =
+            </div>
+          </div>
+          <div class="cp-row">
+            <div class="cp-lbl">O2 ARBRE / JOUR</div>
+            <div class="cp-val" id="cp-tree">0 kg/j</div>
+            <div class="cp-sub">objectif : 120 kg &#10003;</div>
+          </div>
+          <div class="cp-row">
+            <div class="cp-lbl">GLUCOSE ARBRE / JOUR</div>
+            <div class="cp-val" id="cp-glf">0 kg/j</div>
+            <div class="cp-sub">objectif : 160 kg</div>
+          </div>
+          <div class="cp-div"></div>
+          <div class="cp-row">
+            <div class="cp-lbl">MOLECULES O2 LIBEREES</div>
+            <div
+              class="cp-val"
+              id="cp-mol"
+              style="font-size: clamp(18px, 2.5vw, 26px)"
+            >
+              0
+            </div>
+          </div>
+          <button id="forest-btn" onclick="goToForest()">
+            &#127758; VOIR ECHELLE FORET
+          </button>
+        </div>
       </div>
-      <div id="counter-panel">
-        <div class="cp-t">PRODUCTION</div>
-        <div class="cp-row">
-          <div class="cp-lbl">O2 CETTE FEUILLE</div>
-          <div class="cp-val" id="cp-o2">0.000 g/h</div>
+      <!-- Timer bar bottom -->
+      <div id="timer-bar-wrap">
+        <div id="timer-label">CYCLE : <span id="eq-t">0</span>s / 30s</div>
+        <div id="timer-track"><div id="timer-fill"></div></div>
+      </div>
+    </div>
+    <!-- ── GAIA VOICE BOX (photo scene) ── -->
+    <div id="gaia-voice-photo">
+      <div id="gvp-sep"></div>
+      <div id="gvp-box">
+        <div id="gvp-hdr">
+          <span id="gvp-name">G A I A</span>
+          <span id="gvp-bars"
+            ><span></span><span></span><span></span><span></span><span></span
+            ><span></span
+          ></span>
         </div>
-        <div class="cp-row">
-          <div class="cp-lbl">GLUCOSE</div>
-          <div class="cp-val" id="cp-gl">0.000 g/h</div>
-        </div>
-        <div class="cp-div"></div>
-        <div class="cp-row"><div class="cp-lbl">x 2 000 000 FEUILLES</div></div>
-        <div class="cp-row">
-          <div class="cp-lbl">O2 ARBRE ENTIER</div>
-          <div class="cp-val" id="cp-tree">0 kg/j</div>
-          <div class="cp-sub">objectif : 120 kg/j</div>
-        </div>
-        <div class="cp-div"></div>
-        <div class="cp-row">
-          <div class="cp-lbl">MOLECULES O2 LIBEREES</div>
-          <div
-            class="cp-val"
-            id="cp-mol"
-            style="font-size: clamp(16px, 2.2vw, 22px)"
-          >
-            0
-          </div>
-        </div>
-        <button id="forest-btn" onclick="goToForest()">
-          VOIR ECHELLE FORET
-        </button>
+        <div id="gvp-txt"></div>
+        <span id="gvp-cur"></span>
       </div>
     </div>
 
-    <!-- ── SCENE 3 UI (Forest) ── -->
+    <!-- ══ SCENE 3 : FORET AMAZONIENNE ══ -->
     <div id="forest-overlay">
+      <!-- PANNEAU gauche : données complètes -->
       <div id="amazon-panel">
-        <div class="ap-title">FORET AMAZONIENNE (1 km2)</div>
-        <div class="ap-sub">200 000 ARBRES - VUE SATELLITE</div>
+        <div class="ap-header">
+          <div class="ap-title">&#127803; FORET AMAZONIENNE (1 km²)</div>
+          <div class="ap-sub">200 000 ARBRES · NAVIGABLE</div>
+        </div>
         <div class="ap-sec">
           <div class="ap-s-lbl">PRODUCTION QUOTIDIENNE</div>
           <div class="ap-row">
-            <span class="ap-rl">O2 produit</span
+            <span class="ap-rl">&#127810; Oxygene</span
             ><span class="ap-rv" id="ap-o2">0 t/j</span>
           </div>
-          <div class="ap-row">
-            <span class="ap-rl">Humains alimentes</span
-            ><span class="ap-rv" id="ap-hum">0</span>
+          <div class="ap-sub-row">
+            <span class="ap-eq">= <span id="ap-hum">0</span> humains</span>
           </div>
           <div class="ap-row">
-            <span class="ap-rl">CO2 absorbe</span
+            <span class="ap-rl">&#127787; Dioxyde de carbone</span
             ><span class="ap-rv" id="ap-co2">0 t/j</span>
           </div>
-          <div class="ap-row">
-            <span class="ap-rl">Voitures compensees</span
-            ><span class="ap-rv" id="ap-car">0</span>
+          <div class="ap-sub-row">
+            <span class="ap-eq">= <span id="ap-car">0</span> voitures</span>
           </div>
           <div class="ap-row">
-            <span class="ap-rl">Eau evaporee</span
+            <span class="ap-rl">&#128167; Eau evaporee</span
             ><span class="ap-rv" id="ap-eau">0 ML/j</span>
           </div>
         </div>
         <div class="ap-sec">
-          <div class="ap-s-lbl">BIODIVERSITE (1 km2)</div>
+          <div class="ap-s-lbl">&#129419; BIODIVERSITE (1 km²)</div>
           <div class="ap-row">
-            <span class="ap-rl">Especes arbres</span
+            <span class="ap-rl">Especes d arbres</span
             ><span class="ap-rv">400</span>
           </div>
           <div class="ap-row">
-            <span class="ap-rl">Especes oiseaux</span
+            <span class="ap-rl">Especes d oiseaux</span
             ><span class="ap-rv">1 500</span>
           </div>
           <div class="ap-row">
-            <span class="ap-rl">Especes insectes</span
+            <span class="ap-rl">Especes d insectes</span
             ><span class="ap-rv">3 000</span>
           </div>
           <div class="ap-row">
@@ -1205,25 +1906,33 @@
             ><span class="ap-rv">430</span>
           </div>
         </div>
-        <div class="ap-sec">
-          <div class="ap-s-lbl">AMAZONIE TOTALE (5.5M km2)</div>
+        <div class="ap-sec ap-global">
+          <div class="ap-s-lbl">&#127758; AMAZONIE TOTALE</div>
           <div class="ap-row">
-            <span class="ap-rl">O2 mondial</span
-            ><span class="ap-rv" style="color: #ffd700">20%</span>
+            <span class="ap-rl">Oxygene mondial</span
+            ><span class="ap-rv ap-gold">20% (!)</span>
           </div>
           <div class="ap-row">
             <span class="ap-rl">CO2 stocke</span
-            ><span class="ap-rv" style="color: #ffd700">150 Mds t</span>
+            ><span class="ap-rv ap-gold">150 Mds t</span>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Forest 3D controls hint -->
+    <div id="forest-ctrl">
+      ZQSD / FLECHES — Deplacer &nbsp;|&nbsp; SOURIS — Regarder &nbsp;|&nbsp;
+      CLIC — Activer
+    </div>
+    <div id="forest-crosshair"></div>
+    <!-- VOIX GAIA scene foret -->
     <div id="vp2">
       <div id="vsep2"></div>
       <div id="vbox2">
         <div id="vhdr2">
-          <span id="vnm2">G A I A</span
-          ><span id="vbr2"
+          <span id="vnm2">G A I A</span>
+          <span id="vbr2"
             ><span class="vb"></span><span class="vb"></span
             ><span class="vb"></span><span class="vb"></span
             ><span class="vb"></span><span class="vb"></span
@@ -1233,7 +1942,11 @@
         <span id="twc2"></span>
       </div>
     </div>
-    <button id="forest-continue" onclick="goNext()">CONTINUER</button>
+
+    <!-- BOUTON continuer vers scène 12 -->
+    <button id="forest-continue" onclick="goNext()">
+      &#9655; CONTINUER — SALLE 3
+    </button>
 
     <div id="curtain"></div>
     <button id="mute-btn" onclick="toggleMute()">SON</button>
@@ -2294,331 +3007,842 @@
       var pctx = document.getElementById("photo-canvas").getContext("2d");
       var fctx = document.getElementById("forest-canvas").getContext("2d");
 
-      function drawPhoto(t) {
-        pctx.clearRect(0, 0, W, H);
-        pctx.fillStyle = "#010e06";
-        pctx.fillRect(0, 0, W, H);
-        var cx = W / 2,
-          cy = H / 2;
-        var lw = Math.min(W * 0.48, 370),
-          lh = Math.min(H * 0.7, 460);
-        // Leaf shape
-        var lg = pctx.createLinearGradient(
-          cx - lw / 2,
-          cy - lh / 2,
-          cx + lw / 2,
-          cy + lh / 2
-        );
-        lg.addColorStop(0, "rgba(28,138,48,.9)");
-        lg.addColorStop(0.5, "rgba(18,175,55,.85)");
-        lg.addColorStop(1, "rgba(10,118,32,.9)");
-        pctx.fillStyle = lg;
-        pctx.beginPath();
-        pctx.ellipse(cx, cy, lw / 2, lh / 2, 0, 0, Math.PI * 2);
-        pctx.fill();
-        // Mid-rib
-        pctx.strokeStyle = "rgba(80,220,100,.65)";
-        pctx.lineWidth = 2.5;
-        pctx.beginPath();
-        pctx.moveTo(cx, cy - lh / 2 + 10);
-        pctx.bezierCurveTo(cx - 6, cy, cx + 6, cy, cx, cy + lh / 2 - 12);
-        pctx.stroke();
-        // Side veins
-        for (var n = 0; n < 7; n++) {
-          var nt = (n + 1) / 8;
-          var ny = cy - lh / 2 + lh * nt;
-          var nex =
-            cx +
-            (n % 2 === 0 ? 1 : -1) *
-              (lw * 0.32 * (1 - Math.abs(nt - 0.5) * 1.7));
-          pctx.strokeStyle = "rgba(65,195,82,.32)";
-          pctx.lineWidth = 1;
-          pctx.beginPath();
-          pctx.moveTo(cx, ny);
-          pctx.quadraticCurveTo(nex * 0.45 + cx * 0.55, ny - 7, nex, ny - 3);
-          pctx.stroke();
-        }
-        // Layers
-        var layers = [
-          { y: 0.08, h: 0.08, c: "rgba(215,205,148,.14)" },
-          { y: 0.16, h: 0.1, c: "rgba(175,225,128,.17)" },
-          { y: 0.26, h: 0.22, c: "rgba(0,195,58,.21)" },
-          { y: 0.48, h: 0.2, c: "rgba(0,155,38,.14)" },
-          { y: 0.68, h: 0.12, c: "rgba(95,195,195,.13)" },
-          { y: 0.8, h: 0.1, c: "rgba(155,215,118,.13)" },
-        ];
-        var lph = Math.floor((photoT % 30) / 5);
-        layers.forEach(function (l, i) {
-          pctx.fillStyle = l.c;
-          pctx.fillRect(
-            cx - lw / 2 + 8,
-            cy - lh / 2 + lh * l.y,
-            lw - 16,
-            lh * l.h
-          );
-          if (i === lph) {
-            pctx.strokeStyle = "rgba(0,255,136,.45)";
-            pctx.lineWidth = 1.3;
-            pctx.strokeRect(
-              cx - lw / 2 + 8,
-              cy - lh / 2 + lh * l.y,
-              lw - 16,
-              lh * l.h
-            );
-          }
-          var el = document.getElementById("ll-" + i);
-          if (el) el.classList.toggle("active", i === lph);
-        });
-        // Chloroplasts
-        for (var ci = 0; ci < 12; ci++) {
-          var ca = (ci / 12) * Math.PI * 2 + t * 0.08;
-          var cr2 = lw * 0.2;
-          var cpx = cx + Math.cos(ca) * cr2 * (1 + Math.sin(ca * 2) * 0.18),
-            cpy = cy + Math.sin(ca) * cr2 * 0.5;
-          var cpl = 1 + Math.sin(t * 2.4 + ci) * 0.1;
-          pctx.fillStyle =
-            "rgba(0," +
-            Math.floor(172 + Math.sin(t * 2 + ci) * 38) +
-            ",48," +
-            (0.7 + Math.sin(t * 2 + ci) * 0.14) +
-            ")";
-          pctx.beginPath();
-          pctx.ellipse(cpx, cpy, 8 * cpl, 5 * cpl, ca, 0, Math.PI * 2);
-          pctx.fill();
-        }
-        // Stomates
-        for (var si = 0; si < 3; si++) {
-          var sx = cx - lw * 0.25 + si * lw * 0.25;
-          var sy = cy + lh * 0.38;
-          var sop = 0.55 + Math.sin(t * 0.4 + si) * 0.32;
-          pctx.fillStyle = "rgba(0,0,0,.65)";
-          pctx.beginPath();
-          pctx.ellipse(sx, sy, 7 * sop, 4.5, 0, 0, Math.PI * 2);
-          pctx.fill();
-          pctx.strokeStyle = "rgba(95,195,195,.45)";
-          pctx.lineWidth = 0.9;
-          pctx.beginPath();
-          pctx.ellipse(sx, sy, 9, 6, 0, 0, Math.PI * 2);
-          pctx.stroke();
-        }
-        // Photo particles
-        if (lph <= 1) {
-          if (Math.random() < 0.12)
-            photoParts.push({
-              t: "ph",
-              x: cx - lw * 0.4 + Math.random() * lw * 0.8,
-              y: cy - lh * 0.45,
-              vy: 1.3 + Math.random(),
-              vx: (Math.random() - 0.5) * 0.25,
-              lf: 1,
-              r: 3.5 + Math.random() * 2.5,
-            });
-          if (Math.random() < 0.08)
-            photoParts.push({
-              t: "h2",
-              x: cx + (Math.random() - 0.5) * lw * 0.35,
-              y: cy + lh * 0.42,
-              vy: -1.1,
-              vx: (Math.random() - 0.5) * 0.3,
-              lf: 1,
-              r: 3.5,
-            });
-          if (Math.random() < 0.07)
-            photoParts.push({
-              t: "co",
-              x: cx - lw * 0.46 + Math.random() * 8,
-              y: cy + (Math.random() - 0.5) * lh * 0.28,
-              vy: (Math.random() - 0.5) * 0.3,
-              vx: 1.1,
-              lf: 1,
-              r: 3.5,
-            });
-        }
-        if (lph >= 3) {
-          if (Math.random() < 0.1)
-            photoParts.push({
-              t: "o2",
-              x: cx + (Math.random() - 0.5) * lw * 0.28,
-              y: cy + (Math.random() - 0.5) * lh * 0.22,
-              vy: -1.6 - Math.random(),
-              vx: (Math.random() - 0.5) * 0.5,
-              lf: 1,
-              r: 3.5,
-            });
-          if (Math.random() < 0.07)
-            photoParts.push({
-              t: "gl",
-              x: cx + (Math.random() - 0.5) * lw * 0.28,
-              y: cy,
-              vy: 0.7,
-              vx: (Math.random() - 0.5) * 0.3,
-              lf: 1,
-              r: 3,
-            });
-        }
-        for (var pi = photoParts.length - 1; pi >= 0; pi--) {
-          var pp = photoParts[pi];
-          pp.x += pp.vx;
-          pp.y += pp.vy;
-          pp.lf -= 0.016;
-          if (pp.lf <= 0) {
-            photoParts.splice(pi, 1);
-            continue;
-          }
-          var pcols = {
-            ph: "rgba(255,228,0,",
-            h2: "rgba(78,158,255,",
-            co: "rgba(158,158,158,",
-            o2: "rgba(0,255,100,",
-            gl: "rgba(255,138,0,",
-          };
-          var pc = pcols[pp.t] || "rgba(200,200,200,";
-          pctx.fillStyle = pc + pp.lf * 0.88 + ")";
-          pctx.beginPath();
-          pctx.arc(pp.x, pp.y, pp.r, 0, Math.PI * 2);
-          pctx.fill();
-        }
-      }
+      // ── PHOTOSYNTHESIS SIMULATION ──
+      // 4 phases over 30s loop:
+      // 0-5s:  Reactants enter (photons down, H2O up, CO2 sideways)
+      // 5-15s: Chemical reaction in chloroplasts (electrons, color change)
+      // 15-25s: Products form (O2 separates, glucose flows down)
+      // 25-30s: O2 release burst + counter increment
 
-      function drawForest(t) {
-        fctx.fillStyle = "#061208";
-        fctx.fillRect(0, 0, W, H);
+      var phaseLabels = [
+        "0-5s : ENTREE DES REACTIFS",
+        "5-15s : REACTION CHIMIQUE",
+        "15-25s : PRODUCTION",
+        "25-30s : LIBERATION O2",
+      ];
+      var molCounter = 0;
+      var lastMolIncT = 0;
+      var leafZoom = 0; // 0..1 zoom-in progress when entering scene
+
+      function drawPhoto(t) {
+        var c = pctx;
+        c.clearRect(0, 0, W, H);
+        // Use photoT directly (no loop) — cap at 32s
+        var cycleT = Math.min(photoT, 32);
         var cx = W / 2,
           cy = H / 2;
-        // Sky
-        var sk = fctx.createLinearGradient(0, 0, 0, H * 0.22);
-        sk.addColorStop(0, "rgba(24,82,148,.85)");
-        sk.addColorStop(1, "transparent");
-        fctx.fillStyle = sk;
-        fctx.fillRect(0, 0, W, H);
-        // Forest base
-        var fgr = fctx.createRadialGradient(
+        var phaseIdx = cycleT < 5 ? 0 : cycleT < 15 ? 1 : cycleT < 25 ? 2 : 3;
+        var phaseNames2 = [
+          "Entree des reactifs",
+          "Reaction chimique",
+          "Production",
+          "Liberation O2",
+        ];
+        var phaseTimes2 = ["0 - 5 s", "5 - 15 s", "15 - 25 s", "25 - 30 s"];
+        var pidx2 = Math.min(phaseIdx, 3);
+        document.getElementById("ph-phase").textContent =
+          phaseNames2[pidx2] + " (" + phaseTimes2[pidx2] + ")";
+        document.getElementById("eq-t").textContent = Math.floor(
+          Math.min(cycleT, 30)
+        );
+        document.getElementById("timer-fill").style.width =
+          (Math.min(cycleT, 30) / 30) * 100 + "%";
+
+        // ── BACKGROUND: dark organic cell interior ──
+        var bgG = c.createRadialGradient(
           cx,
           cy,
           0,
           cx,
           cy,
-          Math.max(W, H) * 0.58
+          Math.max(W, H) * 0.65
         );
-        fgr.addColorStop(0, "rgba(7,46,13,.92)");
-        fgr.addColorStop(0.5, "rgba(4,28,8,.88)");
-        fgr.addColorStop(1, "rgba(1,12,3,.94)");
-        fctx.fillStyle = fgr;
-        fctx.fillRect(0, 0, W, H);
-        // Tree tops (satellite view)
-        for (var ft = 0; ft < 260; ft++) {
-          var ftx = (Math.sin(ft * 127.3 + 42) * 0.5 + 0.5) * W;
-          var fty = (Math.sin(ft * 251.7 + 84) * 0.5 + 0.5) * H;
-          var ftr = 11 + Math.sin(ft * 37.1) * 7;
-          var ftg2 = fctx.createRadialGradient(ftx, fty, 0, ftx, fty, ftr);
-          var fhue = 108 + Math.sin(ft * 13.7) * 18;
-          ftg2.addColorStop(
+        bgG.addColorStop(0, "rgba(2,16,5,1)");
+        bgG.addColorStop(0.6, "rgba(1,10,3,1)");
+        bgG.addColorStop(1, "rgba(0,6,1,1)");
+        c.fillStyle = bgG;
+        c.fillRect(0, 0, W, H);
+
+        // ── LEAF SILHOUETTE (full screen, macro close-up) ──
+        var lw = Math.min(W * 0.58, 520),
+          lh = Math.min(H * 0.88, 600);
+        // Leaf shape - pointed ellipse
+        c.save();
+        c.beginPath();
+        c.moveTo(cx, cy - lh / 2 + 10);
+        c.bezierCurveTo(
+          cx + lw / 2,
+          cy - lh / 3,
+          cx + lw / 2,
+          cy + lh / 3,
+          cx,
+          cy + lh / 2 - 10
+        );
+        c.bezierCurveTo(
+          cx - lw / 2,
+          cy + lh / 3,
+          cx - lw / 2,
+          cy - lh / 3,
+          cx,
+          cy - lh / 2 + 10
+        );
+        c.closePath();
+        c.clip();
+
+        // ── ANATOMICAL LAYERS (6 bands with actual thickness) ──
+        var bands = [
+          { name: "ll-0", y: 0, h: 0.07, col: [215, 205, 130], alpha: 0.22 }, // cuticle - waxy yellow
+          { name: "ll-1", y: 0.07, h: 0.1, col: [155, 220, 110], alpha: 0.25 }, // upper epidermis - light green
+          { name: "ll-2", y: 0.17, h: 0.28, col: [0, 170, 45], alpha: 0.38 }, // palisade - rich green
+          { name: "ll-3", y: 0.45, h: 0.22, col: [0, 130, 35], alpha: 0.28 }, // spongy - medium green
+          { name: "ll-4", y: 0.67, h: 0.14, col: [80, 190, 190], alpha: 0.22 }, // stomata - teal
+          { name: "ll-5", y: 0.81, h: 0.12, col: [140, 210, 110], alpha: 0.2 }, // lower epidermis
+        ];
+        bands.forEach(function (b, i) {
+          var top = cy - lh / 2 + lh * b.y;
+          var ht = lh * b.h;
+          // Per-phase layer activation (exact sync with GAIA narration)
+          var isActive =
+            (phaseIdx === 0 && (i === 0 || i === 1 || i === 4)) || // phase0: cuticle+epiderm+stomata
+            (phaseIdx === 1 && (i === 2 || i === 3)) || // phase1: palisade+spongy (chloroplasts)
+            (phaseIdx === 2 && (i === 2 || i === 3 || i === 4)) || // phase2: palisade+spongy+stomata
+            (phaseIdx === 3 && i === 4); // phase3: stomata only
+          var alpha = isActive ? b.alpha * 1.7 : b.alpha;
+          c.fillStyle =
+            "rgba(" +
+            b.col[0] +
+            "," +
+            b.col[1] +
+            "," +
+            b.col[2] +
+            "," +
+            alpha +
+            ")";
+          c.fillRect(cx - lw / 2, top, lw, ht);
+          // Highlight active layer
+          if (isActive) {
+            c.strokeStyle =
+              "rgba(0,255,136," + (0.3 + Math.sin(t * 3) * 0.12) + ")";
+            c.lineWidth = 1.5;
+            c.strokeRect(cx - lw / 2 + 2, top + 1, lw - 4, ht - 2);
+            // Update DOM
+            document.getElementById(b.name).classList.add("active");
+          } else {
+            document.getElementById(b.name).classList.remove("active");
+          }
+        });
+
+        // ── MID-RIB (central vein) ──
+        var ribG = c.createLinearGradient(cx, cy - lh / 2, cx, cy + lh / 2);
+        ribG.addColorStop(0, "rgba(100,240,120,.75)");
+        ribG.addColorStop(0.5, "rgba(60,200,80,.6)");
+        ribG.addColorStop(1, "rgba(40,160,55,.5)");
+        c.strokeStyle = ribG;
+        c.lineWidth = 3.5;
+        c.lineCap = "round";
+        c.beginPath();
+        c.moveTo(cx, cy - lh / 2 + 12);
+        c.bezierCurveTo(
+          cx - 5,
+          cy - lh * 0.1,
+          cx + 5,
+          cy + lh * 0.1,
+          cx,
+          cy + lh / 2 - 14
+        );
+        c.stroke();
+        // Side veins (8 pairs)
+        for (var vi = 0; vi < 8; vi++) {
+          var vt = (vi + 1) / 9;
+          var vy = cy - lh / 2 + lh * vt;
+          var side = vi % 2 === 0 ? 1 : -1;
+          var vex =
+            cx +
+            side * (lw * 0.38 * (1 - Math.pow(Math.abs(vt - 0.5) * 2, 0.6)));
+          c.strokeStyle = "rgba(50,190,70," + (0.18 + vi * 0.015) + ")";
+          c.lineWidth = 1;
+          c.beginPath();
+          c.moveTo(cx, vy);
+          c.quadraticCurveTo(
+            cx + side * lw * 0.18,
+            vy - lh * 0.02,
+            vex,
+            vy - lh * 0.01
+          );
+          c.stroke();
+        }
+
+        // ── CHLOROPLASTS (organites) ──
+        var nChl = 16;
+        var palTop = cy - lh / 2 + lh * 0.17,
+          palH = lh * 0.28;
+        for (var ci2 = 0; ci2 < nChl; ci2++) {
+          var ca2 = (ci2 / nChl) * Math.PI * 2 + t * 0.06;
+          var rx =
+            cx +
+            Math.cos(ca2) * (lw * 0.28) * (0.6 + Math.sin(ci2 * 1.7) * 0.4);
+          var ry = palTop + palH * 0.5 + Math.sin(ca2) * (palH * 0.38);
+          var sz = 7 + Math.sin(t * 2.2 + ci2) * 0.8;
+          // Reaction phase: chloroplasts glow and expand
+          var reacting = phaseIdx === 1;
+          if (reacting) {
+            sz *= 1 + Math.sin(t * 4 + ci2) * 0.35;
+          }
+          var gchl = c.createRadialGradient(rx, ry, 0, rx, ry, sz * 1.6);
+          var gb = reacting ? 180 + Math.sin(t * 5 + ci2) * 55 : 155;
+          gchl.addColorStop(
             0,
-            "hsla(" +
-              fhue +
-              ",62%,36%," +
-              (0.9 + Math.sin(t * 0.2 + ft) * 0.06) +
+            "rgba(0," +
+              Math.floor(gb) +
+              ",55," +
+              (0.88 + Math.sin(t * 3 + ci2) * 0.1) +
               ")"
           );
-          ftg2.addColorStop(0.55, "hsla(" + fhue + ",54%,25%,.8)");
-          ftg2.addColorStop(0.85, "hsla(" + fhue + ",44%,15%,.45)");
-          ftg2.addColorStop(1, "transparent");
-          fctx.fillStyle = ftg2;
-          fctx.beginPath();
-          fctx.arc(ftx, fty, ftr, 0, Math.PI * 2);
-          fctx.fill();
-          fctx.fillStyle = "rgba(0,6,1,.35)";
-          fctx.beginPath();
-          fctx.ellipse(
-            ftx + ftr * 0.28,
-            fty + ftr * 0.28,
-            ftr * 0.65,
-            ftr * 0.45,
-            Math.PI * 0.3,
-            0,
-            Math.PI * 2
-          );
-          fctx.fill();
+          gchl.addColorStop(0.7, "rgba(0," + Math.floor(gb * 0.6) + ",30,.55)");
+          gchl.addColorStop(1, "transparent");
+          c.fillStyle = gchl;
+          c.beginPath();
+          c.ellipse(rx, ry, sz * 1.6, sz, ca2, 0, Math.PI * 2);
+          c.fill();
+          c.strokeStyle = "rgba(0," + Math.floor(gb) + ",55,.4)";
+          c.lineWidth = 0.8;
+          c.beginPath();
+          c.ellipse(rx, ry, sz * 1.7, sz * 1.1, ca2, 0, Math.PI * 2);
+          c.stroke();
         }
-        // River
-        fctx.strokeStyle = "rgba(38,115,195,.42)";
-        fctx.lineWidth = 7;
-        fctx.beginPath();
-        fctx.moveTo(W * 0.04, H * 0.28);
-        fctx.bezierCurveTo(
-          W * 0.18,
-          H * 0.38,
-          W * 0.38,
-          H * 0.24,
-          W * 0.58,
-          H * 0.43
-        );
-        fctx.bezierCurveTo(
-          W * 0.72,
-          H * 0.56,
-          W * 0.85,
-          H * 0.48,
-          W * 0.95,
-          H * 0.68
-        );
-        fctx.stroke();
-        // Clearings
-        for (var cl = 0; cl < 3; cl++) {
-          var clx = W * (0.22 + cl * 0.28),
-            cly = H * (0.28 + Math.sin(cl * 2.1) * 0.24);
-          var clg = fctx.createRadialGradient(
-            clx,
-            cly,
-            0,
-            clx,
-            cly,
-            32 + cl * 11
-          );
-          clg.addColorStop(0, "rgba(75,172,38,.22)");
-          clg.addColorStop(1, "transparent");
-          fctx.fillStyle = clg;
-          fctx.beginPath();
-          fctx.arc(clx, cly, 32 + cl * 11, 0, Math.PI * 2);
-          fctx.fill();
+
+        // ── STOMATES (bottom) ──
+        var stoY = cy - lh / 2 + lh * 0.72;
+        for (var si2 = 0; si2 < 4; si2++) {
+          var sx2 = cx + (si2 - 1.5) * lw * 0.14;
+          var sOpen =
+            phaseIdx >= 2
+              ? 0.7 + Math.sin(t * 0.6 + si2) * 0.25
+              : 0.3 + Math.sin(t * 0.4 + si2) * 0.15;
+          // Guard cells
+          c.fillStyle = "rgba(50,170,160,.65)";
+          c.beginPath();
+          c.ellipse(sx2 - 5, stoY, 4, 6 * sOpen, -0.3, 0, Math.PI * 2);
+          c.fill();
+          c.beginPath();
+          c.ellipse(sx2 + 5, stoY, 4, 6 * sOpen, 0.3, 0, Math.PI * 2);
+          c.fill();
+          // Pore
+          c.fillStyle = "rgba(0,0,0,.7)";
+          c.beginPath();
+          c.ellipse(sx2, stoY, 4 * sOpen, 3, 0, 0, Math.PI * 2);
+          c.fill();
         }
-        // O2 rising
-        if (Math.random() < 0.1)
-          forestParts.push({
-            x: Math.random() * W,
-            y: H * 0.82 + Math.random() * H * 0.18,
-            vx: (Math.random() - 0.5) * 0.7,
-            vy: -1.1 - Math.random() * 0.7,
-            lf: 1,
-            r: 2.5 + Math.random() * 2.5,
-          });
-        for (var fp = forestParts.length - 1; fp >= 0; fp--) {
-          var fpp = forestParts[fp];
-          fpp.x += fpp.vx;
-          fpp.y += fpp.vy;
-          fpp.lf -= 0.011;
-          if (fpp.lf <= 0 || fpp.y < 0) {
-            forestParts.splice(fp, 1);
+
+        c.restore(); // end leaf clip
+
+        // ── LEAF OUTLINE ──
+        c.strokeStyle = "rgba(0,255,80,.22)";
+        c.lineWidth = 2;
+        c.beginPath();
+        c.moveTo(cx, cy - lh / 2 + 10);
+        c.bezierCurveTo(
+          cx + lw / 2,
+          cy - lh / 3,
+          cx + lw / 2,
+          cy + lh / 3,
+          cx,
+          cy + lh / 2 - 10
+        );
+        c.bezierCurveTo(
+          cx - lw / 2,
+          cy + lh / 3,
+          cx - lw / 2,
+          cy - lh / 3,
+          cx,
+          cy - lh / 2 + 10
+        );
+        c.closePath();
+        c.stroke();
+
+        // ── PARTICLES based on phase ──
+        spawnPhotoParticles(cycleT, cx, cy, lw, lh, t);
+        drawPhotoParticles(c, t);
+
+        // ── EQUATION highlights ──
+        updateEqHighlights(phaseIdx, cycleT);
+
+        // ── COUNTERS ──
+        updatePhotoCounts(cycleT, t);
+      }
+
+      // Spawn photo particles by phase
+      function spawnPhotoParticles(ct, cx, cy, lw, lh, t) {
+        if (ct < 5) {
+          // Photons from top
+          if (Math.random() < 0.18)
+            photoParts.push({
+              k: "ph",
+              x: cx + (Math.random() - 0.5) * lw * 0.7,
+              y: cy - lh * 0.52,
+              vx: (Math.random() - 0.5) * 0.5,
+              vy: 1.5 + Math.random() * 0.8,
+              lf: 1,
+              r: 4 + Math.random() * 2,
+              target: {
+                x: cx + (Math.random() - 0.5) * lw * 0.3,
+                y: cy - lh * 0.2,
+              },
+            });
+          // H2O from bottom (roots)
+          if (Math.random() < 0.12)
+            photoParts.push({
+              k: "h2",
+              x: cx + (Math.random() - 0.5) * lw * 0.4,
+              y: cy + lh * 0.55,
+              vx: (Math.random() - 0.5) * 0.3,
+              vy: -1.2 - Math.random() * 0.6,
+              lf: 1,
+              r: 4,
+            });
+          // CO2 from sides (stomata)
+          if (Math.random() < 0.1) {
+            var side = Math.random() < 0.5 ? -1 : 1;
+            photoParts.push({
+              k: "co",
+              x: cx + side * (lw * 0.52 + Math.random() * 10),
+              y: cy + lh * 0.2 + Math.random() * lh * 0.2,
+              vx: side * (-1.1 - Math.random() * 0.5),
+              vy: (Math.random() - 0.5) * 0.4,
+              lf: 1,
+              r: 4,
+            });
+          }
+        } else if (ct >= 5 && ct < 15) {
+          // Electrons (white fast) bouncing in chloroplasts
+          if (Math.random() < 0.22)
+            photoParts.push({
+              k: "el",
+              x: cx + (Math.random() - 0.5) * lw * 0.35,
+              y: cy - lh * 0.15 + (Math.random() - 0.5) * lh * 0.2,
+              vx: (Math.random() - 0.5) * 3.5,
+              vy: (Math.random() - 0.5) * 3.5,
+              lf: 0.5 + Math.random() * 0.3,
+              r: 2.5,
+            });
+          // Reaction glow particles
+          if (Math.random() < 0.08)
+            photoParts.push({
+              k: "rx",
+              x: cx + (Math.random() - 0.5) * lw * 0.32,
+              y: cy - lh * 0.1 + (Math.random() - 0.5) * lh * 0.2,
+              vx: (Math.random() - 0.5) * 1.2,
+              vy: (Math.random() - 0.5) * 1.2,
+              lf: 0.8,
+              r: 6 + Math.random() * 5,
+            });
+        } else if (ct >= 15 && ct < 25) {
+          // O2 forming (bright green)
+          if (Math.random() < 0.14)
+            photoParts.push({
+              k: "o2",
+              x: cx + (Math.random() - 0.5) * lw * 0.3,
+              y: cy - lh * 0.1 + (Math.random() - 0.5) * lh * 0.2,
+              vx: (Math.random() - 0.5) * 1.5,
+              vy: -1.8 - Math.random() * 0.9,
+              lf: 1,
+              r: 5 + Math.random() * 2,
+            });
+          // Glucose (orange, flowing down toward vein)
+          if (Math.random() < 0.09)
+            photoParts.push({
+              k: "gl",
+              x: cx + (Math.random() - 0.5) * lw * 0.28,
+              y: cy,
+              vx: (Math.random() - 0.5) * 0.4,
+              vy: 0.9 + Math.random() * 0.5,
+              lf: 1,
+              r: 4.5,
+            });
+        } else {
+          // RELEASE: big O2 burst out of stomata
+          if (Math.random() < 0.25) {
+            for (var bi = 0; bi < 3; bi++) {
+              var bside = Math.random() < 0.5 ? -1 : 1;
+              photoParts.push({
+                k: "o2b",
+                x: cx + (Math.random() - 0.5) * lw * 0.15,
+                y: cy + lh * 0.38 + Math.random() * lh * 0.12,
+                vx: bside * (1.5 + Math.random() * 2.5),
+                vy: -1.2 - Math.random() * 1.5,
+                lf: 1,
+                r: 5 + Math.random() * 3,
+              });
+            }
+          }
+          // Mol counter increment
+          if (photoT - lastMolIncT > 0.8) {
+            lastMolIncT = photoT;
+            molCounter++;
+            var el2 = document.getElementById("cp-mol");
+            el2.textContent = molCounter;
+            el2.classList.add("flash");
+            setTimeout(function () {
+              document.getElementById("cp-mol").classList.remove("flash");
+            }, 400);
+          }
+        }
+      }
+
+      function drawPhotoParticles(c, t) {
+        for (var pi = photoParts.length - 1; pi >= 0; pi--) {
+          var p = photoParts[pi];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.lf -= 0.014;
+          if (p.lf <= 0) {
+            photoParts.splice(pi, 1);
             continue;
           }
-          fctx.fillStyle = "rgba(0,255,96," + fpp.lf * 0.44 + ")";
-          fctx.beginPath();
-          fctx.arc(fpp.x, fpp.y, fpp.r, 0, Math.PI * 2);
-          fctx.fill();
+          var a = p.lf * 0.92;
+          if (p.k === "ph") {
+            // Photon: yellow star with rays
+            var pg = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.5);
+            pg.addColorStop(0, "rgba(255,230,40," + a + ")");
+            pg.addColorStop(0.6, "rgba(255,180,0," + a * 0.4 + ")");
+            pg.addColorStop(1, "transparent");
+            c.fillStyle = pg;
+            c.beginPath();
+            c.arc(p.x, p.y, p.r * 2.5, 0, Math.PI * 2);
+            c.fill();
+          } else if (p.k === "h2") {
+            // H2O: blue teardrop
+            var hg = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2);
+            hg.addColorStop(0, "rgba(80,160,255," + a + ")");
+            hg.addColorStop(1, "transparent");
+            c.fillStyle = hg;
+            c.beginPath();
+            c.arc(p.x, p.y, p.r * 2, 0, Math.PI * 2);
+            c.fill();
+          } else if (p.k === "co") {
+            // CO2: grey circle
+            c.fillStyle = "rgba(160,160,160," + a * 0.75 + ")";
+            c.beginPath();
+            c.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            c.fill();
+            // Label
+            c.fillStyle = "rgba(180,180,180," + a * 0.6 + ")";
+            c.font = "8px Cinzel";
+            c.textAlign = "center";
+            c.fillText("CO2", p.x, p.y + 3);
+          } else if (p.k === "el") {
+            // Electron: white fast dot with trail
+            c.shadowColor = "rgba(255,255,255,.8)";
+            c.shadowBlur = 6;
+            c.fillStyle = "rgba(255,255,255," + a + ")";
+            c.beginPath();
+            c.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            c.fill();
+            c.shadowBlur = 0;
+          } else if (p.k === "rx") {
+            // Reaction glow: expanding green burst
+            var rg = c.createRadialGradient(
+              p.x,
+              p.y,
+              0,
+              p.x,
+              p.y,
+              p.r * (2.5 - p.lf)
+            );
+            rg.addColorStop(0, "rgba(0,255,80," + a * 0.6 + ")");
+            rg.addColorStop(1, "transparent");
+            c.fillStyle = rg;
+            c.beginPath();
+            c.arc(p.x, p.y, p.r * (2.5 - p.lf + 0.5) * 2, 0, Math.PI * 2);
+            c.fill();
+          } else if (p.k === "o2") {
+            // O2: bright green
+            var og = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.2);
+            og.addColorStop(0, "rgba(0,255,100," + a + ")");
+            og.addColorStop(0.5, "rgba(0,200,60," + a * 0.5 + ")");
+            og.addColorStop(1, "transparent");
+            c.fillStyle = og;
+            c.beginPath();
+            c.arc(p.x, p.y, p.r * 2.2, 0, Math.PI * 2);
+            c.fill();
+          } else if (p.k === "gl") {
+            // Glucose: orange
+            var gg = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2);
+            gg.addColorStop(0, "rgba(255,140,20," + a + ")");
+            gg.addColorStop(1, "transparent");
+            c.fillStyle = gg;
+            c.beginPath();
+            c.arc(p.x, p.y, p.r * 2, 0, Math.PI * 2);
+            c.fill();
+          } else if (p.k === "o2b") {
+            // O2 burst (release phase): large glowing green
+            p.r += 0.08;
+            c.shadowColor = "rgba(0,255,100,.7)";
+            c.shadowBlur = 12;
+            var obg = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3);
+            obg.addColorStop(0, "rgba(0,255,100," + a + ")");
+            obg.addColorStop(0.5, "rgba(0,200,60," + a * 0.6 + ")");
+            obg.addColorStop(1, "transparent");
+            c.fillStyle = obg;
+            c.beginPath();
+            c.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+            c.fill();
+            c.shadowBlur = 0;
+          }
         }
-        // Edge vignette
-        var vg = fctx.createRadialGradient(
-          cx,
-          cy,
-          Math.min(W, H) * 0.22,
-          cx,
-          cy,
-          Math.max(W, H) * 0.62
+        c.textAlign = "left"; // reset
+      }
+
+      function updateEqHighlights(phIdx, ct) {
+        var ems = ["em-ph", "em-h2", "em-co", "em-o2", "em-gl"];
+        ems.forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.classList.remove("active");
+        });
+        if (phIdx === 0) {
+          ["em-ph", "em-h2", "em-co"].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.classList.add("active");
+          });
+        } else if (phIdx === 2 || phIdx === 3) {
+          ["em-o2", "em-gl"].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.classList.add("active");
+          });
+        }
+      }
+
+      function updatePhotoCounts(ct, t) {
+        var prog = Math.min(1, photoT / 22);
+        var o2Val = prog * 0.06;
+        var glVal = prog * 0.08;
+        var treeO2 = Math.floor(prog * 120);
+        var treeGl = Math.floor(prog * 160);
+        document.getElementById("cp-o2").textContent =
+          o2Val.toFixed(3) + " g/h";
+        document.getElementById("cp-gl").textContent =
+          glVal.toFixed(3) + " g/h";
+        document.getElementById("cp-tree").textContent = treeO2 + " kg/j";
+        document.getElementById("cp-glf").textContent = treeGl + " kg/j";
+        if (
+          photoT >= 24 &&
+          document.getElementById("forest-btn").style.display !== "block"
+        ) {
+          document.getElementById("forest-btn").style.display = "block";
+        }
+      }
+
+      function updatePhotoCtrs(t) {
+        var cycleT = photoT % 30;
+        updatePhotoCounts(cycleT, t);
+      }
+
+      // ── FORET 3D THREE.JS NAVIGABLE ──
+      var rendererF = null,
+        sceneF = null,
+        cameraF = null;
+      var yawF = 0,
+        pitchF = 0,
+        isLockedF = false;
+      var keysF = {};
+      var camFH = 1.8; // hauteur yeux dans la forêt
+      var foliageAnim = [];
+
+      function init3DForest() {
+        if (rendererF) return; // déjà initialisé
+        var cnvF = document.getElementById("forest-three-canvas");
+        rendererF = new THREE.WebGLRenderer({
+          canvas: cnvF,
+          antialias: true,
+          alpha: false,
+        });
+        rendererF.setPixelRatio(Math.min(devicePixelRatio, 2));
+        rendererF.setSize(W, H);
+        rendererF.setClearColor(0x0a1f08, 1);
+        rendererF.shadowMap.enabled = true;
+
+        sceneF = new THREE.Scene();
+        sceneF.fog = new THREE.FogExp2(0x0d2810, 0.028);
+
+        cameraF = new THREE.PerspectiveCamera(72, W / H, 0.1, 600);
+        cameraF.position.set(0, camFH, 0);
+
+        // Lumières
+        sceneF.add(new THREE.AmbientLight(0x2a5c28, 1.2));
+        var sunF = new THREE.DirectionalLight(0xffe890, 2.2);
+        sunF.position.set(60, 120, 40);
+        sunF.castShadow = true;
+        sceneF.add(sunF);
+        sceneF.add(new THREE.HemisphereLight(0x3a7030, 0x0d2008, 0.85));
+        // Rais de lumière filtrés
+        var rayPts = [
+          [15, 30, 10],
+          [-20, 28, 15],
+          [8, 32, -12],
+          [-10, 26, -18],
+          [22, 29, 5],
+        ];
+        rayPts.forEach(function (p) {
+          var pl = new THREE.PointLight(0xffee88, 1.4, 35);
+          pl.position.set(p[0], p[1], p[2]);
+          sceneF.add(pl);
+        });
+
+        // Sol de la forêt
+        var groundF = new THREE.Mesh(
+          new THREE.PlaneGeometry(600, 600),
+          new THREE.MeshPhongMaterial({ color: 0x0d2808, shininess: 0 })
         );
-        vg.addColorStop(0, "transparent");
-        vg.addColorStop(0.65, "transparent");
-        vg.addColorStop(1, "rgba(8,38,12,.58)");
-        fctx.fillStyle = vg;
-        fctx.fillRect(0, 0, W, H);
+        groundF.rotation.x = -Math.PI / 2;
+        groundF.position.y = 0;
+        sceneF.add(groundF);
+        // Sous-bois (couverture basse)
+        var floorMat = new THREE.MeshPhongMaterial({
+          color: 0x112a0a,
+          shininess: 0,
+        });
+        sceneF.add(
+          new THREE.Mesh(new THREE.PlaneGeometry(600, 600), floorMat)
+        ).rotation.x = -Math.PI / 2;
+
+        // ── TRONCS (200+ arbres amazoniens) ──
+        var trunkMatF = new THREE.MeshPhongMaterial({
+          color: 0x4a2808,
+          emissive: 0x0a0502,
+          shininess: 3,
+        });
+        var trunkData = [];
+        // Arbres en grille désordonnée sur 100x100m
+        for (var ti = 0; ti < 220; ti++) {
+          var tx = (Math.sin(ti * 97.3 + 11) * 0.5 + 0.5) * 180 - 90;
+          var tz = (Math.sin(ti * 173.7 + 53) * 0.5 + 0.5) * 180 - 90;
+          var tr = 0.45 + Math.sin(ti * 37.1) * 0.25; // rayon tronc
+          var th = 12 + Math.sin(ti * 61.3) * 8; // hauteur
+          var tg = new THREE.CylinderGeometry(tr * 0.7, tr, th, 8, 1);
+          var tm = new THREE.Mesh(tg, trunkMatF);
+          tm.position.set(tx, th / 2, tz);
+          tm.rotation.y = Math.random() * Math.PI;
+          sceneF.add(tm);
+          trunkData.push({ x: tx, z: tz, h: th, r: tr });
+          // Racines contrefort
+          for (var ri = 0; ri < 3; ri++) {
+            var ra = (ri / 3) * Math.PI * 2 + ti * 0.5;
+            var rb = new THREE.BoxGeometry(0.18, th * 0.45, 0.55);
+            var rm = new THREE.Mesh(rb, trunkMatF);
+            rm.position.set(
+              tx + Math.cos(ra) * tr * 1.4,
+              th * 0.22,
+              tz + Math.sin(ra) * tr * 1.4
+            );
+            rm.rotation.y = -ra;
+            rm.rotation.z = -0.28;
+            sceneF.add(rm);
+          }
+        }
+
+        // ── FEUILLAGE (couronnes denses) ──
+        var fMatsF = [
+          new THREE.MeshPhongMaterial({
+            color: 0x1a7a28,
+            emissive: 0x021402,
+            shininess: 6,
+            transparent: true,
+            opacity: 0.88,
+          }),
+          new THREE.MeshPhongMaterial({
+            color: 0x1f6820,
+            emissive: 0x030e01,
+            shininess: 4,
+            transparent: true,
+            opacity: 0.84,
+          }),
+          new THREE.MeshPhongMaterial({
+            color: 0x238820,
+            emissive: 0x040e02,
+            shininess: 8,
+            transparent: true,
+            opacity: 0.9,
+          }),
+          new THREE.MeshPhongMaterial({
+            color: 0x185c18,
+            emissive: 0x020c01,
+            shininess: 5,
+            transparent: true,
+            opacity: 0.86,
+          }),
+        ];
+        foliageAnim = [];
+        trunkData.forEach(function (td, i) {
+          var nCr = 2 + Math.floor(Math.random() * 2);
+          for (var ci = 0; ci < nCr; ci++) {
+            var cr = 4 + Math.sin(i * 13.7 + ci) * 2.5;
+            var fog = new THREE.SphereGeometry(cr, 8, 5);
+            var fm = new THREE.Mesh(fog, fMatsF[(i + ci) % 4]);
+            var ox = (Math.random() - 0.5) * cr * 0.8,
+              oz = (Math.random() - 0.5) * cr * 0.8;
+            fm.position.set(td.x + ox, td.h + cr * 0.4 + ci * 2.5, td.z + oz);
+            fm.scale.y = 0.6 + Math.random() * 0.3;
+            sceneF.add(fm);
+            foliageAnim.push({
+              m: fm,
+              by: fm.position.y,
+              sp: 0.14 + Math.random() * 0.1,
+              ph: Math.random() * Math.PI * 2,
+            });
+          }
+        });
+        // Couche de sous-bois basse
+        for (var si = 0; si < 60; si++) {
+          var sx = (Math.random() - 0.5) * 160,
+            sz = (Math.random() - 0.5) * 160;
+          var sr = 1.5 + Math.random() * 2;
+          var sg = new THREE.SphereGeometry(sr, 6, 4);
+          var sm = new THREE.Mesh(sg, fMatsF[si % 4]);
+          sm.position.set(sx, 0.8 + sr * 0.3, sz);
+          sm.scale.y = 0.55;
+          sceneF.add(sm);
+          foliageAnim.push({
+            m: sm,
+            by: sm.position.y,
+            sp: 0.22 + Math.random() * 0.15,
+            ph: Math.random() * Math.PI * 2,
+          });
+        }
+
+        // ── RIVIÈRE ──
+        var riverMat = new THREE.MeshBasicMaterial({
+          color: 0x1a5a9a,
+          transparent: true,
+          opacity: 0.72,
+        });
+        var riverGeo = new THREE.PlaneGeometry(6, 120);
+        var river = new THREE.Mesh(riverGeo, riverMat);
+        river.rotation.x = -Math.PI / 2;
+        river.rotation.z = 0.3;
+        river.position.set(-30, 0.05, 0);
+        sceneF.add(river);
+
+        // ── LIANES ──
+        var lMatF = new THREE.MeshPhongMaterial({
+          color: 0x2a5a10,
+          shininess: 2,
+        });
+        for (var li = 0; li < 30; li++) {
+          var lh = 6 + Math.random() * 12;
+          var lx2 = (Math.random() - 0.5) * 140,
+            lz2 = (Math.random() - 0.5) * 140;
+          var lm2 = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.07, lh, 5),
+            lMatF
+          );
+          lm2.position.set(lx2, lh / 2, lz2);
+          lm2.rotation.set(
+            (Math.random() - 0.5) * 0.2,
+            0,
+            (Math.random() - 0.5) * 0.25
+          );
+          sceneF.add(lm2);
+        }
+
+        // ── PARTICULES O2 flottantes ──
+        var o2F = [];
+        for (var oi = 0; oi < 40; oi++) {
+          var om2 = new THREE.Mesh(
+            new THREE.SphereGeometry(0.08, 4, 4),
+            new THREE.MeshBasicMaterial({
+              color: 0x00ff88,
+              transparent: true,
+              opacity: 0.55,
+            })
+          );
+          sceneF.add(om2);
+          o2F.push({
+            m: om2,
+            x: (Math.random() - 0.5) * 160,
+            y: Math.random() * 22 + 0.5,
+            z: (Math.random() - 0.5) * 160,
+            vy: 0.04 + Math.random() * 0.06,
+            lf: Math.random(),
+          });
+        }
+        sceneF._o2F = o2F;
+
+        // ── CONTRÔLES FPS forêt ──
+        document.addEventListener("keydown", function (e) {
+          keysF[e.code] = true;
+        });
+        document.addEventListener("keyup", function (e) {
+          keysF[e.code] = false;
+        });
+        var cnvFEl = document.getElementById("forest-three-canvas");
+        cnvFEl.addEventListener("click", function () {
+          if (!isLockedF && currentScene === "forest")
+            cnvFEl.requestPointerLock();
+        });
+        document.addEventListener("pointerlockchange", function () {
+          isLockedF = document.pointerLockElement === cnvFEl;
+          document
+            .getElementById("forest-crosshair")
+            .classList.toggle("show", isLockedF);
+          document
+            .getElementById("forest-ctrl")
+            .classList.toggle("show", !isLockedF && currentScene === "forest");
+        });
+        document.addEventListener("mousemove", function (e) {
+          if (!isLockedF || currentScene !== "forest") return;
+          yawF -= e.movementX * 0.0018;
+          pitchF -= e.movementY * 0.0015;
+          pitchF = Math.max(-1.2, Math.min(1.2, pitchF));
+        });
+      }
+
+      function drawForest(t) {
+        if (!rendererF || !sceneF) return;
+        // Mouvement FPS
+        var spd = keysF["ShiftLeft"] ? 7 : 3.5;
+        var fwdF = new THREE.Vector3(
+          Math.sin(yawF),
+          0,
+          Math.cos(yawF)
+        ).normalize();
+        var rgtF = new THREE.Vector3(
+          Math.cos(yawF),
+          0,
+          -Math.sin(yawF)
+        ).normalize();
+        if (keysF["KeyW"] || keysF["ArrowUp"])
+          cameraF.position.addScaledVector(fwdF, spd * 0.016);
+        if (keysF["KeyS"] || keysF["ArrowDown"])
+          cameraF.position.addScaledVector(fwdF, -spd * 0.016);
+        if (keysF["KeyA"] || keysF["ArrowLeft"])
+          cameraF.position.addScaledVector(rgtF, -spd * 0.016);
+        if (keysF["KeyD"] || keysF["ArrowRight"])
+          cameraF.position.addScaledVector(rgtF, spd * 0.016);
+        cameraF.position.y = camFH;
+        cameraF.position.x = Math.max(-90, Math.min(90, cameraF.position.x));
+        cameraF.position.z = Math.max(-90, Math.min(90, cameraF.position.z));
+        cameraF.rotation.order = "YXZ";
+        cameraF.rotation.y = yawF;
+        cameraF.rotation.x = pitchF;
+        // Vent feuillage
+        foliageAnim.forEach(function (f) {
+          f.m.position.y = f.by + Math.sin(t * f.sp + f.ph) * 0.55;
+        });
+        // O2 particles
+        if (sceneF._o2F)
+          sceneF._o2F.forEach(function (p) {
+            p.y += p.vy;
+            p.lf += 0.003;
+            if (p.y > 25 || p.lf > 1) {
+              p.y = 0.5 + Math.random() * 3;
+              p.x = (Math.random() - 0.5) * 160;
+              p.z = (Math.random() - 0.5) * 160;
+              p.lf = 0;
+            }
+            p.m.position.set(p.x, p.y, p.z);
+            p.m.material.opacity = Math.sin(p.lf * Math.PI) * 0.45;
+          });
+        rendererF.render(sceneF, cameraF);
       }
 
       // ── PHOTO COUNTERS ──
@@ -2630,7 +3854,7 @@
           (prog * 0.08).toFixed(3) + " g/h";
         document.getElementById("cp-tree").textContent =
           Math.floor(prog * 120) + " kg/j";
-        document.getElementById("eq-t").textContent = Math.floor(photoT % 30);
+        // timer updated in drawPhoto
         photoPhase = Math.floor((photoT % 30) / 5);
         if (t - lastMolT > 1.1) {
           molCount++;
@@ -2645,24 +3869,8 @@
       }
 
       // ── FOREST COUNTERS ──
-      var fTgt = { o2: 24000, hum: 400000, co2: 4400, car: 880000, eau: 300 };
-      var fCur = { o2: 0, hum: 0, co2: 0, car: 0, eau: 0 };
       function updateForestCtrs(dt) {
-        Object.keys(fTgt).forEach(function (k) {
-          if (fCur[k] < fTgt[k]) {
-            fCur[k] = Math.min(fTgt[k], fCur[k] + fTgt[k] * dt * 0.042);
-            var el = document.getElementById("ap-" + k);
-            if (!el) return;
-            var v = Math.floor(fCur[k]);
-            var s = "";
-            if (k === "o2") s = v.toLocaleString() + " t/j";
-            else if (k === "hum") s = v.toLocaleString();
-            else if (k === "co2") s = v.toLocaleString() + " t/j";
-            else if (k === "car") s = v.toLocaleString();
-            else if (k === "eau") s = v.toLocaleString() + " ML/j";
-            el.textContent = s;
-          }
-        });
+        /* handled by animateForestCounters */
       }
 
       // ── MAIN LOOP ──
@@ -2676,72 +3884,546 @@
           update3D(dt, t);
         } else if (currentScene === "photo") {
           photoT += dt;
-          drawPhoto(t);
-          updatePhotoCtrs(t);
+          drawPhoto(globalT);
+          updatePhotoCtrs(globalT);
+          checkGaiaPhotoNarr();
+        } else if (currentScene === "video") {
+          /* video plays natively, no canvas draw needed */
         } else if (currentScene === "forest") {
           forestT += dt;
           drawForest(t);
-          updateForestCtrs(dt);
-        }
+        } // updateForestCtrs handled by animateForestCounters
       }
 
       // ── NAVIGATION ──
+      // ── GAIA NARRATION ENGINE (photo scene) ──
+      var gaiaPhotoNarr = [
+        {
+          at: 0.5,
+          txt: "Regardez... La magie commence.\nLe soleil envoie ses photons dores.\nMes racines pompent l eau depuis le sol.\nEt mes stomates... s ouvrent.\nAspirent le CO2 de l air.",
+        },
+        {
+          at: 5.2,
+          txt: "Dans mes chloroplastes...\nL alchimie de la vie.\nLumiere frappe les molecules.\nBOOM... La reaction.\nLes atomes dansent... se rearrangent.\nCarbone, oxygene, hydrogene...\nFusionnent.",
+        },
+        {
+          at: 15.3,
+          txt: "Et voila !\nDu glucose se forme.\nMon energie. Mon carburant.\nIl descend nourrir mon tronc.\nEt l oxygene... se libere.\nCelui que vous respirez.",
+        },
+        {
+          at: 25.2,
+          txt: "Chaque seconde...\nMes 2 millions de feuilles font ca.\n120 kilos d oxygene par jour.\nPour vous.\nC est... ma respiration.\nMon cadeau au monde.",
+        },
+        { at: 30.5, txt: "Maintenant... vous comprenez." },
+      ];
+      var gaiaPhotoFired = [];
+      var gaiaPhotoStartT = 0;
+      var gaiaPhotoActive = false;
+
+      function startGaiaPhotoNarr() {
+        gaiaPhotoFired = [];
+        gaiaPhotoStartT = photoT;
+        gaiaPhotoActive = true;
+        // Show voice box
+        document.getElementById("gaia-voice-photo").classList.add("show");
+        setTimeout(function () {
+          document.getElementById("gvp-sep").classList.add("show");
+        }, 200);
+      }
+
+      function checkGaiaPhotoNarr() {
+        if (!gaiaPhotoActive) return;
+        var elapsed = photoT - gaiaPhotoStartT;
+        for (var i = 0; i < gaiaPhotoNarr.length; i++) {
+          if (gaiaPhotoFired[i]) continue;
+          if (elapsed >= gaiaPhotoNarr[i].at) {
+            gaiaPhotoFired[i] = true;
+            speakGaiaPhoto(
+              gaiaPhotoNarr[i].txt,
+              i === gaiaPhotoNarr.length - 1
+            );
+            break;
+          }
+        }
+      }
+
+      function speakGaiaPhoto(txt, isLast) {
+        var eTxt = document.getElementById("gvp-txt");
+        var eCur = document.getElementById("gvp-cur");
+        var eVbr = document.getElementById("gvp-bars");
+        if (eTxt) eTxt.textContent = "";
+        if (eCur) eCur.style.display = "inline-block";
+        var d = 0,
+          t2 = 0,
+          vd = false,
+          done = false,
+          iv = null;
+        function fin() {
+          if (done) return;
+          done = true;
+          if (eCur) eCur.style.display = "none";
+          if (isLast) {
+            setTimeout(function () {
+              document.getElementById("forest-btn").style.display = "block";
+            }, 800);
+          }
+        }
+        function tick() {
+          if (iv) clearInterval(iv);
+          iv = setInterval(function () {
+            if (d < t2 && d < txt.length) {
+              if (eTxt) {
+                eTxt.textContent = txt.slice(0, ++d);
+                eTxt.scrollTop = eTxt.scrollHeight;
+              } else d++;
+            } else if (d >= txt.length && vd) {
+              clearInterval(iv);
+              fin();
+            }
+          }, 20);
+        }
+        if (syn && !isMuted) {
+          syn.cancel();
+          var u = new SpeechSynthesisUtterance(txt);
+          u.lang = "fr-FR";
+          u.rate = 0.82;
+          u.pitch = 0.78;
+          u.volume = 1;
+          var sv2 = function () {
+            var v = gv();
+            if (v) u.voice = v;
+          };
+          syn.getVoices().length
+            ? sv2()
+            : syn.addEventListener("voiceschanged", sv2, { once: true });
+          u.onstart = function () {
+            if (eVbr) eVbr.classList.add("on");
+          };
+          u.onboundary = function (e) {
+            if (e.name === "word") {
+              t2 = Math.min(e.charIndex + e.charLength, txt.length);
+              tick();
+            }
+          };
+          u.onend = u.onerror = function () {
+            if (eVbr) eVbr.classList.remove("on");
+            vd = true;
+            t2 = txt.length;
+            tick();
+          };
+          syn.speak(u);
+        }
+        setTimeout(function () {
+          if (d === 0) {
+            vd = true;
+            t2 = txt.length;
+            tick();
+          }
+        }, 1800);
+      }
+
+      // ── VIDEO NARRATION GAIA — UN SEUL BLOC, JAMAIS INTERROMPU ──
+      // Script complet lu en UNE utterance continue (rate 1.38, ~18s)
+      // Bouton forêt apparaît SEULEMENT quand onend() est déclenché
+      var GAIA_VID_SCRIPT =
+        "Regardez... ma magie quotidienne. " +
+        "Soleil, eau, et dioxyde de carbone entrent. " +
+        "Dans mes chloroplastes verts... " +
+        "La lumiere transforme tout. " +
+        "6 molecules de dioxyde de carbone plus 6 molecules d eau... " +
+        "Deviennent glucose et oxygene. " +
+        "Le glucose me nourrit. " +
+        "L oxygene... part vers vous. " +
+        "C est la photosynthese. " +
+        "Chaque feuille fait ca. " +
+        "Des millions de fois. " +
+        "120 kilos d oxygene par jour. " +
+        "Pour que vous respiriez. " +
+        "Simple... et vital.";
+
+      var vidActive = false;
+      var gaiaVidUtterance = null;
+      var gaiaVidFinished = false;
+      var gaiaVidScrollIv = null;
+
+      function startVideoNarr() {
+        vidActive = true;
+        gaiaVidFinished = false;
+        var eTxt = document.getElementById("vgb-txt");
+        var eCur = document.getElementById("vgb-cur");
+        var eVbr = document.getElementById("vgb-bars");
+        if (eTxt) eTxt.textContent = "";
+        if (eCur) eCur.style.display = "inline-block";
+        if (gaiaVidScrollIv) clearInterval(gaiaVidScrollIv);
+
+        // Typewriter display — driven by charIndex from onboundary
+        var displayedChars = 0;
+        var targetChars = 0;
+        var txt = GAIA_VID_SCRIPT;
+        gaiaVidScrollIv = setInterval(function () {
+          if (displayedChars < targetChars && displayedChars < txt.length) {
+            displayedChars++;
+            if (eTxt) {
+              eTxt.textContent = txt.slice(0, displayedChars);
+              eTxt.scrollTop = eTxt.scrollHeight;
+            }
+          }
+        }, 28);
+
+        if (syn && !isMuted) {
+          // IMPORTANT: NO syn.cancel() here — we never interrupt ourselves
+          var u = new SpeechSynthesisUtterance(txt);
+          u.lang = "fr-FR";
+          u.rate = 1.38; // rapide mais intelligible, ~17-18s pour ce texte
+          u.pitch = 0.8;
+          u.volume = 1.0;
+          gaiaVidUtterance = u;
+          var sv3 = function () {
+            var v = gv();
+            if (v) u.voice = v;
+          };
+          syn.getVoices().length
+            ? sv3()
+            : syn.addEventListener("voiceschanged", sv3, { once: true });
+          u.onstart = function () {
+            if (eVbr) eVbr.classList.add("on");
+          };
+          u.onboundary = function (e) {
+            if (e.name === "word") {
+              targetChars = Math.min(e.charIndex + e.charLength, txt.length);
+            }
+          };
+          u.onend = function () {
+            // Voix terminée → afficher le bouton forêt
+            gaiaVidFinished = true;
+            if (eVbr) eVbr.classList.remove("on");
+            if (eCur) eCur.style.display = "none";
+            if (gaiaVidScrollIv) {
+              clearInterval(gaiaVidScrollIv);
+              gaiaVidScrollIv = null;
+            }
+            if (eTxt) eTxt.textContent = txt; // afficher tout le texte
+            // Bouton forêt apparaît maintenant
+            document.getElementById("vid-forest-btn").classList.add("show");
+          };
+          u.onerror = function (e) {
+            // En cas d'erreur : afficher tout + bouton forêt quand même
+            gaiaVidFinished = true;
+            if (eTxt) eTxt.textContent = txt;
+            if (eCur) eCur.style.display = "none";
+            if (gaiaVidScrollIv) {
+              clearInterval(gaiaVidScrollIv);
+              gaiaVidScrollIv = null;
+            }
+            document.getElementById("vid-forest-btn").classList.add("show");
+          };
+          syn.speak(u);
+        } else {
+          // Si muet ou pas de syn : afficher le texte et le bouton directement
+          if (eTxt) eTxt.textContent = txt;
+          if (eCur) eCur.style.display = "none";
+          setTimeout(function () {
+            document.getElementById("vid-forest-btn").classList.add("show");
+          }, 3000);
+        }
+      }
+
+      function skipToForest() {
+        var vid = document.getElementById("photo-vid");
+        if (vid) {
+          vid.pause();
+          vid.currentTime = 0;
+        }
+        // Ne PAS annuler la voix si elle parle encore — elle s'arrête naturellement
+        // mais on continue vers la forêt
+        if (gaiaVidScrollIv) {
+          clearInterval(gaiaVidScrollIv);
+          gaiaVidScrollIv = null;
+        }
+        vidActive = false;
+        goToForest();
+      }
+
       function goToPhoto() {
-        if (syn) syn.cancel();
-        hideV1(function () {});
+        hideV1(function () {}); // ne PAS annuler la voix ici
         if (isLocked) document.exitPointerLock();
         var cu = document.getElementById("curtain");
         cu.classList.remove("gone");
-        cu.style.transition = "opacity .6s";
+        cu.style.transition = "opacity .8s";
         cu.style.opacity = "1";
         setTimeout(function () {
-          // Switch canvases
+          // Hide 3D, show video
           document.getElementById("three-canvas").style.display = "none";
-          document.getElementById("photo-canvas").style.display = "block";
           document.getElementById("ui-canopy").classList.remove("active");
-          document.getElementById("photo-ui").classList.add("active");
-          currentScene = "photo";
-          cu.style.transition = "opacity .8s";
+          document.getElementById("video-scene").classList.add("active");
+          document.getElementById("vid-hud").classList.add("active");
+          document.getElementById("vid-skip").classList.add("show");
+          currentScene = "video";
+          // Show GAIA voice box
+          var vgb = document.getElementById("vid-gaia-box");
+          vgb.classList.add("show");
+          setTimeout(function () {
+            document.getElementById("vgb-sep").classList.add("show");
+          }, 250);
+          cu.style.transition = "opacity 1.1s";
           cu.style.opacity = "0";
           setTimeout(function () {
             cu.classList.add("gone");
-          }, 850);
-        }, 650);
+            // Start video
+            var vid = document.getElementById("photo-vid");
+            vid.currentTime = 0;
+            var playP = vid.play();
+            if (playP && playP.catch) playP.catch(function () {});
+            // Petit délai pour laisser le navigateur stabiliser la synthèse
+            // avant de lancer le discours (évite l'interruption par résidus)
+            if (syn) syn.cancel();
+            setTimeout(function () {
+              startVideoNarr();
+            }, 320);
+            // Video time → progress bar
+            vid.addEventListener("timeupdate", onVidTimeUpdate);
+            vid.addEventListener("ended", onVidEnded);
+          }, 1100);
+        }, 850);
+      }
+
+      function onVidTimeUpdate() {
+        var vid = document.getElementById("photo-vid");
+        if (!vid) return;
+        var ct = vid.currentTime;
+        var dur = vid.duration || 20;
+        // Barre de progression uniquement
+        document.getElementById("vid-prog-fill").style.width =
+          (ct / dur) * 100 + "%";
+      }
+
+      function onVidEnded() {
+        // Video terminée — GAIA continue à parler si elle n'a pas fini
+        // Le bouton forêt sera affiché par u.onend() dans startVideoNarr()
+        // Si GAIA a déjà fini avant la video, afficher le bouton maintenant
+        if (gaiaVidFinished) {
+          document.getElementById("vid-forest-btn").classList.add("show");
+        }
+        // sinon on attend que u.onend() le fasse
+        document.getElementById("vid-prog-fill").style.width = "100%";
       }
       function goToForest() {
         if (syn) syn.cancel();
+        if (gaiaVidScrollIv) {
+          clearInterval(gaiaVidScrollIv);
+          gaiaVidScrollIv = null;
+        }
+        // Stopper video si active
+        var vid = document.getElementById("photo-vid");
+        if (vid) {
+          vid.pause();
+          vid.removeEventListener("timeupdate", onVidTimeUpdate);
+          vid.removeEventListener("ended", onVidEnded);
+        }
+        document.getElementById("video-scene").classList.remove("active");
+        document.getElementById("vid-hud").classList.remove("active");
+        document.getElementById("vid-gaia-box").classList.remove("show");
+        document.getElementById("vgb-sep").classList.remove("show");
+        document.getElementById("vid-forest-btn").classList.remove("show");
+        document.getElementById("vid-skip").classList.remove("show");
+        vidActive = false;
+        forestParts = [];
+
         var cu = document.getElementById("curtain");
         cu.classList.remove("gone");
-        cu.style.transition = "opacity .6s";
+        cu.style.transition = "opacity .7s";
         cu.style.opacity = "1";
         setTimeout(function () {
+          // Activer scène forêt 3D
           document.getElementById("photo-canvas").style.display = "none";
-          document.getElementById("forest-canvas").style.display = "block";
+          document.getElementById("forest-canvas").style.display = "none";
+          document.getElementById("forest-three-canvas").style.display =
+            "block";
           document.getElementById("photo-ui").classList.remove("active");
           document.getElementById("forest-overlay").classList.add("active");
           currentScene = "forest";
-          cu.style.transition = "opacity 1s";
+          // Initialiser la 3D forêt (crée cameraF, sceneF, rendererF)
+          init3DForest();
+          // Repositionner la camera au centre
+          if (cameraF) {
+            yawF = 0;
+            pitchF = 0;
+            cameraF.position.set(0, camFH, 0);
+          }
+          cu.style.transition = "opacity 1.1s";
           cu.style.opacity = "0";
           setTimeout(function () {
             cu.classList.add("gone");
+            // Contrôles hint
+            setTimeout(function () {
+              document.getElementById("forest-ctrl").classList.add("show");
+            }, 500);
+
+            // ── Panneau statistiques ──
             setTimeout(function () {
               document.getElementById("amazon-panel").classList.add("show");
-            }, 600);
+            }, 400);
+
+            // ── GAIA commence à parler après 900ms ──
             setTimeout(function () {
-              showV2(
-                "Vous voyez cette foret ?\n5,5 millions de kilometres carres.\n20 pourcent de l oxygene mondial.\nUn seul arbre... 2 humains.\nCette foret... 3 milliards d humains.\nC est MONUMENTAL.\nMes forets tropicales\nproduisent 28 pourcent de l oxygene terrestre.\nAbritent 80 pourcent de la biodiversite.\nElles sont le POUMON de la planete.\nMais...\nDepuis 50 ans...\nVous les coupez.\n10 millions d hectares par an.\n27 000 hectares par JOUR.\n18 hectares par MINUTE.\nPendant que vous regardiez cette foret...\n90 hectares ont ete rases.\nVenez.\nJe vais vous montrer\nce que la deforestation fait a mes poumons.",
-                function () {
-                  setTimeout(function () {
-                    document
-                      .getElementById("forest-continue")
-                      .classList.add("show");
-                  }, 1100);
-                }
-              );
               playDark();
-            }, 1400);
-          }, 1060);
-        }, 650);
+              var gaiaForestScript =
+                "Vous voyez cette foret ? " +
+                "5 virgule 5 millions de kilometres carres. " +
+                "20 pourcent de l oxygene mondial. " +
+                "Un seul arbre... 2 humains. " +
+                "Cette foret... 3 milliards d humains. " +
+                "C est... MONUMENTAL. " +
+                "Mes forets tropicales... " +
+                "Produisent 28 pourcent de l oxygene terrestre. " +
+                "Abritent 80 pourcent de la biodiversite. " +
+                "Regulant le climat global. " +
+                "Purifient l eau. " +
+                "Elles sont... " +
+                "... le POUMON de la planete. " +
+                "Mais... " +
+                "Depuis 50 ans... " +
+                "Vous les coupez. " +
+                "10 millions d hectares par an. " +
+                "27 000 hectares par JOUR. " +
+                "1 125 hectares par HEURE. " +
+                "18 hectares par MINUTE. " +
+                "Pendant que vous regardiez cette foret... " +
+                "90 hectares ont ete rases. " +
+                "Venez. " +
+                "Je vais vous montrer... " +
+                "Ce que la deforestation fait a mes poumons.";
+
+              // Afficher le texte dans la boite GAIA existante
+              document.getElementById("vsep2").classList.add("show");
+              document.getElementById("vbox2").classList.add("show");
+
+              var eTxt2 = document.getElementById("vtx2");
+              var eCur2 = document.getElementById("twc2");
+              var eVbr2 = document.getElementById("vbr2");
+              if (eTxt2) eTxt2.textContent = "";
+              if (eCur2) eCur2.style.display = "inline-block";
+
+              var d2 = 0,
+                t3 = 0,
+                vd2 = false,
+                done2 = false,
+                iv2 = null;
+              function fin2() {
+                if (done2) return;
+                done2 = true;
+                if (eCur2) eCur2.style.display = "none";
+                // GAIA a fini — afficher le bouton continuer
+                setTimeout(function () {
+                  document
+                    .getElementById("forest-continue")
+                    .classList.add("show");
+                }, 800);
+              }
+              function tick2() {
+                if (iv2) clearInterval(iv2);
+                iv2 = setInterval(function () {
+                  if (d2 < t3 && d2 < gaiaForestScript.length) {
+                    if (eTxt2) {
+                      eTxt2.textContent = gaiaForestScript.slice(0, ++d2);
+                      eTxt2.scrollTop = eTxt2.scrollHeight;
+                    } else d2++;
+                  } else if (d2 >= gaiaForestScript.length && vd2) {
+                    clearInterval(iv2);
+                    fin2();
+                  }
+                }, 18);
+              }
+
+              if (syn && !isMuted) {
+                syn.cancel();
+                var u2 = new SpeechSynthesisUtterance(gaiaForestScript);
+                u2.lang = "fr-FR";
+                u2.rate = 0.84;
+                u2.pitch = 0.78;
+                u2.volume = 1;
+                var sv4 = function () {
+                  var v = gv();
+                  if (v) u2.voice = v;
+                };
+                syn.getVoices().length
+                  ? sv4()
+                  : syn.addEventListener("voiceschanged", sv4, { once: true });
+                u2.onstart = function () {
+                  if (eVbr2) eVbr2.classList.add("on");
+                };
+                u2.onboundary = function (e) {
+                  if (e.name === "word") {
+                    t3 = Math.min(
+                      e.charIndex + e.charLength,
+                      gaiaForestScript.length
+                    );
+                    tick2();
+                  }
+                };
+                u2.onend = u2.onerror = function () {
+                  if (eVbr2) eVbr2.classList.remove("on");
+                  vd2 = true;
+                  t3 = gaiaForestScript.length;
+                  tick2();
+                };
+                syn.speak(u2);
+              } else {
+                // Muet : afficher tout puis bouton
+                if (eTxt2) eTxt2.textContent = gaiaForestScript;
+                if (eCur2) eCur2.style.display = "none";
+                setTimeout(function () {
+                  document
+                    .getElementById("forest-continue")
+                    .classList.add("show");
+                }, 3000);
+              }
+              // Fallback sécurisé si onend ne se déclenche pas
+              setTimeout(function () {
+                if (!done2) {
+                  vd2 = true;
+                  t3 = gaiaForestScript.length;
+                  tick2();
+                }
+              }, 2000);
+            }, 900);
+
+            // ── Compteurs animés ──
+            animateForestCounters();
+          }, 1100);
+        }, 720);
+      }
+
+      var fTgt = { o2: 24000, hum: 400000, co2: 4400, car: 880000, eau: 300 };
+      var fCur = { o2: 0, hum: 0, co2: 0, car: 0, eau: 0 };
+      var forestCounterIv = null;
+      function animateForestCounters() {
+        fCur = { o2: 0, hum: 0, co2: 0, car: 0, eau: 0 };
+        if (forestCounterIv) clearInterval(forestCounterIv);
+        forestCounterIv = setInterval(function () {
+          var done = true;
+          var spd = 0.028;
+          Object.keys(fTgt).forEach(function (k) {
+            if (fCur[k] < fTgt[k]) {
+              done = false;
+              fCur[k] = Math.min(fTgt[k], fCur[k] + fTgt[k] * spd);
+              var el = document.getElementById("ap-" + k);
+              if (!el) return;
+              var v = Math.floor(fCur[k]);
+              if (k === "o2") el.textContent = v.toLocaleString() + " t/j";
+              else if (k === "hum") el.textContent = v.toLocaleString();
+              else if (k === "co2")
+                el.textContent = v.toLocaleString() + " t/j";
+              else if (k === "car") el.textContent = v.toLocaleString();
+              else if (k === "eau")
+                el.textContent = v.toLocaleString() + " ML/j";
+            }
+          });
+          if (done && forestCounterIv) {
+            clearInterval(forestCounterIv);
+            forestCounterIv = null;
+          }
+        }, 40);
       }
       function goNext() {
         if (syn) syn.cancel();
@@ -2808,6 +4490,11 @@
         var fc = document.getElementById("forest-canvas");
         fc.width = W;
         fc.height = H;
+        if (rendererF) {
+          rendererF.setSize(W, H);
+          cameraF.aspect = W / H;
+          cameraF.updateProjectionMatrix();
+        }
       });
       window.addEventListener("load", startScene);
     </script>
