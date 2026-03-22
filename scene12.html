@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAÏA — Scène 12 : La Mémoire des Forêts</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #00ff88;
+        --gd: #00cc66;
+        --soft: #d0f0e0;
+        --ui: rgba(0, 8, 4, 0.96);
+        --ub: rgba(0, 255, 136, 0.14);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0e0a05;
+      }
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+      }
+      /* ── Canvases ─────────────────────────────────────────── */
+      canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+      }
+      #bc {
+        z-index: 1;
+      }
+      #oc {
+        z-index: 3;
+        pointer-events: none;
+      }
+      #seed-canvas {
+        z-index: 520;
+        pointer-events: none;
+        display: none;
+      }
+      /* ── Cursor ─────────────────────────────────────────────── */
+      #cur {
+        position: fixed;
+        width: 14px;
+        height: 14px;
+        border: 1.5px solid rgba(0, 255, 136, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: width 0.12s, height 0.12s;
+      }
+      #cur::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--g);
+        border-radius: 50%;
+      }
+      /* ── Overlays ───────────────────────────────────────────── */
+      #vig {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse 85% 85% at 50%50%,
+          transparent 22%,
+          rgba(0, 0, 0, 0.1) 55%,
+          rgba(0, 0, 0, 0.88) 100%
+        );
+      }
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 700;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 1.4s ease;
+      }
+      #curtain.gone {
+        opacity: 0;
+      }
+      /* ── HUD ────────────────────────────────────────────────── */
+      #hud-top {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 26px 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #hud-top.show {
+        opacity: 1;
+      }
+      .ht-l {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.5em;
+        color: rgba(0, 255, 136, 0.28);
+      }
+      .ht-c {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.32em;
+        color: rgba(0, 255, 136, 0.16);
+      }
+      .ht-r {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: rgba(0, 255, 136, 0.3);
+      }
+      /* ── Crosshair ──────────────────────────────────────────── */
+      #xh {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+      }
+      #xh.show {
+        opacity: 0.45;
+      }
+      .ch {
+        position: absolute;
+        background: rgba(0, 255, 136, 0.5);
+      }
+      .ch-h {
+        width: 12px;
+        height: 1px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .ch-v {
+        width: 1px;
+        height: 12px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .ch-c {
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: var(--g);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      /* ── Hint ───────────────────────────────────────────────── */
+      #hint {
+        position: fixed;
+        bottom: clamp(140px, 17vh, 170px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 22;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.25);
+        white-space: nowrap;
+        pointer-events: none;
+        animation: hfade 4s ease 5s forwards;
+      }
+      @keyframes hfade {
+        to {
+          opacity: 0;
+        }
+      }
+      /* ── Voix Gaïa (scène) ──────────────────────────────────── */
+      #vp {
+        position: fixed;
+        bottom: clamp(18px, 3vh, 36px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 28;
+        width: min(700px, 88vw);
+        padding: 0 0 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+      #vp.show {
+        opacity: 1;
+      }
+      #vs {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.4),
+          transparent
+        );
+        margin-bottom: 7px;
+        transition: width 0.9s;
+      }
+      #vs.show {
+        width: 100%;
+      }
+      #vbox {
+        width: 100%;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(24px);
+        border-radius: 3px;
+        padding: 11px 18px 9px;
+        transform: translateY(8px);
+        transition: transform 0.8s, opacity 0.8s;
+        opacity: 0;
+      }
+      #vbox.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      #vsr {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      #vnm {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.42);
+      }
+      #vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 0.9s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .vb:nth-child(3) {
+        height: 4px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      .vb:nth-child(5) {
+        height: 3px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      .vb:nth-child(6) {
+        height: 7px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      @keyframes vba {
+        from {
+          transform: scaleY(0.18);
+          opacity: 0.5;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+      #vtx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(12px, 1.4vw, 14px);
+        line-height: 1.85;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 110px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vtx::-webkit-scrollbar {
+        display: none;
+      }
+      #twc {
+        display: inline-block;
+        width: 2px;
+        height: 12px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+      /* ── Bouton vidéo ───────────────────────────────────────── */
+      #watch-btn {
+        position: fixed;
+        bottom: clamp(140px, 18vh, 175px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 30;
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: rgba(255, 200, 100, 0.92);
+        background: rgba(10, 6, 0, 0.96);
+        border: 1px solid rgba(255, 200, 100, 0.55);
+        border-radius: 3px;
+        padding: 13px 40px;
+        cursor: pointer;
+        transition: all 0.3s;
+        opacity: 0;
+        pointer-events: none;
+        box-shadow: 0 0 28px rgba(255, 200, 100, 0.12);
+        white-space: nowrap;
+      }
+      #watch-btn.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #watch-btn:hover {
+        background: rgba(255, 200, 100, 0.1);
+        box-shadow: 0 0 50px rgba(255, 200, 100, 0.38);
+      }
+      /* ── MINIMAP — UNE SEULE, bas gauche ────────────────────── */
+      #minimap {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 25;
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        background: rgba(0, 5, 2, 0.9);
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #minimap.show {
+        opacity: 1;
+      }
+      #mm {
+        display: block;
+        width: 96px;
+        height: 96px;
+      }
+      /* ── Mute ───────────────────────────────────────────────── */
+      #ab {
+        position: fixed;
+        bottom: 14px;
+        right: 18px;
+        z-index: 60;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.2);
+        cursor: pointer;
+        transition: color 0.3s;
+        background: none;
+        border: none;
+      }
+      #ab:hover {
+        color: rgba(0, 255, 136, 0.58);
+      }
+      /* ── LECTEUR VIDÉO ──────────────────────────────────────── */
+      #video-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        background: #000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #video-overlay.show {
+        display: flex;
+      }
+      #video-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      #main-video {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+      /* Timeline époques en haut */
+      #vid-tl {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 14px 44px 16px;
+        display: flex;
+        align-items: center;
+        z-index: 12;
+        opacity: 0;
+        transition: opacity 0.8s;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.7) 0%,
+          transparent 100%
+        );
+      }
+      #vid-tl.show {
+        opacity: 1;
+      }
+      .vt-mark {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      }
+      .vt-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.22);
+        background: transparent;
+        transition: all 0.4s;
+        flex-shrink: 0;
+      }
+      .vt-dot.active {
+        background: var(--g);
+        border-color: var(--g);
+        box-shadow: 0 0 10px rgba(0, 255, 136, 0.7);
+      }
+      .vt-dot.passed {
+        background: rgba(0, 255, 136, 0.32);
+        border-color: rgba(0, 255, 136, 0.5);
+      }
+      .vt-yr {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.12em;
+        color: rgba(255, 255, 255, 0.28);
+        margin-top: 2px;
+        white-space: nowrap;
+        transition: color 0.4s;
+      }
+      .vt-yr.active {
+        color: var(--g);
+        font-weight: 600;
+      }
+      .vt-seg {
+        height: 1px;
+        flex: 1;
+        background: rgba(255, 255, 255, 0.07);
+        transition: background 0.4s;
+        margin: 0 3px;
+        margin-bottom: 12px;
+      }
+      .vt-seg.filled {
+        background: rgba(0, 255, 136, 0.38);
+      }
+      /* Barre progression */
+      #vid-prog {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.07);
+        z-index: 15;
+      }
+      #vid-pfill {
+        height: 100%;
+        background: linear-gradient(90deg, #00cc55, #ffaa00, #ff3300);
+        width: 0%;
+      }
+      /* Overlay sombre */
+      #vid-dark {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0);
+        pointer-events: none;
+        z-index: 11;
+        transition: background 1.5s;
+      }
+      /* ── Voix Gaïa SUR LA VIDÉO — compact, coin bas gauche ──── */
+      /* Petit, discret, ne bloque pas la vidéo */
+      #vid-voice {
+        position: absolute;
+        bottom: 18px;
+        left: 18px;
+        width: min(340px, 42vw);
+        background: rgba(0, 4, 2, 0.82);
+        border: 1px solid rgba(0, 255, 136, 0.15);
+        backdrop-filter: blur(14px);
+        border-radius: 3px;
+        padding: 8px 14px 7px;
+        opacity: 0;
+        transition: opacity 0.4s;
+        pointer-events: none;
+        z-index: 14;
+      }
+      #vid-voice.show {
+        opacity: 1;
+      }
+      #vid-vsr {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+      }
+      #vid-vnm {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.38em;
+        color: rgba(0, 255, 136, 0.38);
+      }
+      #vid-vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 8px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vid-vbr.on {
+        opacity: 1;
+      }
+      #vid-vtx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(11px, 1.3vw, 13px);
+        line-height: 1.55;
+        color: rgba(210, 240, 225, 0.88);
+        font-style: italic;
+        white-space: pre-wrap;
+      }
+      /* ── CHOIX FINAL ────────────────────────────────────────── */
+      #choice-ov {
+        position: fixed;
+        inset: 0;
+        z-index: 510;
+        background: rgba(0, 0, 0, 0.92);
+        backdrop-filter: blur(22px);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 24px;
+      }
+      #choice-ov.show {
+        display: flex;
+      }
+      .ch-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(14px, 2.4vw, 20px);
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        color: rgba(255, 255, 255, 0.82);
+        text-align: center;
+      }
+      .ch-sub {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.6vw, 16px);
+        color: rgba(255, 255, 255, 0.45);
+        text-align: center;
+        line-height: 1.75;
+        max-width: 540px;
+      }
+      .ch-btns {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: min(400px, 86vw);
+        margin-top: 6px;
+      }
+      .ch-btn {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        padding: 14px 16px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.28s;
+        text-align: center;
+        border: none;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .ch-btn-sub {
+        font-family: "EB Garamond", serif;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        opacity: 0.6;
+      }
+      .ch-replay {
+        color: #ffcc77;
+        border: 1px solid rgba(255, 180, 50, 0.38);
+        background: rgba(20, 12, 0, 0.92);
+      }
+      .ch-replay:hover {
+        background: rgba(255, 180, 50, 0.1);
+        border-color: rgba(255, 180, 50, 0.65);
+      }
+      .ch-hope {
+        color: var(--g);
+        border: 1px solid rgba(0, 255, 136, 0.45);
+        background: rgba(0, 7, 3, 0.95);
+      }
+      .ch-hope:hover {
+        background: rgba(0, 255, 136, 0.09);
+        box-shadow: 0 0 38px rgba(0, 255, 136, 0.18);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cur"></div>
+    <canvas id="bc"></canvas>
+    <canvas id="oc"></canvas>
+    <canvas id="seed-canvas"></canvas>
+    <div id="vig"></div>
+    <div id="xh">
+      <div class="ch ch-h"></div>
+      <div class="ch ch-v"></div>
+      <div class="ch ch-c"></div>
+    </div>
+
+    <div id="hud-top">
+      <div class="ht-l">G A Ï A</div>
+      <div class="ht-c">M É M O I R E — D E S — F O R Ê T S</div>
+      <div class="ht-r" id="score-d">SCORE : 0</div>
+    </div>
+    <div id="hint">CLIC · WASD · SOURIS — EXPLORER 360°</div>
+
+    <!-- Voix Gaïa scène 3D -->
+    <div id="vp">
+      <div id="vs"></div>
+      <div id="vbox">
+        <div id="vsr">
+          <span id="vnm">G A Ï A</span
+          ><span id="vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="vtx"></div>
+        <span id="twc"></span>
+      </div>
+    </div>
+
+    <!-- Bouton vidéo -->
+    <button id="watch-btn" onclick="startVideo()">
+      🎬 &nbsp;REGARDER MON HISTOIRE
+    </button>
+
+    <!-- MINIMAP — une seule instance -->
+    <div id="minimap"><canvas id="mm" width="96" height="96"></canvas></div>
+
+    <!-- ══ LECTEUR VIDÉO ══ -->
+    <div id="video-overlay">
+      <div id="video-wrap">
+        <video
+          id="main-video"
+          src="Satellite_Earth_Views_xaTguXfQ.mp4"
+          preload="auto"
+          playsinline
+          muted
+        ></video>
+        <div id="vid-dark"></div>
+
+        <!-- Timeline époques -->
+        <div id="vid-tl">
+          <div class="vt-mark">
+            <div class="vt-dot" id="d1500"></div>
+            <div class="vt-yr" id="y1500">1500</div>
+          </div>
+          <div class="vt-seg" id="seg1"></div>
+          <div class="vt-mark">
+            <div class="vt-dot" id="d1700"></div>
+            <div class="vt-yr" id="y1700">1700</div>
+          </div>
+          <div class="vt-seg" id="seg2"></div>
+          <div class="vt-mark">
+            <div class="vt-dot" id="d1800"></div>
+            <div class="vt-yr" id="y1800">1800</div>
+          </div>
+          <div class="vt-seg" id="seg3"></div>
+          <div class="vt-mark">
+            <div class="vt-dot" id="d1900"></div>
+            <div class="vt-yr" id="y1900">1900</div>
+          </div>
+          <div class="vt-seg" id="seg4"></div>
+          <div class="vt-mark">
+            <div class="vt-dot" id="d1980"></div>
+            <div class="vt-yr" id="y1980">1980</div>
+          </div>
+          <div class="vt-seg" id="seg5"></div>
+          <div class="vt-mark">
+            <div class="vt-dot" id="d2019"></div>
+            <div class="vt-yr" id="y2019">2019</div>
+          </div>
+          <div class="vt-seg" id="seg6"></div>
+          <div class="vt-mark">
+            <div class="vt-dot" id="d2025"></div>
+            <div class="vt-yr" id="y2025">2025</div>
+          </div>
+          <div class="vt-seg" id="seg7"></div>
+          <div class="vt-mark">
+            <div class="vt-dot" id="d2100"></div>
+            <div class="vt-yr" id="y2100">2100</div>
+          </div>
+        </div>
+
+        <!-- Voix sur vidéo — compact coin bas gauche -->
+        <div id="vid-voice">
+          <div id="vid-vsr">
+            <span id="vid-vnm">G A Ï A</span
+            ><span id="vid-vbr"
+              ><span class="vb"></span><span class="vb"></span
+              ><span class="vb"></span><span class="vb"></span
+              ><span class="vb"></span><span class="vb"></span
+            ></span>
+          </div>
+          <div id="vid-vtx"></div>
+        </div>
+
+        <div id="vid-prog"><div id="vid-pfill"></div></div>
+      </div>
+    </div>
+
+    <!-- ══ CHOIX FINAL ══ -->
+    <div id="choice-ov">
+      <div class="ch-title">Quelle timeline choisir ?</div>
+      <div class="ch-sub">
+        Vous avez vu mon histoire.<br />500 ans de destruction. De 100% à
+        22%.<br />De poumons sains... à l'asphyxie.<br /><br />Il existe une
+        autre ligne temporelle.<br />Une ligne où vous AGISSEZ. Où vous me
+        rendez mes poumons.<br />Voulez-vous la voir ?
+      </div>
+      <div class="ch-btns">
+        <button class="ch-btn ch-replay" onclick="replayVideo()">
+          🔄 Rejouer la vidéo<span class="ch-btn-sub"
+            >Revoir l'histoire de mes forêts</span
+          >
+        </button>
+        <button class="ch-btn ch-hope" onclick="choiceHope()">
+          🌱 Voir la timeline ESPOIR<span class="ch-btn-sub"
+            >Si nous reboiseons maintenant</span
+          >
+        </button>
+      </div>
+    </div>
+
+    <div id="curtain"></div>
+    <button id="ab" onclick="toggleMute()">🔊 SON</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      "use strict";
+      // ══ ÉTAT ══
+      let isMuted = false,
+        audioCtx = null,
+        ambientOn = false;
+      let score = 0,
+        pName = "Gardien";
+      let ml = false,
+        entering = false;
+      const cam = { yaw: 0, pitch: 0, x: 0, y: 0, z: 0 };
+      const BD = { time: 0 };
+      const keys = {};
+      try {
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+        score = parseInt(localStorage.getItem("gaiaScore") || "0");
+      } catch (e) {}
+      document.getElementById("score-d").textContent = "SCORE : " + score;
+      const $cur = document.getElementById("cur");
+      document.addEventListener("mousemove", (e) => {
+        $cur.style.left = e.clientX + "px";
+        $cur.style.top = e.clientY + "px";
+      });
+      document.addEventListener("keydown", (e) => (keys[e.code] = true));
+      document.addEventListener("keyup", (e) => (keys[e.code] = false));
+
+      // ══ AUDIO ══
+      function initAudio() {
+        if (audioCtx) return;
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {}
+      }
+      function gm() {
+        if (!audioCtx) return null;
+        if (!window._M12a) {
+          const c = audioCtx.createDynamicsCompressor();
+          c.threshold.value = -18;
+          c.knee.value = 8;
+          c.ratio.value = 3;
+          c.attack.value = 0.003;
+          c.release.value = 0.25;
+          c.connect(audioCtx.destination);
+          window._M12a = c;
+        }
+        return window._M12a;
+      }
+      let _wg = null;
+      function playAmbient() {
+        if (!audioCtx || isMuted || ambientOn) return;
+        ambientOn = true;
+        audioCtx.resume().then(() => {
+          const m = gm();
+          if (!m) return;
+          const sr = audioCtx.sampleRate;
+          const wb = audioCtx.createBuffer(1, sr * 12, sr);
+          const wd = wb.getChannelData(0);
+          for (let i = 0; i < wd.length; i++) wd[i] = Math.random() * 2 - 1;
+          const ws = audioCtx.createBufferSource();
+          ws.buffer = wb;
+          ws.loop = true;
+          const wf = audioCtx.createBiquadFilter();
+          wf.type = "bandpass";
+          wf.frequency.value = 200;
+          wf.Q.value = 0.45;
+          _wg = audioCtx.createGain();
+          _wg.gain.setValueAtTime(0, audioCtx.currentTime);
+          _wg.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 4);
+          ws.connect(wf);
+          wf.connect(_wg);
+          _wg.connect(m);
+          ws.start();
+          [22, 33, 22.06].forEach((f, i) => {
+            const o = audioCtx.createOscillator(),
+              g = audioCtx.createGain();
+            o.type = "sine";
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0, audioCtx.currentTime);
+            g.gain.linearRampToValueAtTime(
+              [0.013, 0.007, 0.01][i],
+              audioCtx.currentTime + 5 + i * 0.4
+            );
+            const fl = audioCtx.createBiquadFilter();
+            fl.type = "lowpass";
+            fl.frequency.value = 75;
+            o.connect(fl);
+            fl.connect(g);
+            g.connect(m);
+            o.start();
+          });
+          function crack() {
+            if (!audioCtx || isMuted) return;
+            const m2 = gm();
+            if (!m2) return;
+            const len = Math.floor(sr * 0.16);
+            const cb = audioCtx.createBuffer(1, len, sr);
+            const cd = cb.getChannelData(0);
+            for (let i = 0; i < len; i++) {
+              const e = Math.pow(1 - i / len, 3.5);
+              cd[i] = (Math.random() * 2 - 1) * e * (1 + Math.random() * 2.5);
+            }
+            const cs = audioCtx.createBufferSource();
+            cs.buffer = cb;
+            const cf = audioCtx.createBiquadFilter();
+            cf.type = "highpass";
+            cf.frequency.value = 700;
+            const cg = audioCtx.createGain();
+            cg.gain.setValueAtTime(
+              0.1 + Math.random() * 0.07,
+              audioCtx.currentTime
+            );
+            cg.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 0.18
+            );
+            cs.connect(cf);
+            cf.connect(cg);
+            cg.connect(m2);
+            cs.start();
+            cs.stop(audioCtx.currentTime + 0.2);
+            setTimeout(crack, 4500 + Math.random() * 8000);
+          }
+          setTimeout(crack, 3000);
+          setTimeout(() => {
+            function chainsaw() {
+              if (!audioCtx || isMuted) return;
+              const m3 = gm();
+              if (!m3) return;
+              const o = audioCtx.createOscillator(),
+                g = audioCtx.createGain();
+              o.type = "sawtooth";
+              o.frequency.value = 80 + Math.random() * 25;
+              const lfo = audioCtx.createOscillator();
+              lfo.type = "square";
+              lfo.frequency.value = 26 + Math.random() * 8;
+              const lg = audioCtx.createGain();
+              lg.gain.value = 18;
+              lfo.connect(lg);
+              lg.connect(o.frequency);
+              const f = audioCtx.createBiquadFilter();
+              f.type = "lowpass";
+              f.frequency.value = 380;
+              const dur = 3 + Math.random() * 5;
+              g.gain.setValueAtTime(0, audioCtx.currentTime);
+              g.gain.linearRampToValueAtTime(0.018, audioCtx.currentTime + 0.6);
+              g.gain.setValueAtTime(0.018, audioCtx.currentTime + dur);
+              g.gain.linearRampToValueAtTime(
+                0,
+                audioCtx.currentTime + dur + 0.6
+              );
+              o.connect(f);
+              f.connect(g);
+              g.connect(m3);
+              lfo.start();
+              o.start();
+              o.stop(audioCtx.currentTime + dur + 0.8);
+              lfo.stop(audioCtx.currentTime + dur + 0.8);
+              setTimeout(chainsaw, 7000 + Math.random() * 14000);
+            }
+            chainsaw();
+          }, 8000);
+        });
+      }
+      function pauseAmbient() {
+        if (_wg && audioCtx)
+          _wg.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+      }
+      function resumeAmbient() {
+        if (_wg && audioCtx && !isMuted)
+          _wg.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 1.5);
+      }
+      function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("ab").textContent = isMuted
+          ? "🔇 MUET"
+          : "🔊 SON";
+        if (audioCtx) {
+          isMuted ? audioCtx.suspend() : audioCtx.resume();
+        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+        const v = document.getElementById("main-video");
+        if (v) v.muted = isMuted;
+      }
+
+      // ══ VOIX ══
+      const syn = window.speechSynthesis;
+      let _vl = false;
+      function ensureVoices(cb) {
+        if (!syn) {
+          cb();
+          return;
+        }
+        const vs = syn.getVoices();
+        if (vs.length > 0) {
+          _vl = true;
+          cb();
+          return;
+        }
+        syn.addEventListener(
+          "voiceschanged",
+          () => {
+            _vl = true;
+            cb();
+          },
+          { once: true }
+        );
+        setTimeout(() => {
+          if (!_vl) {
+            _vl = true;
+            cb();
+          }
+        }, 1200);
+      }
+      function gv() {
+        const vs = syn ? syn.getVoices() : [];
+        return (
+          vs.find(
+            (x) =>
+              x.lang === "fr-FR" &&
+              /Marie|Amelie|Hortense|Lea|Julie/i.test(x.name)
+          ) ||
+          vs.find((x) => x.lang === "fr-FR") ||
+          vs.find((x) => x.lang.startsWith("fr")) ||
+          vs[0] ||
+          null
+        );
+      }
+
+      // Parle dans la voix box de la scène 3D
+      function speak(txt, cb, rate) {
+        rate = rate || 0.76;
+        initAudio();
+        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+        const el = document.getElementById("vtx"),
+          cu = document.getElementById("twc");
+        el.textContent = "";
+        cu.style.display = "inline-block";
+        document.getElementById("vs").classList.add("show");
+        document.getElementById("vbox").classList.add("show");
+        document.getElementById("vp").classList.add("show");
+        let d = 0,
+          t = 0,
+          vd = false,
+          done = false,
+          iv = null;
+        function fin() {
+          if (done) return;
+          done = true;
+          cu.style.display = "none";
+          if (cb) setTimeout(cb, 400);
+        }
+        function tick() {
+          if (iv) clearInterval(iv);
+          iv = setInterval(() => {
+            if (d < t && d < txt.length) {
+              el.textContent = txt.slice(0, ++d);
+              el.scrollTop = el.scrollHeight;
+            } else if (d >= txt.length && vd) {
+              clearInterval(iv);
+              fin();
+            }
+          }, 24);
+        }
+        function doSpeak() {
+          if (syn && !isMuted) {
+            syn.cancel();
+            const u = new SpeechSynthesisUtterance(txt);
+            u.lang = "fr-FR";
+            u.rate = rate;
+            u.pitch = 0.7;
+            u.volume = 1;
+            const v = gv();
+            if (v) u.voice = v;
+            u.onstart = () =>
+              document.getElementById("vbr").classList.add("on");
+            u.onboundary = (e) => {
+              if (e.name === "word") {
+                t = Math.min(e.charIndex + e.charLength, txt.length);
+                tick();
+              }
+            };
+            u.onend = u.onerror = () => {
+              document.getElementById("vbr").classList.remove("on");
+              vd = true;
+              t = txt.length;
+              tick();
+            };
+            syn.speak(u);
+            setTimeout(() => {
+              if (d === 0 && !done) {
+                vd = true;
+                t = txt.length;
+                tick();
+              }
+            }, 2000);
+          } else {
+            vd = true;
+            t = txt.length;
+            tick();
+          }
+        }
+        ensureVoices(doSpeak);
+      }
+      function stopVoice() {
+        if (syn) syn.cancel();
+        document.getElementById("vbr").classList.remove("on");
+      }
+      function hideVoice() {
+        const vb = document.getElementById("vbox");
+        vb.style.transition = "opacity .7s";
+        vb.style.opacity = "0";
+        setTimeout(() => {
+          vb.classList.remove("show");
+          vb.style.opacity = "";
+          vb.style.transition = "";
+          document.getElementById("vs").classList.remove("show");
+          document.getElementById("vp").classList.remove("show");
+        }, 700);
+      }
+
+      // ══ THREE.JS — CHAMP DE SOUCHES ══
+      const BC = document.getElementById("bc");
+      BC.width = innerWidth;
+      BC.height = innerHeight;
+      const sc = new THREE.Scene();
+      sc.fog = new THREE.Fog(0x1a1005, 18, 130);
+      const cam3 = new THREE.PerspectiveCamera(
+        72,
+        innerWidth / innerHeight,
+        0.1,
+        280
+      );
+      cam3.position.set(0, 1.82, 0);
+      const rdr = new THREE.WebGLRenderer({ canvas: BC, antialias: true });
+      rdr.setPixelRatio(Math.min(devicePixelRatio, 2));
+      rdr.setSize(innerWidth, innerHeight);
+      rdr.setClearColor(0x0e0a05, 1);
+      rdr.shadowMap.enabled = true;
+      rdr.shadowMap.type = THREE.PCFSoftShadowMap;
+      const clk = new THREE.Clock();
+      sc.add(new THREE.AmbientLight(0x28180a, 1.1));
+      const sun = new THREE.DirectionalLight(0xaa8844, 1.7);
+      sun.position.set(30, 60, 20);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(2048, 2048);
+      sun.shadow.camera.left = -80;
+      sun.shadow.camera.right = 80;
+      sun.shadow.camera.top = 80;
+      sun.shadow.camera.bottom = -80;
+      sun.shadow.camera.far = 200;
+      sc.add(sun);
+      const fogL = new THREE.PointLight(0x4a3620, 0.7, 55);
+      fogL.position.set(0, 7, 0);
+      sc.add(fogL);
+      // Sol
+      (() => {
+        const g = new THREE.PlaneGeometry(260, 260, 75, 75);
+        const pa = g.attributes.position;
+        for (let i = 0; i < pa.count; i++) {
+          const x = pa.getX(i),
+            z = pa.getZ(i);
+          pa.setY(
+            i,
+            (Math.sin(x * 0.17) * Math.sin(z * 0.14) * 0.28 +
+              Math.sin(x * 0.4 + z * 0.35) * 0.12) *
+              0.45 *
+              (Math.random() * 0.4 + 0.8)
+          );
+        }
+        g.computeVertexNormals();
+        const m = new THREE.Mesh(
+          g,
+          new THREE.MeshLambertMaterial({ color: 0x2c1c10 })
+        );
+        m.rotation.x = -Math.PI / 2;
+        m.receiveShadow = true;
+        sc.add(m);
+        for (let i = 0; i < 14; i++) {
+          const pg = new THREE.CircleGeometry(0.7 + Math.random() * 2.4, 10);
+          const pp = new THREE.Mesh(
+            pg,
+            new THREE.MeshLambertMaterial({
+              color: 0x180d06,
+              transparent: true,
+              opacity: 0.72,
+            })
+          );
+          pp.rotation.x = -Math.PI / 2;
+          pp.position.set(
+            (Math.random() - 0.5) * 110,
+            0.01,
+            (Math.random() - 0.5) * 110
+          );
+          sc.add(pp);
+        }
+      })();
+      // Souches
+      function stump(x, z, r, h) {
+        const c = new THREE.Color();
+        c.setHSL(
+          0.06 + Math.random() * 0.04,
+          0.5 + Math.random() * 0.2,
+          0.11 + Math.random() * 0.1
+        );
+        const m = new THREE.Mesh(
+          new THREE.CylinderGeometry(r * 0.88, r, h, 10),
+          new THREE.MeshLambertMaterial({ color: c.getHex() })
+        );
+        m.position.set(x, h / 2, z);
+        m.rotation.z = (Math.random() - 0.5) * 0.07;
+        m.castShadow = true;
+        m.receiveShadow = true;
+        sc.add(m);
+        const tp = new THREE.Mesh(
+          new THREE.CircleGeometry(r * 0.86, 10),
+          new THREE.MeshLambertMaterial({ color: 0x5a3015 })
+        );
+        tp.rotation.x = -Math.PI / 2;
+        tp.position.set(x, h + 0.01, z);
+        sc.add(tp);
+        for (let ri = 1; ri <= 3; ri++) {
+          const rng = new THREE.Mesh(
+            new THREE.RingGeometry(
+              r * 0.86 * (ri / 4),
+              r * 0.86 * (ri / 4) + 0.02,
+              10
+            ),
+            new THREE.MeshBasicMaterial({
+              color: 0x2a1308,
+              transparent: true,
+              opacity: 0.5,
+              side: THREE.DoubleSide,
+            })
+          );
+          rng.rotation.x = -Math.PI / 2;
+          rng.position.set(x, h + 0.02, z);
+          sc.add(rng);
+        }
+        for (let ri = 0; ri < 4; ri++) {
+          const ra = (ri / 4) * Math.PI * 2 + Math.random() * 0.4,
+            rl = r * 1.4 + Math.random() * r;
+          const rb = new THREE.Mesh(
+            new THREE.BoxGeometry(r * 0.38, r * 0.14, rl),
+            new THREE.MeshLambertMaterial({ color: 0x2c1908 })
+          );
+          rb.position.set(
+            x + Math.cos(ra) * rl * 0.5,
+            r * 0.06,
+            z + Math.sin(ra) * rl * 0.5
+          );
+          rb.rotation.y = ra + Math.PI / 2;
+          sc.add(rb);
+        }
+      }
+      for (let i = 0; i < 400; i++) {
+        const a = Math.random() * Math.PI * 2,
+          d = 2 + Math.random() * 92;
+        stump(
+          Math.cos(a) * d,
+          Math.sin(a) * d,
+          0.24 + Math.random() * 1.15,
+          0.1 + Math.random() * 0.52
+        );
+      }
+      // Troncs au sol
+      for (let i = 0; i < 60; i++) {
+        const a = Math.random() * Math.PI * 2,
+          d = 5 + Math.random() * 78,
+          r = 0.18 + Math.random() * 0.48,
+          len = 1.5 + Math.random() * 5;
+        const m = new THREE.Mesh(
+          new THREE.CylinderGeometry(r * 0.65, r, len, 9),
+          new THREE.MeshLambertMaterial({ color: 0x2a1808 })
+        );
+        m.rotation.x = Math.PI / 2;
+        m.rotation.z = Math.random() * Math.PI;
+        m.position.set(Math.cos(a) * d, 0.14 + r * 0.28, Math.sin(a) * d);
+        m.castShadow = true;
+        sc.add(m);
+      }
+      // Traces chenilles
+      for (let i = 0; i < 6; i++) {
+        const ang = Math.random() * Math.PI * 2,
+          len = 20 + Math.random() * 50,
+          sx = (Math.random() - 0.5) * 80,
+          sz = (Math.random() - 0.5) * 80;
+        for (let side = -1; side <= 1; side += 2) {
+          const pts = [
+            new THREE.Vector3(sx, 0.02, sz),
+            new THREE.Vector3(
+              sx + Math.cos(ang) * len,
+              0.02,
+              sz + Math.sin(ang) * len
+            ),
+          ];
+          const curve = new THREE.LineCurve3(pts[0], pts[1]);
+          const tg = new THREE.TubeGeometry(curve, 8, 0.07, 5, false);
+          const m = new THREE.Mesh(
+            tg,
+            new THREE.MeshLambertMaterial({ color: 0x1a1008 })
+          );
+          m.translateX(side * 0.44);
+          sc.add(m);
+        }
+      }
+      // Déchets
+      function debris(x, z, t) {
+        let g, m2;
+        if (t === 0) {
+          g = new THREE.CylinderGeometry(0.04, 0.05, 0.2, 7);
+          m2 = new THREE.MeshLambertMaterial({
+            color: 0x88aacc,
+            transparent: true,
+            opacity: 0.68,
+          });
+        } else if (t === 1) {
+          g = new THREE.SphereGeometry(0.18 + Math.random() * 0.1, 7, 5);
+          m2 = new THREE.MeshLambertMaterial({
+            color: 0xddddcc,
+            transparent: true,
+            opacity: 0.5,
+          });
+        } else {
+          g = new THREE.BoxGeometry(0.16, 0.07, 0.22);
+          m2 = new THREE.MeshLambertMaterial({ color: 0x886644 });
+        }
+        const mb = new THREE.Mesh(g, m2);
+        mb.position.set(x, 0.05, z);
+        if (t === 1) mb.scale.y = 0.28;
+        mb.rotation.y = Math.random() * Math.PI * 2;
+        mb.rotation.z = t === 0 ? Math.PI * 0.42 + Math.random() * 0.3 : 0;
+        mb.castShadow = true;
+        sc.add(mb);
+      }
+      for (let i = 0; i < 100; i++) {
+        const a = Math.random() * Math.PI * 2,
+          d = 3 + Math.random() * 68;
+        debris(Math.cos(a) * d, Math.sin(a) * d, Math.floor(Math.random() * 3));
+      }
+      // Arbres horizon
+      for (let i = 0; i < 30; i++) {
+        const a = (i / 30) * Math.PI * 2 + Math.random() * 0.1,
+          d = 98 + Math.random() * 28,
+          x = Math.cos(a) * d,
+          z = Math.sin(a) * d,
+          h = 3 + Math.random() * 4,
+          r = 0.75 + Math.random() * 1.3;
+        const t = new THREE.Mesh(
+          new THREE.CylinderGeometry(r * 0.38, r * 0.55, h * 0.44, 8),
+          new THREE.MeshLambertMaterial({ color: 0x281808 })
+        );
+        t.position.set(x, h * 0.44 * 0.5, z);
+        t.castShadow = true;
+        sc.add(t);
+        const fc = new THREE.Color();
+        fc.setHSL(
+          0.26 + Math.random() * 0.07,
+          0.32 + Math.random() * 0.2,
+          0.13 + Math.random() * 0.1
+        );
+        const f = new THREE.Mesh(
+          new THREE.SphereGeometry(r, 9, 7),
+          new THREE.MeshLambertMaterial({ color: fc.getHex() })
+        );
+        f.position.set(x, h * 0.44 + r * 0.65, z);
+        f.scale.y = 0.62;
+        f.castShadow = true;
+        sc.add(f);
+      }
+      // Panneau tombé
+      (() => {
+        const pb = new THREE.Mesh(
+          new THREE.BoxGeometry(2.8, 0.05, 1.1),
+          new THREE.MeshLambertMaterial({ color: 0x8b7355 })
+        );
+        pb.position.set(8, 0.38, -5);
+        pb.rotation.x = Math.PI * 0.42;
+        pb.rotation.z = Math.PI * 0.1;
+        pb.castShadow = true;
+        sc.add(pb);
+        const pol = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.06, 0.07, 0.8, 6),
+          new THREE.MeshLambertMaterial({ color: 0x6b5335 })
+        );
+        pol.position.set(8, 0.18, -5);
+        pol.rotation.z = Math.PI * 0.32;
+        sc.add(pol);
+      })();
+      // Ciel
+      const skyMat = new THREE.ShaderMaterial({
+        uniforms: { uT: { value: 0 } },
+        vertexShader: `varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+        fragmentShader: `uniform float uT;varying vec3 vP;void main(){float y=normalize(vP).y;vec3 hi=vec3(.12,.09,.05);vec3 lo=vec3(.22,.16,.09);vec3 col=mix(lo,hi,max(y,0.));col+=vec3(.06,.04,.02)*smoothstep(-.1,.5,y)*(.3+sin(uT*.2)*.05);gl_FragColor=vec4(col,1.);}`,
+        side: THREE.BackSide,
+      });
+      sc.add(new THREE.Mesh(new THREE.SphereGeometry(175, 14, 14), skyMat));
+      // Poussière
+      const DC = 650;
+      const dPos = new Float32Array(DC * 3),
+        dCol = new Float32Array(DC * 3);
+      for (let i = 0; i < DC; i++) {
+        dPos[i * 3] = (Math.random() - 0.5) * 190;
+        dPos[i * 3 + 1] = Math.random() * 14;
+        dPos[i * 3 + 2] = (Math.random() - 0.5) * 190;
+        dCol[i * 3] = 0.52 + Math.random() * 0.2;
+        dCol[i * 3 + 1] = 0.4 + Math.random() * 0.14;
+        dCol[i * 3 + 2] = 0.2 + Math.random() * 0.1;
+      }
+      const dGeo = new THREE.BufferGeometry();
+      dGeo.setAttribute("position", new THREE.BufferAttribute(dPos, 3));
+      dGeo.setAttribute("color", new THREE.BufferAttribute(dCol, 3));
+      sc.add(
+        new THREE.Points(
+          dGeo,
+          new THREE.PointsMaterial({
+            size: 0.055,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.5,
+            depthWrite: false,
+          })
+        )
+      );
+      // Cendres 2D
+      const OC = document.getElementById("oc");
+      OC.width = innerWidth;
+      OC.height = innerHeight;
+      const OX = OC.getContext("2d");
+      let ash = [];
+      function spawnAsh() {
+        for (let i = 0; i < 5; i++)
+          ash.push({
+            x: Math.random() * OC.width,
+            y: OC.height + 8,
+            vx: (Math.random() - 0.5) * 1.1,
+            vy: -(Math.random() * 1.4 + 0.4),
+            life: 1,
+            sz: Math.random() * 3.5 + 1.2,
+            col: Math.random() < 0.3 ? "rgba(255,80,0," : "rgba(170,110,35,",
+          });
+      }
+      (function ashLoop() {
+        OX.clearRect(0, 0, OC.width, OC.height);
+        for (let i = ash.length - 1; i >= 0; i--) {
+          const p = ash[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.035;
+          p.life -= 0.007;
+          if (p.life <= 0) {
+            ash.splice(i, 1);
+            continue;
+          }
+          OX.beginPath();
+          OX.arc(p.x, p.y, p.sz * p.life, 0, Math.PI * 2);
+          OX.fillStyle = p.col + p.life + ")";
+          OX.fill();
+        }
+        if (Math.random() < 0.05) spawnAsh();
+        requestAnimationFrame(ashLoop);
+      })();
+
+      // ══ FPS ══
+      BC.addEventListener("click", () => {
+        if (!ml && !entering) BC.requestPointerLock();
+      });
+      document.addEventListener("pointerlockchange", () => {
+        ml = !!document.pointerLockElement;
+        document.getElementById("xh").classList.toggle("show", ml);
+      });
+      document.addEventListener("mousemove", (e) => {
+        if (!ml) return;
+        cam.yaw -= e.movementX * 0.0022;
+        cam.pitch -= e.movementY * 0.0018;
+        cam.pitch = Math.max(-0.9, Math.min(0.9, cam.pitch));
+      });
+      function moveCam(dt) {
+        if (entering) return;
+        const sp = 5 * dt,
+          sy = Math.sin(cam.yaw),
+          cy2 = Math.cos(cam.yaw);
+        if (keys["KeyW"] || keys["ArrowUp"]) {
+          cam.x += -sy * sp;
+          cam.z += -cy2 * sp;
+        }
+        if (keys["KeyS"] || keys["ArrowDown"]) {
+          cam.x += sy * sp;
+          cam.z += cy2 * sp;
+        }
+        if (keys["KeyA"] || keys["ArrowLeft"]) {
+          cam.x -= cy2 * sp;
+          cam.z += sy * sp;
+        }
+        if (keys["KeyD"] || keys["ArrowRight"]) {
+          cam.x += cy2 * sp;
+          cam.z -= sy * sp;
+        }
+        const d = Math.sqrt(cam.x * cam.x + cam.z * cam.z);
+        if (d > 72) {
+          const f = 72 / d;
+          cam.x *= f;
+          cam.z *= f;
+        }
+        cam3.position.set(cam.x, 1.82 + Math.sin(BD.time * 0.75) * 0.04, cam.z);
+        cam3.rotation.order = "YXZ";
+        cam3.rotation.y = cam.yaw;
+        cam3.rotation.x = cam.pitch;
+      }
+
+      // ══ MINIMAP ══
+      const mmC = document.getElementById("mm"),
+        mmX = mmC.getContext("2d");
+      function drawMM() {
+        const W = 96,
+          H = 96,
+          cx = 48,
+          cy = 48,
+          R = 44;
+        mmX.clearRect(0, 0, W, H);
+        mmX.fillStyle = "rgba(0,5,2,.95)";
+        mmX.beginPath();
+        mmX.arc(cx, cy, R, 0, Math.PI * 2);
+        mmX.fill();
+        mmX.strokeStyle = "rgba(0,255,136,.15)";
+        mmX.lineWidth = 1.2;
+        mmX.stroke();
+        const ppx = cx + (cam.x / 72) * R * 0.85,
+          ppy = cy + (cam.z / 72) * R * 0.85;
+        const dd = Math.sqrt((ppx - cx) ** 2 + (ppy - cy) ** 2);
+        const fx = dd > R - 4 ? cx + ((ppx - cx) * (R - 4)) / dd : ppx,
+          fy = dd > R - 4 ? cy + ((ppy - cy) * (R - 4)) / dd : ppy;
+        mmX.fillStyle = "#fff";
+        mmX.beginPath();
+        mmX.arc(fx, fy, 3, 0, Math.PI * 2);
+        mmX.fill();
+        mmX.strokeStyle = "rgba(255,255,255,.6)";
+        mmX.lineWidth = 1.2;
+        mmX.beginPath();
+        mmX.moveTo(fx, fy);
+        mmX.lineTo(fx + Math.sin(-cam.yaw) * 8, fy + Math.cos(-cam.yaw) * 8);
+        mmX.stroke();
+      }
+
+      // ══ NARRATION VIDÉO ══
+      // Segments : [start_s, end_s, texte_court (2-3 lignes max), dotId, segsToFill]
+      // Texte volontairement court pour ne pas bloquer la vue
+      const NAR = [
+        {
+          s: 0,
+          e: 10,
+          txt: "1500\n100% de forêts\nMes poumons intacts.",
+          dot: "d1500",
+          segs: [],
+        },
+        {
+          s: 10,
+          e: 20,
+          txt: "1700\nColonisation — Moins 5%",
+          dot: "d1700",
+          segs: ["seg1"],
+        },
+        {
+          s: 20,
+          e: 30,
+          txt: "1800\nRévolution industrielle\nMoins 12%",
+          dot: "d1800",
+          segs: ["seg1", "seg2"],
+        },
+        {
+          s: 30,
+          e: 40,
+          txt: "1900\nIndustrialisation massive\nMoins 22%",
+          dot: "d1900",
+          segs: ["seg1", "seg2", "seg3"],
+        },
+        {
+          s: 40,
+          e: 48,
+          txt: "1980\n15M ha/an · 41 000 ha/JOUR\nMoins 50% — Je suffoque",
+          dot: "d1980",
+          segs: ["seg1", "seg2", "seg3", "seg4"],
+        },
+        {
+          s: 48,
+          e: 52,
+          txt: "2019\n906 000 incendies\nMoins 70% — Mes poumons brûlent",
+          dot: "d2019",
+          segs: ["seg1", "seg2", "seg3", "seg4", "seg5"],
+        },
+        {
+          s: 52,
+          e: 56,
+          txt: "2025\n22% restants\nJe suffoque.",
+          dot: "d2025",
+          segs: ["seg1", "seg2", "seg3", "seg4", "seg5", "seg6"],
+        },
+        {
+          s: 56,
+          e: 60,
+          txt: "2100\n5% — Agonie finale.",
+          dot: "d2100",
+          segs: ["seg1", "seg2", "seg3", "seg4", "seg5", "seg6", "seg7"],
+        },
+      ];
+      // Narration vocale complète (plus détaillée, pour la voix seulement)
+      const NAR_VOICE = [
+        "1500. Mes poumons intacts. 100% de forêts.",
+        "1700. La colonisation commence. Moins 5%.",
+        "1800. Machines à vapeur. Besoin de bois partout. Moins 12%.",
+        "1900. Industrialisation massive. Moins 22%.",
+        "1980. 15 millions d'hectares par an. 41000 hectares par JOUR. Moins 50%. Je ne peux plus suivre.",
+        "2019. 906000 incendies. Mes poumons brûlent. Moins 70%.",
+        "2025. Aujourd'hui. 22% restants. Je suffoque.",
+        "2100. Si rien ne change. 5%. Agonie finale.",
+      ];
+      let curNarIdx = -1;
+      const vid = document.getElementById("main-video");
+      const vidTL = document.getElementById("vid-tl");
+      const pfill = document.getElementById("vid-pfill");
+      const vidDark = document.getElementById("vid-dark");
+      const vidVoice = document.getElementById("vid-voice");
+      const vidVtx = document.getElementById("vid-vtx");
+      const vidVbr = document.getElementById("vid-vbr");
+
+      function resetNar() {
+        NAR.forEach((n) => {
+          const dot = document.getElementById(n.dot);
+          if (dot) dot.className = "vt-dot";
+          const yr = document.getElementById("y" + n.dot.slice(1));
+          if (yr) yr.className = "vt-yr";
+        });
+        document
+          .querySelectorAll(".vt-seg")
+          .forEach((s) => s.classList.remove("filled"));
+        vidDark.style.background = "rgba(0,0,0,0)";
+        curNarIdx = -1;
+        if (syn) syn.cancel();
+        vidVoice.classList.remove("show");
+        vidVbr.classList.remove("on");
+        vidVtx.textContent = "";
+      }
+
+      function activateNar(idx) {
+        if (curNarIdx === idx) return;
+        curNarIdx = idx;
+        const n = NAR[idx];
+        // Dots
+        NAR.forEach((nn, ii) => {
+          const dot = document.getElementById(nn.dot);
+          if (dot)
+            dot.className =
+              ii < idx
+                ? "vt-dot passed"
+                : ii === idx
+                ? "vt-dot active"
+                : "vt-dot";
+        });
+        NAR.forEach((nn, ii) => {
+          const yr = document.getElementById("y" + nn.dot.slice(1));
+          if (yr) yr.className = "vt-yr" + (ii === idx ? " active" : "");
+        });
+        // Segments
+        document
+          .querySelectorAll(".vt-seg")
+          .forEach((s) => s.classList.remove("filled"));
+        n.segs.forEach((sid) => {
+          const el = document.getElementById(sid);
+          if (el) el.classList.add("filled");
+        });
+        // Overlay
+        vidDark.style.background =
+          idx === 5
+            ? "rgba(80,20,0,.3)"
+            : idx === 7
+            ? "rgba(0,0,0,.65)"
+            : "rgba(0,0,0,0)";
+        // Texte compact (non-bloquant)
+        vidVoice.classList.add("show");
+        vidVtx.style.opacity = "0";
+        setTimeout(() => {
+          vidVtx.textContent = n.txt;
+          vidVtx.style.transition = "opacity .2s";
+          vidVtx.style.opacity = "1";
+        }, 120);
+        // ── VOIX : utilise le texte vocal complet, rate auto pour tenir dans le segment ──
+        // On annule la voix précédente SEULEMENT si elle est encore dans l'ancien segment
+        if (syn && !isMuted) {
+          syn.cancel();
+          const voiceTxt = NAR_VOICE[idx];
+          const u = new SpeechSynthesisUtterance(voiceTxt);
+          u.lang = "fr-FR";
+          // Calcul du rate : on estime ~12 mots/s à rate=1
+          // On veut finir la phrase avant la fin du segment (80% de la durée)
+          const segDur = n.e - n.s;
+          const wordCount = voiceTxt.split(/\s+/).length;
+          const wordsPerSec = 2.5; // à rate=1, ~2.5 mots/s
+          const neededRate = wordCount / (segDur * wordsPerSec * 0.8);
+          u.rate = Math.min(1.9, Math.max(1.0, neededRate));
+          // Pitch descend : nostalgique (1500) → mourant (2100)
+          const pitches = [0.88, 0.84, 0.8, 0.76, 0.7, 0.63, 0.56, 0.48];
+          u.pitch = pitches[idx] || 0.7;
+          u.volume = 1;
+          const v = gv();
+          if (v) u.voice = v;
+          u.onstart = () => vidVbr.classList.add("on");
+          u.onend = u.onerror = () => vidVbr.classList.remove("on");
+          syn.speak(u);
+        }
+      }
+
+      vid.addEventListener("timeupdate", () => {
+        const t = vid.currentTime,
+          dur = vid.duration || 60;
+        pfill.style.width = (t / dur) * 100 + "%";
+        for (let i = 0; i < NAR.length; i++) {
+          if (t >= NAR[i].s && (i === NAR.length - 1 || t < NAR[i].e)) {
+            activateNar(i);
+            break;
+          }
+        }
+      });
+
+      vid.addEventListener("ended", () => {
+        if (syn) syn.cancel();
+        vidVbr.classList.remove("on");
+        vidTL.classList.remove("show");
+        const ov = document.getElementById("video-overlay");
+        ov.style.transition = "opacity 1.5s";
+        ov.style.opacity = "0";
+        setTimeout(() => {
+          ov.style.opacity = "";
+          ov.style.transition = "";
+          ov.classList.remove("show");
+          ambientOn = false;
+          if (!isMuted) playAmbient();
+          setTimeout(postVideoVoice, 600);
+        }, 1600);
+      });
+
+      function startVideo() {
+        initAudio();
+        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+        stopVoice();
+        pauseAmbient();
+        document.getElementById("watch-btn").classList.remove("show");
+        resetNar();
+        const ov = document.getElementById("video-overlay");
+        ov.classList.add("show");
+        ov.style.opacity = "0";
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            ov.style.transition = "opacity 1s";
+            ov.style.opacity = "1";
+          })
+        );
+        setTimeout(() => {
+          ensureVoices(() => {});
+          vidTL.classList.add("show");
+          vid.currentTime = 0;
+          vid.muted = true;
+          vid.play().catch(() => vid.play());
+        }, 1200);
+      }
+
+      function replayVideo() {
+        document.getElementById("choice-ov").classList.remove("show");
+        if (syn) syn.cancel();
+        resetNar();
+        const ov = document.getElementById("video-overlay");
+        ov.classList.add("show");
+        ov.style.opacity = "0";
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            ov.style.transition = "opacity 1s";
+            ov.style.opacity = "1";
+          })
+        );
+        setTimeout(() => {
+          vidTL.classList.add("show");
+          vid.currentTime = 0;
+          vid.muted = true;
+          vid.play().catch(() => vid.play());
+        }, 1200);
+      }
+
+      // ══ APRÈS VIDÉO ══
+      function postVideoVoice() {
+        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+        const txt = `Vous avez vu... mon histoire.\n500 ans de destruction.\nDe 100% à 22%.\nDe poumons sains... à l'asphyxie.\nMais...\nIl existe une autre ligne temporelle.\nPas celle-ci. Pas ce futur de mort.\nUne ligne où vous AGISSEZ.\nOù vous me rendez mes poumons.\nVoulez-vous la voir ?`;
+        speak(txt, () => {
+          setTimeout(
+            () => document.getElementById("choice-ov").classList.add("show"),
+            600
+          );
+        });
+      }
+
+      // ══ ANIMATION GRAINE ══
+      function playSeedAnimation(onDone) {
+        const sc2d = document.getElementById("seed-canvas");
+        sc2d.width = innerWidth;
+        sc2d.height = innerHeight;
+        sc2d.style.display = "block";
+        const ctx = sc2d.getContext("2d");
+        const cx = innerWidth / 2,
+          groundY = innerHeight * 0.72;
+        let frame = 0;
+        if (audioCtx && !isMuted) {
+          const m = gm();
+          if (m) {
+            const o = audioCtx.createOscillator(),
+              g = audioCtx.createGain();
+            o.type = "sine";
+            o.frequency.setValueAtTime(800, audioCtx.currentTime);
+            o.frequency.exponentialRampToValueAtTime(
+              200,
+              audioCtx.currentTime + 0.4
+            );
+            g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 0.5
+            );
+            o.connect(g);
+            g.connect(m);
+            o.start();
+            o.stop(audioCtx.currentTime + 0.55);
+          }
+        }
+        const TOTAL = 220;
+        function draw() {
+          frame++;
+          ctx.clearRect(0, 0, innerWidth, innerHeight);
+          const p = frame / TOTAL;
+          if (p < 0.35) {
+            const fp = p / 0.35;
+            const seedY = -80 + fp * (groundY + 80);
+            const wobble = Math.sin(fp * Math.PI * 3) * 8 * (1 - fp);
+            const seedX = cx + wobble;
+            for (let i = 0; i < 8; i++) {
+              const ty = seedY - i * 12;
+              const ta = (1 - i / 8) * (1 - fp * 0.5) * 0.35;
+              ctx.beginPath();
+              ctx.arc(
+                seedX + Math.sin(i * 0.5) * 2,
+                ty,
+                3 - i * 0.2,
+                0,
+                Math.PI * 2
+              );
+              ctx.fillStyle = `rgba(255,220,80,${ta})`;
+              ctx.fill();
+            }
+            ctx.save();
+            ctx.translate(seedX, seedY);
+            ctx.rotate(fp * Math.PI * 2 + 0.5);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 6, 10, 0, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,200,60,${0.7 + fp * 0.3})`;
+            ctx.fill();
+            ctx.strokeStyle = "rgba(255,240,140,.9)";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, 18);
+            grd.addColorStop(0, `rgba(255,220,80,${0.4 * (1 - fp * 0.3)})`);
+            grd.addColorStop(1, "rgba(255,200,60,0)");
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(0, 0, 18, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          } else if (p < 0.55) {
+            const ip = (p - 0.35) / 0.2;
+            for (let r = 0; r < 3; r++) {
+              const rp = Math.max(0, (ip - r * 0.12) / 0.4);
+              if (rp <= 0) continue;
+              ctx.beginPath();
+              ctx.arc(cx, groundY, rp * 55 * (1 + r * 0.3), 0, Math.PI * 2);
+              ctx.strokeStyle = `rgba(255,220,80,${
+                (1 - rp) * (0.6 - r * 0.15)
+              })`;
+              ctx.lineWidth = 2 - r * 0.4;
+              ctx.stroke();
+            }
+            for (let i = 0; i < 12; i++) {
+              const a = (i / 12) * Math.PI * 2,
+                d = ip * 35;
+              ctx.beginPath();
+              ctx.arc(
+                cx + Math.cos(a) * d,
+                groundY + Math.sin(a) * d * 0.5 - ip * 20,
+                2.5,
+                0,
+                Math.PI * 2
+              );
+              ctx.fillStyle = `rgba(80,50,20,${(1 - ip) * 0.8})`;
+              ctx.fill();
+            }
+            ctx.save();
+            ctx.translate(cx, groundY + ip * 12);
+            ctx.beginPath();
+            ctx.ellipse(
+              0,
+              0,
+              6 * (1 - ip * 0.6),
+              10 * (1 - ip * 0.4),
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.fillStyle = `rgba(255,200,60,${1 - ip * 0.7})`;
+            ctx.fill();
+            ctx.restore();
+          } else if (p < 0.85) {
+            const gp = (p - 0.55) / 0.3;
+            const grd = ctx.createRadialGradient(
+              cx,
+              groundY,
+              0,
+              cx,
+              groundY,
+              gp * 80
+            );
+            grd.addColorStop(
+              0,
+              `rgba(255,220,60,${0.5 * Math.sin(gp * Math.PI)})`
+            );
+            grd.addColorStop(
+              0.5,
+              `rgba(220,180,40,${0.25 * Math.sin(gp * Math.PI)})`
+            );
+            grd.addColorStop(1, "rgba(180,130,0,0)");
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(cx, groundY, gp * 80, 0, Math.PI * 2);
+            ctx.fill();
+            const stemH = gp * 45;
+            ctx.strokeStyle = `rgba(80,220,100,${gp * 0.9})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, groundY);
+            ctx.lineTo(cx, groundY - stemH);
+            ctx.stroke();
+            if (gp > 0.4) {
+              const lp = (gp - 0.4) / 0.6;
+              ctx.save();
+              ctx.translate(cx, groundY - stemH * 0.6);
+              ctx.rotate(-Math.PI * 0.3);
+              ctx.beginPath();
+              ctx.ellipse(0, 0, lp * 14, lp * 8, 0, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(60,210,80,${lp * 0.8})`;
+              ctx.fill();
+              ctx.restore();
+              ctx.save();
+              ctx.translate(cx, groundY - stemH * 0.7);
+              ctx.rotate(Math.PI * 0.3);
+              ctx.beginPath();
+              ctx.ellipse(0, 0, lp * 12, lp * 7, 0, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(60,210,80,${lp * 0.75})`;
+              ctx.fill();
+              ctx.restore();
+            }
+          } else {
+            const fp2 = (p - 0.85) / 0.15;
+            ctx.fillStyle = `rgba(0,${Math.floor(40 + fp2 * 80)},${Math.floor(
+              fp2 * 20
+            )},${fp2 * 0.92})`;
+            ctx.fillRect(0, 0, innerWidth, innerHeight);
+          }
+          if (frame < TOTAL) {
+            requestAnimationFrame(draw);
+          } else {
+            onDone();
+          }
+        }
+        setTimeout(() => {
+          if (audioCtx && !isMuted) {
+            const m = gm();
+            if (m) {
+              const o = audioCtx.createOscillator(),
+                g = audioCtx.createGain();
+              o.type = "sine";
+              o.frequency.setValueAtTime(120, audioCtx.currentTime);
+              o.frequency.exponentialRampToValueAtTime(
+                40,
+                audioCtx.currentTime + 0.3
+              );
+              g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+              g.gain.exponentialRampToValueAtTime(
+                0.001,
+                audioCtx.currentTime + 0.35
+              );
+              o.connect(g);
+              g.connect(m);
+              o.start();
+              o.stop(audioCtx.currentTime + 0.38);
+            }
+          }
+        }, Math.round(((TOTAL * 0.35) / 60) * 1000));
+        requestAnimationFrame(draw);
+      }
+
+      // ══ CHOIX ══
+      function choiceHope() {
+        document.getElementById("choice-ov").classList.remove("show");
+        stopVoice();
+        entering = true;
+        try {
+          localStorage.setItem("gaiaPlayerName", pName);
+          localStorage.setItem("gaiaScore", (score + 150).toString());
+        } catch (e) {}
+        // Animation graine + voix Gaïa en simultané
+        playSeedAnimation(() => {
+          const cu = document.getElementById("curtain");
+          cu.style.background = "linear-gradient(135deg,#002808,#001804,#000)";
+          cu.style.transition = "opacity 2.2s ease";
+          cu.classList.remove("gone");
+          cu.style.opacity = "1";
+          setTimeout(() => {
+            window.location.href = "scene13.html";
+          }, 2400);
+        });
+        speak(
+          `Merci.\nJ'ai besoin d'espoir.\nLaissez-moi vous montrer...\nCe qui POURRAIT être.`
+        );
+      }
+
+      // ══ INTRO GAÏA ══
+      function gaiaIntro() {
+        ensureVoices(() => {
+          const txt = `${pName}...\nBienvenue dans ce qui reste de mes forêts.\nCe champ de souches... était une forêt dense il y a dix ans.\nAujourd'hui ?\nDes centaines de souches. Des troncs abandonnés.\nDe la boue. Des déchets.\nPlus aucun oiseau.\nPlus aucun bruit... sauf le vent dans le vide.\nEt au loin...\ndes tronçonneuses. Encore actives.\nExplorez ce lieu.\nPuis...\nRegardez comment je suis devenue comme ça.`;
+          speak(txt, () => {
+            setTimeout(() => {
+              hideVoice();
+              setTimeout(() => {
+                document.getElementById("watch-btn").classList.add("show");
+              }, 800);
+            }, 1000);
+          });
+        });
+      }
+
+      // ══ LOOP 3D ══
+      function loop3() {
+        requestAnimationFrame(loop3);
+        const dt = Math.min(clk.getDelta(), 0.05);
+        BD.time += dt;
+        moveCam(dt);
+        skyMat.uniforms.uT.value = BD.time;
+        const dp = dGeo.attributes.position;
+        for (let i = 0; i < DC; i++) {
+          dp.setY(
+            i,
+            dp.getY(i) + (0.007 + Math.sin(BD.time * 0.28 + i) * 0.004)
+          );
+          if (dp.getY(i) > 15) dp.setY(i, 0);
+          dp.setX(i, dp.getX(i) + Math.sin(BD.time * 0.18 + i * 0.1) * 0.004);
+        }
+        dp.needsUpdate = true;
+        fogL.intensity = 0.55 + Math.sin(BD.time * 0.45) * 0.18;
+        rdr.render(sc, cam3);
+        drawMM();
+      }
+
+      // ══ INIT ══
+      function init() {
+        initAudio();
+        document.addEventListener(
+          "click",
+          () => {
+            if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+          },
+          { once: true }
+        );
+        const cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.4s ease";
+        setTimeout(() => cu.classList.add("gone"), 150);
+        setTimeout(() => {
+          document.getElementById("hud-top").classList.add("show");
+          document.getElementById("minimap").classList.add("show"); // UNE SEULE FOIS
+          setTimeout(() => playAmbient(), 800);
+          setTimeout(gaiaIntro, 2000);
+        }, 400);
+        loop3();
+      }
+      window.addEventListener("load", init);
+      window.addEventListener("resize", () => {
+        BC.width = innerWidth;
+        BC.height = innerHeight;
+        OC.width = innerWidth;
+        OC.height = innerHeight;
+        rdr.setSize(innerWidth, innerHeight);
+        cam3.aspect = innerWidth / innerHeight;
+        cam3.updateProjectionMatrix();
+      });
+    </script>
+  </body>
+</html>
