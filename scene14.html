@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAIA — Scene 14 : Quiz Stage 2</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #00ff88;
+        --gd: #00cc66;
+        --soft: #d0f0e0;
+        --ui: rgba(0, 8, 4, 0.97);
+        --ub: rgba(0, 255, 136, 0.15);
+        --gold: #ffd700;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #040c05;
+      }
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+      }
+      #cur {
+        position: fixed;
+        width: 14px;
+        height: 14px;
+        border: 1.5px solid rgba(0, 255, 136, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+      }
+      #cur::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--g);
+        border-radius: 50%;
+      }
+      canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        display: block;
+      }
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 900;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 1.4s;
+      }
+      #curtain.gone {
+        opacity: 0;
+      }
+      #xhair {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 12;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #xhair.show {
+        opacity: 1;
+      }
+      #xhair::before,
+      #xhair::after {
+        content: "";
+        position: absolute;
+        background: rgba(255, 255, 255, 0.4);
+      }
+      #xhair::before {
+        width: 14px;
+        height: 1.5px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #xhair::after {
+        width: 1.5px;
+        height: 14px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        padding: 14px 22px 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #hud.show {
+        opacity: 1;
+      }
+      .hl {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.48em;
+        color: rgba(0, 255, 136, 0.28);
+      }
+      .hc {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.16);
+      }
+      .hr {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: rgba(0, 255, 136, 0.3);
+      }
+      #move-hint {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 22;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.24em;
+        color: rgba(0, 255, 136, 0.28);
+        background: rgba(0, 5, 2, 0.72);
+        border: 1px solid rgba(0, 255, 136, 0.12);
+        padding: 6px 18px;
+        border-radius: 2px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+        white-space: nowrap;
+      }
+      #move-hint.show {
+        opacity: 1;
+      }
+      /* GAIA VOICE */
+      #vp {
+        position: fixed;
+        bottom: clamp(14px, 2.5vh, 28px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 40;
+        width: min(720px, 92vw);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+      #vp.show {
+        opacity: 1;
+      }
+      #vs {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.45),
+          transparent
+        );
+        margin-bottom: 7px;
+        transition: width 1s;
+      }
+      #vs.show {
+        width: 100%;
+      }
+      #vbox {
+        width: 100%;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(26px);
+        border-radius: 3px;
+        padding: 12px 20px 10px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.8s, transform 0.8s;
+      }
+      #vbox.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #vhdr {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 5px;
+      }
+      #vnm {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.45);
+      }
+      #vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 0.9s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .vb:nth-child(3) {
+        height: 4px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      .vb:nth-child(5) {
+        height: 3px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      .vb:nth-child(6) {
+        height: 7px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      @keyframes vba {
+        from {
+          transform: scaleY(0.18);
+          opacity: 0.5;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+      #vtx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.5vw, 15px);
+        line-height: 1.9;
+        color: var(--soft);
+        white-space: pre-wrap;
+        max-height: 120px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vtx::-webkit-scrollbar {
+        display: none;
+      }
+      #twc {
+        display: inline-block;
+        width: 2px;
+        height: 13px;
+        background: var(--g);
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+      /* START BUTTON */
+      #start-btn {
+        position: fixed;
+        bottom: clamp(88px, 12vh, 118px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 42;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: var(--g);
+        background: rgba(0, 8, 4, 0.97);
+        border: 1px solid rgba(0, 255, 136, 0.5);
+        border-radius: 3px;
+        padding: 14px 44px;
+        cursor: pointer;
+        transition: all 0.3s;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 0 24px rgba(0, 255, 136, 0.08);
+      }
+      #start-btn.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #start-btn:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 40px rgba(0, 255, 136, 0.28);
+      }
+      /* ════ QUIZ OVERLAY ════ */
+      #quiz-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: rgba(0, 2, 1, 0.82);
+        backdrop-filter: blur(10px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      #quiz-overlay.show {
+        display: flex;
+      }
+      #qbox {
+        width: min(660px, 94vw);
+        background: rgba(0, 5, 2, 0.99);
+        border: 1px solid rgba(0, 255, 136, 0.22);
+        border-radius: 6px;
+        padding: 24px 26px 20px;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.95);
+        max-height: 92vh;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #qbox::-webkit-scrollbar {
+        display: none;
+      }
+      /* progress dots */
+      #qprog {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 16px;
+        align-items: center;
+      }
+      .qpip {
+        flex: 1;
+        height: 3px;
+        border-radius: 2px;
+        background: rgba(0, 255, 136, 0.1);
+        transition: background 0.4s;
+      }
+      .qpip.done {
+        background: var(--g);
+      }
+      .qpip.cur {
+        background: rgba(0, 255, 136, 0.5);
+      }
+      /* timer */
+      #qtrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      #qtbar {
+        flex: 1;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      #qtfill {
+        height: 100%;
+        border-radius: 2px;
+        background: linear-gradient(90deg, var(--gd), var(--g));
+        transition: width 0.15s linear;
+      }
+      #qtval {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        font-weight: 900;
+        color: var(--g);
+        min-width: 26px;
+        text-align: right;
+        transition: color 0.3s;
+      }
+      #qtval.warn {
+        color: #ff9955;
+      }
+      #qtval.danger {
+        color: #ff4444;
+      }
+      /* question */
+      #qnum {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.38em;
+        color: rgba(0, 255, 136, 0.42);
+        margin-bottom: 8px;
+      }
+      #qtext {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(15px, 2vw, 18px);
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.6;
+        margin-bottom: 18px;
+      }
+      /* options */
+      #qopts {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .qopt {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 11px 14px;
+        background: rgba(0, 10, 4, 0.92);
+        border: 1px solid rgba(0, 255, 136, 0.1);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.6vw, 15px);
+        color: rgba(255, 255, 255, 0.72);
+        line-height: 1.45;
+      }
+      .qopt:hover:not(.locked) {
+        background: rgba(0, 255, 136, 0.07);
+        border-color: rgba(0, 255, 136, 0.38);
+        color: #fff;
+      }
+      .qopt.correct {
+        background: rgba(0, 180, 70, 0.18);
+        border-color: rgba(0, 255, 136, 0.65);
+        color: #fff;
+        pointer-events: none;
+      }
+      .qopt.wrong {
+        background: rgba(200, 50, 30, 0.15);
+        border-color: rgba(255, 80, 60, 0.5);
+        color: rgba(255, 255, 255, 0.55);
+        pointer-events: none;
+      }
+      .qopt.reveal {
+        background: rgba(0, 160, 60, 0.12);
+        border-color: rgba(0, 230, 90, 0.38);
+        pointer-events: none;
+      }
+      .qopt.locked {
+        pointer-events: none;
+      }
+      .ql {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        color: rgba(0, 255, 136, 0.5);
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .qopt.correct .ql,
+      .qopt.reveal .ql {
+        color: var(--g);
+      }
+      .qopt.wrong .ql {
+        color: rgba(255, 80, 60, 0.7);
+      }
+      /* feedback */
+      #qfb {
+        margin-top: 14px;
+        border-radius: 4px;
+        padding: 13px 15px;
+        display: none;
+      }
+      #qfb.show {
+        display: block;
+      }
+      #qfb.ok {
+        background: rgba(0, 160, 60, 0.13);
+        border: 1px solid rgba(0, 255, 100, 0.22);
+      }
+      #qfb.ko {
+        background: rgba(170, 40, 20, 0.11);
+        border: 1px solid rgba(255, 80, 60, 0.2);
+      }
+      #qfb-head {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.7);
+        margin-bottom: 5px;
+      }
+      #qfb-head.ko-h {
+        color: rgba(255, 100, 80, 0.8);
+      }
+      #qfb-pts {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.24em;
+        color: var(--g);
+        margin-bottom: 8px;
+      }
+      #qfb-pts.ko-p {
+        color: rgba(255, 255, 136, 0.6);
+      }
+      #qfb-gwrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 5px;
+      }
+      #qfb-gnm {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.38em;
+        color: rgba(0, 255, 136, 0.42);
+      }
+      #qfb-gbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 9px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #qfb-gbr.on {
+        opacity: 1;
+      }
+      #qfb-gbr span {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 0.9s ease-in-out infinite alternate;
+      }
+      #qfb-gbr span:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      #qfb-gbr span:nth-child(2) {
+        height: 7px;
+        animation-duration: 0.52s;
+      }
+      #qfb-gbr span:nth-child(3) {
+        height: 4px;
+        animation-duration: 0.41s;
+      }
+      #qfb-gbr span:nth-child(4) {
+        height: 9px;
+        animation-duration: 0.58s;
+      }
+      #qfb-txt {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.5vw, 14px);
+        color: var(--soft);
+        line-height: 1.8;
+        white-space: pre-wrap;
+      }
+      #qnext {
+        margin-top: 12px;
+        width: 100%;
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.26em;
+        color: var(--g);
+        background: rgba(0, 8, 4, 0.92);
+        border: 1px solid rgba(0, 255, 136, 0.42);
+        border-radius: 3px;
+        padding: 10px;
+        cursor: pointer;
+        transition: all 0.25s;
+      }
+      #qnext:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 22px rgba(0, 255, 136, 0.2);
+      }
+      /* ════ RESULTS ════ */
+      #results {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 0, 0, 0.97);
+        backdrop-filter: blur(20px);
+        display: none;
+        overflow-y: auto;
+        padding: 30px 20px 60px;
+      }
+      #results.show {
+        display: block;
+      }
+      .rw {
+        max-width: 640px;
+        margin: 0 auto;
+      }
+      .r-rule {
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 136, 0.4),
+          transparent
+        );
+        margin: 14px 0;
+      }
+      .r-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(11px, 1.8vw, 15px);
+        font-weight: 900;
+        letter-spacing: 0.35em;
+        color: var(--g);
+        text-align: center;
+        margin: 10px 0;
+        filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.4));
+      }
+      .r-score-num {
+        font-family: "Cinzel", serif;
+        font-size: clamp(32px, 6vw, 52px);
+        font-weight: 900;
+        color: var(--g);
+        text-align: center;
+        filter: drop-shadow(0 0 16px rgba(0, 255, 136, 0.5));
+        margin: 8px 0 4px;
+      }
+      .r-score-sub {
+        font-family: "EB Garamond", serif;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.35);
+        text-align: center;
+        font-style: italic;
+      }
+      .r-rank {
+        font-family: "Cinzel", serif;
+        font-size: clamp(13px, 2.2vw, 19px);
+        font-weight: 900;
+        text-align: center;
+        margin: 12px 0;
+        letter-spacing: 0.18em;
+      }
+      .r-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin: 10px 0;
+      }
+      .r-badge {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.2em;
+        padding: 6px 14px;
+        border-radius: 3px;
+        background: rgba(0, 10, 4, 0.9);
+        border: 1px solid rgba(0, 255, 136, 0.25);
+        color: rgba(0, 255, 136, 0.72);
+      }
+      .r-badge.gold {
+        border-color: rgba(255, 215, 0, 0.4);
+        color: var(--gold);
+        background: rgba(14, 10, 0, 0.9);
+      }
+      /* gaia feedback in results */
+      #rgaia {
+        background: rgba(0, 8, 4, 0.96);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        border-radius: 4px;
+        padding: 16px 18px;
+        margin: 12px 0;
+      }
+      #rgaia-hdr {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 8px;
+      }
+      #rgnm {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.42em;
+        color: rgba(0, 255, 136, 0.45);
+      }
+      #rgbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #rgbr.on {
+        opacity: 1;
+      }
+      #rgbr span {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--gd);
+        transform-origin: bottom;
+        animation: vba 0.9s ease-in-out infinite alternate;
+      }
+      #rgbr span:nth-child(1) {
+        height: 3px;
+      }
+      #rgbr span:nth-child(2) {
+        height: 9px;
+        animation-delay: 0.04s;
+      }
+      #rgbr span:nth-child(3) {
+        height: 4px;
+        animation-delay: 0.09s;
+      }
+      #rgbr span:nth-child(4) {
+        height: 11px;
+        animation-delay: 0.07s;
+      }
+      #rgtxt {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.5vw, 15px);
+        line-height: 1.95;
+        color: var(--soft);
+        white-space: pre-wrap;
+      }
+      .r-unlocked {
+        background: rgba(0, 255, 136, 0.05);
+        border: 1px solid rgba(0, 255, 136, 0.18);
+        border-radius: 4px;
+        padding: 12px 16px;
+        margin: 10px 0;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.22em;
+        color: rgba(0, 255, 136, 0.62);
+        line-height: 1.9;
+      }
+      #hub-btn {
+        display: block;
+        width: min(320px, 78vw);
+        margin: 22px auto 0;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.28em;
+        color: var(--g);
+        background: rgba(0, 8, 4, 0.97);
+        border: 1px solid rgba(0, 255, 136, 0.5);
+        border-radius: 3px;
+        padding: 14px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s;
+        box-shadow: 0 0 20px rgba(0, 255, 136, 0.06);
+      }
+      #hub-btn:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 40px rgba(0, 255, 136, 0.28);
+      }
+      #retry-btn {
+        display: none;
+        width: min(320px, 78vw);
+        margin: 12px auto 0;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.28em;
+        color: #ff9944;
+        background: rgba(14, 4, 0, 0.97);
+        border: 1px solid rgba(255, 120, 50, 0.45);
+        border-radius: 3px;
+        padding: 14px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s;
+      }
+      #retry-btn.show {
+        display: block;
+      }
+      #retry-btn:hover {
+        background: rgba(255, 120, 50, 0.1);
+        box-shadow: 0 0 34px rgba(255, 120, 50, 0.22);
+      }
+      .r-fail-msg {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.22em;
+        color: rgba(255, 120, 50, 0.7);
+        text-align: center;
+        margin: 10px 0 2px;
+        padding: 8px 14px;
+        background: rgba(20, 5, 0, 0.8);
+        border: 1px solid rgba(255, 100, 40, 0.2);
+        border-radius: 3px;
+        display: none;
+      }
+      .r-fail-msg.show {
+        display: block;
+      }
+      #mute-btn {
+        position: fixed;
+        bottom: 12px;
+        right: 18px;
+        z-index: 999;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.18);
+        cursor: pointer;
+        background: none;
+        border: none;
+        transition: color 0.3s;
+      }
+      #mute-btn:hover {
+        color: rgba(0, 255, 136, 0.55);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cur"></div>
+    <canvas id="gc"></canvas>
+    <div id="xhair"></div>
+    <div id="hud">
+      <div class="hl">G A I A</div>
+      <div class="hc">Q U I Z — S T A G E &nbsp; 2</div>
+      <div class="hr" id="scd">SCORE : 0</div>
+    </div>
+    <div id="move-hint">
+      ZQSD / FLECHES — Marcher &nbsp;|&nbsp; SOURIS (clic d abord) — Regarder a
+      360&deg;
+    </div>
+    <div id="vp">
+      <div id="vs"></div>
+      <div id="vbox">
+        <div id="vhdr">
+          <span id="vnm">G A I A</span
+          ><span id="vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="vtx"></div>
+        <span id="twc"></span>
+      </div>
+    </div>
+    <button id="start-btn" onclick="startQuiz()">
+      &#9655; COMMENCER LE QUIZ
+    </button>
+    <!-- QUIZ -->
+    <div id="quiz-overlay">
+      <div id="qbox">
+        <div id="qprog"></div>
+        <div id="qtrow">
+          <div id="qtbar"><div id="qtfill" style="width: 100%"></div></div>
+          <div id="qtval">25</div>
+        </div>
+        <div id="qnum">QUESTION 1 / 5</div>
+        <div id="qtext"></div>
+        <div id="qopts"></div>
+        <div id="qfb">
+          <div id="qfb-head"></div>
+          <div id="qfb-pts"></div>
+          <div id="qfb-gwrap">
+            <span id="qfb-gnm">G A I A</span
+            ><span id="qfb-gbr"
+              ><span></span><span></span><span></span><span></span
+            ></span>
+          </div>
+          <div id="qfb-txt"></div>
+          <button id="qnext" onclick="nextQ()">
+            QUESTION SUIVANTE &nbsp;&#9654;
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- RESULTS -->
+    <div id="results">
+      <div class="rw">
+        <div class="r-rule"></div>
+        <div class="r-title">RESULTATS QUIZ — STAGE 2</div>
+        <div class="r-rule"></div>
+        <div class="r-score-num" id="r-snum">0 / 120</div>
+        <div class="r-score-sub" id="r-ssub">0 correctes</div>
+        <div class="r-rank" id="r-rank"></div>
+        <div class="r-badges" id="r-badges"></div>
+        <div class="r-rule"></div>
+        <div id="rgaia">
+          <div id="rgaia-hdr">
+            <span id="rgnm">G A I A</span
+            ><span id="rgbr"
+              ><span></span><span></span><span></span><span></span
+            ></span>
+          </div>
+          <div id="rgtxt"></div>
+        </div>
+        <div class="r-unlocked" id="r-unlocked"></div>
+        <div class="r-fail-msg" id="r-fail-msg">
+          SCORE INSUFFISANT — 80% MINIMUM REQUIS POUR CONTINUER
+        </div>
+        <button id="retry-btn" onclick="retryQuiz()">
+          &#8635; RECOMMENCER LE QUIZ
+        </button>
+        <button id="hub-btn" onclick="goHub()">&#8592; RETOUR AU HUB</button>
+        <div class="r-rule"></div>
+      </div>
+    </div>
+    <div id="curtain"></div>
+    <button id="mute-btn" onclick="togMute()">SON</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      "use strict";
+      var W = innerWidth,
+        H = innerHeight;
+      var isMuted = false,
+        AC = null;
+      var pName = "Gardien",
+        score = 0;
+      var isLocked = false,
+        camYaw = 0,
+        camPitch = 0,
+        camH = 1.8;
+      var keysF = {};
+      var entering = false;
+      var renderer, scene3, camera3;
+      var frameN = 0,
+        lastT = 0;
+
+      try {
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+        score = parseInt(localStorage.getItem("gaiaScore") || "0");
+      } catch (e) {}
+      document.getElementById("scd").textContent = "SCORE : " + score;
+      var $cur = document.getElementById("cur");
+      document.addEventListener("mousemove", function (e) {
+        $cur.style.left = e.clientX + "px";
+        $cur.style.top = e.clientY + "px";
+      });
+
+      // ══ THREE.JS IMMERSIVE FOREST ══
+      function init3D() {
+        renderer = new THREE.WebGLRenderer({
+          canvas: document.getElementById("gc"),
+          antialias: true,
+        });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.setSize(W, H);
+        renderer.setClearColor(0x030b04, 1);
+        renderer.shadowMap.enabled = true;
+        scene3 = new THREE.Scene();
+        scene3.fog = new THREE.FogExp2(0x091505, 0.019);
+        camera3 = new THREE.PerspectiveCamera(75, W / H, 0.1, 600);
+        camera3.position.set(0, camH, 0);
+
+        // Lighting — deep forest mood
+        scene3.add(new THREE.AmbientLight(0x1e4a20, 0.9));
+        var sun = new THREE.DirectionalLight(0xffee80, 1.8);
+        sun.position.set(60, 140, 80);
+        sun.castShadow = true;
+        scene3.add(sun);
+        scene3.add(new THREE.HemisphereLight(0x2a6020, 0x0a1804, 0.7));
+        // Forest floor dappled light spots
+        [
+          [12, 22, 8],
+          [-18, 18, 14],
+          [6, 26, -12],
+          [-8, 20, -20],
+          [22, 24, -6],
+          [-14, 16, 22],
+        ].forEach(function (p) {
+          var l = new THREE.PointLight(0xddf080, 1.1, 30);
+          l.position.set(p[0], p[1], p[2]);
+          scene3.add(l);
+        });
+
+        // Ground
+        var gnd = new THREE.Mesh(
+          new THREE.PlaneGeometry(600, 600),
+          new THREE.MeshPhongMaterial({ color: 0x0d1e08, shininess: 0 })
+        );
+        gnd.rotation.x = -Math.PI / 2;
+        scene3.add(gnd);
+        // Rich forest floor (mossy)
+        var flr = new THREE.Mesh(
+          new THREE.PlaneGeometry(220, 220),
+          new THREE.MeshPhongMaterial({ color: 0x142408, shininess: 0 })
+        );
+        flr.rotation.x = -Math.PI / 2;
+        flr.position.y = 0.01;
+        scene3.add(flr);
+
+        // Foliage materials — 5 shades
+        var fmat = [
+          new THREE.MeshPhongMaterial({
+            color: 0x1a9a2e,
+            emissive: 0x021004,
+            shininess: 8,
+            transparent: true,
+            opacity: 0.91,
+          }),
+          new THREE.MeshPhongMaterial({
+            color: 0x1e7a22,
+            emissive: 0x030d01,
+            shininess: 5,
+            transparent: true,
+            opacity: 0.87,
+          }),
+          new THREE.MeshPhongMaterial({
+            color: 0x259028,
+            emissive: 0x040e02,
+            shininess: 9,
+            transparent: true,
+            opacity: 0.89,
+          }),
+          new THREE.MeshPhongMaterial({
+            color: 0x186418,
+            emissive: 0x020c01,
+            shininess: 4,
+            transparent: true,
+            opacity: 0.85,
+          }),
+          new THREE.MeshPhongMaterial({
+            color: 0x2aaa30,
+            emissive: 0x031203,
+            shininess: 7,
+            transparent: true,
+            opacity: 0.93,
+          }),
+        ];
+        var trkMat = new THREE.MeshPhongMaterial({
+          color: 0x3e2006,
+          emissive: 0x090401,
+          shininess: 2,
+        });
+
+        // ── TREE PLACEMENT : 3 density rings ──
+        var trees = [];
+        // Ring 1 : very close (3–10m) — feel surrounded
+        for (var i = 0; i < 24; i++) {
+          var a = (i / 24) * Math.PI * 2 + Math.random() * 0.15;
+          var r = 3.5 + Math.random() * 4;
+          trees.push({
+            x: Math.cos(a) * r,
+            z: Math.sin(a) * r,
+            h: 7 + Math.random() * 9,
+            cr: 2.2 + Math.random() * 1.8,
+            mi: i % 5,
+          });
+        }
+        // Ring 2 : medium (10–35m)
+        for (var i = 0; i < 60; i++) {
+          var a = (i / 60) * Math.PI * 2 + Math.random() * 0.1;
+          var r = 10 + Math.random() * 18;
+          trees.push({
+            x: Math.cos(a) * r,
+            z: Math.sin(a) * r,
+            h: 9 + Math.random() * 13,
+            cr: 2.5 + Math.random() * 3,
+            mi: i % 5,
+          });
+        }
+        // Ring 3 : far (35–130m) — horizon
+        for (var i = 0; i < 110; i++) {
+          var a = (i / 110) * Math.PI * 2 + Math.random() * 0.08;
+          var r = 35 + Math.random() * 60;
+          trees.push({
+            x: Math.cos(a) * r,
+            z: Math.sin(a) * r,
+            h: 6 + Math.random() * 18,
+            cr: 1.8 + Math.random() * 4,
+            mi: i % 5,
+          });
+        }
+
+        trees.forEach(function (td, idx) {
+          var g = new THREE.Group();
+          var mat = fmat[td.mi];
+          var trH = td.h * 0.55;
+          // Trunk (tapered)
+          var tm = new THREE.Mesh(
+            new THREE.CylinderGeometry(td.cr * 0.1, td.cr * 0.2, trH, 7),
+            trkMat
+          );
+          tm.position.y = trH * 0.5;
+          g.add(tm);
+          // Root buttresses (close trees)
+          if (td.cr > 2.8) {
+            for (var ri = 0; ri < 3; ri++) {
+              var ra = (ri / 3) * Math.PI * 2;
+              var rb = new THREE.Mesh(
+                new THREE.BoxGeometry(0.12, trH * 0.4, 0.4),
+                trkMat
+              );
+              rb.position.set(
+                Math.cos(ra) * td.cr * 0.22,
+                trH * 0.2,
+                Math.sin(ra) * td.cr * 0.22
+              );
+              rb.rotation.y = -ra;
+              rb.rotation.z = -0.22;
+              g.add(rb);
+            }
+          }
+          // Foliage — 3 overlapping spheres for volume
+          [
+            [0, trH + td.cr * 0.42, 0, 1, 0.65],
+            [td.cr * 0.18, trH + td.cr * 0.7, td.cr * 0.1, 0.8, 0.7],
+            [-td.cr * 0.14, trH + td.cr * 0.85, -td.cr * 0.08, 0.72, 0.62],
+          ].forEach(function (p) {
+            var fo = new THREE.Mesh(
+              new THREE.SphereGeometry(td.cr * p[3], 9, 6),
+              mat
+            );
+            fo.position.set(p[0], p[1], p[2]);
+            fo.scale.y = p[4] + Math.random() * 0.18;
+            g.add(fo);
+          });
+          g.position.set(td.x, 0, td.z);
+          scene3.add(g);
+        });
+
+        // Lianes / hanging vines
+        var lMat = new THREE.MeshPhongMaterial({
+          color: 0x286014,
+          shininess: 1,
+        });
+        for (var i = 0; i < 40; i++) {
+          var la = (Math.random() - 0.5) * 50,
+            lb = (Math.random() - 0.5) * 50;
+          var lh = 3 + Math.random() * 9;
+          var lm = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.07, lh, 5),
+            lMat
+          );
+          lm.position.set(la, lh / 2 + 1, lb);
+          lm.rotation.set(
+            (Math.random() - 0.5) * 0.2,
+            0,
+            (Math.random() - 0.5) * 0.2
+          );
+          scene3.add(lm);
+        }
+
+        // Ferns / undergrowth
+        var fernMat = new THREE.MeshPhongMaterial({
+          color: 0x1e5c10,
+          emissive: 0x030901,
+          shininess: 3,
+          transparent: true,
+          opacity: 0.8,
+        });
+        for (var i = 0; i < 70; i++) {
+          var fx = (Math.random() - 0.5) * 60,
+            fz = (Math.random() - 0.5) * 60;
+          var fm = new THREE.Mesh(
+            new THREE.SphereGeometry(0.5 + Math.random() * 0.6, 6, 4),
+            fernMat
+          );
+          fm.scale.set(1.6, 0.4 + Math.random() * 0.3, 1.4);
+          fm.position.set(fx, 0.25, fz);
+          scene3.add(fm);
+        }
+
+        // O2 particles floating up
+        var o2 = [];
+        for (var i = 0; i < 60; i++) {
+          var om = new THREE.Mesh(
+            new THREE.SphereGeometry(0.07, 4, 4),
+            new THREE.MeshBasicMaterial({
+              color: 0x00ff88,
+              transparent: true,
+              opacity: 0.4,
+            })
+          );
+          scene3.add(om);
+          o2.push({
+            m: om,
+            x: (Math.random() - 0.5) * 80,
+            y: Math.random() * 20,
+            z: (Math.random() - 0.5) * 80,
+            vy: 0.035 + Math.random() * 0.055,
+            lf: Math.random(),
+          });
+        }
+        scene3._o2 = o2;
+
+        // Sky dome
+        var skyGeo = new THREE.SphereGeometry(350, 16, 8);
+        var skyMat = new THREE.MeshBasicMaterial({
+          color: 0x040c04,
+          side: THREE.BackSide,
+        });
+        scene3.add(new THREE.Mesh(skyGeo, skyMat));
+
+        // ── FPS Controls ──
+        document.addEventListener("keydown", function (e) {
+          keysF[e.code] = true;
+          if (e.code === "Space" || e.code === "Escape") e.preventDefault();
+        });
+        document.addEventListener("keyup", function (e) {
+          keysF[e.code] = false;
+        });
+        var cnv = document.getElementById("gc");
+        cnv.addEventListener("click", function () {
+          if (
+            !document
+              .getElementById("quiz-overlay")
+              .classList.contains("show") &&
+            !document.getElementById("results").classList.contains("show")
+          ) {
+            if (!isLocked) cnv.requestPointerLock();
+          }
+        });
+        document.addEventListener("pointerlockchange", function () {
+          isLocked = document.pointerLockElement === cnv;
+          document.getElementById("xhair").classList.toggle("show", isLocked);
+          document
+            .getElementById("move-hint")
+            .classList.toggle(
+              "show",
+              !isLocked &&
+                !document
+                  .getElementById("quiz-overlay")
+                  .classList.contains("show") &&
+                !document.getElementById("results").classList.contains("show")
+            );
+        });
+        document.addEventListener("mousemove", function (e) {
+          if (!isLocked) return;
+          camYaw -= e.movementX * 0.0018;
+          camPitch -= e.movementY * 0.0015;
+          camPitch = Math.max(-1.4, Math.min(1.4, camPitch));
+        });
+      }
+
+      function renderLoop(ts) {
+        requestAnimationFrame(renderLoop);
+        var dt = Math.min((ts - lastT) / 1000, 0.05);
+        lastT = ts;
+        frameN++;
+        if (!camera3) return;
+        // FPS movement (always active, even behind overlays)
+        var spd = keysF["ShiftLeft"] ? 7 : 3.5;
+        var fwd = new THREE.Vector3(
+          Math.sin(camYaw) * Math.cos(camPitch),
+          0,
+          Math.cos(camYaw) * Math.cos(camPitch)
+        ).normalize();
+        var rgt = new THREE.Vector3(
+          Math.cos(camYaw),
+          0,
+          -Math.sin(camYaw)
+        ).normalize();
+        if (keysF["KeyW"] || keysF["ArrowUp"])
+          camera3.position.addScaledVector(fwd, spd * dt);
+        if (keysF["KeyS"] || keysF["ArrowDown"])
+          camera3.position.addScaledVector(fwd, -spd * dt);
+        if (keysF["KeyA"] || keysF["ArrowLeft"])
+          camera3.position.addScaledVector(rgt, -spd * dt);
+        if (keysF["KeyD"] || keysF["ArrowRight"])
+          camera3.position.addScaledVector(rgt, spd * dt);
+        camera3.position.y = camH;
+        camera3.position.x = Math.max(-120, Math.min(120, camera3.position.x));
+        camera3.position.z = Math.max(-120, Math.min(120, camera3.position.z));
+        camera3.rotation.order = "YXZ";
+        camera3.rotation.y = camYaw;
+        camera3.rotation.x = camPitch;
+        // O2 particles
+        if (scene3._o2)
+          scene3._o2.forEach(function (p) {
+            p.y += p.vy;
+            p.lf += 0.003;
+            if (p.y > 24 || p.lf > 1) {
+              p.y = 0.2 + Math.random() * 2;
+              p.x = (Math.random() - 0.5) * 80;
+              p.z = (Math.random() - 0.5) * 80;
+              p.lf = 0;
+            }
+            p.m.position.set(p.x, p.y, p.z);
+            p.m.material.opacity = Math.sin(p.lf * Math.PI) * 0.38;
+          });
+        renderer.render(scene3, camera3);
+      }
+
+      // ══ AUDIO ══
+      function initAC() {
+        if (AC) return;
+        try {
+          AC = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {}
+      }
+      function gm() {
+        if (!AC) return null;
+        if (!window._m14) {
+          var c = AC.createDynamicsCompressor();
+          c.threshold.value = -18;
+          c.ratio.value = 3;
+          c.attack.value = 0.003;
+          c.release.value = 0.25;
+          c.connect(AC.destination);
+          window._m14 = c;
+        }
+        return window._m14;
+      }
+      function sfxOK() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        [523, 659, 784, 1046].forEach(function (f, i) {
+          setTimeout(function () {
+            var o = AC.createOscillator(),
+              g = AC.createGain();
+            o.type = "triangle";
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.055, AC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.36);
+            o.connect(g);
+            g.connect(m);
+            o.start();
+            o.stop(AC.currentTime + 0.4);
+          }, i * 55);
+        });
+      }
+      function sfxKO() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        var o = AC.createOscillator(),
+          g = AC.createGain();
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(200, AC.currentTime);
+        o.frequency.exponentialRampToValueAtTime(75, AC.currentTime + 0.38);
+        g.gain.setValueAtTime(0.055, AC.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.42);
+        o.connect(g);
+        g.connect(m);
+        o.start();
+        o.stop(AC.currentTime + 0.45);
+      }
+      function sfxTick() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        var o = AC.createOscillator(),
+          g = AC.createGain();
+        o.type = "sine";
+        o.frequency.value = 900;
+        g.gain.setValueAtTime(0.028, AC.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.07);
+        o.connect(g);
+        g.connect(m);
+        o.start();
+        o.stop(AC.currentTime + 0.08);
+      }
+      function sfxAmb() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        [55, 82, 110].forEach(function (f, i) {
+          var o = AC.createOscillator(),
+            g2 = AC.createGain();
+          o.type = "sine";
+          o.frequency.value = f;
+          g2.gain.setValueAtTime(0, AC.currentTime);
+          g2.gain.linearRampToValueAtTime(
+            [0.011, 0.007, 0.005][i],
+            AC.currentTime + 4
+          );
+          var fl = AC.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 190;
+          o.connect(fl);
+          fl.connect(g2);
+          g2.connect(m);
+          o.start();
+        });
+      }
+      function togMute() {
+        isMuted = !isMuted;
+        document.getElementById("mute-btn").textContent = isMuted
+          ? "MUET"
+          : "SON";
+        if (AC) {
+          isMuted ? AC.suspend() : AC.resume();
+        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      // ══ VOICE ENGINE ══
+      var syn = window.speechSynthesis;
+      function gv() {
+        var vs = syn ? syn.getVoices() : [];
+        return (
+          vs.find(function (x) {
+            return (
+              x.lang === "fr-FR" &&
+              /Marie|Amelie|Hortense|Lea|Julie/i.test(x.name)
+            );
+          }) ||
+          vs.find(function (x) {
+            return x.lang === "fr-FR";
+          }) ||
+          vs.find(function (x) {
+            return x.lang.startsWith("fr");
+          }) ||
+          vs[0] ||
+          null
+        );
+      }
+
+      function speak(txt, cb, rt) {
+        rt = rt || 0.78;
+        initAC();
+        if (AC && AC.state === "suspended") AC.resume();
+        var el = document.getElementById("vtx"),
+          cu = document.getElementById("twc");
+        el.textContent = "";
+        cu.style.display = "inline-block";
+        document.getElementById("vs").classList.add("show");
+        document.getElementById("vbox").classList.add("show");
+        document.getElementById("vp").classList.add("show");
+        var d = 0,
+          t = 0,
+          vd = false,
+          done = false,
+          iv = null;
+        function fin() {
+          if (done) return;
+          done = true;
+          cu.style.display = "none";
+          if (cb) setTimeout(cb, 380);
+        }
+        function tick() {
+          if (iv) clearInterval(iv);
+          iv = setInterval(function () {
+            if (d < t && d < txt.length) {
+              el.textContent = txt.slice(0, ++d);
+              el.scrollTop = el.scrollHeight;
+            } else if (d >= txt.length && vd) {
+              clearInterval(iv);
+              fin();
+            }
+          }, 20);
+        }
+        if (syn && !isMuted) {
+          syn.cancel();
+          var u = new SpeechSynthesisUtterance(txt);
+          u.lang = "fr-FR";
+          u.rate = rt;
+          u.pitch = 0.72;
+          u.volume = 1;
+          var v = gv();
+          if (v) u.voice = v;
+          u.onstart = function () {
+            document.getElementById("vbr").classList.add("on");
+          };
+          u.onboundary = function (e) {
+            if (e.name === "word") {
+              t = Math.min(e.charIndex + e.charLength, txt.length);
+              tick();
+            }
+          };
+          u.onend = u.onerror = function () {
+            document.getElementById("vbr").classList.remove("on");
+            vd = true;
+            t = txt.length;
+            tick();
+          };
+          syn.speak(u);
+          setTimeout(function () {
+            if (d === 0 && !done) {
+              vd = true;
+              t = txt.length;
+              tick();
+            }
+          }, 2200);
+        } else {
+          vd = true;
+          t = txt.length;
+          tick();
+        }
+      }
+
+      function speakFeedback(txt, elTxt, elBars, cb) {
+        initAC();
+        if (AC && AC.state === "suspended") AC.resume();
+        if (elTxt) elTxt.textContent = "";
+        var d = 0,
+          t = 0,
+          vd = false,
+          done = false,
+          iv = null;
+        function fin() {
+          if (done) return;
+          done = true;
+          if (elBars) elBars.classList.remove("on");
+          if (cb) setTimeout(cb, 320);
+        }
+        function tick() {
+          if (iv) clearInterval(iv);
+          iv = setInterval(function () {
+            if (d < t && d < txt.length) {
+              if (elTxt) {
+                elTxt.textContent = txt.slice(0, ++d);
+              } else d++;
+            } else if (d >= txt.length && vd) {
+              clearInterval(iv);
+              fin();
+            }
+          }, 18);
+        }
+        if (syn && !isMuted) {
+          syn.cancel();
+          var u = new SpeechSynthesisUtterance(txt);
+          u.lang = "fr-FR";
+          u.rate = 0.82;
+          u.pitch = 0.74;
+          u.volume = 1;
+          var v = gv();
+          if (v) u.voice = v;
+          u.onstart = function () {
+            if (elBars) elBars.classList.add("on");
+          };
+          u.onboundary = function (e) {
+            if (e.name === "word") {
+              t = Math.min(e.charIndex + e.charLength, txt.length);
+              tick();
+            }
+          };
+          u.onend = u.onerror = function () {
+            vd = true;
+            t = txt.length;
+            tick();
+          };
+          syn.speak(u);
+          setTimeout(function () {
+            if (d === 0 && !done) {
+              vd = true;
+              t = txt.length;
+              tick();
+            }
+          }, 2200);
+        } else {
+          vd = true;
+          t = txt.length;
+          tick();
+        }
+      }
+
+      function hideV() {
+        var vb = document.getElementById("vbox");
+        vb.style.transition = "opacity .7s";
+        vb.style.opacity = "0";
+        setTimeout(function () {
+          vb.classList.remove("show");
+          vb.style.opacity = "";
+          vb.style.transition = "";
+          document.getElementById("vs").classList.remove("show");
+          document.getElementById("vp").classList.remove("show");
+        }, 720);
+      }
+
+      // ══ QUIZ DATA ══
+      var QQ = [
+        {
+          n: 1,
+          timer: 25,
+          q: "Quelle est l equation chimique de la photosynthese ?",
+          opts: [
+            "6 O2 + C6H12O6 → 6 CO2 + 6 H2O",
+            "6 CO2 + 6 H2O → C6H12O6 + 6 O2",
+            "CO2 + H2O → O2 + Glucose",
+            "O2 + Glucose → CO2 + H2O",
+          ],
+          ans: 1,
+          pts: 20,
+          ok: {
+            h: "BONNE REPONSE !",
+            txt: "Exactement.\n6 molecules de dioxyde de carbone + 6 molecules d eau + lumiere\n→ 1 molecule de glucose + 6 molecules d oxygene.\nC est la MAGIE de mes feuilles.\nLa base de toute vie terrestre.",
+          },
+          ko: {
+            h: "MAUVAISE REPONSE — La bonne reponse etait B",
+            txt: "C est l inverse de la respiration animale.\nVous inspirez de l oxygene, vous expirez du dioxyde de carbone.\nMes arbres inspirent le dioxyde de carbone, expirent l oxygene.\nNous sommes... complementaires.",
+          },
+        },
+        {
+          n: 2,
+          timer: 25,
+          q: "Quel pourcentage de l oxygene terrestre est produit par les forets tropicales (Amazonie, Congo, Asie du Sud-Est) ?",
+          opts: ["10%", "20%", "28%", "50%"],
+          ans: 2,
+          pts: 20,
+          ok: {
+            h: "EXCELLENTE REPONSE !",
+            txt: "Oui, 28 pourcent.\nPresque UN TIERS de l oxygene mondial.\nEt vous savez quoi ?\n50 pourcent est produit par le phytoplancton oceanique.\nForets 28 pourcent + Oceans 50 pourcent = 78 pourcent.\nLe reste : Prairies, savanes, toundra.\nMes poumons... sont partout.",
+          },
+          ko: {
+            h: "MAUVAISE REPONSE — La bonne reponse etait C",
+            txt: "C est 28 pourcent.\nPresque un tiers de l oxygene mondial.\nLes forets tropicales... mes plus grands poumons.",
+          },
+        },
+        {
+          n: 3,
+          timer: 25,
+          q: "Quel pourcentage de l Amazonie a ete perdu depuis 1970 ?",
+          opts: ["-8%", "-12%", "-17%", "-25%"],
+          ans: 2,
+          pts: 20,
+          ok: {
+            h: "CORRECT ! — Temoin de la Destruction",
+            txt: "17 pourcent.\nC est ENORME.\nL Amazonie originelle : 6,7 millions de kilometres carres.\nPerdue : 1,1 million de kilometres carres.\nC est... 2 fois la France.\nDisparue en 50 ans.\nEt on approche du point de non-retour : moins 20 a moins 25 pourcent.\nApres... elle devient une savane.\nIrreversible.",
+          },
+          ko: {
+            h: "PAS TOUT A FAIT — La bonne reponse etait C) -17%",
+            txt: "C est 17 pourcent exactement.\nCa semble peu.\nMais c est 1,1 million de kilometres carres.\nEt ca continue.\n10 000 hectares par JOUR.",
+          },
+        },
+        {
+          n: 4,
+          timer: 25,
+          q: "Combien de kilogrammes de dioxyde de carbone un arbre mature absorbe-t-il par an ?",
+          opts: ["5 kg", "11 kg", "22 kg", "50 kg"],
+          ans: 2,
+          pts: 20,
+          ok: {
+            h: "BONNE REPONSE !",
+            txt: "22 kilogrammes de dioxyde de carbone par an.\nPour un arbre mature de 25 a 30 ans.\nCa semble peu ?\nMais :\n100 arbres = 2,2 tonnes par an.\n1 000 arbres = 22 tonnes par an.\n1 million d arbres = 22 000 tonnes par an.\nL echelle... change tout.",
+          },
+          ko: {
+            h: "MAUVAISE REPONSE — La bonne reponse etait C",
+            txt: "C est 22 kilogrammes par an.\nPour un arbre mature.\nPetit... mais multiplie par des milliards d arbres... immense.",
+          },
+        },
+        {
+          n: 5,
+          timer: 30,
+          bonus: true,
+          q: "QUESTION BONUS x2 — Si 1 milliard de personnes plantaient chacune 1 hectare de foret (150 arbres/hectare), combien de tonnes de dioxyde de carbone seraient absorbees en 30 ans ?",
+          opts: [
+            "50 millions de tonnes",
+            "5 milliards de tonnes",
+            "50 milliards de tonnes",
+            "495 milliards de tonnes",
+          ],
+          ans: 3,
+          pts: 40,
+          bonusPts: 10,
+          ok: {
+            h: "INCROYABLE ! Mathematicien de l Espoir !",
+            txt: "495 milliards de tonnes !\nC est... presque 10 ANS d emissions mondiales.\nVous realisez ?\n1 milliard de personnes.\n1 hectare chacune.\n30 ans.\nEt vous INVERSEZ une decennie de pollution.\nCe n est pas une utopie.\nC est... mathematiquement POSSIBLE.\nIl faut juste...\nLA VOLONTE.",
+          },
+          ko: {
+            h: "RATE — La bonne reponse etait D) 495 milliards de tonnes",
+            txt: "Le calcul :\n150 arbres par hectare.\n1 arbre absorbe 22 kilogrammes de dioxyde de carbone par an.\nSur 30 ans de croissance progressive : environ 330 kilogrammes par arbre.\n150 arbres fois 330 kilogrammes = 49,5 tonnes par hectare.\n1 milliard de personnes fois 49,5 tonnes = 49 500 milliards de kilogrammes.\nC est QUAND MEME... ENORME.",
+          },
+        },
+      ];
+
+      // ══ QUIZ STATE ══
+      var qIdx = 0,
+        qScore = 0,
+        qCorrect = 0,
+        timerIv = null,
+        timerLeft = 0,
+        answered = false;
+
+      function buildPips() {
+        var w = document.getElementById("qprog");
+        w.innerHTML = "";
+        QQ.forEach(function (_, i) {
+          var d = document.createElement("div");
+          d.className =
+            "qpip" + (i < qIdx ? " done" : i === qIdx ? " cur" : "");
+          w.appendChild(d);
+        });
+      }
+
+      function showQ(i) {
+        answered = false;
+        var q = QQ[i];
+        document.getElementById("qnum").textContent =
+          "QUESTION " + q.n + " / 5" + (q.bonus ? " — BONUS x2" : "");
+        document.getElementById("qtext").textContent = q.q;
+        var od = document.getElementById("qopts");
+        od.innerHTML = "";
+        ["A", "B", "C", "D"].forEach(function (L, oi) {
+          var b = document.createElement("div");
+          b.className = "qopt";
+          b.innerHTML =
+            '<span class="ql">' + L + ")</span><span>" + q.opts[oi] + "</span>";
+          b.onclick = function () {
+            if (!answered) doAnswer(oi, q);
+          };
+          od.appendChild(b);
+        });
+        document.getElementById("qfb").className = "";
+        document.getElementById("qfb").style.display = "none";
+        document.getElementById("qnext").textContent =
+          i < QQ.length - 1 ? "QUESTION SUIVANTE  ▶" : "VOIR LES RESULTATS  ▶";
+        buildPips();
+        startTimer(q.timer);
+      }
+
+      function startTimer(secs) {
+        clearInterval(timerIv);
+        timerLeft = secs;
+        var fill = document.getElementById("qtfill"),
+          val = document.getElementById("qtval");
+        fill.style.width = "100%";
+        val.textContent = secs;
+        val.className = "";
+        timerIv = setInterval(function () {
+          timerLeft--;
+          fill.style.width = (timerLeft / secs) * 100 + "%";
+          val.textContent = timerLeft;
+          if (timerLeft <= 10) val.className = "warn";
+          if (timerLeft <= 5) {
+            val.className = "danger";
+            sfxTick();
+          }
+          if (timerLeft <= 0) {
+            clearInterval(timerIv);
+            onTimeout();
+          }
+        }, 1000);
+      }
+
+      function onTimeout() {
+        if (answered) return;
+        answered = true;
+        var q = QQ[qIdx];
+        var opts = document.querySelectorAll(".qopt");
+        opts[q.ans].classList.add("reveal");
+        opts.forEach(function (o) {
+          o.classList.add("locked");
+        });
+        showFeedback(false, q, true);
+      }
+
+      function doAnswer(oi, q) {
+        if (answered) return;
+        answered = true;
+        clearInterval(timerIv);
+        var opts = document.querySelectorAll(".qopt");
+        var ok = oi === q.ans;
+        opts[oi].classList.add(ok ? "correct" : "wrong");
+        if (!ok) opts[q.ans].classList.add("reveal");
+        opts.forEach(function (o) {
+          o.classList.add("locked");
+        });
+        var pts = ok ? q.pts : q.bonusPts || 0;
+        qScore += pts;
+        if (ok) qCorrect++;
+        if (ok) sfxOK();
+        else sfxKO();
+        document.getElementById("scd").textContent =
+          "SCORE : " + (score + qScore);
+        showFeedback(ok, q, false);
+      }
+
+      function showFeedback(ok, q, timeout) {
+        var fb = document.getElementById("qfb");
+        fb.style.display = "block";
+        fb.className = ok ? "ok" : "ko";
+        var data = ok ? q.ok : q.ko;
+        var hEl = document.getElementById("qfb-head");
+        hEl.textContent = timeout ? "TEMPS ECOULE !" : data.h || "";
+        hEl.className = ok ? "" : "ko-h";
+        var pEl = document.getElementById("qfb-pts");
+        var ptsLabel = timeout
+          ? "+0 POINTS (temps ecoule)"
+          : ok
+          ? q.pts + " POINTS !"
+          : q.bonusPts
+          ? "+" + q.bonusPts + " POINTS (tentative)"
+          : "+0 POINTS";
+        pEl.textContent = ptsLabel;
+        pEl.className = ok ? "" : "ko-p";
+        document.getElementById("qfb").style.display = "block";
+        speakFeedback(
+          data.txt,
+          document.getElementById("qfb-txt"),
+          document.getElementById("qfb-gbr"),
+          null
+        );
+      }
+
+      function nextQ() {
+        if (syn) syn.cancel();
+        qIdx++;
+        if (qIdx >= QQ.length) {
+          showResults();
+          return;
+        }
+        document.getElementById("qfb").style.display = "none";
+        showQ(qIdx);
+      }
+
+      function startQuiz() {
+        document.getElementById("start-btn").classList.remove("show");
+        hideV();
+        if (isLocked) document.exitPointerLock();
+        setTimeout(function () {
+          document.getElementById("quiz-overlay").classList.add("show");
+          qIdx = 0;
+          qScore = 0;
+          qCorrect = 0;
+          answered = false;
+          showQ(0);
+        }, 450);
+      }
+
+      // ══ RESULTS ══
+      function showResults() {
+        clearInterval(timerIv);
+        document.getElementById("quiz-overlay").classList.remove("show");
+        document.getElementById("results").classList.add("show");
+        var tot = qScore,
+          mx = 120;
+
+        // Score
+        document.getElementById("r-snum").textContent = tot + " / " + mx;
+        document.getElementById("r-ssub").textContent =
+          qCorrect + " / 5 correctes" + (qCorrect === 5 ? " + Bonus Q5" : "");
+
+        // Rank
+        var rank, rc;
+        if (tot >= 100) {
+          rank = "GARDIEN DES POUMONS";
+          rc = "var(--gold)";
+        } else if (tot >= 80) {
+          rank = "PROTECTEUR DE LA NATURE";
+          rc = "var(--g)";
+        } else if (tot >= 60) {
+          rank = "AMI DES FORETS";
+          rc = "#88ff88";
+        } else if (tot >= 40) {
+          rank = "APPRENTI ECOLOGUE";
+          rc = "rgba(0,255,136,.65)";
+        } else {
+          rank = "OBSERVATEUR CURIEUX";
+          rc = "rgba(0,255,136,.4)";
+        }
+        var rEl = document.getElementById("r-rank");
+        rEl.textContent = "RANG : " + rank;
+        rEl.style.color = rc;
+
+        // Badges
+        var bw = document.getElementById("r-badges");
+        bw.innerHTML = "";
+        var bds = [];
+        if (qCorrect === 5) bds.push({ t: "PARFAIT — 5/5 QUESTIONS", g: true });
+        if (tot >= 100)
+          bds.push({ t: "BADGE : GUERISSEUR DES POUMONS", g: true });
+        if (qCorrect >= 3) bds.push({ t: "STAGE 2 COMPLETE", g: false });
+        if (qIdx >= 4 && QQ[4].ans === 3)
+          bds.push({ t: "MATHEMATICIEN DE L ESPOIR", g: true });
+        bds.forEach(function (b) {
+          var d = document.createElement("div");
+          d.className = "r-badge" + (b.g ? " gold" : "");
+          d.textContent = b.t;
+          bw.appendChild(d);
+        });
+
+        // Pass/fail threshold (80% of 120 = 96, so >= 80pts = 4 correct)
+        var passed = tot >= 80;
+        // Save score
+        var ns = passed ? score + tot + 200 : score + tot;
+        try {
+          localStorage.setItem("gaiaScore", ns.toString());
+          localStorage.setItem("gaiaPlayerName", pName);
+        } catch (e) {}
+        document.getElementById("scd").textContent = "SCORE : " + ns;
+
+        // Pass/Fail UI
+        var failMsg = document.getElementById("r-fail-msg");
+        var retryBtn = document.getElementById("retry-btn");
+        var unlockedEl = document.getElementById("r-unlocked");
+        if (passed) {
+          failMsg.classList.remove("show");
+          retryBtn.classList.remove("show");
+          unlockedEl.innerHTML =
+            "STAGE 2 COMPLETE &#10003; &nbsp;|&nbsp; +200 POINTS BONUS &nbsp;|&nbsp;<br/>BADGE DEBLOQUE : GUERISSEUR DES POUMONS &nbsp;|&nbsp;<br/>STAGE 3 DEBLOQUE : Systeme Immunitaire (Technologies)";
+          unlockedEl.style.display = "block";
+        } else {
+          failMsg.classList.add("show");
+          retryBtn.classList.add("show");
+          unlockedEl.style.display = "none";
+        }
+
+        // GAIA feedback (voice + text)
+        var gt;
+        if (tot >= 100) {
+          gt =
+            pName +
+            "...\nVous avez... TOUT compris.\nVous savez comment je respire.\nVous savez pourquoi je suffoque.\nVous savez comment me guerir.\nGrace a vous...\nMon coeur bat mieux.\nMes poumons respirent mieux.\nMais il reste... tant a faire.\nMon corps est encore MALADE.\nPollue. Infecte. Attaque.\nIl est temps de renforcer...\nMes DEFENSES.\nMes technologies. Mon systeme immunitaire.\nEtes-vous pret a me proteger...\nDes menaces qui m assaillent ?";
+        } else if (tot >= 60) {
+          gt =
+            pName +
+            "...\nVous commencez a comprendre.\nMes poumons, mes forets... vous les voyez mieux.\nMais il reste des zones d ombre.\nContinuez. Apprenez.\nChaque connaissance compte.\nEnsemble, nous pouvons inverser le cours des choses.\nLe Stage 3 vous attend.";
+        } else {
+          gt =
+            pName +
+            "...\nC est difficile. Je le sais.\nMes cycles, mes chiffres... c est complexe.\nMais ne vous decouragez pas.\nChaque tentative est un pas vers la conscience.\nEt la conscience... c est le debut du changement.\nContinuez votre chemin.";
+        }
+
+        setTimeout(function () {
+          var el = document.getElementById("rgtxt"),
+            bars = document.getElementById("rgbr");
+          el.textContent = "";
+          if (syn && !isMuted) {
+            syn.cancel();
+            var u = new SpeechSynthesisUtterance(gt);
+            u.lang = "fr-FR";
+            u.rate = 0.78;
+            u.pitch = 0.72;
+            u.volume = 1;
+            var v = gv();
+            if (v) u.voice = v;
+            u.onstart = function () {
+              bars.classList.add("on");
+            };
+            u.onend = u.onerror = function () {
+              bars.classList.remove("on");
+            };
+            syn.speak(u);
+          }
+          var d = 0;
+          var iv = setInterval(function () {
+            if (d < gt.length) {
+              el.textContent = gt.slice(0, ++d);
+            } else clearInterval(iv);
+          }, 20);
+        }, 700);
+      }
+
+      // ══ RETRY ══
+      function retryQuiz() {
+        if (syn) syn.cancel();
+        document.getElementById("results").classList.remove("show");
+        document.getElementById("r-fail-msg").classList.remove("show");
+        document.getElementById("retry-btn").classList.remove("show");
+        // Reset and restart
+        setTimeout(function () {
+          document.getElementById("quiz-overlay").classList.add("show");
+          qIdx = 0;
+          qScore = 0;
+          qCorrect = 0;
+          answered = false;
+          showQ(0);
+        }, 200);
+      }
+
+      // ══ HUB ══
+      function goHub() {
+        if (entering) return;
+        entering = true;
+        if (syn) syn.cancel();
+        var cu = document.getElementById("curtain");
+        cu.style.background = "linear-gradient(135deg,#001508,#000)";
+        cu.style.transition = "opacity 2.2s ease";
+        cu.classList.remove("gone");
+        cu.style.opacity = "1";
+        setTimeout(function () {
+          window.location.href = "scene3.html";
+        }, 2400);
+      }
+
+      // ══ INIT ══
+      function init() {
+        initAC();
+        document.addEventListener(
+          "click",
+          function () {
+            if (AC && AC.state === "suspended") AC.resume();
+          },
+          { once: true }
+        );
+        init3D();
+        var cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.4s";
+        setTimeout(function () {
+          cu.classList.add("gone");
+        }, 150);
+        document.getElementById("hud").classList.add("show");
+        setTimeout(function () {
+          document.getElementById("move-hint").classList.add("show");
+        }, 1200);
+        sfxAmb();
+
+        // GAIA intro — après entrée
+        setTimeout(function () {
+          var intro =
+            pName +
+            ",\nVous avez voyage dans mes poumons.\nVous avez RESSENTI ma respiration.\nVous avez VU comment mes forets produisent l oxygene.\nVous avez ete TEMOIN de la deforestation.\nVous avez PLANTE... et redonne espoir.\nMaintenant, prouvez-moi que vous avez compris.\n5 questions.\nSi vous reussissez...\nJe vous laisserai acceder a mon SYSTEME IMMUNITAIRE.\nMes technologies de defense.\nEtes-vous pret ?";
+          speak(
+            intro,
+            function () {
+              hideV();
+              setTimeout(function () {
+                document.getElementById("start-btn").classList.add("show");
+              }, 500);
+            },
+            0.78
+          );
+        }, 1800);
+
+        requestAnimationFrame(renderLoop);
+      }
+      window.addEventListener("load", init);
+      window.addEventListener("resize", function () {
+        W = innerWidth;
+        H = innerHeight;
+        if (renderer) {
+          renderer.setSize(W, H);
+        }
+        if (camera3) {
+          camera3.aspect = W / H;
+          camera3.updateProjectionMatrix();
+        }
+      });
+    </script>
+  </body>
+</html>
