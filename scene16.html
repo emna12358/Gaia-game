@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAIA — Scene 16 : Corps Infecte</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #00ff88;
+        --gd: #00cc66;
+        --soft: #d0f0e0;
+        --ui: rgba(0, 6, 2, 0.97);
+        --ub: rgba(0, 255, 136, 0.14);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0a0604;
+      }
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+      }
+      #cur {
+        position: fixed;
+        width: 14px;
+        height: 14px;
+        border: 1.5px solid rgba(0, 255, 136, 0.7);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+      }
+      #cur::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--g);
+        border-radius: 50%;
+      }
+      canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        display: block;
+      }
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 800;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 1.6s ease;
+      }
+      #curtain.gone {
+        opacity: 0;
+      }
+      #xhair {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 12;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #xhair.show {
+        opacity: 1;
+      }
+      #xhair::before,
+      #xhair::after {
+        content: "";
+        position: absolute;
+        background: rgba(255, 140, 60, 0.55);
+      }
+      #xhair::before {
+        width: 14px;
+        height: 1.5px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #xhair::after {
+        width: 1.5px;
+        height: 14px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        padding: 14px 24px 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #hud.show {
+        opacity: 1;
+      }
+      .hl {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.48em;
+        color: rgba(0, 255, 136, 0.25);
+      }
+      .hc {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: rgba(220, 100, 40, 0.45);
+      }
+      .hr {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: rgba(0, 255, 136, 0.28);
+      }
+      #contam-hud {
+        position: fixed;
+        top: 54px;
+        right: 18px;
+        z-index: 22;
+        width: 220px;
+        background: rgba(8, 3, 0, 0.96);
+        border: 1px solid rgba(200, 80, 20, 0.3);
+        border-radius: 4px;
+        backdrop-filter: blur(18px);
+        padding: 13px 15px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+      #contam-hud.show {
+        opacity: 1;
+      }
+      .ch-title {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.32em;
+        color: rgba(220, 100, 40, 0.65);
+        margin-bottom: 11px;
+      }
+      .ch-row {
+        margin-bottom: 8px;
+      }
+      .ch-lbl {
+        font-family: "Cinzel", serif;
+        font-size: 6px;
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.4);
+        margin-bottom: 3px;
+      }
+      .ch-bar {
+        height: 3px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 3px;
+      }
+      .ch-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 2s ease;
+      }
+      .ch-val {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        font-weight: 700;
+      }
+      #move-hint {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 22;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.24em;
+        color: rgba(220, 120, 50, 0.35);
+        background: rgba(8, 3, 0, 0.75);
+        border: 1px solid rgba(180, 70, 20, 0.2);
+        padding: 6px 18px;
+        border-radius: 2px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+        white-space: nowrap;
+      }
+      #move-hint.show {
+        opacity: 1;
+      }
+      #vp {
+        position: fixed;
+        bottom: clamp(14px, 2.5vh, 28px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 40;
+        width: min(720px, 92vw);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+      #vp.show {
+        opacity: 1;
+      }
+      #vs {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(220, 100, 40, 0.55),
+          transparent
+        );
+        margin-bottom: 7px;
+        transition: width 1s;
+      }
+      #vs.show {
+        width: 100%;
+      }
+      #vbox {
+        width: 100%;
+        background: rgba(8, 3, 0, 0.98);
+        border: 1px solid rgba(200, 80, 20, 0.25);
+        backdrop-filter: blur(26px);
+        border-radius: 3px;
+        padding: 12px 20px 10px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.8s, transform 0.8s;
+      }
+      #vbox.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #vhdr {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 5px;
+      }
+      #vnm {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.42em;
+        color: rgba(220, 100, 40, 0.55);
+      }
+      #vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: #cc5022;
+        transform-origin: bottom;
+        animation: vba 0.9s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .vb:nth-child(3) {
+        height: 4px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      .vb:nth-child(5) {
+        height: 3px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      .vb:nth-child(6) {
+        height: 7px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      @keyframes vba {
+        from {
+          transform: scaleY(0.18);
+          opacity: 0.5;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+      #vtx {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(13px, 1.5vw, 15px);
+        line-height: 1.9;
+        color: rgba(255, 220, 190, 0.9);
+        white-space: pre-wrap;
+        max-height: 120px;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      #vtx::-webkit-scrollbar {
+        display: none;
+      }
+      #twc {
+        display: inline-block;
+        width: 2px;
+        height: 13px;
+        background: #cc5022;
+        vertical-align: middle;
+        margin-left: 2px;
+        animation: blink 0.8s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+      #salle-btn {
+        position: fixed;
+        bottom: clamp(88px, 12vh, 115px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 42;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: #ff7744;
+        background: rgba(12, 3, 0, 0.97);
+        border: 1px solid rgba(255, 90, 30, 0.55);
+        border-radius: 3px;
+        padding: 14px 44px;
+        cursor: pointer;
+        transition: all 0.3s;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 0 24px rgba(255, 80, 30, 0.12);
+      }
+      #salle-btn.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #salle-btn:hover {
+        background: rgba(255, 80, 30, 0.14);
+        box-shadow: 0 0 50px rgba(255, 80, 30, 0.35);
+        transform: translateX(-50%) translateY(-2px);
+      }
+      #wind-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 600;
+        display: none;
+      }
+      #wind-overlay.active {
+        display: block;
+      }
+      #mute-btn {
+        position: fixed;
+        bottom: 12px;
+        right: 18px;
+        z-index: 999;
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.28em;
+        color: rgba(0, 255, 136, 0.18);
+        cursor: pointer;
+        background: none;
+        border: none;
+        transition: color 0.3s;
+      }
+      #mute-btn:hover {
+        color: rgba(0, 255, 136, 0.55);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cur"></div>
+    <canvas id="gc"></canvas>
+    <div id="xhair"></div>
+    <div id="hud">
+      <div class="hl">G A I A</div>
+      <div class="hc">S T A G E &nbsp; 3 — C O R P S &nbsp; I N F E C T E</div>
+      <div class="hr" id="scd">SCORE : 0</div>
+    </div>
+    <div id="contam-hud">
+      <div class="ch-title">INDICATEURS DE POLLUTION</div>
+      <div class="ch-row">
+        <div class="ch-lbl">OCEAN — PLASTIQUE / TOXINES</div>
+        <div class="ch-bar">
+          <div
+            class="ch-fill"
+            id="cf1"
+            style="
+              width: 0%;
+              background: linear-gradient(90deg, #7a2200, #dd4400);
+            "
+          ></div>
+        </div>
+        <div class="ch-val" style="color: #dd5522">
+          78% CONTAMINE — CRITIQUE
+        </div>
+      </div>
+      <div class="ch-row">
+        <div class="ch-lbl">AIR — PARTICULES PM2.5</div>
+        <div class="ch-bar">
+          <div
+            class="ch-fill"
+            id="cf2"
+            style="
+              width: 0%;
+              background: linear-gradient(90deg, #554400, #aa8800);
+            "
+          ></div>
+        </div>
+        <div class="ch-val" style="color: #cc9922">7 MILLIONS morts/an</div>
+      </div>
+      <div class="ch-row">
+        <div class="ch-lbl">SOLS — CONTAMINATION NUCLEAIRE</div>
+        <div class="ch-bar">
+          <div
+            class="ch-fill"
+            id="cf3"
+            style="
+              width: 0%;
+              background: linear-gradient(90deg, #225500, #55aa00);
+            "
+          ></div>
+        </div>
+        <div class="ch-val" style="color: #88bb44">Radioactif 24 000 ans</div>
+      </div>
+    </div>
+    <div id="move-hint">
+      ZQSD / FLECHES — Marcher &nbsp;|&nbsp; SOURIS (clic) — Regarder a 360°
+    </div>
+    <div id="vp">
+      <div id="vs"></div>
+      <div id="vbox">
+        <div id="vhdr">
+          <span id="vnm">G A I A</span>
+          <span id="vbr">
+            <span class="vb"></span><span class="vb"></span>
+            <span class="vb"></span><span class="vb"></span>
+            <span class="vb"></span><span class="vb"></span>
+          </span>
+        </div>
+        <div id="vtx"></div>
+        <span id="twc"></span>
+      </div>
+    </div>
+    <button id="salle-btn" onclick="enterSalle1()">
+      &#9658; SALLE 1 — TECHNOLOGIES VERTES
+    </button>
+    <div id="wind-overlay"><canvas id="wind-canvas"></canvas></div>
+    <div id="curtain"></div>
+    <button id="mute-btn" onclick="togMute()">SON</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      "use strict";
+      var W = innerWidth,
+        H = innerHeight;
+      var isMuted = false,
+        AC = null;
+      var pName = "Gardien",
+        score = 0;
+      var isLocked = false,
+        camYaw = 0,
+        camPitch = 0,
+        camH = 1.8;
+      var keysF = {};
+      var entering = false;
+      var renderer, scene3, camera3;
+      var frameN = 0,
+        lastT = 0,
+        uTime = 0;
+      var oceanWaves = [],
+        toxinSpheres = [],
+        smokePuffs = [],
+        fireGlows = [];
+
+      try {
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+        score = parseInt(localStorage.getItem("gaiaScore") || "0");
+      } catch (e) {}
+      document.getElementById("scd").textContent = "SCORE : " + score;
+      var $cur = document.getElementById("cur");
+      document.addEventListener("mousemove", function (e) {
+        $cur.style.left = e.clientX + "px";
+        $cur.style.top = e.clientY + "px";
+      });
+
+      // ══════════════════════════════════════════════════════
+      // THREE.JS — WORLD CONSTRUCTION
+      // ══════════════════════════════════════════════════════
+      function init3D() {
+        renderer = new THREE.WebGLRenderer({
+          canvas: document.getElementById("gc"),
+          antialias: true,
+        });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.setSize(W, H);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.4;
+
+        scene3 = new THREE.Scene();
+        scene3.fog = new THREE.Fog(0x1a0c04, 60, 220);
+
+        camera3 = new THREE.PerspectiveCamera(72, W / H, 0.1, 500);
+        camera3.position.set(0, camH, 0);
+
+        // ── SKY ──
+        var skyGeo = new THREE.SphereGeometry(300, 32, 16);
+        var skyMat = new THREE.ShaderMaterial({
+          side: THREE.BackSide,
+          uniforms: { uT: { value: 0 } },
+          vertexShader:
+            "varying vec3 vPos;void main(){vPos=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+          fragmentShader: [
+            "uniform float uT;varying vec3 vPos;",
+            "void main(){",
+            "  float h=normalize(vPos).y;",
+            "  vec3 horiz=vec3(.38,.16,.05);",
+            "  vec3 zenith=vec3(.08,.05,.03);",
+            "  vec3 col=mix(horiz,zenith,max(0.,h));",
+            "  float haze=sin(vPos.x*.006+uT*.025)*cos(vPos.z*.005+uT*.02)*.04;",
+            "  col+=vec3(haze,.4*haze,0.);",
+            "  gl_FragColor=vec4(col,1.);",
+            "}",
+          ].join("\n"),
+        });
+        scene3._skyMat = skyMat;
+        scene3.add(new THREE.Mesh(skyGeo, skyMat));
+
+        // ── LIGHTS ──
+        scene3.add(new THREE.AmbientLight(0xcc6622, 1.2));
+        var sun = new THREE.DirectionalLight(0xff8833, 2.8);
+        sun.position.set(-80, 25, 40);
+        sun.castShadow = true;
+        sun.shadow.mapSize.width = 2048;
+        sun.shadow.mapSize.height = 2048;
+        sun.shadow.camera.far = 200;
+        sun.shadow.camera.left = -100;
+        sun.shadow.camera.right = 100;
+        sun.shadow.camera.top = 100;
+        sun.shadow.camera.bottom = -100;
+        scene3.add(sun);
+        var fill = new THREE.DirectionalLight(0x334455, 0.6);
+        fill.position.set(60, 30, -40);
+        scene3.add(fill);
+        scene3.add(new THREE.HemisphereLight(0xdd6633, 0x221106, 0.8));
+
+        // Fire lights
+        var firePosns = [
+          [48, 3, 30],
+          [50, 4, 34],
+          [-42, 3, -18],
+          [-38, 5, -14],
+          [10, 3, -55],
+          [12, 4, -50],
+        ];
+        firePosns.forEach(function (p) {
+          var fl = new THREE.PointLight(0xff4400, 3, 22);
+          fl.position.set(p[0], p[1], p[2]);
+          scene3.add(fl);
+          fireGlows.push({
+            light: fl,
+            base: 3,
+            ph: Math.random() * Math.PI * 2,
+            spd: 0.8 + Math.random() * 1.2,
+          });
+        });
+        [
+          [-65, 1.5, -30],
+          [70, 1.5, 10],
+          [0, 1.5, 80],
+        ].forEach(function (p) {
+          var gl = new THREE.PointLight(0x226600, 0.8, 35);
+          gl.position.set(p[0], p[1], p[2]);
+          scene3.add(gl);
+        });
+
+        // ── GROUND ──
+        var groundMat = new THREE.MeshStandardMaterial({
+          color: 0x3a1f08,
+          roughness: 0.98,
+          metalness: 0,
+        });
+        var ground = new THREE.Mesh(
+          new THREE.PlaneGeometry(500, 500, 1, 1),
+          groundMat
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene3.add(ground);
+
+        var crackMat = new THREE.MeshStandardMaterial({
+          color: 0x4e2c0e,
+          roughness: 0.95,
+          metalness: 0,
+        });
+        var deadMat = new THREE.MeshStandardMaterial({
+          color: 0x2a2010,
+          roughness: 0.9,
+          metalness: 0,
+          transparent: true,
+          opacity: 0.85,
+        });
+        for (var i = 0; i < 80; i++) {
+          var gx = (Math.random() - 0.5) * 180,
+            gz = (Math.random() - 0.5) * 180;
+          var gs = 3 + Math.random() * 12;
+          var gm = new THREE.Mesh(
+            new THREE.PlaneGeometry(gs, gs * (0.5 + Math.random() * 0.8)),
+            Math.random() < 0.5 ? crackMat : deadMat
+          );
+          gm.rotation.x = -Math.PI / 2;
+          gm.rotation.z = Math.random() * Math.PI;
+          gm.position.set(gx, 0.01, gz);
+          scene3.add(gm);
+        }
+
+        // ── OCEAN ──
+        var oceanShader = new THREE.ShaderMaterial({
+          uniforms: { uT: { value: 0 } },
+          vertexShader: [
+            "uniform float uT;varying vec2 vUv;varying vec3 vWPos;",
+            "void main(){",
+            "  vUv=uv;vWPos=position;",
+            "  vec3 p=position;",
+            "  p.y+=sin(p.x*.18+uT*.8)*.12+sin(p.z*.22+uT*.65)*.1+sin(p.x*.4+p.z*.3+uT*1.1)*.06;",
+            "  gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);",
+            "}",
+          ].join("\n"),
+          fragmentShader: [
+            "uniform float uT;varying vec2 vUv;varying vec3 vWPos;",
+            "void main(){",
+            "  float wave=sin(vWPos.x*.2+uT*.7)*.5+.5;",
+            "  float wave2=sin(vWPos.z*.25+uT*.55)*.5+.5;",
+            "  vec3 deep=vec3(.08,.06,.02);",
+            "  vec3 shallow=vec3(.22,.14,.03);",
+            "  vec3 foam=vec3(.28,.20,.08);",
+            "  vec3 plastic=vec3(.35,.22,.08);",
+            "  float mixW=wave*.5+wave2*.5;",
+            "  vec3 col=mix(deep,shallow,mixW*.6);",
+            "  col=mix(col,foam,smoothstep(.7,.95,mixW)*.4);",
+            "  float pNoise=sin(vWPos.x*.1)*sin(vWPos.z*.12)*.5+.5;",
+            "  col=mix(col,plastic,pNoise*.35);",
+            "  col+=vec3(-.01,.03,-.01)*sin(uT*.3+vWPos.x*.05)*.5+.5;",
+            "  gl_FragColor=vec4(col,.95);",
+            "}",
+          ].join("\n"),
+          transparent: true,
+          side: THREE.FrontSide,
+        });
+        scene3._oceanMat = oceanShader;
+
+        var oceanSegs = [
+          [-80, -1.2, -60, 120, 100],
+          [70, -1.2, -50, 100, 80],
+          [0, -1.2, 90, 200, 80],
+          [-20, -1.2, -85, 160, 60],
+        ];
+        oceanSegs.forEach(function (o) {
+          var om = new THREE.Mesh(
+            new THREE.PlaneGeometry(o[3], o[4], 40, 40),
+            oceanShader.clone()
+          );
+          om.rotation.x = -Math.PI / 2;
+          om.position.set(o[0], o[1], o[2]);
+          scene3.add(om);
+          oceanWaves.push(om);
+        });
+
+        // Shoreline cliffs
+        var cliffMat = new THREE.MeshStandardMaterial({
+          color: 0x2a1205,
+          roughness: 0.98,
+        });
+        var cliffDefs = [
+          [-20, -0.4, -58, 160, 1.6, 4],
+          [-38, -0.4, -10, 4, 1.6, 50],
+          [38, -0.4, -8, 4, 1.6, 50],
+        ];
+        cliffDefs.forEach(function (cl) {
+          var cm = new THREE.Mesh(
+            new THREE.BoxGeometry(cl[3], cl[4], cl[5]),
+            cliffMat
+          );
+          cm.position.set(cl[0], cl[1], cl[2]);
+          cm.castShadow = true;
+          cm.receiveShadow = true;
+          scene3.add(cm);
+        });
+
+        // Plastic island
+        var plasticMat = new THREE.MeshStandardMaterial({
+          color: 0x7a5520,
+          roughness: 0.6,
+          metalness: 0.05,
+        });
+        var island = new THREE.Mesh(
+          new THREE.PlaneGeometry(28, 18, 8, 8),
+          plasticMat
+        );
+        island.rotation.x = -Math.PI / 2;
+        island.position.set(-78, -0.9, -55);
+        scene3.add(island);
+        for (var i = 0; i < 16; i++) {
+          var dx = (Math.random() - 0.5) * 24,
+            dz = (Math.random() - 0.5) * 14;
+          var dh = 0.05 + Math.random() * 0.25;
+          var dm = new THREE.Mesh(
+            new THREE.BoxGeometry(
+              0.3 + Math.random() * 0.6,
+              dh,
+              0.3 + Math.random() * 0.5
+            ),
+            new THREE.MeshStandardMaterial({
+              color: new THREE.Color().setHSL(
+                0.1 + Math.random() * 0.15,
+                0.5,
+                0.25 + Math.random() * 0.2
+              ),
+              roughness: 0.7,
+            })
+          );
+          dm.position.set(-78 + dx, -1.2 + dh / 2, -55 + dz);
+          dm.rotation.y = Math.random() * Math.PI;
+          dm.castShadow = true;
+          scene3.add(dm);
+        }
+
+        // Land elevation
+        var landElev = new THREE.Mesh(
+          new THREE.PlaneGeometry(80, 80),
+          new THREE.MeshStandardMaterial({ color: 0x3a1f08, roughness: 0.98 })
+        );
+        landElev.rotation.x = -Math.PI / 2;
+        landElev.position.set(0, 0.3, 0);
+        landElev.receiveShadow = true;
+        scene3.add(landElev);
+
+        // ── DEAD TREES ──
+        // Each tree group is placed with its base EXACTLY on the ground (y=0 inside group).
+        // The trunk bottom sits at y=0, top at y=td.h.
+        // Branches are attached at points along the trunk and pivot outward using a pivot group.
+        var trunkMat = new THREE.MeshStandardMaterial({
+          color: 0x3a1c06,
+          roughness: 0.92,
+        });
+        var deadBranchMat = new THREE.MeshStandardMaterial({
+          color: 0x2a1302,
+          roughness: 0.95,
+        });
+
+        // Determine ground Y for a given world X,Z (land area is at y=0.3, rest at y=0)
+        function groundY(wx, wz) {
+          var onLand = Math.abs(wx) < 38 && Math.abs(wz) < 38;
+          return onLand ? 0.3 : 0.0;
+        }
+
+        var treePosns = [];
+        for (var i = 0; i < 130; i++) {
+          var tx = (Math.random() - 0.5) * 150,
+            tz = (Math.random() - 0.5) * 150;
+          if (Math.sqrt(tx * tx + tz * tz) < 5) continue; // avoid spawn point
+          if (tx > -45 && tx < 45 && tz > -55 && tz < -20) continue; // avoid cliff
+          if (tx > -85 && tx < -55 && tz > -70 && tz < -38) continue; // avoid ocean island
+          treePosns.push({
+            x: tx,
+            z: tz,
+            h: 3.5 + Math.random() * 8,
+            thick: 0.14 + Math.random() * 0.2,
+          });
+        }
+
+        treePosns.forEach(function (td) {
+          var grp = new THREE.Group();
+          var gy = groundY(td.x, td.z);
+
+          // ── Trunk: base at y=0, top at y=td.h ──
+          // CylinderGeometry is centred at 0, so shift it up by h/2
+          var tr = new THREE.Mesh(
+            new THREE.CylinderGeometry(td.thick * 0.45, td.thick, td.h, 8),
+            trunkMat
+          );
+          tr.position.y = td.h / 2; // base now at y=0 in group space
+          tr.castShadow = true;
+          tr.receiveShadow = true;
+          grp.add(tr);
+
+          // ── Branches: pivot from attachment point on trunk, angle outward ──
+          var nb = 3 + Math.floor(Math.random() * 3);
+          for (var b = 0; b < nb; b++) {
+            var frac = 0.4 + (b / nb) * 0.5 + Math.random() * 0.08; // 40-90% up trunk
+            var attachY = td.h * frac; // Y on trunk
+            var ba = (b / nb) * Math.PI * 2 + Math.random() * 0.6; // azimuth
+            var tilt = 0.45 + Math.random() * 0.35; // outward tilt (rad)
+            var bl = td.h * (0.25 + Math.random() * 0.28); // branch length
+
+            var brThick = td.thick * (0.28 - b * 0.03);
+            brThick = Math.max(brThick, 0.025);
+
+            // Use a pivot group at the attachment point to simplify rotation
+            var pivot = new THREE.Group();
+            pivot.position.set(0, attachY, 0);
+            pivot.rotation.y = ba; // spin around trunk
+            grp.add(pivot);
+
+            // Branch mesh: bottom at y=0 inside pivot, top at y=bl
+            var br = new THREE.Mesh(
+              new THREE.CylinderGeometry(brThick * 0.4, brThick, bl, 6),
+              deadBranchMat
+            );
+            // Centre is at bl/2; tilt it outward from trunk by rotating around X
+            br.position.set(
+              Math.sin(tilt) * bl * 0.5,
+              bl * 0.5 * Math.cos(tilt),
+              0
+            );
+            br.rotation.z = -tilt; // tilt away from trunk (negative = outward in pivot space)
+            br.castShadow = true;
+            pivot.add(br);
+
+            // Sub-branch off the tip of each main branch
+            if (Math.random() < 0.55) {
+              var sbl = bl * (0.3 + Math.random() * 0.3);
+              var sTilt = 0.3 + Math.random() * 0.5;
+              var sBa = Math.random() * Math.PI * 2;
+              var sbThick = brThick * 0.5;
+
+              // Attachment point = tip of parent branch in pivot space
+              var tipX = Math.sin(tilt) * bl;
+              var tipY = bl * Math.cos(tilt);
+
+              var pivot2 = new THREE.Group();
+              pivot2.position.set(tipX, tipY, 0);
+              pivot2.rotation.y = sBa;
+              pivot.add(pivot2);
+
+              var sb = new THREE.Mesh(
+                new THREE.CylinderGeometry(sbThick * 0.4, sbThick, sbl, 5),
+                deadBranchMat
+              );
+              sb.position.set(
+                Math.sin(sTilt) * sbl * 0.5,
+                sbl * 0.5 * Math.cos(sTilt),
+                0
+              );
+              sb.rotation.z = -sTilt;
+              pivot2.add(sb);
+            }
+          }
+
+          // Place group so base sits exactly on ground
+          grp.position.set(td.x, gy, td.z);
+          scene3.add(grp);
+        });
+
+        // ── RUINED BUILDINGS ──
+        var concMat = new THREE.MeshStandardMaterial({
+          color: 0x4a3c28,
+          roughness: 0.9,
+          metalness: 0.05,
+        });
+        var burnMat = new THREE.MeshStandardMaterial({
+          color: 0x2e2018,
+          roughness: 0.95,
+          metalness: 0,
+        });
+        var glassMat = new THREE.MeshStandardMaterial({
+          color: 0x3a5028,
+          roughness: 0.3,
+          metalness: 0.4,
+          transparent: true,
+          opacity: 0.6,
+        });
+
+        function buildCity(cx, cz, count, spread) {
+          for (var i = 0; i < count; i++) {
+            var bx = cx + (Math.random() - 0.5) * spread;
+            var bz = cz + (Math.random() - 0.5) * spread;
+            var bw = 2.5 + Math.random() * 5;
+            var bd = 2.5 + Math.random() * 4;
+            var bh = 6 + Math.random() * 18;
+            var mat = Math.random() < 0.6 ? concMat : burnMat;
+            var bm = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), mat);
+            bm.position.set(bx, 0.3 + bh / 2, bz);
+            bm.castShadow = true;
+            bm.receiveShadow = true;
+            scene3.add(bm);
+            // Damaged top
+            if (Math.random() < 0.5) {
+              var dh2 = 1 + Math.random() * 3;
+              var dm2 = new THREE.Mesh(
+                new THREE.BoxGeometry(bw * 0.7, dh2, bd * 0.7),
+                burnMat
+              );
+              dm2.position.set(
+                bx + (Math.random() - 0.5) * bw * 0.15, // ← FIX: was .random
+                0.3 + bh + dh2 / 2,
+                bz + (Math.random() - 0.5) * bd * 0.15
+              );
+              dm2.castShadow = true;
+              scene3.add(dm2);
+            }
+            // Window strips
+            for (var wl = 0; wl < 3; wl++) {
+              var wm = new THREE.Mesh(
+                new THREE.BoxGeometry(bw + 0.05, 0.4, bd + 0.05),
+                glassMat
+              );
+              wm.position.set(bx, 0.3 + 2 + wl * (bh * 0.28), bz);
+              scene3.add(wm);
+            }
+            // Smoke
+            if (Math.random() < 0.6) {
+              var smMat = new THREE.MeshStandardMaterial({
+                color: 0x1a1410,
+                transparent: true,
+                opacity: 0.4 + Math.random() * 0.25,
+                roughness: 1,
+              });
+              for (var si = 0; si < 3; si++) {
+                var smR = 1.2 + Math.random() * 2;
+                var sm = new THREE.Mesh(
+                  new THREE.SphereGeometry(smR, 8, 6),
+                  smMat.clone()
+                );
+                sm.scale.set(1, 0.5 + Math.random() * 0.3, 1);
+                var smY = bh + 1.5 + si * 2.5 + Math.random() * 2;
+                sm.position.set(
+                  bx + (Math.random() - 0.5) * bw * 0.5,
+                  smY,
+                  bz + (Math.random() - 0.5) * bd * 0.5
+                );
+                scene3.add(sm);
+                smokePuffs.push({
+                  m: sm,
+                  baseY: smY,
+                  spd: 0.004 + Math.random() * 0.003,
+                  ph: Math.random() * Math.PI * 2,
+                  bx: bx,
+                  bz: bz,
+                });
+              }
+            }
+            // Fire debris at base
+            if (Math.random() < 0.4) {
+              var fbMat = new THREE.MeshStandardMaterial({
+                color: 0x3a1800,
+                roughness: 0.8,
+                emissive: 0x180800,
+                emissiveIntensity: 0.4,
+              });
+              var fb = new THREE.Mesh(
+                new THREE.BoxGeometry(bw * 0.8, 0.2, bd * 0.8),
+                fbMat
+              );
+              fb.position.set(bx, 0.3, bz);
+              scene3.add(fb);
+            }
+          }
+        }
+        buildCity(48, 32, 8, 18);
+        buildCity(-44, -20, 7, 16);
+        buildCity(10, -60, 6, 14);
+
+        // ── NUCLEAR WASTE BARRELS ──
+        var barrelMat = new THREE.MeshStandardMaterial({
+          color: 0x2a3010,
+          roughness: 0.6,
+          metalness: 0.3,
+          emissive: 0x0a1400,
+          emissiveIntensity: 0.2,
+        });
+        var warnMat = new THREE.MeshStandardMaterial({
+          color: 0x886600,
+          roughness: 0.7,
+        });
+        [
+          [8, 0.3, 12],
+          [10, 0.3, 15],
+          [-6, 0.3, 18],
+          [-8, 0.3, 14],
+          [14, 0.3, 10],
+          [12, 0.3, 8],
+        ].forEach(function (p) {
+          var barrel = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.35, 0.35, 0.9, 12),
+            barrelMat
+          );
+          barrel.position.set(p[0], p[1] + 0.45, p[2]);
+          barrel.castShadow = true;
+          scene3.add(barrel);
+          var stripe = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.36, 0.36, 0.12, 12),
+            warnMat
+          );
+          stripe.position.set(p[0], p[1] + 0.45, p[2]);
+          scene3.add(stripe);
+          var gl = new THREE.PointLight(0x44ff00, 0.4, 5);
+          gl.position.set(p[0], p[1] + 1, p[2]);
+          scene3.add(gl);
+          toxinSpheres.push({ light: gl, ph: Math.random() * Math.PI * 2 });
+        });
+
+        // ── TOXIN PARTICLES ──
+        var tCount = 500;
+        var tPosArr = new Float32Array(tCount * 3);
+        var tSzArr = new Float32Array(tCount);
+        var toxinData = [];
+        for (var i = 0; i < tCount; i++) {
+          var tx2 = (Math.random() - 0.5) * 120;
+          var ty2 = 0.8 + Math.random() * 9;
+          var tz2 = (Math.random() - 0.5) * 120;
+          tPosArr[i * 3] = tx2;
+          tPosArr[i * 3 + 1] = ty2;
+          tPosArr[i * 3 + 2] = tz2;
+          tSzArr[i] = 2 + Math.random() * 4;
+          toxinData.push({
+            x: tx2,
+            y: ty2,
+            z: tz2,
+            vx: (Math.random() - 0.5) * 0.012,
+            vy: 0.003 + Math.random() * 0.007,
+            vz: (Math.random() - 0.5) * 0.012,
+            lf: Math.random(),
+          });
+        }
+        var tGeo = new THREE.BufferGeometry();
+        tGeo.setAttribute("position", new THREE.BufferAttribute(tPosArr, 3));
+        tGeo.setAttribute("size", new THREE.BufferAttribute(tSzArr, 1));
+        var tMat = new THREE.ShaderMaterial({
+          uniforms: { uT: { value: 0 } },
+          vertexShader:
+            "attribute float size;varying float vA;uniform float uT;void main(){vec3 p=position;vA=.4+sin(uT*.5+p.x*.3+p.z*.2)*.2;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(220./-mv.z);gl_PointSize=clamp(gl_PointSize,1.,28.);gl_Position=projectionMatrix*mv;}",
+          fragmentShader:
+            "varying float vA;void main(){vec2 uv=gl_PointCoord-.5;float d=length(uv)*2.;float a=1.-smoothstep(.3,.9,d);gl_FragColor=vec4(.04,.03,.01,a*vA);}",
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.NormalBlending,
+        });
+        scene3._tGeo = tGeo;
+        scene3._tPos = tPosArr;
+        scene3._tData = toxinData;
+        scene3._tMat = tMat;
+        scene3.add(new THREE.Points(tGeo, tMat));
+
+        // ── SMOG PARTICLES ──
+        var smCount = 2000;
+        var smPos = new Float32Array(smCount * 3),
+          smCol = new Float32Array(smCount * 3),
+          smSz = new Float32Array(smCount);
+        for (var i = 0; i < smCount; i++) {
+          smPos[i * 3] = (Math.random() - 0.5) * 250;
+          smPos[i * 3 + 1] = 0.5 + Math.random() * 25;
+          smPos[i * 3 + 2] = (Math.random() - 0.5) * 250;
+          smCol[i * 3] = 0.28 + Math.random() * 0.18;
+          smCol[i * 3 + 1] = 0.15 + Math.random() * 0.1;
+          smCol[i * 3 + 2] = 0.06 + Math.random() * 0.05;
+          smSz[i] = 1.2 + Math.random() * 3.5;
+        }
+        var smGeo = new THREE.BufferGeometry();
+        smGeo.setAttribute("position", new THREE.BufferAttribute(smPos, 3));
+        smGeo.setAttribute("color", new THREE.BufferAttribute(smCol, 3));
+        smGeo.setAttribute("size", new THREE.BufferAttribute(smSz, 1));
+        var smMat = new THREE.ShaderMaterial({
+          uniforms: { uT: { value: 0 } },
+          vertexShader:
+            "attribute float size;attribute vec3 color;varying vec3 vC;varying float vA;uniform float uT;void main(){vC=color;vec3 p=position;float r=length(p.xz);p.y+=sin(uT*.25+r*.06+p.x*.04)*.5;p.x+=sin(uT*.1+p.z*.03)*.9;vA=.15+sin(uT*.35+r*.08)*.08;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(200./-mv.z);gl_PointSize=clamp(gl_PointSize,.5,20.);gl_Position=projectionMatrix*mv;}",
+          fragmentShader:
+            "varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5)*2.;float a=1.-smoothstep(.15,.85,d);gl_FragColor=vec4(vC,a*vA);}",
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          vertexColors: true,
+        });
+        scene3._smMat = smMat;
+        scene3.add(new THREE.Points(smGeo, smMat));
+
+        // ── FPS Controls ──
+        document.addEventListener("keydown", function (e) {
+          keysF[e.code] = true;
+          if (e.code === "Space") e.preventDefault();
+        });
+        document.addEventListener("keyup", function (e) {
+          keysF[e.code] = false;
+        });
+        var cnv = document.getElementById("gc");
+        cnv.addEventListener("click", function () {
+          if (!isLocked) cnv.requestPointerLock();
+        });
+        document.addEventListener("pointerlockchange", function () {
+          isLocked = document.pointerLockElement === cnv;
+          document.getElementById("xhair").classList.toggle("show", isLocked);
+          document
+            .getElementById("move-hint")
+            .classList.toggle("show", !isLocked);
+        });
+        document.addEventListener("mousemove", function (e) {
+          if (!isLocked) return;
+          camYaw -= e.movementX * 0.0018;
+          camPitch -= e.movementY * 0.0015;
+          camPitch = Math.max(-1.35, Math.min(1.35, camPitch));
+        });
+      }
+
+      // ══════════════════════════════════════════════════════
+      // RENDER LOOP
+      // ══════════════════════════════════════════════════════
+      function renderLoop(ts) {
+        requestAnimationFrame(renderLoop);
+        var dt = Math.min((ts - lastT) / 1000, 0.05);
+        lastT = ts;
+        frameN++;
+        uTime += dt;
+        if (!camera3) return;
+        var spd = keysF["ShiftLeft"] ? 8 : 3.5;
+        var fwd = new THREE.Vector3(
+          Math.sin(camYaw) * Math.cos(camPitch),
+          0,
+          Math.cos(camYaw) * Math.cos(camPitch)
+        ).normalize();
+        var rgt = new THREE.Vector3(
+          Math.cos(camYaw),
+          0,
+          -Math.sin(camYaw)
+        ).normalize();
+        if (keysF["KeyW"] || keysF["ArrowUp"])
+          camera3.position.addScaledVector(fwd, spd * dt);
+        if (keysF["KeyS"] || keysF["ArrowDown"])
+          camera3.position.addScaledVector(fwd, -spd * dt);
+        if (keysF["KeyA"] || keysF["ArrowLeft"])
+          camera3.position.addScaledVector(rgt, -spd * dt);
+        if (keysF["KeyD"] || keysF["ArrowRight"])
+          camera3.position.addScaledVector(rgt, spd * dt);
+        camera3.position.y = camH;
+        camera3.position.x = Math.max(-130, Math.min(130, camera3.position.x));
+        camera3.position.z = Math.max(-130, Math.min(130, camera3.position.z));
+        camera3.rotation.order = "YXZ";
+        camera3.rotation.y = camYaw;
+        camera3.rotation.x = camPitch;
+
+        if (scene3._skyMat) scene3._skyMat.uniforms.uT.value = uTime;
+        if (scene3._smMat) scene3._smMat.uniforms.uT.value = uTime;
+        if (scene3._tMat) scene3._tMat.uniforms.uT.value = uTime;
+        oceanWaves.forEach(function (om) {
+          if (om.material.uniforms) om.material.uniforms.uT.value = uTime;
+        });
+
+        fireGlows.forEach(function (f) {
+          f.light.intensity =
+            f.base +
+            Math.sin(uTime * f.spd * 8 + f.ph) * 1.4 +
+            Math.sin(uTime * f.spd * 5.3 + f.ph + 1.2) * 0.7;
+        });
+        toxinSpheres.forEach(function (t) {
+          t.light.intensity = 0.3 + Math.sin(uTime * 0.8 + t.ph) * 0.25;
+        });
+        smokePuffs.forEach(function (s) {
+          s.m.position.y = s.baseY + Math.sin(uTime * s.spd * 60 + s.ph) * 1.8;
+          s.m.position.x = s.bx + Math.sin(uTime * s.spd * 30 + s.ph) * 0.8;
+          s.m.material.opacity =
+            0.22 + Math.sin(uTime * s.spd * 40 + s.ph) * 0.14;
+        });
+
+        if (scene3._tPos && scene3._tData) {
+          var tp = scene3._tPos,
+            td = scene3._tData;
+          for (var i = 0; i < td.length; i++) {
+            var p = td[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.z += p.vz;
+            p.lf += 0.0018;
+            if (p.y > 14 || p.lf > 1) {
+              p.y = 0.5 + Math.random() * 2;
+              p.x = (Math.random() - 0.5) * 120;
+              p.z = (Math.random() - 0.5) * 120;
+              p.lf = 0;
+            }
+            tp[i * 3] = p.x;
+            tp[i * 3 + 1] = p.y;
+            tp[i * 3 + 2] = p.z;
+          }
+          scene3._tGeo.attributes.position.needsUpdate = true;
+        }
+
+        if (!entering) renderer.render(scene3, camera3);
+      }
+
+      // ══════════════════════════════════════════════════════
+      // AUDIO
+      // ══════════════════════════════════════════════════════
+      function initAC() {
+        if (AC) return;
+        try {
+          AC = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {}
+      }
+      function gm() {
+        if (!AC) return null;
+        if (!window._m16) {
+          var c = AC.createDynamicsCompressor();
+          c.threshold.value = -18;
+          c.ratio.value = 3;
+          c.attack.value = 0.003;
+          c.release.value = 0.25;
+          c.connect(AC.destination);
+          window._m16 = c;
+        }
+        return window._m16;
+      }
+      function sfxAmb() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        [28, 35, 42].forEach(function (f, i) {
+          var o = AC.createOscillator(),
+            g = AC.createGain();
+          o.type = "sawtooth";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, AC.currentTime);
+          g.gain.linearRampToValueAtTime(
+            [0.009, 0.006, 0.007][i],
+            AC.currentTime + 5
+          );
+          var fl = AC.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 100;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(m);
+          o.start();
+        });
+      }
+      function sfxCough() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        var sr = AC.sampleRate,
+          len = Math.floor(sr * 0.42);
+        var buf = AC.createBuffer(1, len, sr),
+          d = buf.getChannelData(0);
+        for (var i = 0; i < len; i++)
+          d[i] =
+            (Math.random() * 2 - 1) *
+            Math.pow(Math.sin((i / len) * Math.PI), 1.5);
+        var src = AC.createBufferSource();
+        src.buffer = buf;
+        var bp = AC.createBiquadFilter();
+        bp.type = "bandpass";
+        bp.frequency.value = 900;
+        bp.Q.value = 1.8;
+        var hp = AC.createBiquadFilter();
+        hp.type = "highpass";
+        hp.frequency.value = 280;
+        var g = AC.createGain();
+        g.gain.setValueAtTime(0.18, AC.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.45);
+        src.connect(bp);
+        bp.connect(hp);
+        hp.connect(g);
+        g.connect(m);
+        src.start();
+        src.stop(AC.currentTime + 0.48);
+        setTimeout(function () {
+          if (!AC || isMuted) return;
+          var m2 = gm();
+          if (!m2) return;
+          var len2 = Math.floor(sr * 0.26),
+            buf2 = AC.createBuffer(1, len2, sr),
+            d2 = buf2.getChannelData(0);
+          for (var i = 0; i < len2; i++)
+            d2[i] =
+              (Math.random() * 2 - 1) *
+              Math.pow(Math.sin((i / len2) * Math.PI), 2);
+          var src2 = AC.createBufferSource();
+          src2.buffer = buf2;
+          var bp2 = AC.createBiquadFilter();
+          bp2.type = "bandpass";
+          bp2.frequency.value = 760;
+          bp2.Q.value = 2.2;
+          var g2 = AC.createGain();
+          g2.gain.setValueAtTime(0.1, AC.currentTime);
+          g2.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.3);
+          src2.connect(bp2);
+          bp2.connect(g2);
+          g2.connect(m2);
+          src2.start();
+          src2.stop(AC.currentTime + 0.32);
+        }, 340);
+      }
+      function sfxWind() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        var sr = AC.sampleRate,
+          dur = 4.5;
+        var buf = AC.createBuffer(2, sr * dur, sr);
+        for (var c = 0; c < 2; c++) {
+          var d = buf.getChannelData(c);
+          for (var i = 0; i < sr * dur; i++) d[i] = Math.random() * 2 - 1;
+        }
+        var src = AC.createBufferSource();
+        src.buffer = buf;
+        var bp = AC.createBiquadFilter();
+        bp.type = "bandpass";
+        bp.frequency.value = 500;
+        bp.Q.value = 0.35;
+        bp.frequency.linearRampToValueAtTime(2200, AC.currentTime + 2.5);
+        var g = AC.createGain();
+        g.gain.setValueAtTime(0, AC.currentTime);
+        g.gain.linearRampToValueAtTime(0.22, AC.currentTime + 1);
+        g.gain.linearRampToValueAtTime(0.38, AC.currentTime + 2.5);
+        g.gain.linearRampToValueAtTime(0.06, AC.currentTime + 4.5);
+        src.connect(bp);
+        bp.connect(g);
+        g.connect(m);
+        src.start();
+        src.stop(AC.currentTime + 4.6);
+      }
+      function togMute() {
+        isMuted = !isMuted;
+        document.getElementById("mute-btn").textContent = isMuted
+          ? "MUET"
+          : "SON";
+        if (AC) {
+          isMuted ? AC.suspend() : AC.resume();
+        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      // ══════════════════════════════════════════════════════
+      // VOICE
+      // ══════════════════════════════════════════════════════
+      var syn = window.speechSynthesis;
+      function gv() {
+        var vs = syn ? syn.getVoices() : [];
+        return (
+          vs.find(function (x) {
+            return (
+              x.lang === "fr-FR" &&
+              /Marie|Amelie|Hortense|Lea|Julie/i.test(x.name)
+            );
+          }) ||
+          vs.find(function (x) {
+            return x.lang === "fr-FR";
+          }) ||
+          vs.find(function (x) {
+            return x.lang.startsWith("fr");
+          }) ||
+          vs[0] ||
+          null
+        );
+      }
+      function speak(txt, cb, rt) {
+        rt = rt || 0.76;
+        initAC();
+        if (AC && AC.state === "suspended") AC.resume();
+        var el = document.getElementById("vtx"),
+          cu = document.getElementById("twc");
+        el.textContent = "";
+        cu.style.display = "inline-block";
+        document.getElementById("vs").classList.add("show");
+        document.getElementById("vbox").classList.add("show");
+        document.getElementById("vp").classList.add("show");
+        var d = 0,
+          t = 0,
+          vd = false,
+          done = false,
+          iv = null;
+        function fin() {
+          if (done) return;
+          done = true;
+          cu.style.display = "none";
+          if (cb) setTimeout(cb, 400);
+        }
+        function tick() {
+          if (iv) clearInterval(iv);
+          iv = setInterval(function () {
+            if (d < t && d < txt.length) {
+              el.textContent = txt.slice(0, ++d);
+              el.scrollTop = el.scrollHeight;
+            } else if (d >= txt.length && vd) {
+              clearInterval(iv);
+              fin();
+            }
+          }, 20);
+        }
+        if (syn && !isMuted) {
+          syn.cancel();
+          var u = new SpeechSynthesisUtterance(txt);
+          u.lang = "fr-FR";
+          u.rate = rt;
+          u.pitch = 0.7;
+          u.volume = 1;
+          var v = gv();
+          if (v) u.voice = v;
+          u.onstart = function () {
+            document.getElementById("vbr").classList.add("on");
+          };
+          u.onboundary = function (e) {
+            if (e.name === "word") {
+              t = Math.min(e.charIndex + e.charLength, txt.length);
+              tick();
+            }
+          };
+          u.onend = u.onerror = function () {
+            document.getElementById("vbr").classList.remove("on");
+            vd = true;
+            t = txt.length;
+            tick();
+          };
+          syn.speak(u);
+          setTimeout(function () {
+            if (d === 0 && !done) {
+              vd = true;
+              t = txt.length;
+              tick();
+            }
+          }, 2200);
+        } else {
+          vd = true;
+          t = txt.length;
+          tick();
+        }
+      }
+      function hideV() {
+        var vb = document.getElementById("vbox");
+        vb.style.transition = "opacity .8s";
+        vb.style.opacity = "0";
+        setTimeout(function () {
+          vb.classList.remove("show");
+          vb.style.opacity = "";
+          vb.style.transition = "";
+          document.getElementById("vs").classList.remove("show");
+          document.getElementById("vp").classList.remove("show");
+        }, 820);
+      }
+
+      // ══════════════════════════════════════════════════════
+      // WIND TRANSITION
+      // ══════════════════════════════════════════════════════
+      function enterSalle1() {
+        if (entering) return;
+        entering = true;
+        if (syn) syn.cancel();
+        if (isLocked) document.exitPointerLock();
+        document.getElementById("salle-btn").classList.remove("show");
+        sfxWind();
+        var wo = document.getElementById("wind-overlay");
+        wo.classList.add("active");
+        var wc = document.getElementById("wind-canvas");
+        wc.width = W;
+        wc.height = H;
+        var ctx = wc.getContext("2d");
+        var wframe = 0,
+          WMAX = 140;
+        var dustStreaks = [],
+          rayStreaks = [],
+          debris = [];
+        for (var i = 0; i < 200; i++) {
+          dustStreaks.push({
+            x: Math.random() * W * 1.2,
+            y: Math.random() * H,
+            spd: 6 + Math.random() * 20,
+            len: 15 + Math.random() * 60,
+            a: 0.15 + Math.random() * 0.55,
+            w: 0.5 + Math.random() * 1.2,
+            col: Math.random() < 0.6 ? "rgba(220,100,40," : "rgba(180,130,60,",
+          });
+        }
+        for (var i = 0; i < 40; i++) {
+          rayStreaks.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            spd: 12 + Math.random() * 30,
+            len: 40 + Math.random() * 120,
+            a: 0.08 + Math.random() * 0.25,
+            w: 1.5 + Math.random() * 3,
+            col: "rgba(255,180,80,",
+          });
+        }
+        for (var i = 0; i < 60; i++) {
+          debris.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            spd: 4 + Math.random() * 14,
+            r: 0.8 + Math.random() * 3,
+            a: 0.2 + Math.random() * 0.5,
+            vy: (Math.random() - 0.3) * 2,
+          });
+        }
+        function drawWind() {
+          wframe++;
+          var prog = wframe / WMAX,
+            ease =
+              prog < 0.5 ? 2 * prog * prog : 1 - 2 * (1 - prog) * (1 - prog);
+          ctx.fillStyle = "rgba(12,5,1," + (0.03 + prog * 0.04) + ")";
+          ctx.fillRect(0, 0, W, H);
+          var spd2 = 1 + ease * 5;
+          rayStreaks.forEach(function (s) {
+            s.x -= s.spd * spd2 * 0.8;
+            if (s.x < -s.len * 2) s.x = W + 20;
+            var a = Math.min(0.9, s.a * (1 + ease * 2));
+            var lg = ctx.createLinearGradient(s.x, s.y, s.x + s.len * 2, s.y);
+            lg.addColorStop(0, "rgba(0,0,0,0)");
+            lg.addColorStop(0.4, s.col + a + ")");
+            lg.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.strokeStyle = lg;
+            ctx.lineWidth = s.w * (1 + ease);
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.lineTo(s.x + s.len * 2, s.y);
+            ctx.stroke();
+          });
+          dustStreaks.forEach(function (s) {
+            s.x -= s.spd * spd2;
+            if (s.x < -s.len) s.x = W + 30 + Math.random() * 60;
+            var a = Math.min(1, s.a * (1 + ease * 2.5));
+            var gl = ctx.createLinearGradient(
+              s.x,
+              s.y,
+              s.x + s.len * (1 + ease),
+              s.y + Math.random() * 0.5 - 0.25
+            );
+            gl.addColorStop(0, "rgba(0,0,0,0)");
+            gl.addColorStop(0.5, s.col + a + ")");
+            gl.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.strokeStyle = gl;
+            ctx.lineWidth = s.w * (1 + ease * 0.5);
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.lineTo(
+              s.x + s.len * (1 + ease),
+              s.y + Math.random() * 1.2 - 0.6
+            );
+            ctx.stroke();
+          });
+          debris.forEach(function (db) {
+            db.x -= db.spd * spd2;
+            db.y += db.vy * spd2;
+            if (db.x < 0) {
+              db.x = W + 10;
+              db.y = Math.random() * H;
+            }
+            if (db.y < 0 || db.y > H) db.vy *= -1;
+            var a = Math.min(0.85, db.a * (1 + ease * 2));
+            ctx.beginPath();
+            ctx.arc(db.x, db.y, db.r * (1 + ease * 0.3), 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(180,100,40," + a + ")";
+            ctx.fill();
+          });
+          if (ease > 0.2) {
+            var vg = ctx.createRadialGradient(
+              W * 0.48,
+              H * 0.5,
+              0,
+              W * 0.48,
+              H * 0.5,
+              Math.min(W, H) * (0.12 + ease * 0.25)
+            );
+            vg.addColorStop(0, "rgba(255,150,50," + ease * 0.35 + ")");
+            vg.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = vg;
+            ctx.fillRect(0, 0, W, H);
+          }
+          var vg2 = ctx.createRadialGradient(
+            W / 2,
+            H / 2,
+            0,
+            W / 2,
+            H / 2,
+            Math.max(W, H) * 0.52
+          );
+          vg2.addColorStop(0, "rgba(0,0,0,0)");
+          vg2.addColorStop(1, "rgba(0,0,0," + ease * 0.7 + ")");
+          ctx.fillStyle = vg2;
+          ctx.fillRect(0, 0, W, H);
+          if (prog > 0.6 && !wc.dataset.fading) {
+            wc.dataset.fading = "1";
+            var cu = document.getElementById("curtain");
+            cu.style.transition = "opacity 2s ease";
+            cu.classList.remove("gone");
+            cu.style.opacity = "1";
+          }
+          if (wframe < WMAX) requestAnimationFrame(drawWind);
+          else
+            setTimeout(function () {
+              try {
+                localStorage.setItem("gaiaScore", score.toString());
+                localStorage.setItem("gaiaPlayerName", pName);
+              } catch (e) {}
+              window.location.href = "scene17.html";
+            }, 2100);
+        }
+        requestAnimationFrame(drawWind);
+      }
+
+      // ══════════════════════════════════════════════════════
+      // GAIA DIALOGUE
+      // ══════════════════════════════════════════════════════
+      function gaiaSpeak() {
+        sfxCough();
+        setTimeout(function () {
+          var txt =
+            pName +
+            "...\nGrace a vous, mon coeur bat mieux.\nMes poumons respirent mieux.\nMais...\nRegardez mes oceans.\n" +
+            "Voyez-vous cette ile de plastique ?\n1 virgule 6 million de kilometres carres.\n3 fois la France.\n" +
+            "Flottant au milieu du Pacifique.\nEt regardez mes villes.\nL air est... TOXIQUE.\n7 millions de morts par an.\n" +
+            "A cause de l air que mes poumons ne peuvent plus purifier.\nEt mes sols...\nRadioactifs. Pour 24 000 ans.\n" +
+            "A cause de vos dechets nucleaires.\nMon corps est INFECTE.\nPollue. Contamine. Empoisonne.\n" +
+            "Mon systeme immunitaire... lutte.\nMais il est depasse.\nJ ai besoin que vous le RENFORCIEZ.\n" +
+            "Que vous me donniez...\nLes ARMES pour combattre ces infections.\nLes technologies. Les anticorps. Les defenses.\n" +
+            "Entrez dans mes salles.\nEt decouvrez...\nComment me proteger de ces toxines.\nComment GUERIR mon corps malade.";
+          speak(
+            txt,
+            function () {
+              hideV();
+              setTimeout(function () {
+                document.getElementById("salle-btn").classList.add("show");
+              }, 600);
+            },
+            0.76
+          );
+          setTimeout(function () {
+            if (!isMuted) sfxCough();
+          }, 9000);
+          setTimeout(function () {
+            if (!isMuted) sfxCough();
+          }, 20000);
+        }, 900);
+      }
+
+      // ══════════════════════════════════════════════════════
+      // INIT
+      // ══════════════════════════════════════════════════════
+      function init() {
+        initAC();
+        document.addEventListener(
+          "click",
+          function () {
+            if (AC && AC.state === "suspended") AC.resume();
+          },
+          { once: true }
+        );
+        init3D();
+        var cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.6s";
+        setTimeout(function () {
+          cu.classList.add("gone");
+        }, 150);
+        document.getElementById("hud").classList.add("show");
+        document.getElementById("contam-hud").classList.add("show");
+        setTimeout(function () {
+          document.getElementById("move-hint").classList.add("show");
+        }, 1400);
+        sfxAmb();
+        setTimeout(function () {
+          document.getElementById("cf1").style.width = "78%";
+          document.getElementById("cf2").style.width = "85%";
+          document.getElementById("cf3").style.width = "62%";
+        }, 800);
+        setTimeout(function () {
+          if (syn && syn.getVoices().length === 0)
+            syn.addEventListener("voiceschanged", gaiaSpeak, { once: true });
+          else gaiaSpeak();
+        }, 2200);
+        requestAnimationFrame(renderLoop);
+      }
+      window.addEventListener("load", init);
+      window.addEventListener("resize", function () {
+        W = innerWidth;
+        H = innerHeight;
+        if (renderer) renderer.setSize(W, H);
+        if (camera3) {
+          camera3.aspect = W / H;
+          camera3.updateProjectionMatrix();
+        }
+      });
+    </script>
+  </body>
+</html>
