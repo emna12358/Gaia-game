@@ -1,0 +1,2337 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>GAIA — Scene 17 : Diagnostic Immunitaire</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Orbitron:wght@400;700;900&family=EB+Garamond:ital,wght@0,400;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --v: #8844ff;
+        --vl: #bb66ff;
+        --b: #0088ff;
+        --bl: #44bbff;
+        --g: #00ff88;
+        --gd: #00cc66;
+        --r: #ff3344;
+        --y: #ffcc00;
+        --dark: #02010a;
+        --ui: rgba(2, 1, 18, 0.97);
+        --ub: rgba(136, 68, 255, 0.22);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--dark);
+      }
+      body {
+        font-family: "Orbitron", monospace;
+        cursor: none;
+      }
+      canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+      }
+      #cur {
+        position: fixed;
+        width: 16px;
+        height: 16px;
+        border: 1.5px solid var(--bl);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: width 0.1s, height 0.1s;
+      }
+      #cur::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3px;
+        height: 3px;
+        background: var(--bl);
+        border-radius: 50%;
+      }
+      #cur.hover {
+        width: 26px;
+        height: 26px;
+        border-color: var(--vl);
+        box-shadow: 0 0 14px rgba(136, 68, 255, 0.7);
+      }
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 900;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 1.6s;
+      }
+      #curtain.gone {
+        opacity: 0;
+      }
+      #xhair {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 12;
+        pointer-events: none;
+      }
+      #xhair::before,
+      #xhair::after {
+        content: "";
+        position: absolute;
+        background: rgba(68, 187, 255, 0.55);
+      }
+      #xhair::before {
+        width: 14px;
+        height: 1.5px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #xhair::after {
+        width: 1.5px;
+        height: 14px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 14px 24px 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #hud.show {
+        opacity: 1;
+      }
+      .hl {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.48em;
+        color: rgba(136, 68, 255, 0.35);
+      }
+      .hc {
+        font-family: "Orbitron", monospace;
+        font-size: 8px;
+        letter-spacing: 0.25em;
+        color: rgba(68, 187, 255, 0.55);
+      }
+      .hr {
+        font-family: "Cinzel", serif;
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: rgba(136, 68, 255, 0.4);
+      }
+      /* BADGE INTRO */
+      #badge-intro {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 50;
+        width: min(480px, 88vw);
+        background: var(--ui);
+        border: 1px solid rgba(136, 68, 255, 0.5);
+        border-radius: 4px;
+        backdrop-filter: blur(28px);
+        padding: 22px 24px 18px;
+        box-shadow: 0 0 60px rgba(136, 68, 255, 0.25);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.6s;
+      }
+      #badge-intro.show {
+        opacity: 1;
+      }
+      .badge-title {
+        font-family: "Orbitron", monospace;
+        font-size: clamp(10px, 1.4vw, 13px);
+        letter-spacing: 0.28em;
+        color: var(--bl);
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .badge-sub {
+        font-family: "Cinzel", serif;
+        font-size: clamp(9px, 1.1vw, 11px);
+        letter-spacing: 0.22em;
+        color: var(--vl);
+        text-align: center;
+        margin-bottom: 14px;
+        opacity: 0.7;
+      }
+      .badge-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-bottom: 14px;
+      }
+      .badge-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: "Orbitron", monospace;
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        color: rgba(255, 255, 255, 0.55);
+        padding: 6px 10px;
+        border: 1px solid rgba(136, 68, 255, 0.15);
+        border-radius: 2px;
+        background: rgba(136, 68, 255, 0.05);
+      }
+      .badge-item .bi-icon {
+        font-size: 15px;
+        flex-shrink: 0;
+      }
+      .badge-item .bi-chk {
+        margin-left: auto;
+        color: rgba(0, 255, 136, 0.4);
+        font-size: 10px;
+      }
+      .badge-item.done .bi-chk {
+        color: var(--g);
+      }
+      .badge-prog {
+        font-family: "Orbitron", monospace;
+        font-size: 8px;
+        letter-spacing: 0.25em;
+        color: rgba(68, 187, 255, 0.6);
+        text-align: center;
+      }
+      /* MOVE HINT */
+      #move-hint {
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 22;
+        font-family: "Orbitron", monospace;
+        font-size: 7px;
+        letter-spacing: 0.2em;
+        color: rgba(68, 187, 255, 0.3);
+        background: rgba(2, 1, 18, 0.8);
+        border: 1px solid rgba(68, 187, 255, 0.18);
+        padding: 5px 16px;
+        border-radius: 2px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+        white-space: nowrap;
+      }
+      #move-hint.show {
+        opacity: 1;
+      }
+      /* INTERACT PROMPT */
+      #interact {
+        position: fixed;
+        bottom: clamp(50px, 8vh, 80px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 22;
+        font-family: "Orbitron", monospace;
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        color: var(--bl);
+        background: rgba(2, 1, 18, 0.9);
+        border: 1px solid rgba(68, 187, 255, 0.35);
+        padding: 9px 22px;
+        border-radius: 2px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s;
+        text-align: center;
+        line-height: 1.6;
+      }
+      #interact.show {
+        opacity: 1;
+      }
+      /* SCAN OVERLAY */
+      #scan-ov {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(2, 1, 18, 0.92);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(12px);
+      }
+      #scan-ov.show {
+        display: flex;
+      }
+      #scan-canvas {
+        display: block;
+        border-radius: 4px;
+      }
+      /* RESULT PANEL */
+      #result-panel {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 70;
+        width: min(540px, 92vw);
+        max-height: 90vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(136, 68, 255, 0.4) transparent;
+        background: var(--ui);
+        border: 1px solid rgba(136, 68, 255, 0.45);
+        border-radius: 4px;
+        backdrop-filter: blur(28px);
+        display: none;
+        box-shadow: 0 0 80px rgba(136, 68, 255, 0.3);
+      }
+      #result-panel::-webkit-scrollbar {
+        width: 3px;
+      }
+      #result-panel::-webkit-scrollbar-thumb {
+        background: rgba(136, 68, 255, 0.4);
+      }
+      #result-panel.show {
+        display: block;
+      }
+      .rp-header {
+        padding: 16px 20px 12px;
+        border-bottom: 1px solid rgba(136, 68, 255, 0.2);
+        position: sticky;
+        top: 0;
+        background: rgba(2, 1, 14, 0.99);
+        z-index: 1;
+      }
+      .rp-icon {
+        font-size: 22px;
+        margin-bottom: 4px;
+      }
+      .rp-title {
+        font-family: "Orbitron", monospace;
+        font-size: clamp(11px, 1.6vw, 14px);
+        letter-spacing: 0.22em;
+        color: var(--bl);
+        margin-bottom: 2px;
+      }
+      .rp-sub {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: rgba(136, 68, 255, 0.65);
+      }
+      .rp-body {
+        padding: 14px 20px 10px;
+      }
+      .rp-section {
+        margin-bottom: 12px;
+      }
+      .rp-section-title {
+        font-family: "Orbitron", monospace;
+        font-size: 7px;
+        letter-spacing: 0.32em;
+        color: rgba(68, 187, 255, 0.55);
+        margin-bottom: 6px;
+      }
+      .rp-line {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(12px, 1.4vw, 14px);
+        line-height: 1.75;
+        color: rgba(255, 255, 255, 0.7);
+        padding: 2px 0;
+      }
+      .rp-line.em {
+        color: #ffcc00;
+        font-style: italic;
+      }
+      .rp-danger-bar {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 3px;
+        overflow: hidden;
+        margin: 6px 0 10px;
+      }
+      .rp-danger-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 1.2s ease;
+      }
+      .rp-score {
+        font-family: "Orbitron", monospace;
+        font-size: clamp(13px, 2vw, 17px);
+        color: var(--g);
+        letter-spacing: 0.25em;
+        text-align: center;
+        padding: 10px;
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        border-radius: 3px;
+        margin: 10px 0;
+        background: rgba(0, 255, 136, 0.04);
+      }
+      .rp-continue {
+        display: block;
+        width: 100%;
+        font-family: "Orbitron", monospace;
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        color: var(--bl);
+        background: rgba(0, 136, 255, 0.08);
+        border: 1px solid rgba(68, 187, 255, 0.45);
+        border-radius: 3px;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.25s;
+        margin-top: 6px;
+      }
+      .rp-continue:hover {
+        background: rgba(68, 187, 255, 0.15);
+        box-shadow: 0 0 30px rgba(68, 187, 255, 0.25);
+      }
+      /* GAIA VOICE BOX — audio only, text hidden */
+      #vp {
+        position: fixed;
+        bottom: clamp(14px, 2.5vh, 28px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 45;
+        width: min(700px, 92vw);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.8s;
+      }
+      #vp.show {
+        opacity: 1;
+      }
+      #vs {
+        width: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(136, 68, 255, 0.6),
+          transparent
+        );
+        margin-bottom: 7px;
+        transition: width 0.9s;
+      }
+      #vs.show {
+        width: 100%;
+      }
+      #vbox {
+        width: 100%;
+        background: var(--ui);
+        border: 1px solid var(--ub);
+        backdrop-filter: blur(26px);
+        border-radius: 3px;
+        padding: 12px 20px 10px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.8s, transform 0.8s;
+      }
+      #vbox.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #vhdr {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 5px;
+      }
+      #vnm {
+        font-family: "Orbitron", monospace;
+        font-size: 7px;
+        letter-spacing: 0.42em;
+        color: rgba(136, 68, 255, 0.6);
+      }
+      #vbr {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      #vbr.on {
+        opacity: 1;
+      }
+      .vb {
+        width: 2px;
+        border-radius: 1px;
+        background: var(--vl);
+        transform-origin: bottom;
+        animation: vba 0.9s ease-in-out infinite alternate;
+      }
+      .vb:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .vb:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .vb:nth-child(3) {
+        height: 4px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .vb:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
+      }
+      .vb:nth-child(5) {
+        height: 3px;
+        animation-duration: 0.44s;
+        animation-delay: 0.11s;
+      }
+      .vb:nth-child(6) {
+        height: 7px;
+        animation-duration: 0.49s;
+        animation-delay: 0.03s;
+      }
+      @keyframes vba {
+        from {
+          transform: scaleY(0.18);
+          opacity: 0.5;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+      /* vtx hidden — audio only mode */
+      #vtx {
+        display: none;
+      }
+      #twc {
+        display: none;
+      }
+      /* RESUME BUTTON (shows before GAIA final speech) */
+      #resume-btn {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 65;
+        font-family: "Orbitron", monospace;
+        font-size: 9px;
+        letter-spacing: 0.28em;
+        color: var(--g);
+        background: rgba(0, 6, 2, 0.98);
+        border: 1px solid rgba(0, 255, 136, 0.5);
+        border-radius: 4px;
+        padding: 16px 44px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: none;
+        box-shadow: 0 0 40px rgba(0, 255, 136, 0.18);
+        text-align: center;
+      }
+      #resume-btn.show {
+        display: block;
+      }
+      #resume-btn:hover {
+        background: rgba(0, 255, 136, 0.12);
+        box-shadow: 0 0 60px rgba(0, 255, 136, 0.35);
+      }
+      /* VIDEO OVERLAY */
+      #video-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        background: #000;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      #video-overlay.show {
+        display: flex;
+      }
+      #diag-video {
+        width: min(900px, 90vw);
+        height: auto;
+        outline: none;
+        border: 1px solid rgba(136, 68, 255, 0.3);
+      }
+      #video-controls {
+        display: flex;
+        gap: 16px;
+        margin-top: 18px;
+      }
+      .vid-btn {
+        font-family: "Orbitron", monospace;
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        padding: 12px 36px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #btn-replay {
+        color: var(--bl);
+        background: rgba(0, 136, 255, 0.08);
+        border: 1px solid rgba(68, 187, 255, 0.45);
+      }
+      #btn-replay:hover {
+        background: rgba(68, 187, 255, 0.18);
+        box-shadow: 0 0 30px rgba(68, 187, 255, 0.25);
+      }
+      #btn-continue {
+        color: var(--g);
+        background: rgba(0, 255, 136, 0.06);
+        border: 1px solid rgba(0, 255, 136, 0.45);
+      }
+      #btn-continue:hover {
+        background: rgba(0, 255, 136, 0.16);
+        box-shadow: 0 0 30px rgba(0, 255, 136, 0.28);
+      }
+      /* SUMMARY PANEL */
+      #summary-panel {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 75;
+        width: min(520px, 92vw);
+        background: var(--ui);
+        border: 1px solid rgba(0, 255, 136, 0.45);
+        border-radius: 4px;
+        backdrop-filter: blur(28px);
+        display: none;
+        box-shadow: 0 0 80px rgba(0, 255, 136, 0.2);
+      }
+      #summary-panel.show {
+        display: block;
+      }
+      .sp-header {
+        padding: 16px 22px 12px;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.18);
+      }
+      .sp-title {
+        font-family: "Orbitron", monospace;
+        font-size: clamp(11px, 1.6vw, 14px);
+        letter-spacing: 0.2em;
+        color: var(--g);
+        margin-bottom: 3px;
+      }
+      .sp-sub {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.32em;
+        color: rgba(0, 255, 136, 0.5);
+      }
+      .sp-body {
+        padding: 14px 22px 10px;
+      }
+      .sp-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 7px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .sp-lbl {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .sp-val {
+        font-family: "Orbitron", monospace;
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        padding: 3px 8px;
+        border-radius: 2px;
+      }
+      .sp-val.red {
+        color: var(--r);
+        background: rgba(255, 51, 68, 0.08);
+        border: 1px solid rgba(255, 51, 68, 0.2);
+      }
+      .sp-val.yellow {
+        color: var(--y);
+        background: rgba(255, 204, 0, 0.08);
+        border: 1px solid rgba(255, 204, 0, 0.2);
+      }
+      .sp-val.orange {
+        color: #ff8844;
+        background: rgba(255, 136, 68, 0.08);
+        border: 1px solid rgba(255, 136, 68, 0.2);
+      }
+      .sp-total {
+        font-family: "Orbitron", monospace;
+        font-size: 22px;
+        color: var(--g);
+        text-align: center;
+        padding: 12px;
+        letter-spacing: 0.2em;
+        filter: drop-shadow(0 0 14px rgba(0, 255, 136, 0.4));
+      }
+      .sp-btn {
+        display: block;
+        width: 100%;
+        font-family: "Orbitron", monospace;
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        color: var(--g);
+        background: rgba(0, 255, 136, 0.06);
+        border: 1px solid rgba(0, 255, 136, 0.45);
+        border-radius: 3px;
+        padding: 13px;
+        cursor: pointer;
+        transition: all 0.28s;
+        margin-top: 10px;
+      }
+      .sp-btn:hover {
+        background: rgba(0, 255, 136, 0.14);
+        box-shadow: 0 0 40px rgba(0, 255, 136, 0.28);
+      }
+      /* MUTE */
+      #mute-btn {
+        position: fixed;
+        bottom: 12px;
+        right: 18px;
+        z-index: 999;
+        font-family: "Orbitron", monospace;
+        font-size: 7px;
+        letter-spacing: 0.22em;
+        color: rgba(136, 68, 255, 0.22);
+        cursor: pointer;
+        background: none;
+        border: none;
+        transition: color 0.3s;
+      }
+      #mute-btn:hover {
+        color: rgba(136, 68, 255, 0.6);
+      }
+      /* CONT LABELS */
+      #cont-labels {
+        position: fixed;
+        inset: 0;
+        z-index: 15;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cur"></div>
+    <canvas id="gc"></canvas>
+    <div id="xhair"></div>
+    <div id="hud">
+      <div class="hl">G A I A</div>
+      <div class="hc">D I A G N O S T I C — I M M U N I T A I R E</div>
+      <div class="hr" id="scd">SCORE : 0</div>
+    </div>
+    <!-- Badge intro -->
+    <div id="badge-intro">
+      <div class="badge-title">SYSTEME DE DIAGNOSTIC IMMUNITAIRE</div>
+      <div class="badge-sub">Identifiez les menaces</div>
+      <div
+        style="
+          font-family: 'Orbitron', monospace;
+          font-size: 7px;
+          letter-spacing: 0.22em;
+          color: rgba(255, 255, 255, 0.3);
+          text-align: center;
+          margin-bottom: 10px;
+        "
+      >
+        5 ECHANTILLONS A SCANNER
+      </div>
+      <ul class="badge-list" id="badge-list">
+        <li class="badge-item" id="bl-0">
+          <span class="bi-icon">🌊</span> POLLUTION OCEANIQUE<span
+            class="bi-chk"
+            >○</span
+          >
+        </li>
+        <li class="badge-item" id="bl-1">
+          <span class="bi-icon">🏭</span> POLLUTION ATMOSPHERIQUE<span
+            class="bi-chk"
+            >○</span
+          >
+        </li>
+        <li class="badge-item" id="bl-2">
+          <span class="bi-icon">☢️</span> DECHETS RADIOACTIFS<span
+            class="bi-chk"
+            >○</span
+          >
+        </li>
+        <li class="badge-item" id="bl-3">
+          <span class="bi-icon">🧪</span> CONTAMINATION CHIMIQUE<span
+            class="bi-chk"
+            >○</span
+          >
+        </li>
+        <li class="badge-item" id="bl-4">
+          <span class="bi-icon">🗑️</span> DECHETS SOLIDES<span class="bi-chk"
+            >○</span
+          >
+        </li>
+      </ul>
+      <div class="badge-prog" id="badge-prog">PROGRESSION : 0 / 5</div>
+    </div>
+    <div id="move-hint">
+      WASD / FLECHES — Marcher &nbsp;|&nbsp; CLIC+GLISSER — Regarder 360 degres
+    </div>
+    <div id="interact"></div>
+    <div id="cont-labels"></div>
+    <!-- GAIA voice — audio only, bars visible, no text -->
+    <div id="vp">
+      <div id="vs"></div>
+      <div id="vbox">
+        <div id="vhdr">
+          <span id="vnm">G A I A</span
+          ><span id="vbr"
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+            ><span class="vb"></span><span class="vb"></span
+          ></span>
+        </div>
+        <div id="vtx"></div>
+        <span id="twc"></span>
+      </div>
+    </div>
+    <!-- SCAN OVERLAY -->
+    <div id="scan-ov">
+      <canvas id="scan-canvas" width="320" height="320"></canvas>
+    </div>
+    <!-- RESULT PANEL -->
+    <div id="result-panel"></div>
+    <!-- RESUME BUTTON (appears after all 5 scanned, before video) -->
+    <button id="resume-btn" onclick="showVideoResume()">VOIR LE RESUME</button>
+    <!-- VIDEO OVERLAY -->
+    <div id="video-overlay">
+      <video id="diag-video" preload="auto" playsinline>
+        <source src="Design sans titre (4).mp4" type="video/mp4" />
+      </video>
+      <div id="video-controls">
+        <button class="vid-btn" id="btn-replay" onclick="replayVideo()">
+          REJOUER
+        </button>
+        <button
+          class="vid-btn"
+          id="btn-continue"
+          onclick="continueAfterVideo()"
+        >
+          CONTINUER
+        </button>
+      </div>
+    </div>
+    <!-- SUMMARY PANEL -->
+    <div id="summary-panel"></div>
+    <div id="curtain"></div>
+    <button id="mute-btn" onclick="togMute()">SON</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      "use strict";
+      var W = innerWidth,
+        H = innerHeight;
+      var isMuted = false,
+        AC = null;
+      var pName = "Gardien",
+        score = 0;
+      var camYaw = 0,
+        camPitch = 0;
+      var keysF = {};
+      var entering = false;
+      var renderer, scene3, camera3;
+      var uTime = 0,
+        lastT = 0;
+      var nearContainer = -1;
+      // ── FIX: scanned array and scanCount are the source of truth ──
+      var scanned = [false, false, false, false, false];
+      var scanning = false;
+      var scanCount = 0;
+      var currentScanIdx = -1;
+      var interactLocked = false; // prevents double-trigger
+
+      try {
+        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
+        score = parseInt(localStorage.getItem("gaiaScore") || "0");
+      } catch (e) {}
+      document.getElementById("scd").textContent = "SCORE : " + score;
+      var $cur = document.getElementById("cur");
+      document.addEventListener("mousemove", function (e) {
+        $cur.style.left = e.clientX + "px";
+        $cur.style.top = e.clientY + "px";
+      });
+
+      // ══ MENACES DATA ══
+      var MENACES = [
+        {
+          id: 0,
+          icon: "🌊",
+          name: "POLLUTION OCEANIQUE",
+          sub: "Menace prioritaire : PLASTIQUE",
+          danger: 5,
+          dangerLabel: "CRITIQUE",
+          color: "#0088ff",
+          sections: [
+            {
+              t: "LOCALISATION",
+              lines: ["Great Pacific Garbage Patch (Pacifique Nord)"],
+            },
+            {
+              t: "DIMENSIONS",
+              lines: [
+                "Surface : 1.6 MILLION km²",
+                "= 3x la France",
+                "= 5x l Allemagne",
+              ],
+            },
+            {
+              t: "COMPOSITION",
+              lines: [
+                "80 000 tonnes de plastique",
+                "1.8 TRILLION de morceaux",
+                "Bouteilles, filets, sacs, microplastiques",
+              ],
+            },
+            {
+              t: "IMPACT",
+              lines: [
+                "1 MILLION animaux marins tues/an",
+                "Tortues — etouffement",
+                "Oiseaux — ingestion",
+                "Poissons — microplastiques",
+              ],
+            },
+            {
+              t: "MICROPLASTIQUES",
+              lines: [
+                "100% sel marin contamine",
+                "83% eau du robinet mondiale",
+                "90% humains — dans le sang",
+              ],
+            },
+          ],
+          voice:
+            "Le Great Pacific Garbage Patch... Mon ocean... transforme en poubelle. 1 virgule 6 million de kilometres carres de plastique. Flottant. Pour des SIECLES. Les UV decomposent le plastique en micro-particules. Les poissons les mangent. Vous mangez les poissons. Le plastique est maintenant dans VOTRE sang. Dans celui de vos enfants. 90 pourcent des humains ont du plastique dans leur corps. Vous vous empoisonnez... En m empoisonnant. Mais il existe des solutions. Continuez.",
+        },
+        {
+          id: 1,
+          icon: "🏭",
+          name: "POLLUTION ATMOSPHERIQUE",
+          sub: "Menace prioritaire : PARTICULES FINES",
+          danger: 5,
+          dangerLabel: "CRITIQUE",
+          color: "#aa8800",
+          sections: [
+            {
+              t: "VILLES LES PLUS TOUCHEES",
+              lines: [
+                "New Delhi — 300 microgrammes par m3",
+                "Dhaka — 97 microgrammes",
+                "Norme OMS : 5 microgrammes — Delhi 60x LIMITE !",
+              ],
+            },
+            {
+              t: "COMPOSITION",
+              lines: [
+                "PM2.5 — particules moins de 2.5 microns",
+                "NO2, SO2, Ozone tropospherique",
+                "Metaux lourds — plomb, mercure",
+              ],
+            },
+            {
+              t: "IMPACT SANTE",
+              lines: [
+                "7 MILLIONS morts par an selon l OMS",
+                "Cancers poumons, AVC, Maladies cardiaques",
+                "Asthme chez les enfants",
+              ],
+            },
+          ],
+          voice:
+            "L air que vous respirez est devenu poison. A New Delhi, respirer 1 jour... egale fumer 25 cigarettes. 7 millions de morts par an. C est une ville entiere qui disparait chaque annee. Les enfants sont les plus touches. Leurs poumons en developpement... detruits a jamais. Et vous savez le pire ? 99 pourcent de la population mondiale respire un air au-dessus des normes. 99 pourcent. Presque... PERSONNE n est epargne.",
+        },
+        {
+          id: 2,
+          icon: "☢️",
+          name: "DECHETS RADIOACTIFS",
+          sub: "Menace : CONTAMINATION PERMANENTE",
+          danger: 5,
+          dangerLabel: "ETERNEL",
+          color: "#22aa22",
+          sections: [
+            {
+              t: "STOCKAGE MONDIAL",
+              lines: [
+                "370 000 tonnes de dechets nucleaires",
+                "Dont 90 000 tonnes haute activite",
+                "Repartis dans 30 pays",
+              ],
+            },
+            {
+              t: "DUREE DE VIE",
+              lines: [
+                "Plutonium-239 : 24 000 ans",
+                "Uranium-235 : 700 millions d annees",
+                "Cesium-137 : 30 ans",
+              ],
+            },
+            {
+              t: "CATASTROPHES",
+              lines: [
+                "Tchernobyl 1986 — 350 000 evacues",
+                "Zone 30 km inhabitable 20 000 ans",
+                "Fukushima 2011 — 160 000 evacues",
+              ],
+            },
+          ],
+          voice:
+            "Les dechets nucleaires... Mon cancer incurable. Vous avez cree des poisons qui durent 24 000 ans. Reflechissez. Il y a 24 000 ans... l humain moderne n existait meme pas. Vous viviez dans des grottes. Et vous creez des dechets qui seront ENCORE radioactifs dans 24 000 ans. Tchernobyl. Fukushima. Des cicatrices eternelles. Et vous savez ce qui est terrifiant ? Vous n avez AUCUNE solution. Vous les enterrez. Vous priez qu ils ne fuient pas. C est tout. Mon corps restera contamine pendant des MILLENAIRES.",
+        },
+        {
+          id: 3,
+          icon: "🧪",
+          name: "CONTAMINATION CHIMIQUE",
+          sub: "Menace : PFAS — Forever Chemicals",
+          danger: 4,
+          dangerLabel: "OMNIPRESENT",
+          color: "#cc44ff",
+          sections: [
+            {
+              t: "QUE SONT LES PFAS ?",
+              lines: [
+                "Substances Per et PolyFluoroAlkylees",
+                "Produits chimiques eternels",
+                "Ne se decomposent JAMAIS",
+                "S accumulent dans le corps",
+              ],
+            },
+            {
+              t: "CONTAMINATION",
+              lines: [
+                "99 pourcent des humains ont PFAS dans le sang",
+                "83 pourcent eau potable USA contaminee",
+                "Detectes : Arctique, oceans profonds",
+              ],
+            },
+            {
+              t: "EFFETS SANTE",
+              lines: [
+                "Cancers — rein, testicules",
+                "Problemes thyroide, Baisse fertilite",
+                "Systeme immunitaire affaibli",
+              ],
+            },
+          ],
+          voice:
+            "Les PFAS... Les forever chemicals. Vous les avez appeles comme ca parce qu ils ne disparaissent JAMAIS. Ils sont dans votre poele antiadhesive. Dans votre veste impermeable. Dans votre emballage de fast-food. Et maintenant ils sont dans votre SANG. Dans celui de vos enfants. De vos bebes a naitre. 99 pourcent des humains. Arctique. Fond des oceans. Partout. ETERNELS. Et les effets ? Cancers. Infertilite. Systeme immunitaire detruit. Mais vous savez ce qui me brise le coeur ? Les insectes. Mes pollinisateurs. Moins 75 pourcent en 50 ans. A cause de vos pesticides. Pas d abeilles... pas de pollinisation... pas de nourriture.",
+        },
+        {
+          id: 4,
+          icon: "🗑️",
+          name: "DECHETS SOLIDES",
+          sub: "Menace : SUBMERSION",
+          danger: 3,
+          dangerLabel: "CROISSANT",
+          color: "#aa6622",
+          sections: [
+            {
+              t: "PRODUCTION MONDIALE",
+              lines: [
+                "2.1 MILLIARDS tonnes par an",
+                "= 5.8 millions tonnes par JOUR",
+                "= 4 000 tonnes par MINUTE",
+              ],
+            },
+            {
+              t: "RECYCLAGE",
+              lines: [
+                "Seulement 13 pourcent recycle",
+                "24 pourcent incinere",
+                "33 pourcent dechets sauvages — pollution",
+              ],
+            },
+            {
+              t: "PROJECTIONS 2050",
+              lines: [
+                "3.4 milliards tonnes par an — plus 62 pourcent",
+                "Si rien ne change",
+              ],
+            },
+          ],
+          voice:
+            "2.1 milliards de tonnes chaque annee. Vous produisez 4 000 tonnes de dechets chaque MINUTE. Pendant que je vous parle... 8 000 tonnes ont ete produites. Et vous savez combien vous recyclez ? 13 pourcent. Treize pour cent. Le reste ? Brule. Enfoui. Abandonne dans la nature. J ai vu des dechets plus grandes que des villes. Ou des enfants fouillent dans vos dechets pour survivre. Et en 2050... 3.4 milliards de tonnes. Vous allez DOUBLER. Ma surface transformee en poubelle geante.",
+        },
+      ];
+
+      // ══ AUDIO ══
+      function initAC() {
+        if (AC) return;
+        try {
+          AC = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {}
+      }
+      function gm() {
+        if (!AC) return null;
+        if (!window._m17) {
+          var c = AC.createDynamicsCompressor();
+          c.threshold.value = -18;
+          c.ratio.value = 3;
+          c.attack.value = 0.003;
+          c.release.value = 0.25;
+          c.connect(AC.destination);
+          window._m17 = c;
+        }
+        return window._m17;
+      }
+      function sfxAmb() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        [33, 55, 44, 66].forEach(function (f, i) {
+          var o = AC.createOscillator(),
+            g = AC.createGain();
+          o.type = "sine";
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, AC.currentTime);
+          g.gain.linearRampToValueAtTime(
+            [0.01, 0.006, 0.008, 0.005][i],
+            AC.currentTime + 5
+          );
+          var fl = AC.createBiquadFilter();
+          fl.type = "lowpass";
+          fl.frequency.value = 150;
+          o.connect(fl);
+          fl.connect(g);
+          g.connect(m);
+          o.start();
+        });
+        var o2 = AC.createOscillator(),
+          g2 = AC.createGain();
+        o2.type = "sawtooth";
+        o2.frequency.value = 180;
+        g2.gain.setValueAtTime(0, AC.currentTime);
+        g2.gain.linearRampToValueAtTime(0.003, AC.currentTime + 3);
+        var fl2 = AC.createBiquadFilter();
+        fl2.type = "bandpass";
+        fl2.frequency.value = 300;
+        fl2.Q.value = 2;
+        o2.connect(fl2);
+        fl2.connect(g2);
+        g2.connect(m);
+        o2.start();
+      }
+      function sfxBip(n) {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        for (var i = 0; i < n; i++) {
+          (function (idx) {
+            setTimeout(function () {
+              var o = AC.createOscillator(),
+                g = AC.createGain();
+              o.type = "sine";
+              o.frequency.value = 880 + idx * 110;
+              g.gain.setValueAtTime(0.07, AC.currentTime);
+              g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.12);
+              o.connect(g);
+              g.connect(m);
+              o.start();
+              o.stop(AC.currentTime + 0.13);
+            }, idx * 220);
+          })(i);
+        }
+      }
+      function sfxScan() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        var o = AC.createOscillator(),
+          g = AC.createGain();
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(440, AC.currentTime);
+        o.frequency.linearRampToValueAtTime(220, AC.currentTime + 3);
+        g.gain.setValueAtTime(0.04, AC.currentTime);
+        g.gain.setValueAtTime(0.04, AC.currentTime + 2.5);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 3);
+        var fl = AC.createBiquadFilter();
+        fl.type = "bandpass";
+        fl.frequency.value = 800;
+        fl.Q.value = 1.5;
+        o.connect(fl);
+        fl.connect(g);
+        g.connect(m);
+        o.start();
+        o.stop(AC.currentTime + 3.2);
+        for (var i = 0; i < 12; i++) {
+          (function (idx) {
+            setTimeout(function () {
+              sfxBip(1);
+            }, idx * 250);
+          })(i);
+        }
+      }
+      function sfxSuccess() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        [523, 659, 784, 1047].forEach(function (f, i) {
+          setTimeout(function () {
+            var o = AC.createOscillator(),
+              g = AC.createGain();
+            o.type = "triangle";
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.06, AC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.4);
+            o.connect(g);
+            g.connect(m);
+            o.start();
+            o.stop(AC.currentTime + 0.45);
+          }, i * 80);
+        });
+      }
+      function sfxDoor() {
+        if (!AC || isMuted) return;
+        var m = gm();
+        if (!m) return;
+        var o = AC.createOscillator(),
+          g = AC.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(220, AC.currentTime);
+        o.frequency.linearRampToValueAtTime(880, AC.currentTime + 1.5);
+        g.gain.setValueAtTime(0, AC.currentTime);
+        g.gain.linearRampToValueAtTime(0.1, AC.currentTime + 0.3);
+        g.gain.linearRampToValueAtTime(0, AC.currentTime + 1.8);
+        o.connect(g);
+        g.connect(m);
+        o.start();
+        o.stop(AC.currentTime + 2);
+      }
+      function togMute() {
+        isMuted = !isMuted;
+        document.getElementById("mute-btn").textContent = isMuted
+          ? "MUET"
+          : "SON";
+        if (AC) {
+          isMuted ? AC.suspend() : AC.resume();
+        }
+        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      // ══ VOICE — audio only, NO text display ══
+      var syn = window.speechSynthesis;
+      var _vl = false;
+      function ensV(cb) {
+        if (!syn) {
+          cb();
+          return;
+        }
+        var vs = syn.getVoices();
+        if (vs.length > 0) {
+          _vl = true;
+          cb();
+          return;
+        }
+        syn.addEventListener(
+          "voiceschanged",
+          function () {
+            _vl = true;
+            cb();
+          },
+          { once: true }
+        );
+        setTimeout(function () {
+          if (!_vl) {
+            _vl = true;
+            cb();
+          }
+        }, 1200);
+      }
+      function gv() {
+        var vs = syn ? syn.getVoices() : [];
+        return (
+          vs.find(function (x) {
+            return (
+              x.lang === "fr-FR" &&
+              /Marie|Amelie|Hortense|Lea|Julie/i.test(x.name)
+            );
+          }) ||
+          vs.find(function (x) {
+            return x.lang === "fr-FR";
+          }) ||
+          vs.find(function (x) {
+            return x.lang.startsWith("fr");
+          }) ||
+          vs[0] ||
+          null
+        );
+      }
+
+      // speakAudioOnly: speaks voice but shows NO text, only the animated bars
+      function speakAudioOnly(txt, cb, rt) {
+        rt = rt || 0.76;
+        initAC();
+        if (AC && AC.state === "suspended") AC.resume();
+        // Show GAIA box with just bars (no text)
+        document.getElementById("vs").classList.add("show");
+        document.getElementById("vbox").classList.add("show");
+        document.getElementById("vp").classList.add("show");
+        var done = false;
+        function fin() {
+          if (done) return;
+          done = true;
+          if (cb) setTimeout(cb, 400);
+        }
+        if (syn && !isMuted) {
+          syn.cancel();
+          var u = new SpeechSynthesisUtterance(txt);
+          u.lang = "fr-FR";
+          u.rate = rt;
+          u.pitch = 0.7;
+          u.volume = 1;
+          var v = gv();
+          if (v) u.voice = v;
+          u.onstart = function () {
+            document.getElementById("vbr").classList.add("on");
+          };
+          u.onend = u.onerror = function () {
+            document.getElementById("vbr").classList.remove("on");
+            fin();
+          };
+          syn.speak(u);
+          setTimeout(function () {
+            if (!done) {
+              fin();
+            }
+          }, 2000);
+        } else {
+          setTimeout(fin, 800);
+        }
+      }
+      function stopV() {
+        if (syn) syn.cancel();
+        document.getElementById("vbr").classList.remove("on");
+      }
+      function hideV() {
+        var vb = document.getElementById("vbox");
+        vb.style.transition = "opacity .7s";
+        vb.style.opacity = "0";
+        setTimeout(function () {
+          vb.classList.remove("show");
+          vb.style.opacity = "";
+          vb.style.transition = "";
+          document.getElementById("vs").classList.remove("show");
+          document.getElementById("vp").classList.remove("show");
+        }, 720);
+      }
+
+      // ══ THREE.JS ══
+      var containerMeshes = [];
+      var containerOrigPos = []; // store original positions
+
+      function init3D() {
+        renderer = new THREE.WebGLRenderer({
+          canvas: document.getElementById("gc"),
+          antialias: true,
+        });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.setSize(W, H);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.9;
+        scene3 = new THREE.Scene();
+        scene3.fog = new THREE.Fog(0x02010a, 20, 80);
+        camera3 = new THREE.PerspectiveCamera(72, W / H, 0.1, 200);
+        camera3.position.set(0, 1.75, 8.5);
+
+        // Lights
+        scene3.add(new THREE.AmbientLight(0x221040, 2.2));
+        var vl = new THREE.DirectionalLight(0xaa66ff, 2.8);
+        vl.position.set(-8, 12, 4);
+        scene3.add(vl);
+        var bl = new THREE.DirectionalLight(0x2299ff, 2.2);
+        bl.position.set(10, 10, -6);
+        scene3.add(bl);
+        var sp = new THREE.SpotLight(0xaaaaff, 3.5, 22, 0.5, 0.4, 1.5);
+        sp.position.set(0, 10, 0);
+        sp.castShadow = true;
+        scene3.add(sp);
+        var scanL = new THREE.PointLight(0x00aaff, 0, 8);
+        scanL.position.set(0, 4, 0);
+        scene3.add(scanL);
+        scene3._scanLight = scanL;
+
+        // Floor (Tron grid)
+        var floorMat = new THREE.ShaderMaterial({
+          uniforms: { uT: { value: 0 } },
+          vertexShader:
+            "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+          fragmentShader:
+            "uniform float uT;varying vec2 vUv;void main(){vec2 g=fract(vUv*30.);float lineX=smoothstep(.97,1.,g.x)+smoothstep(.0,.03,g.x);float lineY=smoothstep(.97,1.,g.y)+smoothstep(.0,.03,g.y);float grid=max(lineX,lineY);float dist=length(vUv-.5);float pulse=.5+sin(uT*.8-dist*12.)*.2;vec3 col=mix(vec3(.01,.00,.06),vec3(.18,.05,.55)*pulse,grid*.65);gl_FragColor=vec4(col,1.);}",
+        });
+        scene3._floorMat = floorMat;
+        var floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene3.add(floor);
+
+        // Walls
+        var wallMatBase = new THREE.ShaderMaterial({
+          uniforms: { uT: { value: 0 }, uSide: { value: 0 } },
+          vertexShader:
+            "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+          fragmentShader:
+            "uniform float uT;uniform float uSide;varying vec2 vUv;void main(){float scan=mod(vUv.y*20.+uT*2.,1.);float scanline=smoothstep(.94,1.,scan)*.25;vec3 base=uSide<.5?vec3(.02,.01,.12):vec3(.01,.02,.12);float glow=smoothstep(.85,1.,abs(vUv.x-.5)*2.+scanline);vec3 col=mix(base,vec3(.3,.1,.9),.04+scanline+glow*.15);float data=step(.97,fract(vUv.x*40.+uT*.3))*.3+step(.97,fract(vUv.y*25.+uT*.2))*.2;col+=vec3(.1,.2,.8)*data;gl_FragColor=vec4(col,.88);}",
+          transparent: true,
+        });
+        scene3._wallMats = [];
+        [
+          { pos: [0, 5, -12], rot: [0, 0, 0], w: 26, h: 10, s: 0 },
+          { pos: [0, 5, 12], rot: [0, Math.PI, 0], w: 26, h: 10, s: 0 },
+          { pos: [-13, 5, 0], rot: [0, Math.PI / 2, 0], w: 24, h: 10, s: 1 },
+          { pos: [13, 5, 0], rot: [0, -Math.PI / 2, 0], w: 24, h: 10, s: 1 },
+        ].forEach(function (wd) {
+          var wm = wallMatBase.clone();
+          wm.uniforms.uSide = { value: wd.s };
+          scene3._wallMats.push(wm);
+          var mesh = new THREE.Mesh(new THREE.PlaneGeometry(wd.w, wd.h), wm);
+          mesh.position.set(wd.pos[0], wd.pos[1], wd.pos[2]);
+          mesh.rotation.set(wd.rot[0], wd.rot[1], wd.rot[2]);
+          scene3.add(mesh);
+        });
+
+        // Ceiling
+        var ceilMat = new THREE.ShaderMaterial({
+          uniforms: { uT: { value: 0 } },
+          vertexShader:
+            "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+          fragmentShader:
+            "uniform float uT;varying vec2 vUv;void main(){float v=abs(sin(vUv.x*8.+uT*.5))*.5+.5;float u=abs(sin(vUv.y*6.+uT*.4))*.5+.5;float vessel=smoothstep(.7,1.,v*u);vec3 col=vec3(.25,.04,.55)*vessel*.6+vec3(.02,.01,.08);gl_FragColor=vec4(col,.55);}",
+          transparent: true,
+        });
+        scene3._ceilMat = ceilMat;
+        var ceil = new THREE.Mesh(new THREE.PlaneGeometry(26, 24), ceilMat);
+        ceil.rotation.x = Math.PI / 2;
+        ceil.position.y = 10;
+        scene3.add(ceil);
+
+        // Platform
+        var platMat = new THREE.ShaderMaterial({
+          uniforms: { uT: { value: 0 } },
+          vertexShader:
+            "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+          fragmentShader:
+            "uniform float uT;varying vec2 vUv;void main(){float d=length(vUv-.5)*2.;float ring1=1.-smoothstep(.85,.95,d);float ring2=smoothstep(.88,.9,d)*(1.-smoothstep(.94,.96,d));float pulse=.6+sin(uT*1.8)*.4;vec3 col=mix(vec3(.02,.01,.08),vec3(.2,.1,.9)*pulse,ring1*.35);col+=vec3(.4,.2,1.)*ring2*pulse*1.5;float alpha=ring1*.7+ring2*1.;gl_FragColor=vec4(col,alpha);}",
+          transparent: true,
+          depthWrite: false,
+        });
+        scene3._platMat = platMat;
+        var plat = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2), platMat);
+        plat.rotation.x = -Math.PI / 2;
+        plat.position.y = 0.01;
+        scene3.add(plat);
+
+        // Scan beam
+        var beamMat = new THREE.ShaderMaterial({
+          uniforms: {
+            uT: { value: 0 },
+            uActive: { value: 0 },
+            uY: { value: 0 },
+          },
+          vertexShader:
+            "varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+          fragmentShader:
+            "uniform float uT,uActive,uY;varying vec3 vP;void main(){if(uActive<.5)discard;float distXZ=length(vP.xz);float fade=1.-smoothstep(.85,1.5,distXZ);float scanLine=1.-smoothstep(.0,.25,abs(vP.y-uY));float alpha=(fade*.25+scanLine*fade*.6)*uActive;vec3 col=mix(vec3(.1,.3,1.),vec3(.5,.8,1.),scanLine);gl_FragColor=vec4(col,alpha);}",
+          transparent: true,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+          blending: THREE.AdditiveBlending,
+        });
+        scene3._beamMat = beamMat;
+        var beamMesh = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.6, 1.6, 10, 32, 1, true),
+          beamMat
+        );
+        beamMesh.position.set(0, 5, 0);
+        scene3.add(beamMesh);
+
+        // ── CONTAINERS ──
+        var RADIUS = 5.5;
+        var contColors = [0x0044aa, 0x886600, 0x006600, 0x660088, 0x664400];
+        for (var ci = 0; ci < 5; ci++) {
+          var angle = (ci / 5) * Math.PI * 2 - Math.PI / 2;
+          var cx = Math.cos(angle) * RADIUS,
+            cz = Math.sin(angle) * RADIUS;
+          var grp = new THREE.Group();
+          grp.position.set(cx, 0, cz);
+          containerOrigPos.push(new THREE.Vector3(cx, 0, cz)); // store original
+
+          var cmat = new THREE.MeshStandardMaterial({
+            color: contColors[ci],
+            transparent: true,
+            opacity: 0.35,
+            roughness: 0.1,
+            metalness: 0.5,
+            emissive: contColors[ci],
+            emissiveIntensity: 0.45,
+          });
+          var cbody = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.62, 0.62, 1.8, 20),
+            cmat
+          );
+          cbody.position.y = 0.9;
+          grp.add(cbody);
+          var capMat = new THREE.MeshStandardMaterial({
+            color: contColors[ci],
+            roughness: 0.3,
+            metalness: 0.7,
+            emissive: contColors[ci],
+            emissiveIntensity: 0.8,
+          });
+          var cap = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.68, 0.68, 0.1, 20),
+            capMat
+          );
+          cap.position.y = 1.85;
+          grp.add(cap);
+          var capBot = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.68, 0.68, 0.1, 20),
+            capMat.clone()
+          );
+          capBot.position.y = -0.02;
+          grp.add(capBot);
+          var innerMat = new THREE.MeshStandardMaterial({
+            color: contColors[ci],
+            transparent: true,
+            opacity: 0.65,
+            emissive: contColors[ci],
+            emissiveIntensity: 0.9,
+          });
+          var inner;
+          if (ci === 0)
+            inner = new THREE.Mesh(
+              new THREE.SphereGeometry(0.28, 10, 8),
+              innerMat
+            );
+          else if (ci === 1)
+            inner = new THREE.Mesh(
+              new THREE.TorusGeometry(0.22, 0.07, 8, 16),
+              innerMat
+            );
+          else if (ci === 2)
+            inner = new THREE.Mesh(
+              new THREE.OctahedronGeometry(0.25),
+              innerMat
+            );
+          else if (ci === 3)
+            inner = new THREE.Mesh(
+              new THREE.IcosahedronGeometry(0.24),
+              innerMat
+            );
+          else
+            inner = new THREE.Mesh(
+              new THREE.BoxGeometry(0.2, 0.4, 0.2),
+              innerMat
+            );
+          inner.position.y = 0.9;
+          inner.userData.spinY = ci % 2 === 0 ? 0.012 : -0.01;
+          grp.add(inner);
+          var glowMat = new THREE.MeshBasicMaterial({
+            color: contColors[ci],
+            transparent: true,
+            opacity: 0.55,
+          });
+          var gring = new THREE.Mesh(
+            new THREE.TorusGeometry(0.62, 0.04, 8, 32),
+            glowMat
+          );
+          gring.rotation.x = Math.PI / 2;
+          gring.position.y = 0.02;
+          grp.add(gring);
+          // Point light (as child of group — moves with it)
+          var clight = new THREE.PointLight(contColors[ci], 2.2, 6);
+          clight.position.y = 1.5;
+          grp.add(clight);
+          // Store references on userData
+          grp.userData = {
+            idx: ci,
+            clight: clight,
+            inner: inner,
+            cmat: cmat,
+            gring: gring,
+            origPos: new THREE.Vector3(cx, 0, cz),
+          };
+          containerMeshes.push(grp);
+          scene3.add(grp);
+        }
+
+        // Ambient particles
+        var pCount = 800;
+        var pPos = new Float32Array(pCount * 3),
+          pCol = new Float32Array(pCount * 3),
+          pSz = new Float32Array(pCount);
+        var pData = [];
+        for (var i = 0; i < pCount; i++) {
+          pPos[i * 3] = (Math.random() - 0.5) * 22;
+          pPos[i * 3 + 1] = Math.random() * 9.5;
+          pPos[i * 3 + 2] = (Math.random() - 0.5) * 22;
+          pSz[i] = 0.8 + Math.random() * 2.2;
+          pData.push({
+            vx: (Math.random() - 0.5) * 0.004,
+            vy: 0.002 + Math.random() * 0.004,
+            vz: (Math.random() - 0.5) * 0.004,
+          });
+          var cc = Math.random() < 0.5 ? [0.3, 0.1, 0.9] : [0.1, 0.4, 1];
+          pCol[i * 3] = cc[0];
+          pCol[i * 3 + 1] = cc[1];
+          pCol[i * 3 + 2] = cc[2];
+        }
+        var pGeo = new THREE.BufferGeometry();
+        pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+        pGeo.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
+        pGeo.setAttribute("size", new THREE.BufferAttribute(pSz, 1));
+        var pMat = new THREE.ShaderMaterial({
+          uniforms: { uT: { value: 0 } },
+          vertexShader:
+            "attribute float size;attribute vec3 color;varying vec3 vC;varying float vA;uniform float uT;void main(){vC=color;vec3 p=position;float r=length(p.xz);vA=.3+sin(uT*.4+r*.2+p.y*.3)*.2;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(160./-mv.z);gl_PointSize=clamp(gl_PointSize,.5,14.);gl_Position=projectionMatrix*mv;}",
+          fragmentShader:
+            "varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5)*2.;float a=1.-smoothstep(.2,.8,d);gl_FragColor=vec4(vC,a*vA);}",
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          vertexColors: true,
+        });
+        scene3._pGeo = pGeo;
+        scene3._pPos = pPos;
+        scene3._pData = pData;
+        scene3.add(new THREE.Points(pGeo, pMat));
+
+        // Controls
+        document.addEventListener("keydown", function (e) {
+          keysF[e.code] = true;
+          if (e.code === "KeyE" || e.code === "Space") {
+            e.preventDefault();
+            tryInteract();
+          }
+        });
+        document.addEventListener("keyup", function (e) {
+          keysF[e.code] = false;
+        });
+
+        var isDragging = false,
+          lastMX = 0,
+          lastMY = 0;
+        var cnv = document.getElementById("gc");
+        cnv.addEventListener("mousedown", function (e) {
+          if (e.button === 0) {
+            if (scanning || interactLocked) return;
+            if (
+              document.getElementById("result-panel").classList.contains("show")
+            )
+              return;
+            if (
+              document
+                .getElementById("summary-panel")
+                .classList.contains("show")
+            )
+              return;
+            if (nearContainer >= 0 && !scanned[nearContainer]) {
+              tryInteract();
+              return;
+            }
+            isDragging = true;
+            lastMX = e.clientX;
+            lastMY = e.clientY;
+          } else {
+            isDragging = true;
+            lastMX = e.clientX;
+            lastMY = e.clientY;
+          }
+          e.preventDefault();
+        });
+        document.addEventListener("mouseup", function () {
+          isDragging = false;
+        });
+        document.addEventListener("mousemove", function (e) {
+          if (!isDragging) return;
+          var dx = e.clientX - lastMX,
+            dy = e.clientY - lastMY;
+          lastMX = e.clientX;
+          lastMY = e.clientY;
+          camYaw -= dx * 0.004;
+          camPitch -= dy * 0.003;
+          camPitch = Math.max(-0.65, Math.min(0.65, camPitch));
+        });
+        cnv.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
+        });
+        document.getElementById("xhair").classList.add("show");
+      }
+
+      // ══ PROXIMITY ══
+      var INTERACT_DIST = 3.5;
+      function updateProximity() {
+        if (scanning || interactLocked) return;
+        var camPos = camera3.position;
+        var closest = -1,
+          closestDist = 9999;
+        for (var i = 0; i < 5; i++) {
+          if (scanned[i]) continue;
+          var grp = containerMeshes[i];
+          // Use ORIGINAL position for proximity (not current, which may have moved to platform)
+          var orig = containerOrigPos[i];
+          var dx = camPos.x - orig.x,
+            dz = camPos.z - orig.z;
+          var dist = Math.sqrt(dx * dx + dz * dz);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closest = i;
+          }
+        }
+        var hint = document.getElementById("interact");
+        if (closest >= 0 && closestDist < INTERACT_DIST) {
+          nearContainer = closest;
+          var m = MENACES[closest];
+          hint.innerHTML =
+            m.icon +
+            " <b>" +
+            m.name +
+            '</b><br><span style="font-size:7px;opacity:.7;">Cliquer ou [E] pour scanner</span>';
+          hint.classList.add("show");
+          $cur.classList.add("hover");
+        } else {
+          nearContainer = -1;
+          hint.classList.remove("show");
+          $cur.classList.remove("hover");
+        }
+        updateContainerLabels();
+      }
+
+      function updateContainerLabels() {
+        if (!camera3 || !renderer) return;
+        var labelsDiv = document.getElementById("cont-labels");
+        if (!labelsDiv) return;
+        labelsDiv.innerHTML = "";
+        for (var i = 0; i < 5; i++) {
+          var grp = containerMeshes[i];
+          // Label above original position
+          var pos = containerOrigPos[i].clone();
+          pos.y = 2.6;
+          var sp = pos.clone().project(camera3);
+          if (sp.z > 1) continue;
+          var x = (sp.x * 0.5 + 0.5) * W,
+            y = (-0.5 * sp.y + 0.5) * H;
+          if (x < -80 || x > W + 80 || y < -40 || y > H + 40) continue;
+          var m = MENACES[i];
+          var alpha = scanned[i] ? 0.22 : 1;
+          var div = document.createElement("div");
+          div.style.cssText =
+            "position:absolute;left:" +
+            x +
+            "px;top:" +
+            y +
+            "px;transform:translate(-50%,-50%);font-family:Orbitron,monospace;font-size:8px;letter-spacing:.18em;color:rgba(68,187,255," +
+            alpha +
+            ");text-align:center;pointer-events:none;text-shadow:0 0 12px rgba(68,187,255,.8);white-space:nowrap;";
+          div.textContent = (scanned[i] ? "✅ " : m.icon + " ") + m.name;
+          labelsDiv.appendChild(div);
+          if (!scanned[i]) {
+            var orig = containerOrigPos[i];
+            var camPos = camera3.position;
+            var dx = camPos.x - orig.x,
+              dz = camPos.z - orig.z;
+            var dist = Math.sqrt(dx * dx + dz * dz);
+            if (dist < INTERACT_DIST * 2) {
+              var d2 = document.createElement("div");
+              d2.style.cssText =
+                "position:absolute;left:" +
+                x +
+                "px;top:" +
+                (y + 16) +
+                "px;transform:translateX(-50%);font-family:Orbitron,monospace;font-size:6px;letter-spacing:.1em;color:rgba(136,68,255,.7);text-align:center;pointer-events:none;";
+              d2.textContent =
+                dist < INTERACT_DIST ? "▶ SCANNER" : "↑ Approchez";
+              labelsDiv.appendChild(d2);
+            }
+          }
+        }
+      }
+
+      // ══ INTERACT ══
+      function tryInteract() {
+        if (
+          nearContainer < 0 ||
+          scanned[nearContainer] ||
+          scanning ||
+          interactLocked
+        )
+          return;
+        interactLocked = true; // prevent double calls
+        currentScanIdx = nearContainer;
+        // Hide interact hint immediately
+        document.getElementById("interact").classList.remove("show");
+        $cur.classList.remove("hover");
+        liftToPlatform(currentScanIdx, function () {
+          playScan(currentScanIdx, function () {
+            showResult(currentScanIdx);
+            interactLocked = false;
+          });
+        });
+      }
+
+      // ══ LIFT TO PLATFORM ══
+      function liftToPlatform(idx, cb) {
+        var grp = containerMeshes[idx];
+        var startPos = grp.position.clone();
+        var targetPos = new THREE.Vector3(0, 0, 0);
+        var frames = 0,
+          TOTAL = 45;
+        function doLift() {
+          frames++;
+          var t = frames / TOTAL;
+          var ease = t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+          grp.position.lerpVectors(startPos, targetPos, ease);
+          grp.rotation.y += 0.04;
+          if (frames < TOTAL) requestAnimationFrame(doLift);
+          else {
+            grp.rotation.y = 0;
+            if (cb) cb();
+          }
+        }
+        requestAnimationFrame(doLift);
+      }
+
+      // ══ GREY OUT CONTAINER (FIX: only traverse Mesh children, not lights) ══
+      function greyOutContainer(idx) {
+        var grp = containerMeshes[idx];
+        grp.children.forEach(function (child) {
+          // ── FIX: only set opacity on Mesh objects with materials, skip lights ──
+          if (child instanceof THREE.Mesh && child.material) {
+            if (child.material.opacity !== undefined) {
+              child.material.transparent = true;
+              child.material.opacity = Math.min(child.material.opacity, 0.06);
+            }
+            if (child.material.emissiveIntensity !== undefined)
+              child.material.emissiveIntensity = 0;
+          }
+          if (child instanceof THREE.PointLight) child.intensity = 0;
+        });
+        // Return container to original position (invisible)
+        grp.position.copy(containerOrigPos[idx]);
+        grp.rotation.y = 0;
+      }
+
+      // ══ SCAN ANIMATION ══
+      function playScan(idx, onDone) {
+        scanning = true;
+        var ov = document.getElementById("scan-ov");
+        ov.classList.add("show");
+        var sc = document.getElementById("scan-canvas");
+        sc.width = 320;
+        sc.height = 320;
+        var ctx = sc.getContext("2d");
+        var frames = 0,
+          TOTAL = 90;
+        sfxScan();
+        if (scene3._beamMat) {
+          scene3._beamMat.uniforms.uActive.value = 1;
+        }
+        if (scene3._scanLight) {
+          scene3._scanLight.intensity = 2.5;
+        }
+        var m = MENACES[idx];
+        function drawScan() {
+          frames++;
+          var prog = frames / TOTAL;
+          var cx2 = 160,
+            cy2 = 160;
+          ctx.clearRect(0, 0, 320, 320);
+          ctx.fillStyle = "rgba(2,1,18,.95)";
+          ctx.fillRect(0, 0, 320, 320);
+          ctx.beginPath();
+          ctx.arc(cx2, cy2, 140, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(136,68,255,.25)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(
+            cx2,
+            cy2,
+            140,
+            -Math.PI / 2,
+            -Math.PI / 2 + prog * Math.PI * 2
+          );
+          ctx.strokeStyle = "rgba(68,187,255,.9)";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+          var innerR = 100 + Math.sin(prog * Math.PI * 6) * 4;
+          ctx.beginPath();
+          ctx.arc(cx2, cy2, innerR, 0, Math.PI * 2);
+          var grad = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, innerR);
+          grad.addColorStop(0, "rgba(0,136,255,.08)");
+          grad.addColorStop(0.7, "rgba(0,136,255,.04)");
+          grad.addColorStop(1, "rgba(68,187,255,.22)");
+          ctx.fillStyle = grad;
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(cx2, cy2, innerR, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(68,187,255,.7)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          var laserY = cy2 - 90 + prog * 180;
+          var lg = ctx.createLinearGradient(
+            cx2 - 110,
+            laserY,
+            cx2 + 110,
+            laserY
+          );
+          lg.addColorStop(0, "rgba(0,136,255,0)");
+          lg.addColorStop(0.5, "rgba(100,200,255,.95)");
+          lg.addColorStop(1, "rgba(0,136,255,0)");
+          ctx.strokeStyle = lg;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(cx2 - 110, laserY);
+          ctx.lineTo(cx2 + 110, laserY);
+          ctx.stroke();
+          var glowG = ctx.createLinearGradient(
+            cx2 - 100,
+            laserY,
+            cx2 - 100,
+            laserY + 18
+          );
+          glowG.addColorStop(0, "rgba(68,187,255,.18)");
+          glowG.addColorStop(1, "rgba(68,187,255,0)");
+          ctx.fillStyle = glowG;
+          ctx.fillRect(cx2 - 110, laserY, 220, 20);
+          for (var i = 0; i < 8; i++) {
+            var px = cx2 + (Math.random() - 0.5) * 180,
+              py = cy2 + (Math.random() - 0.5) * 180;
+            var d = Math.sqrt((px - cx2) ** 2 + (py - cy2) ** 2);
+            if (d > 130) continue;
+            ctx.beginPath();
+            ctx.arc(px, py, 1.5 + Math.random() * 2, 0, Math.PI * 2);
+            ctx.fillStyle =
+              "rgba(100,200,255," + (Math.random() * 0.8 + 0.2) + ")";
+            ctx.fill();
+          }
+          ctx.font = "48px serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.globalAlpha = 0.18 + prog * 0.5;
+          ctx.fillText(m.icon, cx2, cy2 - 10);
+          ctx.globalAlpha = 1;
+          ctx.font = "700 10px Orbitron,monospace";
+          ctx.fillStyle = "rgba(68,187,255,.8)";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            prog < 0.33
+              ? "INITIALISATION..."
+              : prog < 0.66
+              ? "ANALYSE EN COURS..."
+              : "COMPILATION DONNEES...",
+            cx2,
+            cy2 + 65
+          );
+          ctx.font = "700 18px Orbitron,monospace";
+          ctx.fillStyle = "rgba(136,68,255,.9)";
+          ctx.fillText(Math.floor(prog * 100) + "%", cx2, cy2 + 90);
+          if (scene3._beamMat)
+            scene3._beamMat.uniforms.uY.value = 8 - prog * 16;
+          if (frames < TOTAL) requestAnimationFrame(drawScan);
+          else {
+            if (scene3._beamMat) scene3._beamMat.uniforms.uActive.value = 0;
+            if (scene3._scanLight) scene3._scanLight.intensity = 0;
+            ov.classList.remove("show");
+            scanning = false;
+            if (onDone) onDone();
+          }
+        }
+        requestAnimationFrame(drawScan);
+      }
+
+      // ══ SHOW RESULT ══
+      function darkenHex(c) {
+        return c.replace(/[0-9a-f]{2}/gi, function (m) {
+          return Math.max(0, parseInt(m, 16) - 30)
+            .toString(16)
+            .padStart(2, "0");
+        });
+      }
+
+      function showResult(idx) {
+        var m = MENACES[idx];
+        var dangerPct = (m.danger / 5) * 100;
+        var dangerColor =
+          m.danger === 5 ? "#ff3344" : m.danger === 4 ? "#ff8844" : "#ffcc00";
+        var panel = document.getElementById("result-panel");
+        var html =
+          '<div class="rp-header"><div class="rp-icon">' +
+          m.icon +
+          '</div><div class="rp-title">' +
+          m.name +
+          '</div><div class="rp-sub">' +
+          m.sub +
+          '</div></div><div class="rp-body">';
+        m.sections.forEach(function (sec) {
+          html +=
+            '<div class="rp-section"><div class="rp-section-title">' +
+            sec.t +
+            "</div>";
+          sec.lines.forEach(function (ln) {
+            var cl = ln.match(
+              /MILLION|TRILLION|MILLIARD|CRITIQUE|ETERNEL|JAMAIS|AUCUNE/
+            )
+              ? "em"
+              : "";
+            html += '<div class="rp-line ' + cl + '">• ' + ln + "</div>";
+          });
+          html += "</div>";
+        });
+        html +=
+          '<div class="rp-section"><div class="rp-section-title">NIVEAU DANGER</div>';
+        html +=
+          "<div style=\"font-family:'Orbitron',monospace;font-size:11px;color:" +
+          dangerColor +
+          ';letter-spacing:.2em;margin-bottom:4px;">⚠️ ' +
+          m.danger +
+          "/5 — " +
+          m.dangerLabel +
+          "</div>";
+        html +=
+          '<div class="rp-danger-bar"><div class="rp-danger-fill" id="dfill-' +
+          idx +
+          '" style="width:0%;background:linear-gradient(90deg,' +
+          darkenHex(m.color) +
+          "," +
+          dangerColor +
+          ')"></div></div></div>';
+        html += '<div class="rp-score">ANALYSE — +20 POINTS</div>';
+        html +=
+          '<button class="rp-continue" onclick="continueAfterResult()">CONTINUER</button>';
+        html += "</div>";
+        panel.innerHTML = html;
+        panel.classList.add("show");
+        setTimeout(function () {
+          var el = document.getElementById("dfill-" + idx);
+          if (el) el.style.width = dangerPct + "%";
+        }, 200);
+        sfxSuccess();
+        // GAIA speaks — audio only, no text displayed
+        setTimeout(function () {
+          speakAudioOnly(m.voice, null, 0.74);
+        }, 400);
+        // Update badge
+        scanned[idx] = true;
+        scanCount++;
+        document.getElementById("bl-" + idx).classList.add("done");
+        document
+          .getElementById("bl-" + idx)
+          .querySelector(".bi-chk").textContent = "✅";
+        document.getElementById("badge-prog").textContent =
+          "PROGRESSION : " + scanCount + " / 5";
+        score += 20;
+        document.getElementById("scd").textContent = "SCORE : " + score;
+        try {
+          localStorage.setItem("gaiaScore", score.toString());
+        } catch (e) {}
+      }
+
+      function continueAfterResult() {
+        stopV();
+        hideV();
+        document.getElementById("result-panel").classList.remove("show");
+        // Grey out scanned container (FIX applied inside greyOutContainer)
+        greyOutContainer(currentScanIdx);
+        // Check if all 5 done
+        if (scanCount >= 5) {
+          setTimeout(showResumeButton, 600);
+        }
+      }
+
+      // ══ RESUME BUTTON → VIDEO → SUMMARY ══
+      function showResumeButton() {
+        stopV();
+        hideV();
+        var btn = document.getElementById("resume-btn");
+        btn.classList.add("show");
+      }
+
+      function showVideoResume() {
+        document.getElementById("resume-btn").classList.remove("show");
+        var vo = document.getElementById("video-overlay");
+        vo.classList.add("show");
+        var vid = document.getElementById("diag-video");
+        vid.currentTime = 0;
+        var p = vid.play();
+        if (p && p.catch) p.catch(function () {});
+        vid.onended = function () {
+          // Buttons already visible, do nothing extra
+        };
+      }
+
+      function replayVideo() {
+        var vid = document.getElementById("diag-video");
+        vid.currentTime = 0;
+        var p = vid.play();
+        if (p && p.catch) p.catch(function () {});
+      }
+
+      function continueAfterVideo() {
+        var vid = document.getElementById("diag-video");
+        vid.pause();
+        document.getElementById("video-overlay").classList.remove("show");
+        setTimeout(showSummary, 400);
+      }
+
+      // ══ SUMMARY PANEL ══
+      function showSummary() {
+        var panel = document.getElementById("summary-panel");
+        var rows = [
+          {
+            icon: "🌊",
+            label: "Pollution Oceanique",
+            val: "CRITIQUE",
+            cls: "red",
+          },
+          {
+            icon: "🏭",
+            label: "Pollution Atmospherique",
+            val: "CRITIQUE",
+            cls: "red",
+          },
+          {
+            icon: "☢️",
+            label: "Dechets Radioactifs",
+            val: "ETERNEL",
+            cls: "red",
+          },
+          {
+            icon: "🧪",
+            label: "Contamination Chimique",
+            val: "OMNIPRESENT",
+            cls: "orange",
+          },
+          {
+            icon: "🗑️",
+            label: "Dechets Solides",
+            val: "CROISSANT",
+            cls: "yellow",
+          },
+        ];
+        var html =
+          '<div class="sp-header"><div class="sp-title">DIAGNOSTIC COMPLET — 5/5 ✅</div><div class="sp-sub">SYNTHESE DES MENACES IDENTIFIEES</div></div><div class="sp-body">';
+        rows.forEach(function (r) {
+          html +=
+            '<div class="sp-row"><span class="sp-lbl">' +
+            r.icon +
+            " " +
+            r.label +
+            '</span><span class="sp-val ' +
+            r.cls +
+            '">' +
+            r.val +
+            "</span></div>";
+        });
+        html +=
+          '<div class="sp-row"><span class="sp-lbl">Etat systeme immunitaire</span><span class="sp-val red">DEPASSE</span></div>';
+        html += '<div class="sp-total">+100 POINTS</div>';
+        html +=
+          '<button class="sp-btn" onclick="goSalle2()">CONTINUER VERS SALLE 2</button>';
+        html += "</div>";
+        panel.innerHTML = html;
+        panel.classList.add("show");
+        sfxSuccess();
+        score += 100;
+        document.getElementById("scd").textContent = "SCORE : " + score;
+        try {
+          localStorage.setItem("gaiaScore", score.toString());
+        } catch (e) {}
+        // GAIA final speech — audio only
+        setTimeout(function () {
+          speakAudioOnly(
+            "Vous avez vu... l ampleur des attaques. Mon corps est infecte. De PARTOUT. Oceans. Air. Sols. Eau. TOUT est contamine. Mon systeme immunitaire... mes defenses naturelles... ne suffisent plus. Les forets purifient l air, mais pas assez. Les oceans absorbent le dioxyde de carbone, mais sont satures. J ai besoin... D ARMES. De technologies. D innovations. Venez. Je vais vous montrer... Mon ARSENAL.",
+            null,
+            0.74
+          );
+        }, 600);
+      }
+
+      // ══ NAVIGATE ══
+      function goSalle2() {
+        if (entering) return;
+        entering = true;
+        stopV();
+        sfxDoor();
+        document.getElementById("summary-panel").classList.remove("show");
+        var cu = document.getElementById("curtain");
+        cu.style.background = "linear-gradient(135deg,#2200ff,#0044cc,#000)";
+        cu.style.transition = "opacity 2.2s ease";
+        cu.classList.remove("gone");
+        cu.style.opacity = "1";
+        setTimeout(function () {
+          try {
+            localStorage.setItem("gaiaScore", score.toString());
+            localStorage.setItem("gaiaPlayerName", pName);
+          } catch (e) {}
+          window.location.href = "scene18.html";
+        }, 2400);
+      }
+
+      // ══ RENDER LOOP ══
+      function renderLoop(ts) {
+        requestAnimationFrame(renderLoop);
+        var dt = Math.min((ts - lastT) / 1000, 0.05);
+        lastT = ts;
+        uTime += dt;
+        if (!camera3) return;
+        var spd = 3.5;
+        var fwd = new THREE.Vector3(
+          Math.sin(camYaw) * Math.cos(camPitch),
+          0,
+          Math.cos(camYaw) * Math.cos(camPitch)
+        ).normalize();
+        var rgt = new THREE.Vector3(
+          Math.cos(camYaw),
+          0,
+          -Math.sin(camYaw)
+        ).normalize();
+        if (keysF["KeyW"] || keysF["ArrowUp"])
+          camera3.position.addScaledVector(fwd, spd * dt);
+        if (keysF["KeyS"] || keysF["ArrowDown"])
+          camera3.position.addScaledVector(fwd, -spd * dt);
+        if (keysF["KeyA"] || keysF["ArrowLeft"])
+          camera3.position.addScaledVector(rgt, -spd * dt);
+        if (keysF["KeyD"] || keysF["ArrowRight"])
+          camera3.position.addScaledVector(rgt, spd * dt);
+        camera3.position.y = 1.75;
+        camera3.position.x = Math.max(-11, Math.min(11, camera3.position.x));
+        camera3.position.z = Math.max(-11, Math.min(11, camera3.position.z));
+        camera3.rotation.order = "YXZ";
+        camera3.rotation.y = camYaw;
+        camera3.rotation.x = camPitch;
+        if (scene3._floorMat) scene3._floorMat.uniforms.uT.value = uTime;
+        if (scene3._ceilMat) scene3._ceilMat.uniforms.uT.value = uTime;
+        if (scene3._platMat) scene3._platMat.uniforms.uT.value = uTime;
+        if (scene3._beamMat) scene3._beamMat.uniforms.uT.value = uTime;
+        if (scene3._wallMats)
+          scene3._wallMats.forEach(function (wm) {
+            wm.uniforms.uT.value = uTime;
+          });
+        containerMeshes.forEach(function (grp, i) {
+          if (scanned[i]) return;
+          var inner = grp.userData.inner;
+          if (inner) inner.rotation.y += inner.userData.spinY;
+          var cl = grp.userData.clight;
+          if (cl) cl.intensity = 1.4 + Math.sin(uTime * 1.5 + i) * 0.8;
+          if (!scanning) grp.rotation.y += 0.003;
+        });
+        if (scene3._pPos && scene3._pData) {
+          var pp = scene3._pPos,
+            pd = scene3._pData;
+          for (var i = 0; i < pd.length; i++) {
+            var p = pd[i];
+            pp[i * 3] += p.vx;
+            pp[i * 3 + 1] += p.vy;
+            pp[i * 3 + 2] += p.vz;
+            if (pp[i * 3 + 1] > 9.5) {
+              pp[i * 3 + 1] = 0.2;
+              pp[i * 3] = (Math.random() - 0.5) * 22;
+              pp[i * 3 + 2] = (Math.random() - 0.5) * 22;
+            }
+          }
+          scene3._pGeo.attributes.position.needsUpdate = true;
+        }
+        updateProximity();
+        renderer.render(scene3, camera3);
+      }
+
+      // ══ BADGE INTRO ══
+      function showBadgeIntro(cb) {
+        var bi = document.getElementById("badge-intro");
+        bi.classList.add("show");
+        setTimeout(function () {
+          bi.style.transition = "opacity .8s";
+          bi.style.opacity = "0";
+          setTimeout(function () {
+            bi.classList.remove("show");
+            bi.style.opacity = "";
+            bi.style.transition = "";
+            if (cb) cb();
+          }, 820);
+        }, 3500);
+      }
+
+      // ══ INIT ══
+      function init() {
+        initAC();
+        document.addEventListener(
+          "click",
+          function () {
+            if (AC && AC.state === "suspended") AC.resume();
+          },
+          { once: true }
+        );
+        init3D();
+        var cu = document.getElementById("curtain");
+        cu.style.transition = "opacity 1.6s";
+        setTimeout(function () {
+          cu.classList.add("gone");
+        }, 150);
+        document.getElementById("hud").classList.add("show");
+        sfxAmb();
+        setTimeout(function () {
+          showBadgeIntro(function () {
+            document.getElementById("move-hint").classList.add("show");
+            ensV(function () {
+              speakAudioOnly(
+                pName +
+                  "... Bienvenue dans le Centre de Diagnostic. Cette plateforme analyse les menaces qui infectent mon corps. Approchez-vous d un conteneur pour l identifier. Appuyez sur E ou cliquez pour lancer le scan. 5 menaces a identifier. Commençons.",
+                null,
+                0.76
+              );
+            });
+          });
+        }, 800);
+        requestAnimationFrame(renderLoop);
+      }
+      window.addEventListener("load", init);
+      window.addEventListener("resize", function () {
+        W = innerWidth;
+        H = innerHeight;
+        if (renderer) renderer.setSize(W, H);
+        if (camera3) {
+          camera3.aspect = W / H;
+          camera3.updateProjectionMatrix();
+        }
+      });
+    </script>
+  </body>
+</html>
