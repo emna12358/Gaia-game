@@ -9,36 +9,51 @@
       rel="stylesheet"
     />
     <style>
-      * {
+      *,
+      *::before,
+      *::after {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
-
+      :root {
+        --red: #ff4422;
+        --green: #00ff88;
+        --gold: #ffd700;
+        --blue: #00aaff;
+        --dark: #060c0a;
+        --panel: rgba(4, 12, 8, 0.92);
+        --border: rgba(0, 255, 136, 0.25);
+      }
       body {
         background: #000;
         overflow: hidden;
         font-family: "Orbitron", sans-serif;
         cursor: none;
         color: #fff;
+        user-select: none;
       }
 
       /* ── CURSEUR ── */
       #cursor {
         position: fixed;
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         border: 2px solid rgba(255, 100, 50, 0.9);
         border-radius: 50%;
         pointer-events: none;
         z-index: 9999;
         transform: translate(-50%, -50%);
-        transition: transform 0.08s ease, border-color 0.2s;
+        transition: transform 0.08s ease, border-color 0.2s, width 0.2s,
+          height 0.2s;
       }
       #cursor.placing {
         border-color: #00ff88;
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
+      }
+      #cursor.placing::after {
+        background: #00ff88;
       }
       #cursor::after {
         content: "";
@@ -51,15 +66,19 @@
         background: #ff6432;
         border-radius: 50%;
       }
+      #cursor.drag {
+        border-color: #00aaff;
+        border-style: dashed;
+      }
 
-      /* ── CANVAS 3D ── */
+      /* ── CANVAS ── */
       #game-canvas {
         position: fixed;
         inset: 0;
         z-index: 1;
       }
 
-      /* ── VIGNETTE ALERTE ── */
+      /* ── VIGNETTE ── */
       #vignette {
         position: fixed;
         inset: 0;
@@ -68,461 +87,19 @@
         background: radial-gradient(
           ellipse 70% 70% at 50% 50%,
           transparent 30%,
-          rgba(255, 50, 0, 0.15) 70%,
-          rgba(255, 0, 0, 0.4) 100%
+          rgba(255, 50, 0, 0.12) 70%,
+          rgba(255, 0, 0, 0.35) 100%
         );
-        animation: alert-pulse 2s ease-in-out infinite;
+        animation: alert-pulse 2.5s ease-in-out infinite;
       }
       @keyframes alert-pulse {
         0%,
         100% {
-          opacity: 0.6;
+          opacity: 0.5;
         }
         50% {
           opacity: 1;
         }
-      }
-
-      /* ── INTERFACE UI ── */
-      #ui-container {
-        position: fixed;
-        inset: 0;
-        z-index: 10;
-        pointer-events: none;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-      }
-
-      /* ── HEADER ── */
-      #header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        pointer-events: all;
-      }
-
-      #title-box {
-        background: rgba(0, 0, 0, 0.85);
-        border: 1px solid rgba(255, 100, 50, 0.5);
-        padding: 15px 25px;
-        border-radius: 5px;
-      }
-      #title-box h1 {
-        font-family: "Cinzel", serif;
-        font-size: 18px;
-        color: #ff6432;
-        letter-spacing: 0.3em;
-        margin-bottom: 5px;
-      }
-      #wave-display {
-        font-size: 14px;
-        color: #ffaa88;
-      }
-
-      #gaia-health-box {
-        background: rgba(0, 0, 0, 0.85);
-        border: 1px solid rgba(0, 255, 136, 0.5);
-        padding: 15px 25px;
-        border-radius: 5px;
-        min-width: 280px;
-      }
-      #gaia-health-label {
-        font-size: 12px;
-        color: #00ff88;
-        margin-bottom: 8px;
-      }
-      #health-bar-container {
-        width: 100%;
-        height: 20px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
-        overflow: hidden;
-      }
-      #health-bar {
-        height: 100%;
-        width: 100%;
-        background: linear-gradient(90deg, #00ff88, #00cc66);
-        transition: width 0.5s ease;
-      }
-      #health-percent {
-        text-align: right;
-        font-size: 16px;
-        color: #00ff88;
-        margin-top: 5px;
-        font-weight: bold;
-      }
-
-      /* ── PANNEAU ARSENAL ── */
-      #arsenal-panel {
-        position: fixed;
-        left: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(0, 0, 0, 0.9);
-        border: 1px solid rgba(255, 100, 50, 0.4);
-        padding: 20px;
-        border-radius: 8px;
-        pointer-events: all;
-        z-index: 15;
-      }
-      #arsenal-title {
-        font-family: "Cinzel", serif;
-        font-size: 11px;
-        letter-spacing: 0.3em;
-        color: #ff6432;
-        margin-bottom: 15px;
-        text-align: center;
-      }
-      .tower-btn {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        width: 100%;
-        padding: 12px 15px;
-        margin-bottom: 8px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 5px;
-        color: #ccc;
-        font-family: "Orbitron", sans-serif;
-        font-size: 11px;
-        cursor: pointer;
-        transition: all 0.3s;
-      }
-      .tower-btn:hover:not(.disabled) {
-        background: rgba(255, 100, 50, 0.2);
-        border-color: #ff6432;
-        color: #fff;
-      }
-      .tower-btn.selected {
-        background: rgba(0, 255, 136, 0.2);
-        border-color: #00ff88;
-        color: #00ff88;
-      }
-      .tower-btn.disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .tower-icon {
-        font-size: 22px;
-      }
-      .tower-info {
-        flex: 1;
-      }
-      .tower-name {
-        font-weight: bold;
-        margin-bottom: 2px;
-      }
-      .tower-cost {
-        font-size: 10px;
-        color: #ffaa88;
-      }
-
-      #resources-display {
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-        text-align: center;
-      }
-      #resources-label {
-        font-size: 10px;
-        color: #888;
-        margin-bottom: 5px;
-      }
-      #resources-value {
-        font-size: 22px;
-        color: #ffd700;
-        font-weight: bold;
-      }
-
-      /* ── BOUTON VAGUE ── */
-      #wave-btn {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 18px 50px;
-        background: linear-gradient(135deg, #ff6432, #ff4500);
-        border: none;
-        border-radius: 8px;
-        color: #fff;
-        font-family: "Orbitron", sans-serif;
-        font-size: 14px;
-        font-weight: bold;
-        letter-spacing: 0.15em;
-        cursor: pointer;
-        pointer-events: all;
-        z-index: 20;
-        transition: all 0.3s;
-        box-shadow: 0 0 30px rgba(255, 100, 50, 0.5);
-      }
-      #wave-btn:hover:not(:disabled) {
-        transform: translateX(-50%) scale(1.05);
-        box-shadow: 0 0 50px rgba(255, 100, 50, 0.8);
-      }
-      #wave-btn:disabled {
-        background: #444;
-        cursor: not-allowed;
-        box-shadow: none;
-      }
-
-      /* ── MESSAGES GAÏA ── */
-      #gaia-message {
-        position: fixed;
-        bottom: 100px;
-        left: 50%;
-        transform: translateX(-50%);
-        max-width: 500px;
-        background: rgba(0, 20, 10, 0.95);
-        border: 1px solid rgba(0, 255, 136, 0.4);
-        padding: 15px 25px;
-        border-radius: 8px;
-        pointer-events: none;
-        z-index: 25;
-        opacity: 0;
-        transition: opacity 0.5s;
-      }
-      #gaia-message.show {
-        opacity: 1;
-      }
-      #gaia-message-text {
-        font-family: "EB Garamond", serif;
-        font-size: 16px;
-        color: #caeedd;
-        text-align: center;
-        line-height: 1.6;
-      }
-      #gaia-message-tag {
-        font-family: "Cinzel", serif;
-        font-size: 9px;
-        letter-spacing: 0.3em;
-        color: rgba(0, 255, 136, 0.5);
-        text-align: center;
-        margin-bottom: 8px;
-      }
-
-      /* ── ÉCRAN VICTOIRE/DÉFAITE ── */
-      #end-screen {
-        position: fixed;
-        inset: 0;
-        z-index: 500;
-        background: rgba(0, 0, 0, 0.95);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 1s;
-      }
-      #end-screen.show {
-        opacity: 1;
-        pointer-events: all;
-      }
-      #end-content {
-        background: rgba(0, 10, 5, 0.95);
-        border: 2px solid rgba(0, 255, 136, 0.5);
-        padding: 40px 60px;
-        border-radius: 12px;
-        max-width: 500px;
-        text-align: center;
-      }
-      #end-content.defeat {
-        border-color: rgba(255, 50, 50, 0.5);
-      }
-      #end-title {
-        font-family: "Cinzel", serif;
-        font-size: 36px;
-        color: #00ff88;
-        margin-bottom: 5px;
-      }
-      #end-content.defeat #end-title {
-        color: #ff5555;
-      }
-      #end-subtitle {
-        font-family: "Cinzel", serif;
-        font-size: 14px;
-        color: #88ccaa;
-        letter-spacing: 0.2em;
-        margin-bottom: 30px;
-      }
-      #end-content.defeat #end-subtitle {
-        color: #cc8888;
-      }
-
-      #stats-box {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        text-align: left;
-      }
-      #stats-title {
-        font-size: 12px;
-        color: #888;
-        letter-spacing: 0.2em;
-        margin-bottom: 15px;
-        text-align: center;
-      }
-      .stat-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 13px;
-      }
-      .stat-label {
-        color: #aaa;
-      }
-      .stat-value {
-        color: #fff;
-        font-weight: bold;
-      }
-      .stat-value.good {
-        color: #00ff88;
-      }
-      .stat-value.bad {
-        color: #ff5555;
-      }
-
-      #performance-box {
-        margin-bottom: 25px;
-      }
-      #stars-display {
-        font-size: 36px;
-        margin-bottom: 10px;
-      }
-      #rank-display {
-        font-size: 16px;
-        color: #ffd700;
-        font-weight: bold;
-      }
-
-      #rewards-box {
-        background: rgba(255, 215, 0, 0.1);
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-      }
-      #rewards-title {
-        font-size: 11px;
-        color: #ffd700;
-        letter-spacing: 0.2em;
-        margin-bottom: 10px;
-      }
-      .reward-item {
-        font-size: 13px;
-        color: #ffeeaa;
-        margin-bottom: 5px;
-      }
-
-      #gaia-final-message {
-        font-family: "EB Garamond", serif;
-        font-style: italic;
-        font-size: 15px;
-        color: #caeedd;
-        line-height: 1.7;
-        margin-bottom: 25px;
-        padding: 15px;
-        border-left: 2px solid rgba(0, 255, 136, 0.3);
-      }
-
-      #end-buttons {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-      }
-      .end-btn {
-        padding: 15px 30px;
-        border: 1px solid;
-        border-radius: 5px;
-        font-family: "Orbitron", sans-serif;
-        font-size: 12px;
-        letter-spacing: 0.1em;
-        cursor: pointer;
-        transition: all 0.3s;
-      }
-      #btn-replay {
-        background: transparent;
-        border-color: rgba(255, 255, 255, 0.3);
-        color: #aaa;
-      }
-      #btn-replay:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-      }
-      #btn-next {
-        background: linear-gradient(135deg, #00ff88, #00cc66);
-        border-color: #00ff88;
-        color: #000;
-        font-weight: bold;
-      }
-      #btn-next:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 25px rgba(0, 255, 136, 0.5);
-      }
-
-      /* ── INFO VAGUE ── */
-      #wave-info {
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        background: rgba(0, 0, 0, 0.9);
-        border: 1px solid rgba(255, 100, 50, 0.4);
-        padding: 15px 20px;
-        border-radius: 8px;
-        pointer-events: none;
-        z-index: 15;
-        opacity: 0;
-        transition: opacity 0.5s;
-      }
-      #wave-info.show {
-        opacity: 1;
-      }
-      #wave-info-title {
-        font-size: 12px;
-        color: #ff6432;
-        margin-bottom: 10px;
-      }
-      #wave-info-content {
-        font-size: 11px;
-        color: #ccc;
-        line-height: 1.6;
-      }
-
-      /* ── AUDIO ── */
-      #audio-hint {
-        position: fixed;
-        bottom: 22px;
-        right: 22px;
-        z-index: 30;
-        font-family: "Cinzel", serif;
-        font-size: 9px;
-        letter-spacing: 0.3em;
-        color: rgba(255, 100, 50, 0.5);
-        cursor: pointer;
-        pointer-events: all;
-        transition: color 0.3s;
-      }
-      #audio-hint:hover {
-        color: rgba(255, 100, 50, 1);
-      }
-
-      /* ── INDICATEUR TOUR SÉLECTIONNÉE ── */
-      #selected-tower-indicator {
-        position: fixed;
-        bottom: 30px;
-        right: 100px;
-        background: rgba(0, 255, 136, 0.2);
-        border: 1px solid #00ff88;
-        padding: 10px 20px;
-        border-radius: 5px;
-        pointer-events: none;
-        z-index: 20;
-        opacity: 0;
-        transition: opacity 0.3s;
-      }
-      #selected-tower-indicator.show {
-        opacity: 1;
       }
 
       /* ── SIRÈNE ── */
@@ -550,376 +127,808 @@
         }
       }
 
-      /* ── ÉCRAN TUTORIEL ── */
-      #tutorial-screen {
+      /* ══ HEADER ══ */
+      #header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 18px 24px;
+        pointer-events: none;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.8) 0%,
+          transparent 100%
+        );
+      }
+      #title-box {
+        background: var(--panel);
+        border: 1px solid rgba(255, 100, 50, 0.45);
+        padding: 14px 22px;
+        border-radius: 8px;
+        pointer-events: all;
+      }
+      #title-box h1 {
+        font-family: "Cinzel", serif;
+        font-size: 17px;
+        color: var(--red);
+        letter-spacing: 0.3em;
+        margin-bottom: 4px;
+      }
+      #wave-display {
+        font-size: 12px;
+        color: #ffaa88;
+        letter-spacing: 0.1em;
+      }
+      #gaia-health-box {
+        background: var(--panel);
+        border: 1px solid rgba(0, 255, 136, 0.45);
+        padding: 14px 22px;
+        border-radius: 8px;
+        min-width: 260px;
+        pointer-events: all;
+      }
+      #gaia-health-label {
+        font-size: 11px;
+        color: var(--green);
+        margin-bottom: 7px;
+        letter-spacing: 0.15em;
+      }
+      #health-bar-container {
+        width: 100%;
+        height: 18px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 3px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 255, 136, 0.2);
+      }
+      #health-bar {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, #00ff88, #00cc66);
+        transition: width 0.5s ease;
+      }
+      #health-percent {
+        text-align: right;
+        font-size: 15px;
+        color: var(--green);
+        margin-top: 4px;
+        font-weight: bold;
+      }
+
+      /* ══ CONTRÔLES CAMÉRA — MASQUÉ ══ */
+      #camera-controls {
+        display: none !important;
+      }
+
+      /* ══ ARSENAL ══ */
+      #arsenal-panel {
+        position: fixed;
+        left: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--panel);
+        border: 1px solid rgba(255, 100, 50, 0.35);
+        padding: 18px 16px;
+        border-radius: 10px;
+        pointer-events: all;
+        z-index: 15;
+        width: 210px;
+      }
+      #arsenal-title {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        color: var(--red);
+        margin-bottom: 14px;
+        text-align: center;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 100, 50, 0.2);
+      }
+      .tower-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 10px 12px;
+        margin-bottom: 7px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 7px;
+        color: #ccc;
+        font-family: "Orbitron", sans-serif;
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.25s;
+      }
+      .tower-btn:hover:not(.disabled) {
+        background: rgba(255, 100, 50, 0.15);
+        border-color: #ff6432;
+        color: #fff;
+      }
+      .tower-btn.selected {
+        background: rgba(0, 255, 136, 0.15);
+        border-color: #00ff88;
+        color: #00ff88;
+      }
+      .tower-btn.disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      .tower-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+      .tower-info {
+        flex: 1;
+      }
+      .tower-name {
+        font-weight: bold;
+        margin-bottom: 2px;
+        font-size: 10px;
+      }
+      .tower-cost {
+        font-size: 9px;
+        color: #ffaa88;
+      }
+      #resources-display {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        text-align: center;
+      }
+      #resources-label {
+        font-size: 9px;
+        color: #888;
+        letter-spacing: 0.15em;
+        margin-bottom: 4px;
+      }
+      #resources-value {
+        font-size: 24px;
+        color: var(--gold);
+        font-weight: bold;
+      }
+
+      /* ══ BOUTON VAGUE ══ */
+      #wave-btn {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 16px 48px;
+        background: linear-gradient(135deg, #ff6432, #ff4500);
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-family: "Orbitron", sans-serif;
+        font-size: 13px;
+        font-weight: bold;
+        letter-spacing: 0.15em;
+        cursor: pointer;
+        pointer-events: all;
+        z-index: 20;
+        transition: all 0.3s;
+        box-shadow: 0 0 28px rgba(255, 100, 50, 0.5);
+      }
+      #wave-btn:hover:not(:disabled) {
+        transform: translateX(-50%) scale(1.05);
+        box-shadow: 0 0 50px rgba(255, 100, 50, 0.8);
+      }
+      #wave-btn:disabled {
+        background: #333;
+        cursor: not-allowed;
+        box-shadow: none;
+        color: #666;
+      }
+
+      /* ══ MESSAGES GAÏA ══ */
+      #gaia-message {
+        position: fixed;
+        bottom: 96px;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 480px;
+        background: rgba(0, 20, 10, 0.95);
+        border: 1px solid rgba(0, 255, 136, 0.35);
+        padding: 14px 22px;
+        border-radius: 8px;
+        pointer-events: none;
+        z-index: 25;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      #gaia-message.show {
+        opacity: 1;
+      }
+      #gaia-message-text {
+        font-family: "EB Garamond", serif;
+        font-size: 16px;
+        color: #caeedd;
+        text-align: center;
+        line-height: 1.6;
+      }
+      #gaia-message-tag {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 255, 136, 0.5);
+        text-align: center;
+        margin-bottom: 7px;
+      }
+
+      /* ══ INFO VAGUE ══ */
+      #wave-info {
+        position: fixed;
+        top: 105px;
+        right: 22px;
+        background: var(--panel);
+        border: 1px solid rgba(255, 100, 50, 0.35);
+        padding: 14px 18px;
+        border-radius: 8px;
+        pointer-events: none;
+        z-index: 15;
+        opacity: 0;
+        transition: opacity 0.5s;
+        max-width: 200px;
+      }
+      #wave-info.show {
+        opacity: 1;
+      }
+      #wave-info-title {
+        font-size: 11px;
+        color: #ff6432;
+        margin-bottom: 8px;
+        letter-spacing: 0.1em;
+      }
+      #wave-info-content {
+        font-size: 10px;
+        color: #ccc;
+        line-height: 1.7;
+      }
+
+      /* ══ INDICATEUR TOUR ══ */
+      #selected-tower-indicator {
+        position: fixed;
+        bottom: 28px;
+        right: 22px;
+        background: rgba(0, 255, 136, 0.15);
+        border: 1px solid #00ff88;
+        padding: 9px 18px;
+        border-radius: 6px;
+        pointer-events: none;
+        z-index: 20;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 11px;
+        color: #00ff88;
+      }
+      #selected-tower-indicator.show {
+        opacity: 1;
+      }
+
+      /* ══ AUDIO ══ */
+      #audio-controls {
+        position: fixed;
+        bottom: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-left: 220px;
+        z-index: 30;
+        display: flex;
+        gap: 8px;
+        pointer-events: all;
+      }
+      .audio-btn {
+        padding: 6px 14px;
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 100, 50, 0.4);
+        border-radius: 5px;
+        color: rgba(255, 100, 50, 0.7);
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        cursor: pointer;
+        transition: color 0.3s;
+      }
+      .audio-btn:hover {
+        color: var(--red);
+        border-color: var(--red);
+      }
+      .audio-btn.muted {
+        color: #444;
+        border-color: #333;
+      }
+
+      /* ══ OVERLAYS ══ */
+      .fullscreen-overlay {
         position: fixed;
         inset: 0;
         z-index: 600;
-        background: rgba(0, 0, 0, 0.98);
+        background: rgba(0, 0, 0, 0.97);
         display: flex;
         align-items: center;
         justify-content: center;
         opacity: 1;
         transition: opacity 0.5s;
       }
-      #tutorial-screen.hidden {
+      .fullscreen-overlay.hidden {
         opacity: 0;
         pointer-events: none;
       }
-      #tutorial-content {
-        background: rgba(0, 15, 10, 0.95);
-        border: 2px solid rgba(0, 255, 136, 0.5);
-        padding: 40px 50px;
-        border-radius: 15px;
-        max-width: 800px;
+      .overlay-panel {
+        background: rgba(0, 15, 10, 0.97);
+        border: 2px solid rgba(0, 255, 136, 0.4);
+        padding: 38px 48px;
+        border-radius: 14px;
+        max-width: 780px;
+        width: 90%;
         max-height: 90vh;
         overflow-y: auto;
       }
       #tutorial-title {
         font-family: "Cinzel", serif;
-        font-size: 28px;
-        color: #00ff88;
+        font-size: 26px;
+        color: var(--green);
         text-align: center;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         letter-spacing: 0.2em;
       }
       #tutorial-subtitle {
         font-family: "EB Garamond", serif;
-        font-size: 16px;
+        font-size: 15px;
         color: #88ccaa;
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 28px;
         font-style: italic;
       }
       .tutorial-section {
-        margin-bottom: 25px;
-        padding: 20px;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 10px;
-        border-left: 3px solid rgba(0, 255, 136, 0.4);
+        margin-bottom: 22px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.025);
+        border-radius: 9px;
+        border-left: 3px solid rgba(0, 255, 136, 0.35);
       }
       .tutorial-section h3 {
         font-family: "Cinzel", serif;
-        font-size: 14px;
+        font-size: 13px;
         color: #ff6432;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         letter-spacing: 0.15em;
       }
       .tutorial-section p,
       .tutorial-section li {
         font-family: "EB Garamond", serif;
-        font-size: 15px;
+        font-size: 14px;
         color: #caeedd;
         line-height: 1.7;
       }
       .tutorial-section ul {
-        padding-left: 20px;
-        margin-top: 10px;
+        padding-left: 18px;
+        margin-top: 8px;
       }
       .tutorial-section li {
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
       .tower-guide {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-top: 15px;
+        gap: 10px;
+        margin-top: 12px;
       }
       .tower-guide-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px;
+        gap: 9px;
+        padding: 9px;
         background: rgba(0, 0, 0, 0.3);
         border-radius: 5px;
       }
       .tower-guide-item .icon {
-        font-size: 24px;
+        font-size: 22px;
       }
-      .tower-guide-item .info {
-        font-size: 12px;
-      }
-      .tower-guide-item .name {
+      .tower-guide-item .info .name {
         color: #fff;
         font-weight: bold;
-      }
-      .tower-guide-item .effective {
-        color: #00ff88;
         font-size: 11px;
       }
+      .tower-guide-item .info .effective {
+        color: #00ff88;
+        font-size: 10px;
+        margin-top: 2px;
+      }
       .tips-box {
-        background: rgba(255, 215, 0, 0.1);
-        border: 1px solid rgba(255, 215, 0, 0.3);
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 15px;
+        background: rgba(255, 215, 0, 0.08);
+        border: 1px solid rgba(255, 215, 0, 0.25);
+        padding: 13px;
+        border-radius: 7px;
+        margin-top: 12px;
       }
       .tips-box h4 {
-        color: #ffd700;
-        font-size: 12px;
-        margin-bottom: 10px;
+        color: var(--gold);
+        font-size: 11px;
+        margin-bottom: 8px;
       }
       .tips-box li {
         color: #ffeeaa;
       }
       #btn-start-game {
         display: block;
-        margin: 30px auto 0;
-        padding: 18px 60px;
+        margin: 28px auto 0;
+        padding: 16px 56px;
         background: linear-gradient(135deg, #00ff88, #00cc66);
         border: none;
         border-radius: 8px;
         color: #000;
         font-family: "Orbitron", sans-serif;
-        font-size: 16px;
+        font-size: 15px;
         font-weight: bold;
         letter-spacing: 0.15em;
         cursor: pointer;
         transition: all 0.3s;
-        box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+        box-shadow: 0 0 28px rgba(0, 255, 136, 0.5);
       }
       #btn-start-game:hover {
         transform: scale(1.05);
         box-shadow: 0 0 50px rgba(0, 255, 136, 0.8);
       }
 
-      /* ── ÉCRAN INFO PRÉ-VAGUE ── */
+      /* PREVIEW VAGUE */
       #wave-preview {
-        position: fixed;
-        inset: 0;
         z-index: 550;
-        background: rgba(0, 0, 0, 0.95);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.5s;
-      }
-      #wave-preview.show {
-        opacity: 1;
-        pointer-events: all;
-      }
-      #wave-preview-content {
-        background: rgba(20, 0, 0, 0.95);
-        border: 2px solid rgba(255, 100, 50, 0.5);
-        padding: 40px 50px;
-        border-radius: 12px;
-        max-width: 600px;
-        text-align: center;
       }
       #wave-preview-number {
-        font-family: "Orbitron", sans-serif;
-        font-size: 14px;
+        font-size: 13px;
         color: #ff6432;
         letter-spacing: 0.3em;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
       #wave-preview-name {
         font-family: "Cinzel", serif;
-        font-size: 32px;
+        font-size: 30px;
         color: #fff;
-        margin-bottom: 25px;
+        margin-bottom: 22px;
       }
       #wave-preview-enemy {
-        font-size: 80px;
-        margin-bottom: 20px;
+        font-size: 72px;
+        margin-bottom: 18px;
       }
       #wave-preview-stats {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        margin-bottom: 25px;
+        gap: 12px;
+        margin-bottom: 22px;
         text-align: left;
       }
       .preview-stat {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 12px 15px;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 11px 14px;
         border-radius: 5px;
       }
       .preview-stat-label {
-        font-size: 10px;
+        font-size: 9px;
         color: #888;
         letter-spacing: 0.1em;
       }
       .preview-stat-value {
-        font-size: 18px;
+        font-size: 17px;
         color: #fff;
         font-weight: bold;
       }
       #wave-preview-tip {
-        background: rgba(0, 255, 136, 0.1);
-        border: 1px solid rgba(0, 255, 136, 0.3);
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 25px;
+        background: rgba(0, 255, 136, 0.08);
+        border: 1px solid rgba(0, 255, 136, 0.25);
+        padding: 13px;
+        border-radius: 7px;
+        margin-bottom: 22px;
       }
       #wave-preview-tip-title {
-        font-size: 11px;
+        font-size: 10px;
         color: #00ff88;
         letter-spacing: 0.15em;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
       #wave-preview-tip-text {
         font-family: "EB Garamond", serif;
-        font-size: 15px;
+        font-size: 14px;
         color: #caeedd;
         line-height: 1.6;
       }
       #btn-launch-wave {
-        padding: 16px 50px;
+        padding: 14px 46px;
         background: linear-gradient(135deg, #ff6432, #ff4500);
         border: none;
-        border-radius: 8px;
+        border-radius: 7px;
         color: #fff;
         font-family: "Orbitron", sans-serif;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: bold;
         letter-spacing: 0.1em;
         cursor: pointer;
         transition: all 0.3s;
-        box-shadow: 0 0 25px rgba(255, 100, 50, 0.5);
+        box-shadow: 0 0 22px rgba(255, 100, 50, 0.5);
       }
       #btn-launch-wave:hover {
         transform: scale(1.05);
-        box-shadow: 0 0 40px rgba(255, 100, 50, 0.8);
+        box-shadow: 0 0 38px rgba(255, 100, 50, 0.8);
+      }
+
+      /* ÉCRAN FIN */
+      #end-screen {
+        z-index: 500;
+      }
+      #end-screen .overlay-panel {
+        max-width: 500px;
+        text-align: center;
+      }
+      #end-screen .overlay-panel.defeat {
+        border-color: rgba(255, 50, 50, 0.5);
+      }
+      #end-title {
+        font-family: "Cinzel", serif;
+        font-size: 34px;
+        color: #00ff88;
+        margin-bottom: 5px;
+      }
+      #end-content.defeat #end-title {
+        color: #ff5555;
+      }
+      #end-subtitle {
+        font-family: "Cinzel", serif;
+        font-size: 13px;
+        color: #88ccaa;
+        letter-spacing: 0.2em;
+        margin-bottom: 28px;
+      }
+      #end-content.defeat #end-subtitle {
+        color: #cc8888;
+      }
+      #stats-box {
+        background: rgba(255, 255, 255, 0.04);
+        padding: 18px;
+        border-radius: 7px;
+        margin-bottom: 18px;
+        text-align: left;
+      }
+      #stats-title {
+        font-size: 11px;
+        color: #888;
+        letter-spacing: 0.2em;
+        margin-bottom: 13px;
+        text-align: center;
+      }
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 7px;
+        font-size: 12px;
+      }
+      .stat-label {
+        color: #aaa;
+      }
+      .stat-value {
+        color: #fff;
+        font-weight: bold;
+      }
+      .stat-value.good {
+        color: #00ff88;
+      }
+      .stat-value.bad {
+        color: #ff5555;
+      }
+      #performance-box {
+        margin-bottom: 22px;
+      }
+      #stars-display {
+        font-size: 34px;
+        margin-bottom: 8px;
+      }
+      #rank-display {
+        font-size: 15px;
+        color: var(--gold);
+        font-weight: bold;
+      }
+      #rewards-box {
+        background: rgba(255, 215, 0, 0.08);
+        padding: 13px;
+        border-radius: 7px;
+        margin-bottom: 18px;
+      }
+      #rewards-title {
+        font-size: 10px;
+        color: var(--gold);
+        letter-spacing: 0.2em;
+        margin-bottom: 8px;
+      }
+      .reward-item {
+        font-size: 12px;
+        color: #ffeeaa;
+        margin-bottom: 4px;
+      }
+      #gaia-final-message {
+        font-family: "EB Garamond", serif;
+        font-style: italic;
+        font-size: 14px;
+        color: #caeedd;
+        line-height: 1.7;
+        margin-bottom: 22px;
+        padding: 13px;
+        border-left: 2px solid rgba(0, 255, 136, 0.3);
+      }
+      #end-buttons {
+        display: flex;
+        gap: 13px;
+        justify-content: center;
+      }
+      .end-btn {
+        padding: 13px 28px;
+        border: 1px solid;
+        border-radius: 5px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #btn-replay {
+        background: transparent;
+        border-color: rgba(255, 255, 255, 0.25);
+        color: #aaa;
+      }
+      #btn-replay:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+      #btn-next {
+        background: linear-gradient(135deg, #00ff88, #00cc66);
+        border-color: #00ff88;
+        color: #000;
+        font-weight: bold;
+      }
+      #btn-next:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 22px rgba(0, 255, 136, 0.5);
+      }
+
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 136, 0.3);
+        border-radius: 2px;
       }
     </style>
   </head>
   <body>
-    <!-- Curseur -->
     <div id="cursor"></div>
-
-    <!-- Canvas 3D -->
     <div id="game-canvas"></div>
-
-    <!-- Vignette alerte -->
     <div id="vignette"></div>
-
-    <!-- Sirène -->
     <div id="siren-light"></div>
 
-    <!-- Interface UI -->
-    <div id="ui-container">
-      <div id="header">
-        <div id="title-box">
-          <h1>⚔️ DÉFENSE DE GAÏA</h1>
-          <div id="wave-display">
-            VAGUE : <span id="wave-current">0</span>/10
-          </div>
-        </div>
-        <div id="gaia-health-box">
-          <div id="gaia-health-label">VIE DE GAÏA</div>
-          <div id="health-bar-container">
-            <div id="health-bar"></div>
-          </div>
-          <div id="health-percent">100%</div>
-        </div>
+    <div id="header">
+      <div id="title-box">
+        <h1>⚔️ DÉFENSE DE GAÏA</h1>
+        <div id="wave-display">VAGUE : <span id="wave-current">0</span>/10</div>
+      </div>
+      <div id="gaia-health-box">
+        <div id="gaia-health-label">🌍 VIE DE GAÏA</div>
+        <div id="health-bar-container"><div id="health-bar"></div></div>
+        <div id="health-percent">100%</div>
       </div>
     </div>
 
-    <!-- Panneau Arsenal -->
     <div id="arsenal-panel">
-      <div id="arsenal-title">ARSENAL DISPONIBLE</div>
+      <div id="arsenal-title">🛡 ARSENAL DISPONIBLE</div>
       <button class="tower-btn" data-tower="drone" data-cost="100">
         <span class="tower-icon">🚁</span>
         <div class="tower-info">
           <div class="tower-name">Drones Air</div>
-          <div class="tower-cost">Coût : 100</div>
+          <div class="tower-cost">Coût : 100 ⚡</div>
         </div>
       </button>
       <button class="tower-btn" data-tower="bacteria" data-cost="150">
         <span class="tower-icon">🦠</span>
         <div class="tower-info">
           <div class="tower-name">Bactéries</div>
-          <div class="tower-cost">Coût : 150</div>
+          <div class="tower-cost">Coût : 150 ⚡</div>
         </div>
       </button>
       <button class="tower-btn" data-tower="tree" data-cost="200">
         <span class="tower-icon">🌳</span>
         <div class="tower-info">
           <div class="tower-name">Super-Trees</div>
-          <div class="tower-cost">Coût : 200</div>
+          <div class="tower-cost">Coût : 200 ⚡</div>
         </div>
       </button>
       <button class="tower-btn" data-tower="ocean" data-cost="250">
         <span class="tower-icon">🌊</span>
         <div class="tower-info">
           <div class="tower-name">Ocean Barriers</div>
-          <div class="tower-cost">Coût : 250</div>
+          <div class="tower-cost">Coût : 250 ⚡</div>
         </div>
       </button>
       <button class="tower-btn" data-tower="smog" data-cost="300">
         <span class="tower-icon">🗼</span>
         <div class="tower-info">
           <div class="tower-name">Smog Towers</div>
-          <div class="tower-cost">Coût : 300</div>
+          <div class="tower-cost">Coût : 300 ⚡</div>
         </div>
       </button>
       <button class="tower-btn" data-tower="algae" data-cost="350">
         <span class="tower-icon">🌿</span>
         <div class="tower-info">
           <div class="tower-name">Algae Reactors</div>
-          <div class="tower-cost">Coût : 350</div>
+          <div class="tower-cost">Coût : 350 ⚡</div>
         </div>
       </button>
       <div id="resources-display">
-        <div id="resources-label">RESSOURCES</div>
+        <div id="resources-label">⚡ RESSOURCES</div>
         <div id="resources-value">1500</div>
       </div>
     </div>
 
-    <!-- Bouton Vague -->
+    <!-- Camera controls HTML kept but hidden via CSS -->
+    <div id="camera-controls"></div>
+
     <button id="wave-btn" disabled>▶ LANCER VAGUE 1</button>
 
-    <!-- Message Gaïa -->
     <div id="gaia-message">
       <div id="gaia-message-tag">💬 G A Ï A</div>
       <div id="gaia-message-text"></div>
     </div>
 
-    <!-- Info Vague -->
     <div id="wave-info">
       <div id="wave-info-title">⚔️ VAGUE EN COURS</div>
       <div id="wave-info-content"></div>
     </div>
 
-    <!-- Indicateur tour sélectionnée -->
     <div id="selected-tower-indicator">
-      <span id="selected-tower-name"></span> sélectionné
+      <span id="selected-tower-name"></span> sélectionné — Cliquez sur l'arène
     </div>
 
-    <!-- Écran Fin -->
-    <div id="end-screen">
-      <div id="end-content">
+    <div id="audio-controls">
+      <button class="audio-btn" id="btn-mute" onclick="toggleMute()">
+        🔊 SON
+      </button>
+      <button class="audio-btn" id="btn-music" onclick="toggleMusic()">
+        🎵 MUSIQUE
+      </button>
+    </div>
+
+    <!-- FIN -->
+    <div id="end-screen" class="fullscreen-overlay hidden">
+      <div id="end-content" class="overlay-panel">
         <div id="end-title">🏆 VICTOIRE !</div>
         <div id="end-subtitle">GAÏA DÉFENDUE AVEC SUCCÈS</div>
-
         <div id="stats-box">
           <div id="stats-title">STATISTIQUES</div>
           <div class="stat-row">
-            <span class="stat-label">Vagues complétées :</span>
-            <span class="stat-value" id="stat-waves">10/10 ✅</span>
+            <span class="stat-label">Vagues complétées :</span
+            ><span class="stat-value" id="stat-waves">10/10 ✅</span>
           </div>
           <div class="stat-row">
-            <span class="stat-label">Ennemis détruits :</span>
-            <span class="stat-value" id="stat-enemies">0/0 (0%)</span>
+            <span class="stat-label">Ennemis détruits :</span
+            ><span class="stat-value" id="stat-enemies">0/0 (0%)</span>
           </div>
           <div class="stat-row">
-            <span class="stat-label">Vie finale Gaïa :</span>
-            <span class="stat-value" id="stat-health">100%</span>
+            <span class="stat-label">Vie finale Gaïa :</span
+            ><span class="stat-value" id="stat-health">100%</span>
           </div>
           <div class="stat-row">
-            <span class="stat-label">Technologies utilisées :</span>
-            <span class="stat-value" id="stat-towers">0</span>
+            <span class="stat-label">Technologies utilisées :</span
+            ><span class="stat-value" id="stat-towers">0</span>
           </div>
         </div>
-
         <div id="performance-box">
           <div id="stars-display">⭐⭐⭐⭐⭐</div>
           <div id="rank-display">GARDIEN ULTIME</div>
         </div>
-
         <div id="rewards-box">
           <div id="rewards-title">RÉCOMPENSES</div>
           <div class="reward-item" id="reward-points">• +500 POINTS</div>
@@ -928,14 +937,10 @@
           </div>
           <div class="reward-item">• Accès Salle suivante débloqué ✅</div>
         </div>
-
         <div id="gaia-final-message">
-          "Vous m'avez défendue. Merci.<br />
-          Mais la vraie bataille...<br />
-          Est dans le monde réel.<br />
-          Là-bas, AGISSEZ."
+          "Vous m'avez défendue. Merci.<br />Mais la vraie bataille...<br />Est
+          dans le monde réel.<br />Là-bas, <strong>AGISSEZ</strong>."
         </div>
-
         <div id="end-buttons">
           <button class="end-btn" id="btn-replay">REJOUER</button>
           <button class="end-btn" id="btn-next">SALLE SUIVANTE ▶</button>
@@ -943,153 +948,150 @@
       </div>
     </div>
 
-    <!-- Audio -->
-    <div id="audio-hint" onclick="toggleMute()">SON</div>
-
-    <!-- Écran Tutoriel -->
-    <div id="tutorial-screen">
-      <div id="tutorial-content">
-        <div id="tutorial-title">GUIDE DE DEFENSE</div>
+    <!-- TUTORIEL -->
+    <div id="tutorial-screen" class="fullscreen-overlay">
+      <div class="overlay-panel">
+        <div id="tutorial-title">GUIDE DE DÉFENSE</div>
         <div id="tutorial-subtitle">
-          "Gardien, voici comment proteger mon coeur..."
+          "Gardien, voici comment protéger mon cœur..."
         </div>
-
         <div class="tutorial-section">
           <h3>OBJECTIF</h3>
           <p>
-            Protegez le
-            <strong style="color: #00ff88">Coeur de Gaia</strong> (au centre de
-            l'arene) contre <strong>10 vagues</strong> d'ennemis polluants. Si
-            la vie de Gaia tombe a 0, c'est la defaite. Survivez aux 10 vagues
-            et battez le Boss Final pour gagner !
+            Protégez le <strong style="color: #00ff88">Cœur de Gaïa</strong> (la
+            Terre au centre) contre <strong>10 vagues</strong> d'ennemis
+            polluants. Survivez aux 10 vagues et battez le Boss Final pour
+            gagner !
           </p>
         </div>
-
         <div class="tutorial-section">
           <h3>COMMENT JOUER</h3>
           <ul>
             <li>
-              <strong>1.</strong> Selectionnez une tour dans le panneau ARSENAL
-              (a gauche)
+              <strong>1.</strong> Sélectionnez une tour dans le panneau ARSENAL
+              (à gauche)
             </li>
             <li>
-              <strong>2.</strong> Cliquez sur une case hexagonale de l'arene
+              <strong>2.</strong> Cliquez sur une case hexagonale de l'arène
               pour la placer
             </li>
             <li>
-              <strong>3.</strong> Quand vous etes pret, cliquez sur "LANCER
+              <strong>3.</strong> Utilisez Clic-droit + glisser pour faire
+              pivoter la vue 360°
+            </li>
+            <li><strong>4.</strong> Molette souris pour zoomer/dézoomer</li>
+            <li>
+              <strong>5.</strong> Touches ← → ↑ ↓ pour orienter la caméra au
+              clavier
+            </li>
+            <li>
+              <strong>6.</strong> Quand vous êtes prêt, cliquez sur "LANCER
               VAGUE"
             </li>
             <li>
-              <strong>4.</strong> Les tours tirent automatiquement sur les
-              ennemis a portee
-            </li>
-            <li>
-              <strong>5.</strong> Gagnez des ressources en tuant des ennemis
+              <strong>7.</strong> Gagnez des ressources en tuant des ennemis
               (+20) et en terminant des vagues (+1000)
             </li>
           </ul>
         </div>
-
         <div class="tutorial-section">
           <h3>LES TOURS ET LEURS CIBLES</h3>
-          <p>
-            Chaque tour est plus efficace contre certains types d'ennemis
-            (degats x2) :
-          </p>
           <div class="tower-guide">
             <div class="tower-guide-item">
-              <span class="icon">helicoptere</span>
+              <span class="icon">🚁</span>
               <div class="info">
                 <div class="name">Drones Air (100)</div>
                 <div class="effective">Efficace: Plastiques, E-waste</div>
               </div>
             </div>
             <div class="tower-guide-item">
-              <span class="icon">bacterie</span>
+              <span class="icon">🦠</span>
               <div class="info">
-                <div class="name">Bacteries (150)</div>
+                <div class="name">Bactéries (150)</div>
                 <div class="effective">
-                  Efficace: Plastiques, Petrole, Pesticides
+                  Efficace: Plastiques, Pétrole, Pesticides
                 </div>
               </div>
             </div>
             <div class="tower-guide-item">
-              <span class="icon">arbre</span>
+              <span class="icon">🌳</span>
               <div class="info">
                 <div class="name">Super-Trees (200)</div>
                 <div class="effective">Efficace: CO2, Smog</div>
               </div>
             </div>
             <div class="tower-guide-item">
-              <span class="icon">ocean</span>
+              <span class="icon">🌊</span>
               <div class="info">
                 <div class="name">Ocean Barriers (250)</div>
-                <div class="effective">Efficace: Petrole, Microplastiques</div>
+                <div class="effective">Efficace: Pétrole, Microplastiques</div>
               </div>
             </div>
             <div class="tower-guide-item">
-              <span class="icon">tour</span>
+              <span class="icon">🗼</span>
               <div class="info">
                 <div class="name">Smog Towers (300)</div>
                 <div class="effective">Efficace: Smog, CO2</div>
               </div>
             </div>
             <div class="tower-guide-item">
-              <span class="icon">algue</span>
+              <span class="icon">🌿</span>
               <div class="info">
                 <div class="name">Algae Reactors (350)</div>
-                <div class="effective">Efficace: Nucleaire, CO2, Petrole</div>
+                <div class="effective">Efficace: Nucléaire, CO2, Pétrole</div>
               </div>
             </div>
           </div>
         </div>
-
         <div class="tutorial-section">
-          <h3>CONSEILS POUR GAGNER</h3>
+          <h3>CONSEILS STRATÉGIQUES</h3>
           <div class="tips-box">
-            <h4>STRATEGIES GAGNANTES</h4>
+            <h4>POUR GAGNER</h4>
             <ul>
               <li>
-                <strong>Diversifiez vos tours</strong> - Differents ennemis
-                necessitent differentes tours
+                <strong>Diversifiez vos tours</strong> — différents ennemis
+                nécessitent différentes défenses
               </li>
               <li>
-                <strong>Placez strategiquement</strong> - Les tours pres du
-                centre protegent mieux Gaia
+                <strong>Rotation 360°</strong> — clic-droit + drag pour explorer
+                l'arène
               </li>
               <li>
-                <strong>Economisez pour les vagues difficiles</strong> - La
-                vague 6 (Nucleaire) et le Boss sont tres coriaces
+                <strong>Économisez pour la Vague 6</strong> (Nucléaire) et le
+                Boss final
               </li>
               <li>
-                <strong>Lisez les infos avant chaque vague</strong> - Elles
-                indiquent quel type d'ennemi arrive
+                <strong>Couvrez les 4 directions</strong> d'entrée des ennemis
               </li>
               <li>
-                <strong>Couvrez plusieurs angles</strong> - Les ennemis arrivent
-                de 4 directions
-              </li>
-              <li>
-                <strong>Vague 10 = BOSS</strong> - Gardez beaucoup de ressources
-                pour construire avant le boss !
+                <strong>Vague 10 = BOSS FINAL</strong> — gardez des ressources !
               </li>
             </ul>
           </div>
         </div>
-
         <button id="btn-start-game" onclick="startGame()">
-          COMMENCER LA DEFENSE
+          🛡 COMMENCER LA DÉFENSE
         </button>
       </div>
     </div>
 
-    <!-- Écran Preview Vague -->
-    <div id="wave-preview">
-      <div id="wave-preview-content">
+    <!-- PREVIEW VAGUE -->
+    <div id="wave-preview" class="fullscreen-overlay hidden">
+      <div
+        class="overlay-panel"
+        id="wave-preview-content"
+        style="
+          max-width: 580px;
+          text-align: center;
+          border-color: rgba(255, 100, 50, 0.5);
+          background: rgba(20, 0, 0, 0.97);
+        "
+      >
         <div id="wave-preview-number">VAGUE 1 / 10</div>
-        <div id="wave-preview-name">Plastiques Legers</div>
-        <div id="wave-preview-enemy">plastique</div>
+        <div id="wave-preview-name">Plastiques Légers</div>
+        <div id="wave-preview-enemy" style="font-size: 72px; margin: 16px 0">
+          🧴
+        </div>
         <div id="wave-preview-stats">
           <div class="preview-stat">
             <div class="preview-stat-label">NOMBRE D'ENNEMIS</div>
@@ -1104,33 +1106,38 @@
             <div class="preview-stat-value" id="preview-speed">Lent</div>
           </div>
           <div class="preview-stat">
-            <div class="preview-stat-label">DEGATS A GAIA</div>
+            <div class="preview-stat-label">DÉGÂTS À GAÏA</div>
             <div class="preview-stat-value" id="preview-damage">5</div>
           </div>
         </div>
         <div id="wave-preview-tip">
-          <div id="wave-preview-tip-title">CONSEIL DE GAIA</div>
+          <div id="wave-preview-tip-title">💬 CONSEIL DE GAÏA</div>
           <div id="wave-preview-tip-text">
-            Les Drones Air et les Bacteries sont tres efficaces contre les
+            Les Drones Air et les Bactéries sont très efficaces contre les
             plastiques !
           </div>
         </div>
         <button id="btn-launch-wave" onclick="confirmLaunchWave()">
-          COMPRIS - PLACER MES DEFENSES
+          ✅ COMPRIS — PLACER MES DÉFENSES
         </button>
       </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-      /* ═══════════════════════════════════════════
-       GAÏA — SCÈNE 19 : TOWER DEFENSE
-       Défense de Gaïa contre la pollution
-    ═══════════════════════════════════════════ */
+      /* ═══════════════════════════════════════════════════════════════
+   GAÏA — SCÈNE 19 : TOWER DEFENSE
+   FIX v2 :
+   1. CapsuleGeometry supprimé → SphereGeometry sûr pour vague 4 (pétrole)
+   2. Delta time clamped à 0.05s max pour éviter les sauts physiques
+   3. Nettoyage des projectiles orphelins sécurisé
+   4. Détection de fin de vague robuste (spawner + checker séparés)
+   5. Badge caméra masqué via CSS display:none
+   6. isWaveComplete guard pour éviter double-endWave
+   7. Ennemis morts retirés de la liste avant traitement projectiles
+═══════════════════════════════════════════════════════════════ */
 
-      // ══════════════════════════════════════════
-      // CONFIGURATION DU JEU
-      // ══════════════════════════════════════════
+      // ══════════════════ CONFIG ══════════════════
       const CONFIG = {
         INITIAL_RESOURCES: 1500,
         GAIA_MAX_HEALTH: 100,
@@ -1140,7 +1147,6 @@
         POINTS_PER_KILL: 20,
       };
 
-      // Types de tours
       const TOWER_TYPES = {
         drone: {
           name: "Drones Air",
@@ -1204,7 +1210,6 @@
         },
       };
 
-      // Définition des vagues
       const WAVES = [
         {
           name: "Plastiques Légers",
@@ -1241,7 +1246,7 @@
           speed: 1.8,
           damage: 12,
           color: 0x1a1a1a,
-        },
+        }, // FIX: CapsuleGeometry supprimé
         {
           name: "Pesticides Chimiques",
           type: "pesticide",
@@ -1299,14 +1304,31 @@
         },
       ];
 
-      // ══════════════════════════════════════════
-      // ÉTAT DU JEU
-      // ══════════════════════════════════════════
+      const WAVE_TIPS = {
+        plastic:
+          "Les Drones Air et les Bactéries sont très efficaces contre les plastiques !",
+        smog: "Les Super-Trees et Smog Towers absorbent les fumées toxiques rapidement.",
+        ewaste:
+          "Les Drones Air sont idéaux pour neutraliser les déchets électroniques.",
+        oil: "Les Ocean Barriers et Algae Reactors détruisent les nappes de pétrole.",
+        pesticide:
+          "Les Bactéries dégradent naturellement les pesticides chimiques.",
+        nuclear:
+          "⚠️ ATTENTION ! Les Algae Reactors sont votre meilleure défense contre le nucléaire.",
+        microplastic:
+          "Les Ocean Barriers filtrent parfaitement les microplastiques.",
+        co2: "Super-Trees, Smog Towers et Algae Reactors absorbent le CO2.",
+        mixed: "Diversifiez vos défenses ! Tous types peuvent apparaître.",
+        boss: "👹 LE BOSS FINAL ! Utilisez TOUTES vos ressources maintenant !",
+      };
+
+      // ══════════════════ ÉTAT ══════════════════
       let gameState = {
         resources: CONFIG.INITIAL_RESOURCES,
         gaiaHealth: CONFIG.GAIA_MAX_HEALTH,
         currentWave: 0,
         isWaveActive: false,
+        isWaveComplete: false, // FIX: guard anti-double endWave
         selectedTower: null,
         towers: [],
         enemies: [],
@@ -1316,34 +1338,125 @@
         towersPlaced: 0,
         gameOver: false,
         victory: false,
+        spawnedThisWave: 0,
+        expectedThisWave: 0,
       };
 
-      // ══════════════════════════════════════════
-      // THREE.JS SETUP
-      // ══════════════════════════════════════════
+      // ══════════════════ THREE.JS ══════════════════
       let scene, camera, renderer, clock;
       let hexGrid = [];
-      let gaiaCore;
+      let gaiaCore, gaiaAtmosphere, gaiaClouds, gaiaGlow;
       let raycaster, mouse;
 
+      // ══════════════════ CAMÉRA ORBITALE 360° ══════════════════
+      let camOrbit = {
+        theta: 0,
+        phi: Math.PI / 3,
+        radius: 30,
+        targetTheta: 0,
+        targetPhi: Math.PI / 3,
+        targetRadius: 30,
+        isDragging: false,
+        lastX: 0,
+        lastY: 0,
+      };
+      const CAM_DEFAULT = { theta: 0, phi: Math.PI / 3, radius: 30 };
+
+      function camUpdate() {
+        camOrbit.theta += (camOrbit.targetTheta - camOrbit.theta) * 0.08;
+        camOrbit.phi += (camOrbit.targetPhi - camOrbit.phi) * 0.08;
+        camOrbit.radius += (camOrbit.targetRadius - camOrbit.radius) * 0.08;
+        camOrbit.targetPhi = Math.max(
+          0.15,
+          Math.min(Math.PI / 2.1, camOrbit.targetPhi)
+        );
+        camOrbit.targetRadius = Math.max(
+          12,
+          Math.min(55, camOrbit.targetRadius)
+        );
+        const x =
+          camOrbit.radius * Math.sin(camOrbit.phi) * Math.sin(camOrbit.theta);
+        const y = camOrbit.radius * Math.cos(camOrbit.phi);
+        const z =
+          camOrbit.radius * Math.sin(camOrbit.phi) * Math.cos(camOrbit.theta);
+        camera.position.set(x, y, z);
+        camera.lookAt(0, 1, 0);
+      }
+
+      const CAM_SPEED = 0.08;
+      let camHeld = {};
+      document.addEventListener("keydown", (e) => {
+        camHeld[e.key] = true;
+      });
+      document.addEventListener("keyup", (e) => {
+        camHeld[e.key] = false;
+      });
+
+      function updateCamFromKeys() {
+        if (camHeld["ArrowLeft"]) camOrbit.targetTheta -= CAM_SPEED;
+        if (camHeld["ArrowRight"]) camOrbit.targetTheta += CAM_SPEED;
+        if (camHeld["ArrowUp"]) camOrbit.targetPhi -= CAM_SPEED * 0.5;
+        if (camHeld["ArrowDown"]) camOrbit.targetPhi += CAM_SPEED * 0.5;
+        if (camHeld["Equal"]) camOrbit.targetRadius -= 0.3;
+        if (camHeld["Minus"]) camOrbit.targetRadius += 0.3;
+      }
+
+      function setupMouseDrag() {
+        const canvas = renderer.domElement;
+        canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+        canvas.addEventListener("mousedown", (e) => {
+          if (e.button === 2) {
+            camOrbit.isDragging = true;
+            camOrbit.lastX = e.clientX;
+            camOrbit.lastY = e.clientY;
+            document.getElementById("cursor").classList.add("drag");
+          }
+        });
+        window.addEventListener("mousemove", (e) => {
+          if (camOrbit.isDragging) {
+            const dx = e.clientX - camOrbit.lastX;
+            const dy = e.clientY - camOrbit.lastY;
+            camOrbit.targetTheta -= dx * 0.005;
+            camOrbit.targetPhi -= dy * 0.005;
+            camOrbit.lastX = e.clientX;
+            camOrbit.lastY = e.clientY;
+          }
+        });
+        window.addEventListener("mouseup", (e) => {
+          if (e.button === 2) {
+            camOrbit.isDragging = false;
+            document.getElementById("cursor").classList.remove("drag");
+          }
+        });
+        canvas.addEventListener(
+          "wheel",
+          (e) => {
+            camOrbit.targetRadius += e.deltaY * 0.04;
+          },
+          { passive: true }
+        );
+      }
+
+      // ══════════════════ INIT THREE ══════════════════
       function initThree() {
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0505);
-        scene.fog = new THREE.Fog(0x0a0505, 20, 50);
+        scene.background = new THREE.Color(0x020608);
+        scene.fog = new THREE.FogExp2(0x020608, 0.018);
 
         camera = new THREE.PerspectiveCamera(
           60,
           innerWidth / innerHeight,
           0.1,
-          1000
+          500
         );
-        camera.position.set(0, 25, 20);
-        camera.lookAt(0, 0, 0);
 
-        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(innerWidth, innerHeight);
         renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
         document.getElementById("game-canvas").appendChild(renderer.domElement);
 
         clock = new THREE.Clock();
@@ -1351,48 +1464,262 @@
         mouse = new THREE.Vector2();
 
         // Lumières
-        const ambient = new THREE.AmbientLight(0x331111, 0.4);
+        const ambient = new THREE.AmbientLight(0x112233, 0.35);
         scene.add(ambient);
+        const sun = new THREE.DirectionalLight(0xffd0aa, 1.4);
+        sun.position.set(20, 30, 15);
+        sun.castShadow = true;
+        sun.shadow.mapSize.width = 2048;
+        sun.shadow.mapSize.height = 2048;
+        sun.shadow.camera.near = 0.5;
+        sun.shadow.camera.far = 100;
+        sun.shadow.camera.left = -25;
+        sun.shadow.camera.right = 25;
+        sun.shadow.camera.top = 25;
+        sun.shadow.camera.bottom = -25;
+        scene.add(sun);
+        const fill = new THREE.DirectionalLight(0x224466, 0.4);
+        fill.position.set(-15, 5, -10);
+        scene.add(fill);
+        const coreLight = new THREE.PointLight(0x00ff88, 1.2, 20);
+        coreLight.position.set(0, 3, 0);
+        scene.add(coreLight);
 
-        const mainLight = new THREE.DirectionalLight(0xff6644, 1);
-        mainLight.position.set(10, 20, 10);
-        mainLight.castShadow = true;
-        scene.add(mainLight);
+        createStarfield();
 
-        const alertLight = new THREE.PointLight(0xff3300, 0.8, 30);
-        alertLight.position.set(0, 10, 0);
-        scene.add(alertLight);
-
-        // Sol arène
-        const floorGeo = new THREE.CircleGeometry(CONFIG.ARENA_RADIUS + 2, 64);
+        const floorGeo = new THREE.CircleGeometry(CONFIG.ARENA_RADIUS + 3, 80);
         const floorMat = new THREE.MeshStandardMaterial({
-          color: 0x111111,
-          metalness: 0.8,
-          roughness: 0.3,
+          color: 0x0d1a11,
+          metalness: 0.6,
+          roughness: 0.5,
         });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
         floor.receiveShadow = true;
         scene.add(floor);
 
-        // Créer grille hexagonale
+        const ringFloorGeo = new THREE.RingGeometry(
+          CONFIG.ARENA_RADIUS - 0.2,
+          CONFIG.ARENA_RADIUS + 0.2,
+          80
+        );
+        const ringFloorMat = new THREE.MeshBasicMaterial({
+          color: 0xff3300,
+          transparent: true,
+          opacity: 0.3,
+          side: THREE.DoubleSide,
+        });
+        const ringFloor = new THREE.Mesh(ringFloorGeo, ringFloorMat);
+        ringFloor.rotation.x = -Math.PI / 2;
+        ringFloor.position.y = 0.02;
+        scene.add(ringFloor);
+
         createHexGrid();
-
-        // Créer cœur de Gaïa au centre
-        createGaiaCore();
-
-        // Créer les murs d'écrans
-        createScreenWalls();
-
-        // Chemins ennemis
+        createEarthCore();
+        createArenaStructures();
         createEnemyPaths();
 
-        // Event listeners
         window.addEventListener("resize", onResize);
         renderer.domElement.addEventListener("click", onCanvasClick);
         renderer.domElement.addEventListener("mousemove", onCanvasMouseMove);
+        setupMouseDrag();
 
         animate();
+      }
+
+      // ══════════════════ ÉTOILES ══════════════════
+      function createStarfield() {
+        const geo = new THREE.BufferGeometry();
+        const N = 3000;
+        const pos = new Float32Array(N * 3);
+        for (let i = 0; i < N; i++) {
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(2 * Math.random() - 1);
+          const r = 200 + Math.random() * 100;
+          pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+          pos[i * 3 + 1] = r * Math.cos(phi);
+          pos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+        }
+        geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        const mat = new THREE.PointsMaterial({
+          color: 0xffffff,
+          size: 0.3,
+          transparent: true,
+          opacity: 0.8,
+        });
+        scene.add(new THREE.Points(geo, mat));
+      }
+
+      // ══════════════════ PLANÈTE TERRE ══════════════════
+      function createEarthCore() {
+        const earthGeo = new THREE.SphereGeometry(2.2, 64, 64);
+        const texSize = 512;
+        const canvas = document.createElement("canvas");
+        canvas.width = texSize;
+        canvas.height = texSize;
+        const ctx = canvas.getContext("2d");
+
+        const oceanGrad = ctx.createLinearGradient(0, 0, texSize, texSize);
+        oceanGrad.addColorStop(0, "#0d2d4a");
+        oceanGrad.addColorStop(0.3, "#1a5a8a");
+        oceanGrad.addColorStop(0.6, "#1e6b9e");
+        oceanGrad.addColorStop(1, "#0e3a60");
+        ctx.fillStyle = oceanGrad;
+        ctx.fillRect(0, 0, texSize, texSize);
+
+        const continents = [
+          { x: 260, y: 160, w: 170, h: 90, color: "#3a7a2a" },
+          { x: 300, y: 140, w: 130, h: 60, color: "#4a9a35" },
+          { x: 350, y: 180, w: 80, h: 70, color: "#2a6a1a" },
+          { x: 280, y: 230, w: 70, h: 110, color: "#8a7a2a" },
+          { x: 290, y: 280, w: 55, h: 80, color: "#9a8a35" },
+          { x: 100, y: 150, w: 55, h: 90, color: "#3a7a2a" },
+          { x: 110, y: 240, w: 45, h: 120, color: "#5a6a25" },
+          { x: 95, y: 200, w: 30, h: 50, color: "#4a8a30" },
+          { x: 390, y: 290, w: 65, h: 50, color: "#9a7a35" },
+          { x: 200, y: 440, w: 200, h: 60, color: "#e8eef4" },
+          { x: 200, y: 10, w: 160, h: 40, color: "#dce8f0" },
+        ];
+        continents.forEach((c) => {
+          ctx.beginPath();
+          for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2;
+            const jitter = 0.7 + Math.random() * 0.6;
+            const px = c.x + Math.cos(angle) * (c.w / 2) * jitter;
+            const py = c.y + Math.sin(angle) * (c.h / 2) * jitter;
+            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fillStyle = c.color;
+          ctx.fill();
+          ctx.strokeStyle = "rgba(0,0,0,0.3)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+
+        for (let i = 0; i < 80; i++) {
+          const x = Math.random() * texSize,
+            y = 30 + Math.random() * (texSize - 60);
+          const r = 3 + Math.random() * 12;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+          g.addColorStop(
+            0,
+            `rgba(${Math.random() > 0.6 ? "180,140,60" : "50,120,40"},0.4)`
+          );
+          g.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = g;
+          ctx.fill();
+        }
+
+        const earthTex = new THREE.CanvasTexture(canvas);
+        const earthMat = new THREE.MeshPhongMaterial({
+          map: earthTex,
+          specularMap: earthTex,
+          specular: new THREE.Color(0x336688),
+          shininess: 25,
+          bumpMap: earthTex,
+          bumpScale: 0.08,
+        });
+        gaiaCore = new THREE.Mesh(earthGeo, earthMat);
+        gaiaCore.position.set(0, 2.5, 0);
+        gaiaCore.castShadow = true;
+        scene.add(gaiaCore);
+
+        // Nuages
+        const cloudCanvas = document.createElement("canvas");
+        cloudCanvas.width = texSize;
+        cloudCanvas.height = texSize;
+        const cCtx = cloudCanvas.getContext("2d");
+        cCtx.clearRect(0, 0, texSize, texSize);
+        for (let i = 0; i < 120; i++) {
+          const x = Math.random() * texSize,
+            y = Math.random() * texSize;
+          const w = 20 + Math.random() * 80,
+            h = 8 + Math.random() * 25;
+          const g2 = cCtx.createRadialGradient(x, y, 0, x, y, w / 2);
+          g2.addColorStop(0, `rgba(255,255,255,${0.4 + Math.random() * 0.5})`);
+          g2.addColorStop(1, "rgba(255,255,255,0)");
+          cCtx.beginPath();
+          cCtx.ellipse(
+            x,
+            y,
+            w / 2,
+            h / 2,
+            Math.random() * Math.PI,
+            0,
+            Math.PI * 2
+          );
+          cCtx.fillStyle = g2;
+          cCtx.fill();
+        }
+        const cloudTex = new THREE.CanvasTexture(cloudCanvas);
+        const cloudGeo = new THREE.SphereGeometry(2.28, 64, 64);
+        const cloudMat = new THREE.MeshPhongMaterial({
+          map: cloudTex,
+          transparent: true,
+          opacity: 0.7,
+          depthWrite: false,
+        });
+        gaiaClouds = new THREE.Mesh(cloudGeo, cloudMat);
+        gaiaClouds.position.copy(gaiaCore.position);
+        scene.add(gaiaClouds);
+
+        // Atmosphère
+        const atmosGeo = new THREE.SphereGeometry(2.45, 64, 64);
+        const atmosMat = new THREE.MeshPhongMaterial({
+          color: 0x4488dd,
+          transparent: true,
+          opacity: 0.12,
+          side: THREE.FrontSide,
+          depthWrite: false,
+        });
+        gaiaAtmosphere = new THREE.Mesh(atmosGeo, atmosMat);
+        gaiaAtmosphere.position.copy(gaiaCore.position);
+        scene.add(gaiaAtmosphere);
+
+        // Halo
+        const haloGeo = new THREE.SphereGeometry(2.7, 32, 32);
+        const haloMat = new THREE.MeshBasicMaterial({
+          color: 0x00aaff,
+          transparent: true,
+          opacity: 0.05,
+          side: THREE.BackSide,
+          depthWrite: false,
+        });
+        gaiaGlow = new THREE.Mesh(haloGeo, haloMat);
+        gaiaGlow.position.copy(gaiaCore.position);
+        scene.add(gaiaGlow);
+
+        const orbitLight = new THREE.PointLight(0x4488ff, 0.6, 15);
+        orbitLight.position.set(0, 2.5, 0);
+        scene.add(orbitLight);
+      }
+
+      // ══════════════════ STRUCTURES ARÈNE ══════════════════
+      function createArenaStructures() {
+        for (let i = 0; i < 6; i++) {
+          const angle = (i / 6) * Math.PI * 2;
+          const r = CONFIG.ARENA_RADIUS + 1;
+          const pylonGeo = new THREE.CylinderGeometry(0.15, 0.25, 8, 6);
+          const pylonMat = new THREE.MeshStandardMaterial({
+            color: 0x334433,
+            metalness: 0.9,
+            roughness: 0.3,
+          });
+          const pylon = new THREE.Mesh(pylonGeo, pylonMat);
+          pylon.position.set(Math.cos(angle) * r, 4, Math.sin(angle) * r);
+          scene.add(pylon);
+          const lampGeo = new THREE.SphereGeometry(0.2, 12, 12);
+          const lampMat = new THREE.MeshBasicMaterial({ color: 0xff4422 });
+          const lamp = new THREE.Mesh(lampGeo, lampMat);
+          lamp.position.set(Math.cos(angle) * r, 8.2, Math.sin(angle) * r);
+          scene.add(lamp);
+          const ptLight = new THREE.PointLight(0xff2200, 0.5, 8);
+          ptLight.position.copy(lamp.position);
+          scene.add(ptLight);
+        }
       }
 
       function createHexGrid() {
@@ -1402,27 +1729,23 @@
           0.3,
           6
         );
-        const hexMat = new THREE.MeshStandardMaterial({
-          color: 0x222222,
-          metalness: 0.5,
-          roughness: 0.5,
-          transparent: true,
-          opacity: 0.8,
-        });
-
         const spacing = CONFIG.HEX_RADIUS * 1.8;
-        const rows = 5;
-        const cols = 6;
-
+        const rows = 5,
+          cols = 6;
         for (let row = -rows; row <= rows; row++) {
           for (let col = -cols; col <= cols; col++) {
             const x = col * spacing + (row % 2) * (spacing / 2);
             const z = row * spacing * 0.866;
             const dist = Math.sqrt(x * x + z * z);
-
-            // Ne pas placer au centre (réservé à Gaïa) ni trop loin
-            if (dist > 3 && dist < CONFIG.ARENA_RADIUS - 2) {
-              const hex = new THREE.Mesh(hexGeo, hexMat.clone());
+            if (dist > 3.5 && dist < CONFIG.ARENA_RADIUS - 2) {
+              const mat = new THREE.MeshStandardMaterial({
+                color: 0x1a2a1a,
+                metalness: 0.5,
+                roughness: 0.6,
+                transparent: true,
+                opacity: 0.85,
+              });
+              const hex = new THREE.Mesh(hexGeo, mat);
               hex.position.set(x, 0.15, z);
               hex.userData = { type: "hex", occupied: false, row, col, x, z };
               hex.receiveShadow = true;
@@ -1433,239 +1756,146 @@
         }
       }
 
-      function createGaiaCore() {
-        // Cœur principal
-        const coreGeo = new THREE.IcosahedronGeometry(2, 2);
-        const coreMat = new THREE.MeshStandardMaterial({
-          color: 0x00ff88,
-          emissive: 0x00ff88,
-          emissiveIntensity: 0.5,
-          metalness: 0.3,
-          roughness: 0.2,
-          transparent: true,
-          opacity: 0.9,
-        });
-        gaiaCore = new THREE.Mesh(coreGeo, coreMat);
-        gaiaCore.position.set(0, 2, 0);
-        scene.add(gaiaCore);
-
-        // Anneau autour
-        const ringGeo = new THREE.TorusGeometry(2.5, 0.1, 16, 64);
-        const ringMat = new THREE.MeshBasicMaterial({
-          color: 0x00ff88,
-          transparent: true,
-          opacity: 0.5,
-        });
-        const ring = new THREE.Mesh(ringGeo, ringMat);
-        ring.position.set(0, 2, 0);
-        ring.rotation.x = Math.PI / 2;
-        ring.userData = { type: "ring" };
-        scene.add(ring);
-
-        // Particules autour du cœur
-        const particleGeo = new THREE.BufferGeometry();
-        const particleCount = 200;
-        const positions = new Float32Array(particleCount * 3);
-        for (let i = 0; i < particleCount; i++) {
-          const theta = Math.random() * Math.PI * 2;
-          const phi = Math.random() * Math.PI;
-          const r = 2.5 + Math.random() * 1.5;
-          positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-          positions[i * 3 + 1] = 2 + r * Math.cos(phi);
-          positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-        }
-        particleGeo.setAttribute(
-          "position",
-          new THREE.BufferAttribute(positions, 3)
-        );
-        const particleMat = new THREE.PointsMaterial({
-          color: 0x00ff88,
-          size: 0.1,
-          transparent: true,
-          opacity: 0.6,
-        });
-        const particles = new THREE.Points(particleGeo, particleMat);
-        particles.userData = { type: "coreParticles" };
-        scene.add(particles);
-      }
-
-      function createScreenWalls() {
-        // Écrans muraux affichant les alertes
-        const screenGeo = new THREE.PlaneGeometry(8, 4);
-        const screenMat = new THREE.MeshBasicMaterial({
-          color: 0x220000,
-          transparent: true,
-          opacity: 0.8,
-        });
-
-        for (let i = 0; i < 6; i++) {
-          const angle = (i / 6) * Math.PI * 2;
-          const screen = new THREE.Mesh(screenGeo, screenMat.clone());
-          screen.position.set(
-            Math.cos(angle) * (CONFIG.ARENA_RADIUS + 1),
-            3,
-            Math.sin(angle) * (CONFIG.ARENA_RADIUS + 1)
-          );
-          screen.lookAt(0, 3, 0);
-          scene.add(screen);
-        }
-      }
-
       function createEnemyPaths() {
-        // Visualiser les chemins d'entrée
-        const pathMat = new THREE.LineBasicMaterial({
-          color: 0xff3300,
-          transparent: true,
-          opacity: 0.3,
-        });
-        const directions = [
+        const dirs = [
           { x: 0, z: -CONFIG.ARENA_RADIUS },
           { x: CONFIG.ARENA_RADIUS, z: 0 },
           { x: 0, z: CONFIG.ARENA_RADIUS },
           { x: -CONFIG.ARENA_RADIUS, z: 0 },
         ];
-
-        directions.forEach((dir) => {
-          const points = [
-            new THREE.Vector3(dir.x, 0.1, dir.z),
+        const mat = new THREE.LineBasicMaterial({
+          color: 0xff3300,
+          transparent: true,
+          opacity: 0.2,
+        });
+        dirs.forEach((d) => {
+          const pts = [
+            new THREE.Vector3(d.x, 0.1, d.z),
             new THREE.Vector3(0, 0.1, 0),
           ];
-          const geometry = new THREE.BufferGeometry().setFromPoints(points);
-          const line = new THREE.Line(geometry, pathMat);
-          scene.add(line);
+          const geo = new THREE.BufferGeometry().setFromPoints(pts);
+          scene.add(new THREE.Line(geo, mat));
+          const arrowGeo = new THREE.ConeGeometry(0.4, 1.2, 3);
+          const arrowMat = new THREE.MeshBasicMaterial({
+            color: 0xff3300,
+            transparent: true,
+            opacity: 0.5,
+          });
+          const arrow = new THREE.Mesh(arrowGeo, arrowMat);
+          arrow.position.set(d.x * 0.9, 0.6, d.z * 0.9);
+          arrow.rotation.y = Math.atan2(-d.x, -d.z);
+          arrow.rotation.z = Math.PI / 2;
+          scene.add(arrow);
         });
       }
 
-      // ══════════════════════════════════════════
-      // GESTION DES TOURS
-      // ══════════════════════════════════════════
+      // ══════════════════ TOURS ══════════════════
       function createTower(type, position) {
-        const towerData = TOWER_TYPES[type];
+        const td = TOWER_TYPES[type];
         const group = new THREE.Group();
-
-        // Base
-        const baseGeo = new THREE.CylinderGeometry(0.8, 1, 0.5, 8);
         const baseMat = new THREE.MeshStandardMaterial({
           color: 0x333333,
           metalness: 0.8,
+          roughness: 0.3,
         });
-        const base = new THREE.Mesh(baseGeo, baseMat);
+        const base = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.8, 1, 0.5, 8),
+          baseMat
+        );
         base.position.y = 0.25;
         group.add(base);
-
-        // Corps principal
-        const bodyGeo = new THREE.CylinderGeometry(0.5, 0.7, 1.5, 8);
         const bodyMat = new THREE.MeshStandardMaterial({
-          color: towerData.color,
-          emissive: towerData.color,
-          emissiveIntensity: 0.2,
+          color: td.color,
+          emissive: td.color,
+          emissiveIntensity: 0.25,
           metalness: 0.6,
         });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        const body = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.5, 0.7, 1.5, 8),
+          bodyMat
+        );
         body.position.y = 1.25;
         group.add(body);
-
-        // Tourelle/tête
-        const headGeo = new THREE.SphereGeometry(0.4, 16, 16);
         const headMat = new THREE.MeshStandardMaterial({
-          color: towerData.color,
-          emissive: towerData.color,
-          emissiveIntensity: 0.5,
+          color: td.color,
+          emissive: td.color,
+          emissiveIntensity: 0.6,
         });
-        const head = new THREE.Mesh(headGeo, headMat);
+        const head = new THREE.Mesh(
+          new THREE.SphereGeometry(0.4, 16, 16),
+          headMat
+        );
         head.position.y = 2.2;
         group.add(head);
-
-        // Indicateur de portée (invisible par défaut)
-        const rangeGeo = new THREE.RingGeometry(
-          towerData.range - 0.1,
-          towerData.range,
-          32
-        );
+        const tLight = new THREE.PointLight(td.color, 0.5, 4);
+        tLight.position.y = 2.5;
+        group.add(tLight);
         const rangeMat = new THREE.MeshBasicMaterial({
-          color: towerData.color,
+          color: td.color,
           transparent: true,
           opacity: 0,
           side: THREE.DoubleSide,
         });
-        const rangeIndicator = new THREE.Mesh(rangeGeo, rangeMat);
+        const rangeIndicator = new THREE.Mesh(
+          new THREE.RingGeometry(td.range - 0.1, td.range, 32),
+          rangeMat
+        );
         rangeIndicator.rotation.x = -Math.PI / 2;
-        rangeIndicator.position.y = 0.1;
+        rangeIndicator.position.y = 0.05;
         group.add(rangeIndicator);
-
         group.position.copy(position);
         group.position.y = 0;
         group.userData = {
           type: "tower",
           towerType: type,
-          ...towerData,
+          ...td,
           lastFire: 0,
           rangeIndicator,
           target: null,
         };
-
+        group.castShadow = true;
         scene.add(group);
         gameState.towers.push(group);
         gameState.towersPlaced++;
-
-        // Animation de construction
         group.scale.set(0.01, 0.01, 0.01);
-        animateTowerConstruction(group);
-
+        let start = performance.now();
+        const buildAnim = () => {
+          const p = Math.min((performance.now() - start) / 500, 1);
+          const e = 1 - Math.pow(1 - p, 3);
+          group.scale.set(e, e, e);
+          if (p < 1) requestAnimationFrame(buildAnim);
+        };
+        buildAnim();
+        playSound("build");
         return group;
       }
 
-      function animateTowerConstruction(tower) {
-        const targetScale = 1;
-        const duration = 500;
-        const start = performance.now();
-
-        function animate() {
-          const elapsed = performance.now() - start;
-          const progress = Math.min(elapsed / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-
-          tower.scale.set(eased, eased, eased);
-
-          if (progress < 1) {
-            requestAnimationFrame(animate);
-          }
-        }
-        animate();
-      }
-
-      // ══════════════════════════════════════════
-      // GESTION DES ENNEMIS
-      // ══════════════════════════════════════════
+      // ══════════════════ ENNEMIS ══════════════════
       function spawnEnemy(waveData) {
-        const directions = [
-          { x: 0, z: -CONFIG.ARENA_RADIUS - 2 },
+        const dirs = [
+          { x: 0, z: -(CONFIG.ARENA_RADIUS + 2) },
           { x: CONFIG.ARENA_RADIUS + 2, z: 0 },
           { x: 0, z: CONFIG.ARENA_RADIUS + 2 },
-          { x: -CONFIG.ARENA_RADIUS - 2, z: 0 },
+          { x: -(CONFIG.ARENA_RADIUS + 2), z: 0 },
         ];
+        const sp = dirs[Math.floor(Math.random() * dirs.length)];
+        const size = waveData.isBoss ? 3 : 0.45 + Math.random() * 0.3;
 
-        const spawnPoint =
-          directions[Math.floor(Math.random() * directions.length)];
-
-        let size = waveData.isBoss ? 3 : 0.5 + Math.random() * 0.3;
-
-        const enemyGeo = waveData.isBoss
+        // FIX: getEnemyGeometry sûr, sans CapsuleGeometry (inexistant en r128)
+        const geo = waveData.isBoss
           ? new THREE.DodecahedronGeometry(size, 1)
-          : new THREE.SphereGeometry(size, 8, 8);
+          : getEnemyGeometry(waveData.type, size);
 
-        const enemyMat = new THREE.MeshStandardMaterial({
+        const mat = new THREE.MeshStandardMaterial({
           color: waveData.color,
           emissive: waveData.color,
-          emissiveIntensity: waveData.isBoss ? 0.8 : 0.3,
-          metalness: 0.5,
-          roughness: 0.5,
+          emissiveIntensity: waveData.isBoss ? 0.9 : 0.35,
+          metalness: 0.4,
+          roughness: 0.6,
         });
-
-        const enemy = new THREE.Mesh(enemyGeo, enemyMat);
-        enemy.position.set(spawnPoint.x, size, spawnPoint.z);
+        const enemy = new THREE.Mesh(geo, mat);
+        enemy.position.set(sp.x, size, sp.z);
         enemy.castShadow = true;
-
         enemy.userData = {
           type: "enemy",
           enemyType: waveData.type,
@@ -1675,236 +1905,233 @@
           damage: waveData.damage,
           isBoss: waveData.isBoss || false,
           size,
+          alive: true,
         };
-
+        if (waveData.isBoss) {
+          const bossLight = new THREE.PointLight(0xff0000, 2, 10);
+          bossLight.position.y = 2;
+          enemy.add(bossLight);
+        }
         scene.add(enemy);
         gameState.enemies.push(enemy);
         gameState.totalEnemiesSpawned++;
-
         return enemy;
+      }
+
+      // FIX: getEnemyGeometry — CapsuleGeometry supprimé (type "oil" utilise SphereGeometry)
+      function getEnemyGeometry(type, size) {
+        switch (type) {
+          case "plastic":
+            return new THREE.SphereGeometry(size, 8, 8);
+          case "smog":
+            return new THREE.TorusGeometry(size, size * 0.4, 8, 16);
+          case "ewaste":
+            return new THREE.BoxGeometry(size * 1.8, size * 1.2, size * 1.2);
+          case "oil":
+            return new THREE.SphereGeometry(size * 1.3, 12, 8); // FIX: CapsuleGeometry → SphereGeometry
+          case "pesticide":
+            return new THREE.TetrahedronGeometry(size * 1.2);
+          case "nuclear":
+            return new THREE.OctahedronGeometry(size * 1.4, 0);
+          case "microplastic":
+            return new THREE.SphereGeometry(size * 0.7, 6, 6);
+          case "co2":
+            return new THREE.TorusGeometry(size * 0.9, size * 0.3, 6, 12);
+          default:
+            return new THREE.IcosahedronGeometry(size, 0);
+        }
       }
 
       function updateEnemies(delta) {
         const toRemove = [];
-
-        gameState.enemies.forEach((enemy, index) => {
-          // Mouvement vers le centre
-          const direction = new THREE.Vector3(0, enemy.position.y, 0).sub(
+        gameState.enemies.forEach((enemy, i) => {
+          if (!enemy.userData.alive) {
+            toRemove.push(i);
+            return;
+          }
+          const dir = new THREE.Vector3(0, enemy.position.y, 0).sub(
             enemy.position
           );
-          const distance = direction.length();
-          direction.normalize();
-
-          enemy.position.add(
-            direction.multiplyScalar(enemy.userData.speed * delta)
-          );
+          const dist = dir.length();
+          dir.normalize();
+          enemy.position.add(dir.multiplyScalar(enemy.userData.speed * delta));
           enemy.rotation.y += delta * 2;
-          enemy.rotation.x += delta;
+          if (!enemy.userData.isBoss) enemy.rotation.z += delta * 0.5;
 
-          // Arrivée au centre
-          if (distance < 2) {
-            gameState.gaiaHealth -= enemy.userData.damage;
+          if (dist < 2.8) {
+            gameState.gaiaHealth = Math.max(
+              0,
+              gameState.gaiaHealth - enemy.userData.damage
+            );
             updateHealthDisplay();
-            toRemove.push(index);
-
-            // Effet d'impact
-            createImpactEffect(enemy.position.clone());
-
-            if (gameState.gaiaHealth <= 0) {
-              endGame(false);
-            }
+            enemy.userData.alive = false;
+            toRemove.push(i);
+            createImpactEffect(enemy.position.clone(), true);
+            playSound("hit");
+            if (gameState.gaiaHealth <= 0) endGame(false);
           }
         });
-
-        // Supprimer les ennemis arrivés
-        toRemove.reverse().forEach((i) => {
+        // FIX: retrait sécurisé en ordre inverse
+        toRemove.sort((a, b) => b - a);
+        toRemove.forEach((i) => {
           scene.remove(gameState.enemies[i]);
           gameState.enemies.splice(i, 1);
         });
       }
 
-      function createImpactEffect(position) {
-        // Flash rouge
-        const flash = new THREE.PointLight(0xff0000, 3, 10);
-        flash.position.copy(position);
-        scene.add(flash);
-
-        setTimeout(() => scene.remove(flash), 200);
+      function createImpactEffect(pos, big = false) {
+        const light = new THREE.PointLight(
+          big ? 0xff0000 : 0xff8800,
+          big ? 4 : 2,
+          big ? 12 : 6
+        );
+        light.position.copy(pos);
+        scene.add(light);
+        setTimeout(() => scene.remove(light), 250);
+        const sparksN = big ? 12 : 6;
+        for (let i = 0; i < sparksN; i++) {
+          const sg = new THREE.SphereGeometry(0.08, 4, 4);
+          const sm = new THREE.MeshBasicMaterial({
+            color: big ? 0xff2200 : 0xffaa00,
+          });
+          const spark = new THREE.Mesh(sg, sm);
+          spark.position.copy(pos);
+          const vel = new THREE.Vector3(
+            (Math.random() - 0.5) * 6,
+            Math.random() * 4,
+            (Math.random() - 0.5) * 6
+          );
+          scene.add(spark);
+          let t = 0;
+          const animSpark = () => {
+            t += 0.016;
+            spark.position.add(vel.clone().multiplyScalar(0.016));
+            vel.y -= 0.1;
+            spark.material.opacity = Math.max(0, 1 - t * 3);
+            spark.material.transparent = true;
+            if (t < 0.4) requestAnimationFrame(animSpark);
+            else scene.remove(spark);
+          };
+          animSpark();
+        }
       }
 
-      // ══════════════════════════════════════════
-      // SYSTÈME DE COMBAT
-      // ══════════════════════════════════════════
+      // ══════════════════ COMBAT ══════════════════
       function updateTowers(delta, time) {
         gameState.towers.forEach((tower) => {
-          // Trouver cible
-          let closestEnemy = null;
-          let closestDist = tower.userData.range;
-
-          gameState.enemies.forEach((enemy) => {
-            const dist = tower.position.distanceTo(enemy.position);
-            if (dist < closestDist) {
-              closestDist = dist;
-              closestEnemy = enemy;
+          let closest = null,
+            closestDist = tower.userData.range;
+          // FIX: on itère sur une copie pour éviter les crashs si ennemis modifiés
+          gameState.enemies.slice().forEach((e) => {
+            if (!e.userData.alive) return;
+            const d = tower.position.distanceTo(e.position);
+            if (d < closestDist) {
+              closestDist = d;
+              closest = e;
             }
           });
-
-          tower.userData.target = closestEnemy;
-
-          // Rotation vers cible
-          if (closestEnemy) {
-            const lookAt = new THREE.Vector3(
-              closestEnemy.position.x,
-              tower.position.y + 2,
-              closestEnemy.position.z
-            );
-            // Tour vers l'ennemi (simplifié)
-          }
-
-          // Tir
+          tower.userData.target = closest;
           if (
-            closestEnemy &&
+            closest &&
             time - tower.userData.lastFire > tower.userData.fireRate
           ) {
-            fireTower(tower, closestEnemy);
+            fireTower(tower, closest);
             tower.userData.lastFire = time;
+          }
+          if (closest) {
+            const angle = Math.atan2(
+              closest.position.x - tower.position.x,
+              closest.position.z - tower.position.z
+            );
+            tower.rotation.y += (angle - tower.rotation.y) * 0.1;
           }
         });
       }
 
       function fireTower(tower, target) {
-        // Créer projectile
-        const projGeo = new THREE.SphereGeometry(0.15, 8, 8);
-        const projMat = new THREE.MeshBasicMaterial({
+        const geo = new THREE.SphereGeometry(0.12, 6, 6);
+        const mat = new THREE.MeshBasicMaterial({
           color: tower.userData.color,
           transparent: true,
-          opacity: 0.9,
+          opacity: 0.95,
         });
-        const projectile = new THREE.Mesh(projGeo, projMat);
-        projectile.position.set(
+        const proj = new THREE.Mesh(geo, mat);
+        proj.position.set(
           tower.position.x,
           tower.position.y + 2.2,
           tower.position.z
         );
-
-        projectile.userData = {
+        let dmg = tower.userData.damage;
+        if (tower.userData.effective.includes(target.userData.enemyType))
+          dmg *= 2;
+        proj.userData = {
           type: "projectile",
           target,
-          damage: tower.userData.damage,
+          damage: dmg,
           towerType: tower.userData.towerType,
-          speed: 20,
+          speed: 22,
         };
-
-        // Bonus de dégâts si efficace
-        if (tower.userData.effective.includes(target.userData.enemyType)) {
-          projectile.userData.damage *= 2;
-        }
-
-        scene.add(projectile);
-        gameState.projectiles.push(projectile);
+        const trailLight = new THREE.PointLight(tower.userData.color, 0.4, 2);
+        proj.add(trailLight);
+        scene.add(proj);
+        gameState.projectiles.push(proj);
       }
 
       function updateProjectiles(delta) {
         const toRemove = [];
-
-        gameState.projectiles.forEach((proj, index) => {
+        gameState.projectiles.forEach((proj, i) => {
+          // FIX: vérification complète — target doit exister, être dans la liste ET être vivant
+          const target = proj.userData.target;
           if (
-            !proj.userData.target ||
-            !gameState.enemies.includes(proj.userData.target)
+            !target ||
+            !target.userData.alive ||
+            !gameState.enemies.includes(target)
           ) {
-            toRemove.push(index);
+            toRemove.push(i);
             return;
           }
+          const dir = target.position.clone().sub(proj.position);
+          const dist = dir.length();
+          dir.normalize();
+          proj.position.add(dir.multiplyScalar(proj.userData.speed * delta));
 
-          const target = proj.userData.target;
-          const direction = target.position.clone().sub(proj.position);
-          const distance = direction.length();
-          direction.normalize();
-
-          proj.position.add(
-            direction.multiplyScalar(proj.userData.speed * delta)
-          );
-
-          // Impact
-          if (distance < 0.5) {
+          if (dist < 0.6) {
             target.userData.hp -= proj.userData.damage;
-            toRemove.push(index);
+            toRemove.push(i);
+            createImpactEffect(proj.position.clone(), false);
 
-            // Effet de hit
-            createHitEffect(proj.position.clone(), proj.userData.damage);
-
-            // Ennemi mort
-            if (target.userData.hp <= 0) {
-              const enemyIndex = gameState.enemies.indexOf(target);
-              if (enemyIndex > -1) {
+            if (target.userData.hp <= 0 && target.userData.alive) {
+              target.userData.alive = false;
+              const idx = gameState.enemies.indexOf(target);
+              if (idx > -1) {
                 scene.remove(target);
-                gameState.enemies.splice(enemyIndex, 1);
+                gameState.enemies.splice(idx, 1);
                 gameState.totalEnemiesKilled++;
-
-                // Récompense
-                gameState.resources += CONFIG.POINTS_PER_KILL;
-                if (target.userData.isBoss) {
-                  gameState.resources += 500;
-                }
+                gameState.resources +=
+                  CONFIG.POINTS_PER_KILL + (target.userData.isBoss ? 500 : 0);
                 updateResourcesDisplay();
+                playSound("kill");
               }
             }
           }
         });
-
-        toRemove.reverse().forEach((i) => {
+        toRemove.sort((a, b) => b - a);
+        toRemove.forEach((i) => {
           scene.remove(gameState.projectiles[i]);
           gameState.projectiles.splice(i, 1);
         });
       }
 
-      function createHitEffect(position, damage) {
-        const color = damage > 10 ? 0xff8800 : 0x00ff88;
-        const light = new THREE.PointLight(color, 1, 3);
-        light.position.copy(position);
-        scene.add(light);
-        setTimeout(() => scene.remove(light), 100);
-      }
-
-      // ══════════════════════════════════════════
-      // GESTION DES VAGUES
-      // ══════════════════════════════════════════
-
-      // Conseils par type d'ennemi
-      const WAVE_TIPS = {
-        plastic:
-          "Les Drones Air et les Bacteries sont tres efficaces contre les plastiques !",
-        smog: "Les Super-Trees et les Smog Towers absorbent les fumees toxiques rapidement.",
-        ewaste:
-          "Les Drones Air sont ideals pour neutraliser les dechets electroniques.",
-        oil: "Les Ocean Barriers et Algae Reactors detruisent efficacement les nappes de petrole.",
-        pesticide:
-          "Les Bacteries degradent naturellement les pesticides chimiques.",
-        nuclear:
-          "ATTENTION ! Les Algae Reactors sont votre meilleure defense contre le nucleaire.",
-        microplastic:
-          "Les Ocean Barriers filtrent parfaitement les microplastiques.",
-        co2: "Super-Trees, Smog Towers et Algae Reactors absorbent le CO2.",
-        mixed:
-          "Diversifiez vos defenses ! Tous les types d'ennemis peuvent apparaitre.",
-        boss: "LE BOSS FINAL ! Utilisez TOUTES vos ressources - placez un maximum de tours !",
-      };
-
+      // ══════════════════ GESTION VAGUES ══════════════════
       function showWavePreview() {
         if (gameState.currentWave >= CONFIG.TOTAL_WAVES) return;
-
-        const waveData = WAVES[gameState.currentWave];
-        const waveNum = gameState.currentWave + 1;
-
-        // Mettre a jour le contenu de la preview
+        const wd = WAVES[gameState.currentWave];
+        const wn = gameState.currentWave + 1;
         document.getElementById(
           "wave-preview-number"
-        ).textContent = `VAGUE ${waveNum} / ${CONFIG.TOTAL_WAVES}`;
-        document.getElementById("wave-preview-name").textContent =
-          waveData.name;
-
-        // Icone de l'ennemi
-        const enemyIcons = {
+        ).textContent = `VAGUE ${wn} / ${CONFIG.TOTAL_WAVES}`;
+        document.getElementById("wave-preview-name").textContent = wd.name;
+        const icons = {
           plastic: "🧴",
           smog: "💨",
           ewaste: "📱",
@@ -1917,197 +2144,177 @@
           boss: "👹",
         };
         document.getElementById("wave-preview-enemy").textContent =
-          enemyIcons[waveData.type] || "❓";
-
-        // Statistiques
-        document.getElementById("preview-count").textContent = waveData.count;
-        document.getElementById("preview-hp").textContent = waveData.hp + " HP";
-
-        // Vitesse en texte lisible
-        const speedText =
-          waveData.speed < 2
-            ? "Lent"
-            : waveData.speed < 3
-            ? "Normal"
-            : "Rapide";
-        document.getElementById("preview-speed").textContent = speedText;
-        document.getElementById("preview-damage").textContent = waveData.damage;
-
-        // Conseil
+          icons[wd.type] || "❓";
+        document.getElementById("preview-count").textContent = wd.count;
+        document.getElementById("preview-hp").textContent = wd.hp + " HP";
+        document.getElementById("preview-speed").textContent =
+          wd.speed < 2 ? "Lent" : wd.speed < 3 ? "Normal" : "Rapide";
+        document.getElementById("preview-damage").textContent = wd.damage;
         document.getElementById("wave-preview-tip-text").textContent =
-          WAVE_TIPS[waveData.type] || "Placez vos tours strategiquement !";
-
-        // Style special pour le boss
-        const previewContent = document.getElementById("wave-preview-content");
-        if (waveData.isBoss) {
-          previewContent.style.borderColor = "rgba(255, 0, 0, 0.8)";
-          previewContent.style.background = "rgba(50, 0, 0, 0.95)";
+          WAVE_TIPS[wd.type] || "Placez vos tours stratégiquement !";
+        const panel = document.getElementById("wave-preview-content");
+        if (wd.isBoss) {
+          panel.style.borderColor = "rgba(255,0,0,.8)";
+          panel.style.background = "rgba(50,0,0,.97)";
         } else {
-          previewContent.style.borderColor = "rgba(255, 100, 50, 0.5)";
-          previewContent.style.background = "rgba(20, 0, 0, 0.95)";
+          panel.style.borderColor = "rgba(255,100,50,.5)";
+          panel.style.background = "rgba(20,0,0,.97)";
         }
-
-        // Afficher l'ecran de preview
-        document.getElementById("wave-preview").classList.add("show");
+        document.getElementById("wave-preview").classList.remove("hidden");
       }
 
       function startWave() {
-        if (gameState.currentWave >= CONFIG.TOTAL_WAVES) return;
-
+        if (
+          gameState.currentWave >= CONFIG.TOTAL_WAVES ||
+          gameState.isWaveActive
+        )
+          return;
         gameState.isWaveActive = true;
-        const waveData = WAVES[gameState.currentWave];
+        gameState.isWaveComplete = false; // FIX: reset guard
+        const wd = WAVES[gameState.currentWave];
+        gameState.spawnedThisWave = 0;
+        gameState.expectedThisWave = wd.count;
 
         document.getElementById("wave-btn").disabled = true;
         document.getElementById("siren-light").classList.add("active");
-
-        // Afficher info vague
-        showWaveInfo(waveData);
+        showWaveInfo(wd);
         showGaiaMessage(getWaveMessage(gameState.currentWave));
+        playSound("wave_start");
+        setBattleMode(true);
 
-        // Spawn ennemis progressivement
-        let spawned = 0;
-        const spawnInterval = waveData.isBoss ? 0 : 500;
+        // FIX: spawn avec compteur local — pas de closure sur variable externe
+        const spawnInterval = wd.isBoss ? 0 : 600;
+        let spawnCount = 0;
 
-        const spawner = setInterval(() => {
-          if (spawned < waveData.count && !gameState.gameOver) {
-            spawnEnemy(waveData);
-            spawned++;
-          } else {
-            clearInterval(spawner);
+        const doSpawn = () => {
+          if (gameState.gameOver) return;
+          if (spawnCount < wd.count) {
+            spawnEnemy(wd);
+            spawnCount++;
+            gameState.spawnedThisWave++;
+            if (spawnCount < wd.count) {
+              setTimeout(doSpawn, spawnInterval + Math.random() * 200);
+            }
           }
-        }, spawnInterval);
+        };
 
-        // Vérifier fin de vague
+        // Lancer le premier spawn immédiatement
+        if (wd.isBoss) {
+          spawnEnemy(wd);
+          gameState.spawnedThisWave = 1;
+        } else {
+          doSpawn();
+        }
+
+        // FIX: checker de fin de vague robuste avec guard isWaveComplete
         const checkWaveEnd = setInterval(() => {
           if (gameState.gameOver) {
             clearInterval(checkWaveEnd);
             return;
           }
-
-          if (spawned >= waveData.count && gameState.enemies.length === 0) {
+          if (gameState.isWaveComplete) {
             clearInterval(checkWaveEnd);
+            return;
+          }
+
+          const allSpawned = gameState.spawnedThisWave >= wd.count;
+          const allDead = gameState.enemies.length === 0;
+
+          if (allSpawned && allDead) {
+            clearInterval(checkWaveEnd);
+            gameState.isWaveComplete = true;
             endWave();
           }
-        }, 500);
+        }, 400);
       }
 
       function endWave() {
+        if (!gameState.isWaveActive) return; // FIX: double-call guard
         gameState.isWaveActive = false;
         gameState.currentWave++;
-
         document.getElementById("siren-light").classList.remove("active");
         document.getElementById("wave-info").classList.remove("show");
         document.getElementById("wave-current").textContent =
           gameState.currentWave;
+        setBattleMode(false);
+        playSound("wave_end");
 
         if (gameState.currentWave >= CONFIG.TOTAL_WAVES) {
-          // Victoire !
           setTimeout(() => endGame(true), 1500);
         } else {
-          // Bonus ressources fin de vague : +1000 par vague gagnee
           gameState.resources += 1000;
           updateResourcesDisplay();
-
-          // Message de bonus
           showGaiaMessage(
-            "Vague terminee ! +1000 ressources. Preparez-vous pour la suivante..."
+            "Vague terminée ! +1000 ressources. Préparez-vous pour la suivante..."
           );
-
           document.getElementById("wave-btn").disabled = false;
           document.getElementById("wave-btn").textContent = `▶ LANCER VAGUE ${
             gameState.currentWave + 1
           }`;
-
-          // Afficher automatiquement la preview de la prochaine vague apres un delai
-          setTimeout(() => {
-            showWavePreview();
-          }, 2000);
+          setTimeout(() => showWavePreview(), 2000);
         }
       }
 
-      function showWaveInfo(waveData) {
-        const el = document.getElementById("wave-info");
+      function showWaveInfo(wd) {
         document.getElementById("wave-info-title").textContent = `⚔️ VAGUE ${
           gameState.currentWave + 1
-        }: ${waveData.name}`;
-        document.getElementById("wave-info-content").innerHTML = `
-        Type: ${waveData.type}<br>
-        Ennemis: ${waveData.count}<br>
-        HP: ${waveData.hp}<br>
-        Vitesse: ${waveData.speed}<br>
-        Dégâts: ${waveData.damage}
-      `;
-        el.classList.add("show");
+        }: ${wd.name}`;
+        document.getElementById(
+          "wave-info-content"
+        ).innerHTML = `Type: ${wd.type}<br>Ennemis: ${wd.count}<br>HP: ${wd.hp}<br>Vitesse: ${wd.speed}<br>Dégâts: ${wd.damage}`;
+        document.getElementById("wave-info").classList.add("show");
       }
 
-      function getWaveMessage(wave) {
-        const messages = [
-          "Les plastiques arrivent ! Préparez vos défenses.",
-          "Les fumées toxiques approchent. Les Smog Towers sont efficaces !",
-          "Déchets électroniques détectés. Les drones sont utiles ici.",
-          "Alerte pétrole ! Les Ocean Barriers peuvent aider.",
-          "Pesticides en approche. Les bactéries les décomposent bien.",
-          "⚠️ ATTENTION : Déchets nucléaires ! Très résistants mais lents.",
-          "Microplastiques ! Petits mais nombreux et rapides.",
-          "Gaz à effet de serre. Super-Trees et Smog Towers recommandés.",
-          "CHAOS TOTAL ! Tous types d'ennemis arrivent !",
-          "🔴 BOSS FINAL : ANTHROPOCÈNE ! Concentrez tout le feu !",
-        ];
-        return messages[wave] || "Nouvelle vague en approche !";
+      function getWaveMessage(w) {
+        return (
+          [
+            "Les plastiques arrivent ! Préparez vos défenses.",
+            "Les fumées toxiques approchent. Smog Towers efficaces !",
+            "Déchets électroniques détectés. Utilisez les Drones.",
+            "Alerte pétrole ! Ocean Barriers et Algae Reactors.",
+            "Pesticides en approche. Les Bactéries les décomposent !",
+            "⚠️ Déchets nucléaires ! Très résistants mais lents.",
+            "Microplastiques ! Petits mais nombreux et rapides.",
+            "Gaz à effet de serre. Super-Trees recommandés.",
+            "CHAOS TOTAL ! Tous types d'ennemis arrivent !",
+            "🔴 BOSS FINAL : ANTHROPOCÈNE ! Concentrez tout !",
+          ][w] || "Nouvelle vague !"
+        );
       }
 
-      function getWaveEndMessage() {
-        const messages = [
-          "Bien joué ! Mais ce n'était que le début...",
-          "Vous tenez bon. Renforcez vos défenses.",
-          "Mon cœur bat toujours. Continuez !",
-          "La bataille fait rage. Ne faiblissez pas.",
-          "Vous êtes fort. Mais le pire arrive...",
-          "Ces déchets sont tenaces. Adaptez votre stratégie.",
-          "Presque la moitié ! Courage, Gardien.",
-          "La fin approche. Préparez-vous au boss.",
-          "Une dernière épreuve vous attend...",
-        ];
-        return messages[gameState.currentWave - 1] || "Préparez-vous !";
-      }
-
-      // ══════════════════════════════════════════
-      // FIN DE PARTIE
-      // ══════════════════════════════════════════
+      // ══════════════════ FIN DE PARTIE ══════════════════
       function endGame(victory) {
+        if (gameState.gameOver) return; // FIX: guard double-call
         gameState.gameOver = true;
         gameState.victory = victory;
-
-        const endScreen = document.getElementById("end-screen");
+        setBattleMode(false);
         const endContent = document.getElementById("end-content");
-
         if (victory) {
           document.getElementById("end-title").textContent = "🏆 VICTOIRE !";
           document.getElementById("end-subtitle").textContent =
             "GAÏA DÉFENDUE AVEC SUCCÈS";
           endContent.classList.remove("defeat");
+          playSound("victory");
         } else {
           document.getElementById("end-title").textContent = "💀 DÉFAITE";
           document.getElementById("end-subtitle").textContent =
             "GAÏA A ÉTÉ DÉTRUITE...";
           endContent.classList.add("defeat");
+          playSound("defeat");
         }
-
-        // Stats
-        const killPercent =
+        const pct =
           gameState.totalEnemiesSpawned > 0
             ? Math.round(
                 (gameState.totalEnemiesKilled / gameState.totalEnemiesSpawned) *
                   100
               )
             : 0;
-
         document.getElementById("stat-waves").textContent = `${
           gameState.currentWave
         }/${CONFIG.TOTAL_WAVES} ${victory ? "✅" : "❌"}`;
         document.getElementById(
           "stat-enemies"
-        ).textContent = `${gameState.totalEnemiesKilled}/${gameState.totalEnemiesSpawned} (${killPercent}%)`;
+        ).textContent = `${gameState.totalEnemiesKilled}/${gameState.totalEnemiesSpawned} (${pct}%)`;
         document.getElementById("stat-health").textContent = `${Math.max(
           0,
           gameState.gaiaHealth
@@ -2117,28 +2324,25 @@
         }`;
         document.getElementById("stat-towers").textContent =
           gameState.towersPlaced;
-
-        // Performance
-        const health = Math.max(0, gameState.gaiaHealth);
+        const h = Math.max(0, gameState.gaiaHealth);
         let stars, rank, points;
-
-        if (!victory || health < 20) {
+        if (!victory || h < 20) {
           stars = 0;
           rank = "ÉCHEC";
           points = 0;
-        } else if (health >= 90) {
+        } else if (h >= 90) {
           stars = 5;
           rank = "GARDIEN ULTIME";
           points = 800;
-        } else if (health >= 80) {
+        } else if (h >= 80) {
           stars = 4;
           rank = "DÉFENSEUR ÉLITE";
           points = 650;
-        } else if (health >= 60) {
+        } else if (h >= 60) {
           stars = 3;
           rank = "DÉFENSEUR COMPÉTENT";
           points = 500;
-        } else if (health >= 40) {
+        } else if (h >= 40) {
           stars = 2;
           rank = "APPRENTI DÉFENSEUR";
           points = 300;
@@ -2147,70 +2351,47 @@
           rank = "SURVIE DE JUSTESSE";
           points = 100;
         }
-
         document.getElementById("stars-display").textContent =
           "⭐".repeat(stars) + "☆".repeat(5 - stars);
         document.getElementById("rank-display").textContent = rank;
         document.getElementById(
           "reward-points"
         ).textContent = `• +${points} POINTS`;
-
-        // Message final
-        if (victory) {
-          document.getElementById("gaia-final-message").innerHTML = `
-          "Vous m'avez défendue. Merci.<br>
-          Mais la vraie bataille...<br>
-          Est dans le monde réel.<br>
-          Là-bas, <strong>AGISSEZ</strong>."
-        `;
-        } else {
-          document.getElementById("gaia-final-message").innerHTML = `
-          "J'ai été submergée...<br>
-          Mais tout n'est pas perdu.<br>
-          Réessayez, Gardien.<br>
-          La Terre compte sur vous."
-        `;
-        }
-
-        setTimeout(() => endScreen.classList.add("show"), 500);
+        document.getElementById("gaia-final-message").innerHTML = victory
+          ? '"Vous m\'avez défendue. Merci.<br>Mais la vraie bataille...<br>Est dans le monde réel.<br>Là-bas, <strong>AGISSEZ</strong>."'
+          : "\"J'ai été submergée...<br>Mais tout n'est pas perdu.<br>Réessayez, Gardien.<br>La Terre compte sur vous.\"";
+        setTimeout(
+          () =>
+            document.getElementById("end-screen").classList.remove("hidden"),
+          600
+        );
       }
 
-      // ══════════════════════════════════════════
-      // UI UPDATES
-      // ═════════════════════��════════════════════
+      // ══════════════════ UI ══════════════════
       function updateHealthDisplay() {
-        const percent = Math.max(0, gameState.gaiaHealth);
-        document.getElementById("health-bar").style.width = percent + "%";
-        document.getElementById("health-percent").textContent = percent + "%";
-
-        // Couleur selon vie
+        const pct = Math.max(0, gameState.gaiaHealth);
+        document.getElementById("health-bar").style.width = pct + "%";
+        document.getElementById("health-percent").textContent = pct + "%";
         const bar = document.getElementById("health-bar");
-        if (percent > 60) {
-          bar.style.background = "linear-gradient(90deg, #00ff88, #00cc66)";
-        } else if (percent > 30) {
-          bar.style.background = "linear-gradient(90deg, #ffaa00, #ff8800)";
-        } else {
-          bar.style.background = "linear-gradient(90deg, #ff4444, #cc0000)";
-        }
-
-        // Pulsation du cœur de Gaïa
-        if (gaiaCore) {
-          gaiaCore.material.emissiveIntensity = 0.3 + (percent / 100) * 0.5;
+        if (pct > 60)
+          bar.style.background = "linear-gradient(90deg,#00ff88,#00cc66)";
+        else if (pct > 30)
+          bar.style.background = "linear-gradient(90deg,#ffaa00,#ff8800)";
+        else bar.style.background = "linear-gradient(90deg,#ff4444,#cc0000)";
+        if (gaiaCore && pct < 30) {
+          gaiaCore.material.emissive = new THREE.Color(0x440000);
+          gaiaCore.material.emissiveIntensity = 0.3;
         }
       }
 
       function updateResourcesDisplay() {
         document.getElementById("resources-value").textContent =
           gameState.resources;
-
-        // Mettre à jour boutons tours
         document.querySelectorAll(".tower-btn").forEach((btn) => {
-          const cost = parseInt(btn.dataset.cost);
-          if (cost > gameState.resources) {
-            btn.classList.add("disabled");
-          } else {
-            btn.classList.remove("disabled");
-          }
+          btn.classList.toggle(
+            "disabled",
+            parseInt(btn.dataset.cost) > gameState.resources
+          );
         });
       }
 
@@ -2218,102 +2399,82 @@
         const el = document.getElementById("gaia-message");
         document.getElementById("gaia-message-text").textContent = text;
         el.classList.add("show");
-        setTimeout(() => el.classList.remove("show"), 4000);
+        setTimeout(() => el.classList.remove("show"), 4500);
       }
 
-      // ══════════════════════════════════════════
-      // EVENT HANDLERS
-      // ══════════════════════════════════════════
+      // ══════════════════ EVENTS ══════════════════
       function onResize() {
         camera.aspect = innerWidth / innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(innerWidth, innerHeight);
       }
 
-      function onCanvasClick(event) {
-        if (gameState.gameOver) return;
-
-        mouse.x = (event.clientX / innerWidth) * 2 - 1;
-        mouse.y = -(event.clientY / innerHeight) * 2 + 1;
-
+      function onCanvasClick(e) {
+        if (gameState.gameOver || camOrbit.isDragging) return;
+        mouse.x = (e.clientX / innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / innerHeight) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(hexGrid);
-
-        if (intersects.length > 0 && gameState.selectedTower) {
-          const hex = intersects[0].object;
-
+        const hits = raycaster.intersectObjects(hexGrid);
+        if (hits.length > 0 && gameState.selectedTower) {
+          const hex = hits[0].object;
           if (!hex.userData.occupied) {
-            const towerData = TOWER_TYPES[gameState.selectedTower];
-
-            if (gameState.resources >= towerData.cost) {
-              // Placer la tour
+            const td = TOWER_TYPES[gameState.selectedTower];
+            if (gameState.resources >= td.cost) {
               createTower(gameState.selectedTower, hex.position.clone());
-              gameState.resources -= towerData.cost;
+              gameState.resources -= td.cost;
               hex.userData.occupied = true;
-              hex.material.color.setHex(0x004422);
-
+              hex.material.color.setHex(0x003a1a);
               updateResourcesDisplay();
             } else {
-              showGaiaMessage("Ressources insuffisantes !");
+              showGaiaMessage("⚡ Ressources insuffisantes !");
+              playSound("error");
             }
           } else {
-            showGaiaMessage("Emplacement déjà occupé !");
+            showGaiaMessage("🚫 Emplacement déjà occupé !");
           }
         }
       }
 
-      function onCanvasMouseMove(event) {
-        mouse.x = (event.clientX / innerWidth) * 2 - 1;
-        mouse.y = -(event.clientY / innerHeight) * 2 + 1;
-
+      function onCanvasMouseMove(e) {
+        if (camOrbit.isDragging) return;
+        mouse.x = (e.clientX / innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / innerHeight) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(hexGrid);
-
-        // Reset tous les hex
+        const hits = raycaster.intersectObjects(hexGrid);
         hexGrid.forEach((hex) => {
           if (!hex.userData.occupied) {
-            hex.material.color.setHex(0x222222);
-            hex.material.opacity = 0.8;
+            hex.material.color.setHex(0x1a2a1a);
+            hex.material.opacity = 0.85;
           }
         });
-
-        // Highlight hex survolé
-        if (intersects.length > 0 && gameState.selectedTower) {
-          const hex = intersects[0].object;
+        if (hits.length > 0 && gameState.selectedTower) {
+          const hex = hits[0].object;
           if (!hex.userData.occupied) {
-            hex.material.color.setHex(0x00ff88);
+            hex.material.color.setHex(0x004422);
             hex.material.opacity = 1;
           }
         }
       }
 
-      // Sélection tour
       document.querySelectorAll(".tower-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           if (btn.classList.contains("disabled")) return;
-
-          // Désélectionner ancien
           document
             .querySelectorAll(".tower-btn")
             .forEach((b) => b.classList.remove("selected"));
-
-          // Sélectionner nouveau
           btn.classList.add("selected");
           gameState.selectedTower = btn.dataset.tower;
-
           document.getElementById("cursor").classList.add("placing");
-
-          const indicator = document.getElementById("selected-tower-indicator");
           document.getElementById("selected-tower-name").textContent =
             TOWER_TYPES[gameState.selectedTower].name;
-          indicator.classList.add("show");
+          document
+            .getElementById("selected-tower-indicator")
+            .classList.add("show");
+          playSound("select");
         });
       });
 
-      // Bouton vague - lance la vague directement (la preview est deja affichee avant)
       document.getElementById("wave-btn").addEventListener("click", startWave);
-
-      // Boutons fin
       document
         .getElementById("btn-replay")
         .addEventListener("click", () => location.reload());
@@ -2321,144 +2482,448 @@
         window.location.href = "scene20.html";
       });
 
-      // ══════════════════════════════════════════
-      // FONCTIONS DE DÉMARRAGE DU JEU
-      // ══════════════════════════════════════════
       function startGame() {
         document.getElementById("tutorial-screen").classList.add("hidden");
-        // Afficher la preview de la premiere vague
-        setTimeout(() => {
-          showWavePreview();
-        }, 500);
+        setTimeout(() => showWavePreview(), 500);
       }
 
       function confirmLaunchWave() {
-        document.getElementById("wave-preview").classList.remove("show");
-        // Ne pas lancer la vague automatiquement - le joueur doit placer ses tours puis cliquer sur le bouton
-        const waveNum = gameState.currentWave + 1;
+        document.getElementById("wave-preview").classList.add("hidden");
+        const wn = gameState.currentWave + 1;
         document.getElementById("wave-btn").disabled = false;
         document.getElementById(
           "wave-btn"
-        ).textContent = `▶ LANCER VAGUE ${waveNum}`;
+        ).textContent = `▶ LANCER VAGUE ${wn}`;
         showGaiaMessage(
-          `Vague ${waveNum} : Placez vos defenses puis cliquez sur LANCER VAGUE quand vous etes pret !`
+          `Vague ${wn} : Placez vos défenses puis cliquez LANCER VAGUE !`
         );
       }
 
-      // ══════════════════════════════════════════
-      // CURSEUR
-      // ══════════════════════════════════════════
-      const cursor = document.getElementById("cursor");
+      // ══════════════════ CURSEUR ══════════════════
+      const cursorEl = document.getElementById("cursor");
       document.addEventListener("mousemove", (e) => {
-        cursor.style.left = e.clientX + "px";
-        cursor.style.top = e.clientY + "px";
+        cursorEl.style.left = e.clientX + "px";
+        cursorEl.style.top = e.clientY + "px";
       });
 
-      // ══════════════════════════════════════════
-      // AUDIO
-      // ══════════════════════════════════════════
-      let audioCtx = null,
-        isMuted = false;
+      // ══════════════════ AUDIO ══════════════════
+      let audioCtx = null;
+      let isMuted = false,
+        isMusicMuted = false;
+      let musicNodes = {},
+        battleMode = false;
 
       function initAudio() {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        playAlertAmbience();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        buildAmbientMusic();
       }
 
-      function playAlertAmbience() {
-        if (!audioCtx || isMuted) return;
+      function buildAmbientMusic() {
+        if (!audioCtx || isMusicMuted) return;
+        const master = audioCtx.createGain();
+        master.gain.value = 0.25;
+        master.connect(audioCtx.destination);
+        musicNodes.master = master;
 
-        // Drone d'alerte
-        [55, 82.5, 110].forEach((f, i) => {
-          const o = audioCtx.createOscillator();
-          const g = audioCtx.createGain();
-          o.type = "sawtooth";
-          o.frequency.value = f;
-          g.gain.setValueAtTime(0, audioCtx.currentTime);
-          g.gain.linearRampToValueAtTime(
-            [0.03, 0.02, 0.015][i],
-            audioCtx.currentTime + 2
-          );
-          o.connect(g);
-          g.connect(audioCtx.destination);
-          o.start();
+        // Drone grave
+        const droneFreqs = [27.5, 41.2, 55.0, 82.4];
+        droneFreqs.forEach((f, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          const filter = audioCtx.createBiquadFilter();
+          osc.type = "sawtooth";
+          osc.frequency.value = f;
+          filter.type = "lowpass";
+          filter.frequency.value = 200 + i * 50;
+          filter.Q.value = 2;
+          gain.gain.value = [0.08, 0.06, 0.05, 0.04][i];
+          const lfo = audioCtx.createOscillator();
+          const lfoGain = audioCtx.createGain();
+          lfo.frequency.value = 0.15 + i * 0.05;
+          lfoGain.gain.value = 0.5;
+          lfo.connect(lfoGain);
+          lfoGain.connect(osc.frequency);
+          lfo.start();
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(master);
+          osc.start();
+          musicNodes[`drone${i}`] = { osc, gain };
         });
 
-        // Bip d'alerte périodique
-        setInterval(() => {
-          if (isMuted || !audioCtx) return;
-          const o = audioCtx.createOscillator();
-          const g = audioCtx.createGain();
-          o.type = "sine";
-          o.frequency.value = 880;
-          g.gain.setValueAtTime(0.1, audioCtx.currentTime);
-          g.gain.exponentialRampToValueAtTime(
-            0.001,
-            audioCtx.currentTime + 0.1
+        // Pad atmosphérique
+        const padFreqs = [110, 146.8, 164.8, 220];
+        padFreqs.forEach((f, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          const reverb = createReverb(3);
+          osc.type = "sine";
+          osc.frequency.value = f;
+          gain.gain.value = 0;
+          const t = audioCtx.currentTime;
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.04 + i * 0.005, t + 3 + i);
+          const tremLFO = audioCtx.createOscillator();
+          const tremGain = audioCtx.createGain();
+          tremLFO.frequency.value = 0.8 + i * 0.2;
+          tremGain.gain.value = 0.015;
+          tremLFO.connect(tremGain);
+          tremGain.connect(gain.gain);
+          tremLFO.start();
+          osc.connect(gain);
+          gain.connect(reverb);
+          reverb.connect(master);
+          osc.start();
+          musicNodes[`pad${i}`] = { osc, gain };
+        });
+
+        // Mélodie épique
+        const melody = [220, 246.9, 261.6, 293.7, 329.6, 349.2, 392, 440];
+        let melStep = 0;
+        const playMelody = () => {
+          if (isMusicMuted || !audioCtx) return;
+          const freq = melody[melStep % melody.length];
+          const t = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator();
+          const env = audioCtx.createGain();
+          const rev = createReverb(2);
+          osc.type = "triangle";
+          osc.frequency.value = freq;
+          env.gain.setValueAtTime(0, t);
+          env.gain.linearRampToValueAtTime(0.035, t + 0.1);
+          env.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+          osc.connect(env);
+          env.connect(rev);
+          rev.connect(master);
+          osc.start(t);
+          osc.stop(t + 2);
+          melStep++;
+          setTimeout(playMelody, 600 + Math.random() * 300);
+        };
+        setTimeout(playMelody, 2000);
+
+        // Battements de cœur
+        const heartbeat = () => {
+          if (isMusicMuted || !audioCtx) return;
+          const t = audioCtx.currentTime;
+          [0, 0.15].forEach((offset) => {
+            try {
+              const buf = audioCtx.createBuffer(
+                1,
+                audioCtx.sampleRate * 0.12,
+                audioCtx.sampleRate
+              );
+              const data = buf.getChannelData(0);
+              for (let i = 0; i < data.length; i++)
+                data[i] =
+                  (Math.random() * 2 - 1) *
+                  Math.exp(-i / (audioCtx.sampleRate * 0.04)) *
+                  0.4;
+              const src = audioCtx.createBufferSource();
+              const filter = audioCtx.createBiquadFilter();
+              const g = audioCtx.createGain();
+              filter.type = "lowpass";
+              filter.frequency.value = 120;
+              g.gain.value = gameState.gaiaHealth > 50 ? 0.6 : 1.2;
+              src.buffer = buf;
+              src.connect(filter);
+              filter.connect(g);
+              g.connect(master);
+              src.start(t + offset);
+            } catch (e) {}
+          });
+          const bpm = 50 + (1 - gameState.gaiaHealth / 100) * 40;
+          setTimeout(heartbeat, (60 / bpm) * 1000);
+        };
+        setTimeout(heartbeat, 3000);
+
+        // Percussions en mode bataille
+        const kickDrum = () => {
+          if (isMusicMuted || !audioCtx || !battleMode) return;
+          try {
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const env = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(150, t);
+            osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+            env.gain.setValueAtTime(0.5, t);
+            env.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+            osc.connect(env);
+            env.connect(master);
+            osc.start(t);
+            osc.stop(t + 0.3);
+          } catch (e) {}
+          setTimeout(kickDrum, 500);
+        };
+        const snareDrum = () => {
+          if (isMusicMuted || !audioCtx || !battleMode) return;
+          try {
+            const t = audioCtx.currentTime;
+            const buf = audioCtx.createBuffer(
+              1,
+              audioCtx.sampleRate * 0.1,
+              audioCtx.sampleRate
+            );
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < data.length; i++)
+              data[i] =
+                (Math.random() * 2 - 1) *
+                Math.exp(-i / (audioCtx.sampleRate * 0.05));
+            const src = audioCtx.createBufferSource();
+            const hpf = audioCtx.createBiquadFilter();
+            const g = audioCtx.createGain();
+            hpf.type = "highpass";
+            hpf.frequency.value = 800;
+            g.gain.value = 0.15;
+            src.buffer = buf;
+            src.connect(hpf);
+            hpf.connect(g);
+            g.connect(master);
+            src.start(t);
+          } catch (e) {}
+          setTimeout(snareDrum, 1000);
+        };
+        musicNodes.kickDrum = kickDrum;
+        musicNodes.snareDrum = snareDrum;
+      }
+
+      function setBattleMode(active) {
+        battleMode = active;
+        if (active && musicNodes.kickDrum) {
+          musicNodes.kickDrum();
+          musicNodes.snareDrum();
+        }
+        if (musicNodes.master && audioCtx) {
+          const t = audioCtx.currentTime;
+          musicNodes.master.gain.linearRampToValueAtTime(
+            active ? 0.35 : 0.22,
+            t + 1.5
           );
-          o.connect(g);
-          g.connect(audioCtx.destination);
-          o.start();
-          o.stop(audioCtx.currentTime + 0.1);
-        }, 2000);
+        }
+      }
+
+      function createReverb(duration = 2) {
+        const sampleRate = audioCtx.sampleRate;
+        const length = sampleRate * duration;
+        const buf = audioCtx.createBuffer(2, length, sampleRate);
+        for (let ch = 0; ch < 2; ch++) {
+          const data = buf.getChannelData(ch);
+          for (let i = 0; i < length; i++)
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2);
+        }
+        const conv = audioCtx.createConvolver();
+        conv.buffer = buf;
+        return conv;
+      }
+
+      function playSound(type) {
+        if (!audioCtx || isMuted) return;
+        try {
+          const t = audioCtx.currentTime;
+          const masterGain = audioCtx.createGain();
+          masterGain.connect(audioCtx.destination);
+          switch (type) {
+            case "build": {
+              [440, 550, 660, 880].forEach((f, i) => {
+                const o = audioCtx.createOscillator(),
+                  g = audioCtx.createGain();
+                o.type = "sine";
+                o.frequency.value = f;
+                g.gain.setValueAtTime(0.12, t + i * 0.06);
+                g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.15);
+                o.connect(g);
+                g.connect(masterGain);
+                o.start(t + i * 0.06);
+                o.stop(t + i * 0.06 + 0.2);
+              });
+              break;
+            }
+            case "hit": {
+              const o = audioCtx.createOscillator(),
+                g = audioCtx.createGain();
+              o.type = "sawtooth";
+              o.frequency.value = 80;
+              g.gain.setValueAtTime(0.5, t);
+              g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+              o.connect(g);
+              g.connect(masterGain);
+              o.start(t);
+              o.stop(t + 0.5);
+              break;
+            }
+            case "kill": {
+              [440, 554, 659].forEach((f, i) => {
+                const o = audioCtx.createOscillator(),
+                  g = audioCtx.createGain();
+                o.type = "square";
+                o.frequency.value = f;
+                g.gain.setValueAtTime(0.08, t + i * 0.04);
+                g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.04 + 0.1);
+                o.connect(g);
+                g.connect(masterGain);
+                o.start(t + i * 0.04);
+                o.stop(t + i * 0.04 + 0.15);
+              });
+              break;
+            }
+            case "wave_start": {
+              const o = audioCtx.createOscillator(),
+                g = audioCtx.createGain();
+              o.type = "sawtooth";
+              o.frequency.setValueAtTime(880, t);
+              o.frequency.exponentialRampToValueAtTime(440, t + 0.5);
+              o.frequency.setValueAtTime(880, t + 0.6);
+              o.frequency.exponentialRampToValueAtTime(440, t + 1.1);
+              g.gain.setValueAtTime(0.2, t);
+              g.gain.linearRampToValueAtTime(0, t + 1.5);
+              o.connect(g);
+              g.connect(masterGain);
+              o.start(t);
+              o.stop(t + 1.6);
+              break;
+            }
+            case "wave_end": {
+              [523, 659, 784, 1047].forEach((f, i) => {
+                const o = audioCtx.createOscillator(),
+                  g = audioCtx.createGain();
+                o.type = "sine";
+                o.frequency.value = f;
+                g.gain.setValueAtTime(0.12, t + i * 0.12);
+                g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.12 + 0.3);
+                o.connect(g);
+                g.connect(masterGain);
+                o.start(t + i * 0.12);
+                o.stop(t + i * 0.12 + 0.4);
+              });
+              break;
+            }
+            case "victory": {
+              const notes = [523, 659, 784, 1047, 1319, 1047, 784, 659, 1047];
+              notes.forEach((f, i) => {
+                const o = audioCtx.createOscillator(),
+                  g = audioCtx.createGain(),
+                  rev = createReverb(1.5);
+                o.type = "triangle";
+                o.frequency.value = f;
+                g.gain.setValueAtTime(0.15, t + i * 0.15);
+                g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.15 + 0.4);
+                o.connect(g);
+                g.connect(rev);
+                rev.connect(masterGain);
+                o.start(t + i * 0.15);
+                o.stop(t + i * 0.15 + 0.5);
+              });
+              break;
+            }
+            case "defeat": {
+              const o = audioCtx.createOscillator(),
+                g = audioCtx.createGain();
+              o.type = "sawtooth";
+              o.frequency.setValueAtTime(220, t);
+              o.frequency.exponentialRampToValueAtTime(55, t + 2);
+              g.gain.setValueAtTime(0.2, t);
+              g.gain.linearRampToValueAtTime(0, t + 2.5);
+              o.connect(g);
+              g.connect(masterGain);
+              o.start(t);
+              o.stop(t + 2.6);
+              break;
+            }
+            case "select": {
+              const o = audioCtx.createOscillator(),
+                g = audioCtx.createGain();
+              o.type = "sine";
+              o.frequency.value = 660;
+              g.gain.setValueAtTime(0.08, t);
+              g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+              o.connect(g);
+              g.connect(masterGain);
+              o.start(t);
+              o.stop(t + 0.2);
+              break;
+            }
+            case "error": {
+              const o = audioCtx.createOscillator(),
+                g = audioCtx.createGain();
+              o.type = "sawtooth";
+              o.frequency.value = 200;
+              g.gain.setValueAtTime(0.15, t);
+              g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+              o.connect(g);
+              g.connect(masterGain);
+              o.start(t);
+              o.stop(t + 0.35);
+              break;
+            }
+          }
+        } catch (e) {
+          /* silently ignore audio errors */
+        }
       }
 
       function toggleMute() {
         isMuted = !isMuted;
-        document.getElementById("audio-hint").textContent = isMuted
-          ? "🔇 MUET"
-          : "🔊 SON";
+        const btn = document.getElementById("btn-mute");
+        btn.textContent = isMuted ? "🔇 MUET" : "🔊 SON";
+        btn.classList.toggle("muted", isMuted);
         if (audioCtx) isMuted ? audioCtx.suspend() : audioCtx.resume();
       }
 
-      // ══════════════════════════════════════════
-      // ANIMATION PRINCIPALE
-      // ══════════════════════════════════════════
+      function toggleMusic() {
+        isMusicMuted = !isMusicMuted;
+        const btn = document.getElementById("btn-music");
+        btn.textContent = isMusicMuted ? "🎵 MUET" : "🎵 MUSIQUE";
+        btn.classList.toggle("muted", isMusicMuted);
+        if (musicNodes.master && audioCtx) {
+          const t = audioCtx.currentTime;
+          musicNodes.master.gain.linearRampToValueAtTime(
+            isMusicMuted ? 0 : 0.25,
+            t + 0.5
+          );
+        }
+      }
+
+      // ══════════════════ BOUCLE D'ANIMATION ══════════════════
       function animate() {
         requestAnimationFrame(animate);
-
-        const delta = clock.getDelta();
+        // FIX: delta clamped strict à 50ms pour éviter les sauts physiques au reprise d'onglet
+        const rawDelta = clock.getDelta();
+        const delta = Math.min(rawDelta, 0.05);
         const time = clock.getElapsedTime();
 
-        // Update game systems
+        updateCamFromKeys();
+        camUpdate();
+
         if (!gameState.gameOver) {
           updateEnemies(delta);
           updateTowers(delta, time);
           updateProjectiles(delta);
         }
 
-        // Animations visuelles
-        if (gaiaCore) {
-          gaiaCore.rotation.y = time * 0.5;
-          gaiaCore.rotation.x = Math.sin(time * 0.3) * 0.1;
-          gaiaCore.position.y = 2 + Math.sin(time) * 0.2;
+        if (gaiaCore) gaiaCore.rotation.y = time * 0.08;
+        if (gaiaClouds) {
+          gaiaClouds.rotation.y = time * 0.12;
+          gaiaClouds.rotation.x = Math.sin(time * 0.05) * 0.03;
         }
-
-        // Rotation anneau
-        scene.traverse((obj) => {
-          if (obj.userData.type === "ring") {
-            obj.rotation.z = time * 0.5;
-          }
-          if (obj.userData.type === "coreParticles") {
-            obj.rotation.y = time * 0.2;
-          }
-        });
-
-        // Camera légère oscillation
-        camera.position.x = Math.sin(time * 0.1) * 2;
-        camera.lookAt(0, 0, 0);
+        if (gaiaAtmosphere) {
+          gaiaAtmosphere.rotation.y = -time * 0.04;
+          const breathe = 1 + Math.sin(time * 0.5) * 0.005;
+          gaiaAtmosphere.scale.set(breathe, breathe, breathe);
+        }
+        if (gaiaGlow)
+          gaiaGlow.material.opacity = 0.04 + Math.sin(time * 0.8) * 0.015;
 
         renderer.render(scene, camera);
       }
 
-      // ══════════════════════════════════════════
-      // INITIALISATION
-      // ════════════════════════════════════════��═
+      // ══════════════════ INIT ══════════════════
       initThree();
       initAudio();
       updateResourcesDisplay();
       showGaiaMessage(
-        "Bienvenue, Gardien. Placez vos défenses et protégez-moi !"
+        "Bienvenue, Gardien. Placez vos défenses et protégez la Terre !"
       );
     </script>
   </body>

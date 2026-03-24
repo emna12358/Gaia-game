@@ -2,2470 +2,2230 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>GAIA — Scene 18 : Arsenal Technologique</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GAIA — Musee Technologique</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Orbitron:wght@400;700;900&family=EB+Garamond:ital,wght@0,400;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;1,400&family=Orbitron:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <style>
-      :root {
-        --v: #8844ff;
-        --vl: #bb66ff;
-        --b: #0088ff;
-        --bl: #44bbff;
-        --g: #00ff88;
-        --gd: #00cc66;
-        --w: #ffffff;
-        --dark: #02010a;
-      }
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
-      html,
+
       body {
-        width: 100%;
-        height: 100%;
+        background: #000;
         overflow: hidden;
-        background: var(--dark);
-      }
-      body {
-        font-family: "Orbitron", monospace;
+        font-family: "Orbitron", sans-serif;
         cursor: none;
+        color: #fff;
       }
-      canvas {
+
+      /* CURSEUR FUTURISTE */
+      #cursor {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 1;
-      }
-      #cur {
-        position: fixed;
-        width: 16px;
-        height: 16px;
-        border: 1.5px solid var(--bl);
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(0, 200, 255, 0.8);
         border-radius: 50%;
         pointer-events: none;
         z-index: 9999;
         transform: translate(-50%, -50%);
-        transition: width 0.12s, height 0.12s;
+        transition: transform 0.1s ease, border-color 0.3s;
+        box-shadow: 0 0 15px rgba(0, 200, 255, 0.4);
       }
-      #cur::after {
+      #cursor::after {
         content: "";
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 3px;
-        height: 3px;
-        background: var(--bl);
+        width: 4px;
+        height: 4px;
+        background: #00c8ff;
         border-radius: 50%;
       }
-      #cur.hover {
-        width: 28px;
-        height: 28px;
-        border-color: var(--vl);
-        box-shadow: 0 0 18px rgba(136, 68, 255, 0.8);
+      #cursor.hover {
+        transform: translate(-50%, -50%) scale(1.5);
+        border-color: #00ff88;
+        box-shadow: 0 0 25px rgba(0, 255, 136, 0.6);
       }
-      #curtain {
+
+      /* CANVAS LAYERS */
+      #canvas-container {
         position: fixed;
         inset: 0;
-        z-index: 900;
-        background: #000;
-        opacity: 1;
+        z-index: 1;
+      }
+      #vfx-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
         pointer-events: none;
-        transition: opacity 1.6s;
       }
-      #curtain.gone {
+
+      /* VIGNETTE */
+      #vignette {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse 70% 70% at 50% 50%,
+          transparent 30%,
+          rgba(0, 10, 20, 0.4) 60%,
+          rgba(0, 5, 15, 0.85) 100%
+        );
+      }
+
+      /* LOADING */
+      #loading {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: linear-gradient(
+          135deg,
+          #000510 0%,
+          #001525 50%,
+          #000510 100%
+        );
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        transition: opacity 1.2s ease;
+      }
+      #loading.hide {
         opacity: 0;
+        pointer-events: none;
       }
-      #hud {
+      #loading-label {
+        font-family: "Orbitron", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.5em;
+        color: rgba(0, 200, 255, 0.7);
+        text-transform: uppercase;
+      }
+      #loading-track {
+        width: 280px;
+        height: 3px;
+        background: rgba(0, 200, 255, 0.15);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      #loading-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #00c8ff, #00ff88);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+        box-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
+      }
+      .loading-hex {
+        width: 60px;
+        height: 60px;
+        position: relative;
+        animation: hexRotate 3s linear infinite;
+      }
+      .loading-hex::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: transparent;
+        border: 2px solid rgba(0, 200, 255, 0.6);
+        clip-path: polygon(
+          50% 0%,
+          100% 25%,
+          100% 75%,
+          50% 100%,
+          0% 75%,
+          0% 25%
+        );
+      }
+      @keyframes hexRotate {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* HUD TOP */
+      #hud-top {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
+        height: 60px;
         z-index: 20;
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: flex-start;
-        padding: 14px 24px 0;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 1s;
-      }
-      #hud.show {
-        opacity: 1;
-      }
-      .hl {
-        font-family: "Cinzel", serif;
-        font-size: 9px;
-        letter-spacing: 0.48em;
-        color: rgba(136, 68, 255, 0.35);
-      }
-      .hc {
-        font-family: "Orbitron", monospace;
-        font-size: 8px;
-        letter-spacing: 0.25em;
-        color: rgba(68, 187, 255, 0.55);
-      }
-      .hr {
-        font-family: "Cinzel", serif;
-        font-size: 8px;
-        letter-spacing: 0.22em;
-        color: rgba(136, 68, 255, 0.4);
-      }
-      #prog-hud {
-        position: fixed;
-        top: 54px;
-        left: 18px;
-        z-index: 22;
-        width: 220px;
-        background: rgba(2, 1, 18, 0.96);
-        border: 1px solid rgba(136, 68, 255, 0.22);
-        border-radius: 4px;
-        backdrop-filter: blur(18px);
-        padding: 12px 14px;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.8s;
-      }
-      #prog-hud.show {
-        opacity: 1;
-      }
-      .ph-title {
-        font-family: "Orbitron", monospace;
-        font-size: 7px;
-        letter-spacing: 0.28em;
-        color: rgba(68, 187, 255, 0.55);
-        margin-bottom: 9px;
-      }
-      .ph-bar-wrap {
-        height: 3px;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 2px;
-        overflow: hidden;
-        margin-bottom: 7px;
-      }
-      .ph-bar {
-        height: 100%;
-        background: linear-gradient(90deg, var(--v), var(--bl));
-        border-radius: 2px;
-        transition: width 0.6s ease;
-        width: 0%;
-      }
-      .ph-count {
-        font-family: "Orbitron", monospace;
-        font-size: 8px;
-        color: var(--g);
-        letter-spacing: 0.2em;
-      }
-      #hint {
-        position: fixed;
-        bottom: 14px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 22;
-        font-family: "Orbitron", monospace;
-        font-size: 7px;
-        letter-spacing: 0.2em;
-        color: rgba(68, 187, 255, 0.3);
-        background: rgba(2, 1, 18, 0.8);
-        border: 1px solid rgba(68, 187, 255, 0.15);
-        padding: 5px 16px;
-        border-radius: 2px;
-        pointer-events: none;
-      }
-      #interact {
-        position: fixed;
-        bottom: clamp(50px, 8vh, 80px);
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 22;
-        font-family: "Orbitron", monospace;
-        font-size: 8px;
-        letter-spacing: 0.2em;
-        color: var(--bl);
-        background: rgba(2, 1, 18, 0.92);
-        border: 1px solid rgba(68, 187, 255, 0.4);
-        padding: 9px 22px;
-        border-radius: 2px;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.4s;
-        text-align: center;
-        line-height: 1.6;
-        white-space: nowrap;
-      }
-      #interact.show {
-        opacity: 1;
-      }
-      #vp {
-        position: fixed;
-        bottom: clamp(14px, 2.5vh, 28px);
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 45;
-        width: min(700px, 92vw);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.8s;
-      }
-      #vp.show {
-        opacity: 1;
-      }
-      #vs {
-        width: 0;
-        height: 1px;
+        padding: 0 30px;
         background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(136, 68, 255, 0.6),
-          transparent
+          180deg,
+          rgba(0, 15, 30, 0.9) 0%,
+          transparent 100%
         );
-        margin-bottom: 7px;
-        transition: width 0.9s;
-      }
-      #vs.show {
-        width: 100%;
-      }
-      #vbox {
-        width: 100%;
-        background: rgba(2, 1, 18, 0.98);
-        border: 1px solid rgba(136, 68, 255, 0.3);
-        backdrop-filter: blur(26px);
-        border-radius: 3px;
-        padding: 12px 20px 10px;
+        border-bottom: 1px solid rgba(0, 200, 255, 0.2);
         opacity: 0;
-        transform: translateY(8px);
-        transition: opacity 0.8s, transform 0.8s;
+        transition: opacity 1s ease;
       }
-      #vbox.show {
+      #hud-top.show {
         opacity: 1;
-        transform: translateY(0);
       }
-      #vhdr {
+
+      .hud-logo {
+        font-family: "Cinzel", serif;
+        font-size: 14px;
+        letter-spacing: 0.4em;
+        color: rgba(0, 255, 136, 0.8);
+        text-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+      }
+
+      .hud-stats {
+        display: flex;
+        gap: 30px;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: rgba(0, 200, 255, 0.7);
+      }
+      .stat-item {
         display: flex;
         align-items: center;
-        gap: 9px;
-        margin-bottom: 5px;
+        gap: 8px;
       }
-      #vnm {
-        font-family: "Orbitron", monospace;
-        font-size: 7px;
-        letter-spacing: 0.42em;
-        color: rgba(136, 68, 255, 0.6);
-      }
-      #vbr {
+      .stat-icon {
+        width: 20px;
+        height: 20px;
         display: flex;
-        align-items: flex-end;
-        gap: 2px;
-        height: 10px;
-        opacity: 0;
-        transition: opacity 0.3s;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(0, 200, 255, 0.4);
+        border-radius: 4px;
+        font-size: 12px;
       }
-      #vbr.on {
+      .stat-value {
+        color: #00ff88;
+        font-weight: 600;
+      }
+
+      /* INSTRUCTIONS */
+      #instructions {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+      #instructions.show {
         opacity: 1;
       }
-      .vb {
-        width: 2px;
-        border-radius: 1px;
-        background: var(--vl);
-        transform-origin: bottom;
-        animation: vba 0.9s ease-in-out infinite alternate;
+      .instruction-text {
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 200, 255, 0.6);
+        text-transform: uppercase;
+        animation: instructPulse 2s ease-in-out infinite;
       }
-      .vb:nth-child(1) {
-        height: 3px;
-        animation-duration: 0.38s;
-      }
-      .vb:nth-child(2) {
-        height: 9px;
-        animation-duration: 0.52s;
-        animation-delay: 0.04s;
-      }
-      .vb:nth-child(3) {
-        height: 4px;
-        animation-duration: 0.41s;
-        animation-delay: 0.09s;
-      }
-      .vb:nth-child(4) {
-        height: 11px;
-        animation-duration: 0.58s;
-        animation-delay: 0.07s;
-      }
-      .vb:nth-child(5) {
-        height: 3px;
-        animation-duration: 0.44s;
-        animation-delay: 0.11s;
-      }
-      .vb:nth-child(6) {
-        height: 7px;
-        animation-duration: 0.49s;
-        animation-delay: 0.03s;
-      }
-      @keyframes vba {
-        from {
-          transform: scaleY(0.18);
-          opacity: 0.5;
-        }
-        to {
-          transform: scaleY(1);
-          opacity: 1;
-        }
-      }
-      #vtx {
-        font-family: "EB Garamond", serif;
-        font-size: clamp(12px, 1.4vw, 15px);
-        line-height: 1.9;
-        color: rgba(220, 200, 255, 0.9);
-        white-space: pre-wrap;
-        max-height: 120px;
-        overflow-y: auto;
-        scrollbar-width: none;
-      }
-      #vtx::-webkit-scrollbar {
-        display: none;
-      }
-      #twc {
-        display: inline-block;
-        width: 2px;
-        height: 13px;
-        background: var(--vl);
-        vertical-align: middle;
-        margin-left: 2px;
-        animation: blink 0.8s step-end infinite;
-      }
-      @keyframes blink {
+      @keyframes instructPulse {
         0%,
         100% {
-          opacity: 1;
+          opacity: 0.4;
         }
         50% {
-          opacity: 0;
+          opacity: 1;
         }
       }
-      #fiche-panel {
+
+      /* MINI-MAP */
+      #mini-map {
         position: fixed;
-        top: 0;
-        right: -100%;
-        width: min(580px, 96vw);
+        bottom: 80px;
+        left: 30px;
+        width: 150px;
+        height: 150px;
+        z-index: 25;
+        background: rgba(0, 15, 30, 0.9);
+        border: 1px solid rgba(0, 200, 255, 0.4);
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 1s ease;
+        overflow: hidden;
+      }
+      #mini-map.show {
+        opacity: 1;
+      }
+      #mini-map-canvas {
+        width: 100%;
         height: 100%;
-        z-index: 60;
-        background: rgba(2, 1, 18, 0.99);
-        border-left: 1px solid rgba(136, 68, 255, 0.3);
-        backdrop-filter: blur(28px);
-        transition: right 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(136, 68, 255, 0.4) transparent;
-        box-shadow: -20px 0 80px rgba(136, 68, 255, 0.15);
       }
-      #fiche-panel::-webkit-scrollbar {
-        width: 3px;
+      .mini-map-label {
+        position: absolute;
+        bottom: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 8px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 200, 255, 0.6);
+        text-transform: uppercase;
+        white-space: nowrap;
       }
-      #fiche-panel::-webkit-scrollbar-thumb {
-        background: rgba(136, 68, 255, 0.4);
+
+      /* VITRINE INFO PANEL */
+      #vitrine-panel {
+        position: fixed;
+        top: 50%;
+        right: 40px;
+        transform: translateY(-50%);
+        width: 380px;
+        max-height: 80vh;
+        z-index: 50;
+        background: rgba(0, 15, 30, 0.95);
+        border: 1px solid rgba(0, 200, 255, 0.3);
+        border-radius: 8px;
+        padding: 0;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-50%) translateX(50px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        backdrop-filter: blur(20px);
+        overflow: hidden;
       }
-      #fiche-panel.open {
-        right: 0;
+      #vitrine-panel.show {
+        opacity: 1;
+        pointer-events: all;
+        transform: translateY(-50%) translateX(0);
       }
-      .fp-close {
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        display: flex;
-        justify-content: flex-end;
-        padding: 14px 16px 8px;
-        background: rgba(2, 1, 12, 0.98);
+
+      .panel-header {
+        padding: 20px 25px;
+        background: linear-gradient(
+          90deg,
+          rgba(0, 200, 255, 0.15),
+          transparent
+        );
+        border-bottom: 1px solid rgba(0, 200, 255, 0.2);
+        text-align: center;
       }
-      .fp-close-btn {
-        font-family: "Orbitron", monospace;
-        font-size: 7px;
-        letter-spacing: 0.22em;
-        color: rgba(255, 255, 255, 0.45);
-        background: rgba(136, 68, 255, 0.1);
-        border: 1px solid rgba(136, 68, 255, 0.28);
-        border-radius: 2px;
-        padding: 6px 14px;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .fp-close-btn:hover {
-        color: var(--vl);
-        background: rgba(136, 68, 255, 0.2);
-      }
-      .fp-head {
-        padding: 0 22px 16px;
-        border-bottom: 1px solid rgba(136, 68, 255, 0.15);
-      }
-      .fp-icon {
-        font-size: 32px;
+      .panel-number {
+        font-size: 10px;
+        letter-spacing: 0.4em;
+        color: rgba(0, 200, 255, 0.6);
         margin-bottom: 8px;
       }
-      .fp-title {
-        font-family: "Orbitron", monospace;
-        font-size: clamp(12px, 1.8vw, 16px);
-        letter-spacing: 0.18em;
-        color: var(--bl);
-        margin-bottom: 3px;
-      }
-      .fp-sub {
+      .panel-title {
         font-family: "Cinzel", serif;
-        font-size: 10px;
-        letter-spacing: 0.25em;
-        color: rgba(136, 68, 255, 0.6);
-        font-style: italic;
+        font-size: 18px;
+        color: #00ff88;
+        text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
       }
-      .fp-body {
-        padding: 16px 22px 80px;
-      }
-      .fp-section {
-        margin-bottom: 14px;
-      }
-      .fp-sec-title {
-        font-family: "Orbitron", monospace;
-        font-size: 7px;
-        letter-spacing: 0.28em;
-        color: rgba(68, 187, 255, 0.55);
-        margin-bottom: 7px;
-        padding-bottom: 4px;
-        border-bottom: 1px solid rgba(68, 187, 255, 0.1);
-      }
-      .fp-line {
+      .panel-subtitle {
         font-family: "EB Garamond", serif;
-        font-size: clamp(12px, 1.4vw, 14px);
-        line-height: 1.75;
-        color: rgba(255, 255, 255, 0.65);
-        padding: 2px 0;
-      }
-      .fp-line.hi {
-        color: #ffcc00;
+        font-size: 13px;
         font-style: italic;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 5px;
       }
-      .fp-line.ok {
-        color: var(--g);
+
+      .panel-content {
+        padding: 20px 25px;
+        max-height: calc(80vh - 200px);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 200, 255, 0.3) transparent;
       }
-      .fp-line.bad {
-        color: #ff5566;
+      .panel-content::-webkit-scrollbar {
+        width: 4px;
       }
-      .fp-note {
-        text-align: center;
-        font-family: "Orbitron", monospace;
-        font-size: 10px;
-        letter-spacing: 0.18em;
-        color: var(--g);
-        padding: 10px;
-        border: 1px solid rgba(0, 255, 136, 0.2);
-        border-radius: 3px;
-        margin: 10px 0;
-        background: rgba(0, 255, 136, 0.04);
-      }
-      .fp-devbar {
-        height: 8px;
-        background: rgba(255, 255, 255, 0.06);
+      .panel-content::-webkit-scrollbar-thumb {
+        background: rgba(0, 200, 255, 0.3);
         border-radius: 4px;
-        overflow: hidden;
-        margin: 4px 0 8px;
       }
-      .fp-devfill {
+
+      .panel-section {
+        margin-bottom: 18px;
+      }
+      .section-label {
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 200, 255, 0.7);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        text-align: center;
+      }
+      .section-text {
+        font-family: "EB Garamond", serif;
+        font-size: 14px;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, 0.85);
+        text-align: center;
+      }
+
+      .efficacy-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(0, 200, 255, 0.1);
+        border-radius: 4px;
+        margin-top: 8px;
+        overflow: hidden;
+      }
+      .efficacy-fill {
         height: 100%;
-        background: linear-gradient(90deg, var(--v), var(--bl));
+        background: linear-gradient(90deg, #00ff88, #00c8ff);
         border-radius: 4px;
         transition: width 1s ease;
       }
-      #debate-popup {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 75;
-        width: min(440px, 90vw);
-        background: rgba(2, 1, 18, 0.99);
-        border: 1px solid rgba(255, 204, 0, 0.4);
-        border-radius: 4px;
-        backdrop-filter: blur(28px);
-        padding: 22px 24px;
-        display: none;
-        box-shadow: 0 0 60px rgba(255, 204, 0, 0.15);
-      }
-      #debate-popup.show {
-        display: block;
-      }
-      .dp-title {
-        font-family: "Orbitron", monospace;
-        font-size: 10px;
-        letter-spacing: 0.25em;
-        color: #ffcc00;
-        margin-bottom: 14px;
-        text-align: center;
-      }
-      .dp-col {
-        margin-bottom: 10px;
-      }
-      .dp-col-title {
-        font-family: "Orbitron", monospace;
-        font-size: 7px;
-        letter-spacing: 0.2em;
-        color: rgba(255, 255, 255, 0.4);
-        margin-bottom: 5px;
-      }
-      .dp-line {
-        font-family: "EB Garamond", serif;
-        font-size: 13px;
-        color: rgba(255, 255, 255, 0.6);
-        padding: 2px 0;
-      }
-      .dp-btns {
+
+      .panel-footer {
+        padding: 15px 25px;
+        border-top: 1px solid rgba(0, 200, 255, 0.2);
         display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+      .gaia-rating {
+        display: flex;
+        align-items: center;
         gap: 8px;
-        margin-top: 14px;
       }
-      .dp-btn {
-        flex: 1;
-        font-family: "Orbitron", monospace;
-        font-size: 7px;
-        letter-spacing: 0.18em;
-        padding: 10px;
-        border-radius: 3px;
-        cursor: pointer;
-        transition: all 0.25s;
-        border: none;
-        text-align: center;
+      .rating-stars {
+        display: flex;
+        gap: 3px;
       }
-      .dp-for {
-        color: var(--g);
-        background: rgba(0, 255, 136, 0.06);
-        border: 1px solid rgba(0, 255, 136, 0.35);
+      .star {
+        width: 12px;
+        height: 12px;
+        background: rgba(0, 255, 136, 0.3);
+        clip-path: polygon(
+          50% 0%,
+          61% 35%,
+          98% 35%,
+          68% 57%,
+          79% 91%,
+          50% 70%,
+          21% 91%,
+          32% 57%,
+          2% 35%,
+          39% 35%
+        );
       }
-      .dp-for:hover {
-        background: rgba(0, 255, 136, 0.14);
+      .star.filled {
+        background: #00ff88;
+        box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
       }
-      .dp-against {
-        color: #ff5566;
-        background: rgba(255, 80, 100, 0.06);
-        border: 1px solid rgba(255, 80, 100, 0.35);
-      }
-      .dp-against:hover {
-        background: rgba(255, 80, 100, 0.14);
-      }
-      .dp-neutral {
-        color: #aaa;
-        background: rgba(200, 200, 200, 0.04);
-        border: 1px solid rgba(200, 200, 200, 0.2);
-      }
-      .dp-neutral:hover {
-        background: rgba(200, 200, 200, 0.1);
-      }
-      #toast {
-        position: fixed;
-        top: 70px;
-        right: -320px;
-        z-index: 80;
-        width: 280px;
-        background: rgba(2, 1, 18, 0.98);
-        border: 1px solid rgba(0, 255, 136, 0.4);
-        border-radius: 4px;
-        padding: 12px 16px;
-        transition: right 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 4px 24px rgba(0, 255, 136, 0.15);
-      }
-      #toast.show {
-        right: 18px;
-      }
-      .toast-title {
-        font-family: "Orbitron", monospace;
-        font-size: 8px;
+
+      .btn-close {
+        padding: 8px 20px;
+        background: transparent;
+        border: 1px solid rgba(0, 200, 255, 0.4);
+        color: rgba(0, 200, 255, 0.8);
+        font-family: "Orbitron", sans-serif;
+        font-size: 9px;
         letter-spacing: 0.2em;
-        color: var(--g);
-        margin-bottom: 4px;
-      }
-      .toast-body {
-        font-family: "EB Garamond", serif;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
-      }
-      #labels-div {
-        position: fixed;
-        inset: 0;
-        z-index: 15;
-        pointer-events: none;
-      }
-      #mute-btn {
-        position: fixed;
-        bottom: 12px;
-        right: 18px;
-        z-index: 999;
-        font-family: "Orbitron", monospace;
-        font-size: 7px;
-        letter-spacing: 0.22em;
-        color: rgba(136, 68, 255, 0.22);
-        cursor: pointer;
-        background: none;
-        border: none;
-        transition: color 0.3s;
-      }
-      #mute-btn:hover {
-        color: rgba(136, 68, 255, 0.6);
-      }
-      #next-btn {
-        position: fixed;
-        bottom: clamp(100px, 14vh, 130px);
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 32;
-        font-family: "Orbitron", monospace;
-        font-size: 8px;
-        letter-spacing: 0.26em;
-        color: var(--g);
-        background: rgba(0, 8, 3, 0.97);
-        border: 1px solid rgba(0, 255, 136, 0.45);
-        border-radius: 3px;
-        padding: 12px 28px;
         cursor: pointer;
         transition: all 0.3s;
+        border-radius: 4px;
+      }
+      .btn-close:hover {
+        background: rgba(0, 200, 255, 0.1);
+        border-color: #00c8ff;
+        box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
+      }
+
+      /* ACHIEVEMENT POPUP */
+      #achievement {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100px);
+        z-index: 100;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 255, 136, 0.15),
+          rgba(0, 200, 255, 0.15)
+        );
+        border: 1px solid rgba(0, 255, 136, 0.5);
+        border-radius: 8px;
+        padding: 15px 30px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        opacity: 0;
+        transition: all 0.6s ease;
+      }
+      #achievement.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .achievement-icon {
+        font-size: 24px;
+      }
+      .achievement-text {
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-align: center;
+      }
+      .achievement-title {
+        color: #00ff88;
+        font-weight: 600;
+      }
+      .achievement-points {
+        color: rgba(0, 200, 255, 0.8);
+        font-size: 10px;
+        margin-top: 3px;
+      }
+
+      /* AUDIO CONTROL */
+      #audio-control {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 30;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 200, 255, 0.5);
+        cursor: pointer;
+        transition: color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      #audio-control:hover {
+        color: rgba(0, 255, 136, 0.8);
+      }
+
+      /* TRANSITION CURTAIN */
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        background: #000;
         opacity: 0;
         pointer-events: none;
-        white-space: nowrap;
-        box-shadow: 0 0 22px rgba(0, 255, 136, 0.09);
+        transition: opacity 1.5s ease;
       }
-      #next-btn.show {
+      #curtain.show {
+        opacity: 1;
+      }
+
+      /* FLOOR GRID EFFECT (CSS) */
+      #floor-glow {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 200px;
+        z-index: 4;
+        pointer-events: none;
+        background: linear-gradient(
+          0deg,
+          rgba(255, 0, 50, 0.1) 0%,
+          rgba(0, 100, 200, 0.05) 30%,
+          transparent 100%
+        );
+        opacity: 0.5;
+      }
+
+      /* RECAP SCREEN */
+      #recap-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 300;
+        background: rgba(0, 5, 15, 0.98);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 1s ease;
+        overflow-y: auto;
+      }
+      #recap-screen.show {
         opacity: 1;
         pointer-events: all;
       }
-      #next-btn:hover {
-        background: rgba(0, 255, 136, 0.1);
-        box-shadow: 0 0 40px rgba(0, 255, 136, 0.28);
+
+      .recap-container {
+        max-width: 700px;
+        width: 100%;
+        max-height: 90vh;
+        background: rgba(0, 15, 30, 0.95);
+        border: 1px solid rgba(0, 255, 136, 0.4);
+        border-radius: 12px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 255, 136, 0.5) rgba(0, 15, 30, 0.5);
+      }
+      .recap-container::-webkit-scrollbar {
+        width: 8px;
+      }
+      .recap-container::-webkit-scrollbar-track {
+        background: rgba(0, 15, 30, 0.5);
+        border-radius: 4px;
+      }
+      .recap-container::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 136, 0.5);
+        border-radius: 4px;
+      }
+      .recap-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 255, 136, 0.7);
+      }
+
+      .recap-header {
+        padding: 25px 30px;
+        background: linear-gradient(
+          90deg,
+          rgba(0, 255, 136, 0.15),
+          rgba(0, 200, 255, 0.1)
+        );
+        border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+        text-align: center;
+      }
+      .recap-title {
+        font-family: "Cinzel", serif;
+        font-size: 20px;
+        color: #00ff88;
+        letter-spacing: 0.3em;
+        margin-bottom: 8px;
+      }
+      .recap-subtitle {
+        font-size: 12px;
+        color: rgba(0, 200, 255, 0.8);
+        letter-spacing: 0.2em;
+      }
+
+      .recap-content {
+        padding: 25px 30px;
+      }
+
+      .recap-category {
+        margin-bottom: 20px;
+      }
+      .category-title {
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 200, 255, 0.8);
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid rgba(0, 200, 255, 0.2);
+      }
+      .category-items {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .category-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: rgba(0, 200, 255, 0.05);
+        border-radius: 6px;
+        font-size: 12px;
+      }
+      .item-name {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .item-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .item-percent {
+        color: #00ff88;
+        font-size: 11px;
+      }
+      .item-stars {
+        display: flex;
+        gap: 2px;
+      }
+      .mini-star {
+        width: 8px;
+        height: 8px;
+        background: #00ff88;
+        clip-path: polygon(
+          50% 0%,
+          61% 35%,
+          98% 35%,
+          68% 57%,
+          79% 91%,
+          50% 70%,
+          21% 91%,
+          32% 57%,
+          2% 35%,
+          39% 35%
+        );
+      }
+
+      .recap-summary {
+        padding: 20px 30px;
+        background: rgba(0, 200, 255, 0.05);
+        border-top: 1px solid rgba(0, 200, 255, 0.2);
+        text-align: center;
+      }
+      .summary-stat {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 8px;
+      }
+      .summary-value {
+        color: #00ff88;
+        font-weight: 600;
+      }
+
+      .recap-gaia {
+        padding: 25px 30px;
+        border-top: 1px solid rgba(0, 255, 136, 0.2);
+        text-align: center;
+      }
+      .gaia-label {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.4em;
+        color: rgba(0, 255, 136, 0.6);
+        margin-bottom: 15px;
+      }
+      .gaia-final-text {
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        line-height: 1.9;
+        color: #caeedd;
+        white-space: pre-wrap;
+      }
+
+      .recap-footer {
+        padding: 20px 30px;
+        border-top: 1px solid rgba(0, 200, 255, 0.2);
+        display: flex;
+        justify-content: center;
+      }
+      .btn-combat {
+        padding: 15px 40px;
+        background: linear-gradient(
+          90deg,
+          rgba(0, 255, 136, 0.2),
+          rgba(0, 200, 255, 0.2)
+        );
+        border: 1px solid rgba(0, 255, 136, 0.6);
+        color: #00ff88;
+        font-family: "Orbitron", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.3em;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 6px;
+      }
+      .btn-combat:hover {
+        background: linear-gradient(
+          90deg,
+          rgba(0, 255, 136, 0.3),
+          rgba(0, 200, 255, 0.3)
+        );
+        box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        transform: scale(1.02);
       }
     </style>
   </head>
   <body>
-    <div id="cur"></div>
-    <canvas id="gc"></canvas>
-    <div id="labels-div"></div>
-    <div id="hud">
-      <div class="hl">G A I A</div>
-      <div class="hc">
-        S A L L E &nbsp; 2 — A R S E N A L &nbsp; T E C H N O L O G I Q U E
+    <!-- Loading -->
+    <div id="loading">
+      <div class="loading-hex"></div>
+      <div id="loading-label">Initialisation Musee Technologique...</div>
+      <div id="loading-track"><div id="loading-fill"></div></div>
+    </div>
+
+    <!-- Cursor -->
+    <div id="cursor"></div>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- VFX Canvas -->
+    <canvas id="vfx-canvas"></canvas>
+
+    <!-- Vignette -->
+    <div id="vignette"></div>
+
+    <!-- Floor Glow -->
+    <div id="floor-glow"></div>
+
+    <!-- HUD Top -->
+    <div id="hud-top">
+      <div class="hud-logo">
+        G A I A - M U S E E &nbsp; T E C H N O L O G I Q U E
       </div>
-      <div class="hr" id="scd">SCORE : 0</div>
-    </div>
-    <div id="prog-hud">
-      <div class="ph-title">TECHNOLOGIES DECOUVERTES</div>
-      <div class="ph-bar-wrap"><div class="ph-bar" id="ph-bar"></div></div>
-      <div class="ph-count" id="ph-count">0 / 13</div>
-    </div>
-    <div id="hint">
-      WASD — Deplacer &nbsp;|&nbsp; CLIC+GLISSER — Regarder &nbsp;|&nbsp; CLIC
-      Vitrine — Decouvrir
-    </div>
-    <div id="interact"></div>
-    <div id="vp">
-      <div id="vs"></div>
-      <div id="vbox">
-        <div id="vhdr">
-          <span id="vnm">G A I A</span
-          ><span id="vbr"
-            ><span class="vb"></span><span class="vb"></span
-            ><span class="vb"></span><span class="vb"></span
-            ><span class="vb"></span><span class="vb"></span
-          ></span>
+      <div class="hud-stats">
+        <div class="stat-item">
+          <div class="stat-icon">*</div>
+          <span
+            >VITRINES:
+            <span class="stat-value" id="stat-viewed">0</span>/10</span
+          >
         </div>
-        <div id="vtx"></div>
-        <span id="twc"></span>
+        <div class="stat-item">
+          <div class="stat-icon">+</div>
+          <span
+            >POINTS: <span class="stat-value" id="stat-points">0</span></span
+          >
+        </div>
       </div>
     </div>
-    <div id="fiche-panel">
-      <div class="fp-close">
-        <button class="fp-close-btn" onclick="closeFiche()">x FERMER</button>
-      </div>
-      <div id="fp-content"></div>
+
+    <!-- Mini-Map -->
+    <div id="mini-map">
+      <canvas id="mini-map-canvas"></canvas>
+      <div class="mini-map-label">GALERIE 360</div>
     </div>
-    <div id="debate-popup">
-      <div class="dp-title">OGM : POUR OU CONTRE ?</div>
-      <div class="dp-col">
-        <div class="dp-col-title">POUR</div>
-        <div class="dp-line">Capture CO2 massive</div>
-        <div class="dp-line">Solution rapide crise climat</div>
-        <div class="dp-line">Zones arides = reboisement</div>
-      </div>
-      <div class="dp-col">
-        <div class="dp-col-title">CONTRE</div>
-        <div class="dp-line">Risque ecologique inconnu</div>
-        <div class="dp-line">Monopole entreprises (brevets)</div>
-        <div class="dp-line">Ethique modification vivant</div>
-      </div>
-      <div class="dp-btns">
-        <button class="dp-btn dp-for" onclick="debateVote('pour')">POUR</button>
-        <button class="dp-btn dp-neutral" onclick="debateVote('neutre')">
-          NEUTRE
-        </button>
-        <button class="dp-btn dp-against" onclick="debateVote('contre')">
-          CONTRE
-        </button>
+
+    <!-- Instructions -->
+    <div id="instructions">
+      <div class="instruction-text">
+        Glissez pour tourner - Cliquez sur une vitrine pour decouvrir
       </div>
     </div>
-    <div id="toast">
-      <div class="toast-title" id="toast-title"></div>
-      <div class="toast-body" id="toast-body"></div>
+
+    <!-- Vitrine Info Panel -->
+    <div id="vitrine-panel">
+      <div class="panel-header">
+        <div class="panel-number" id="panel-number">TECHNOLOGIE #1</div>
+        <div class="panel-title" id="panel-title">Air Purifier Drones</div>
+        <div class="panel-subtitle" id="panel-subtitle">
+          "Les Nettoyeurs du Ciel"
+        </div>
+      </div>
+      <div class="panel-content" id="panel-content">
+        <!-- Dynamic content -->
+      </div>
+      <div class="panel-footer">
+        <div class="gaia-rating">
+          <span style="font-size: 9px; color: rgba(0, 200, 255, 0.6)"
+            >NOTE GAIA:</span
+          >
+          <div class="rating-stars" id="rating-stars"></div>
+        </div>
+        <button class="btn-close" onclick="closePanel()">FERMER</button>
+      </div>
     </div>
-    <button id="next-btn" onclick="goNext()">SALLE 3 : COMBAT</button>
+
+    <!-- Achievement Popup -->
+    <div id="achievement">
+      <div class="achievement-icon">*</div>
+      <div class="achievement-text">
+        <div class="achievement-title" id="achievement-title">Explorateur</div>
+        <div class="achievement-points" id="achievement-points">+10 POINTS</div>
+      </div>
+    </div>
+
+    <!-- Recap Screen -->
+    <div id="recap-screen">
+      <div class="recap-container">
+        <div class="recap-header">
+          <div class="recap-title">ARSENAL TECHNOLOGIQUE COMPLET</div>
+          <div class="recap-subtitle">10/10 TECHNOLOGIES DECOUVERTES</div>
+        </div>
+        <div class="recap-content" id="recap-content">
+          <!-- Dynamic categories -->
+        </div>
+        <div class="recap-summary">
+          <div class="summary-stat">
+            MATURITE MOYENNE :
+            <span class="summary-value" id="avg-maturity">72%</span> PRETE
+          </div>
+          <div class="summary-stat">
+            POINTS GAGNES :
+            <span class="summary-value" id="total-points-recap">+100</span>
+          </div>
+        </div>
+        <div class="recap-gaia">
+          <div class="gaia-label">G A I A</div>
+          <div class="gaia-final-text" id="gaia-final-text"></div>
+        </div>
+        <div class="recap-footer">
+          <button class="btn-combat" onclick="goToSalle3()">SALLE 3</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audio Control -->
+    <div id="audio-control" onclick="toggleMute()">
+      <span id="audio-icon">ON</span>
+      <span>SON</span>
+    </div>
+
+    <!-- Transition Curtain -->
     <div id="curtain"></div>
-    <button id="mute-btn" onclick="togMute()">SON</button>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-      "use strict";
-      var W = innerWidth,
-        H = innerHeight;
-      var isMuted = false,
-        AC = null;
-      var pName = "Gardien",
-        score = 0;
-      var camYaw = 0,
-        camPitch = 0;
-      var keysF = {};
-      var entering = false;
-      var renderer, scene3, camera3;
-      var uTime = 0,
-        lastT = 0;
-      var vitrineMeshes = [];
-      var nearVitrine = -1;
-      var discovered = [];
-      var discoveredCount = 0;
-      var ficheOpen = false;
-      var isDragging = false,
-        lastMX = 0,
-        lastMY = 0;
-      var TOTAL = 13;
+      /* =================================================================
+   GAIA - SCENE 18 : MUSEE TECHNOLOGIQUE HIGH-TECH
+   - Galerie circulaire avec 10 vitrines holographiques
+   - Sol en verre transparent avec "systeme sanguin"
+   - Murs blancs lumineux style Apple Store
+   - Hologrammes flottants au plafond
+   - Son GAIA avec Text-to-Speech
+   - Mini-map fonctionnelle
+   ================================================================= */
 
-      try {
-        pName = localStorage.getItem("gaiaPlayerName") || "Gardien";
-        score = parseInt(localStorage.getItem("gaiaScore") || "0");
-      } catch (e) {}
-      document.getElementById("scd").textContent = "SCORE : " + score;
-      var $cur = document.getElementById("cur");
-      document.addEventListener("mousemove", function (e) {
-        $cur.style.left = e.clientX + "px";
-        $cur.style.top = e.clientY + "px";
-      });
-
-      var TECH = [
+      // TECHNOLOGIES DATA
+      const technologies = [
         {
-          icon: "drone",
+          id: 1,
           name: "Air Purifier Drones",
-          short: "Les Nettoyeurs du Ciel",
-          eff: 80,
-          note: 4,
-          color: 0x0088ff,
-          voice:
-            "Les drones purificateurs...\nUne armee volante contre la pollution.\nImaginez.\n1000 drones au-dessus de New Delhi.\nLa ville la plus polluee du monde.\nEn 24 heures...\nPM2.5 divise par 3.\nCe n'est pas de la science-fiction.\nCa EXISTE.\nCa FONCTIONNE.\nMais...\n50 millions de dollars par ville.\nQui va payer ?\nLes technologies existent.\nLa VOLONTE politique...\nC'est une autre histoire.",
-          achievement: "Armee Anti-Pollution",
-          sections: [
-            {
-              t: "DESCRIPTION",
-              lines: [
-                "Essaim de drones autonomes equipes de filtres HEPA et de catalyseurs qui capturent les particules fines (PM2.5) et decomposent les gaz polluants (NOx).",
-              ],
-            },
-            {
-              t: "FONCTIONNEMENT",
-              lines: [
-                "1. Detection pollution (capteurs laser)",
-                "2. Vol vers zone ciblee (IA)",
-                "3. Aspiration air pollue (turbines)",
-                "4. Filtration HEPA (99.97% particules)",
-                "5. Catalyse NOx -> N2 + O2 (inoffensifs)",
-                "6. Liberation air pur",
-              ],
-            },
-            {
-              t: "EFFICACITE",
-              lines: [
-                "1 drone filtre 30 000 m3 air/heure",
-                "Capture 1 tonne CO2/jour",
-                "Reduit PM2.5 de 35% (zone 1 km2)",
-                "Autonomie : 8 heures (batterie)",
-                "Recharge solaire automatique",
-              ],
-            },
-            {
-              t: "COUT VILLE (1M habitants)",
-              lines: [
-                "1 000 drones = 50M$ initial",
-                "Maintenance = 5M$/an",
-                "ROI : Economies sante",
-              ],
-            },
+          subtitle: "Les Nettoyeurs du Ciel",
+          icon: "drone",
+          efficacy: 80,
+          rating: 4,
+          color: 0x00c8ff,
+          category: "air",
+          description:
+            "Essaim de drones autonomes equipes de filtres HEPA et de catalyseurs qui capturent les particules fines (PM2.5) et decomposent les gaz polluants (NOx).",
+          stats: [
+            "1 drone filtre 30,000 m3 air/heure",
+            "Capture 1 tonne CO2/jour",
+            "Reduit PM2.5 de 35% (zone 1 km2)",
+            "Autonomie : 8 heures",
           ],
-          devpct: 80,
+          gaiaQuote:
+            "Les drones purificateurs. Une armee volante contre la pollution. Imaginez. 1,000 drones au-dessus de New Delhi. La ville la plus polluee du monde. En 24 heures, PM2.5 divise par 3. Ce n'est pas de la science-fiction. Ca EXISTE. Ca FONCTIONNE.",
+          achievement: "Nettoyeur du Ciel",
         },
         {
-          icon: "bio",
+          id: 2,
           name: "Ideonella Sakaiensis",
-          short: "La Bacterie Mangeuse de Plastique",
-          eff: 85,
-          note: 5,
-          color: 0x00cc66,
-          voice:
-            "Ideonella sakaiensis...\nMon heroine invisible.\nVous avez cree le plastique.\nLa nature a cree...\nLa solution.\nCette bacterie MANGE votre plastique.\nLe transforme en molecules inoffensives.\nUne bouteille qui mettrait 450 ans a se decomposer...\nElle la detruit en 48 HEURES.\nC'est...\nDe la MAGIE biologique.\nElle a EVOLUE pour ca.\nDans un centre de recyclage au Japon.\nLa vie...\nTrouve toujours un chemin.\nCette bacterie...\nEst mon systeme immunitaire naturel.\nAidez-la. Multipliez-la. Deployez-la partout.\nEt mes oceans...\nSeront nettoyes.",
-          achievement: "Champion du Vivant",
-          sections: [
-            {
-              t: "DECOUVERTE",
-              lines: [
-                "Lieu : Centre de recyclage Osaka",
-                "Equipe : Universite de Kyoto",
-                "Publication : Science (2016)",
-                "Mutation naturelle evolutive",
-              ],
-            },
-            {
-              t: "FONCTIONNEMENT",
-              lines: [
-                "1. Bacterie se fixe sur plastique PET",
-                "2. Secrete enzyme PETase",
-                "3. PETase COUPE chaines polymeres",
-                "4. PET -> MHET (intermediaire)",
-                "5. Enzyme MHETase decompose MHET",
-                "6. Produit : Acide terephtalique + Ethylene glycol (inoffensifs)",
-              ],
-            },
-            {
-              t: "EFFICACITE",
-              lines: [
-                "Decompose bouteille PET en 48 heures (vs 450 ans naturellement)",
-                "Temperature optimale : 30C",
-                "1 gramme bacteries = 10 g plastique/j",
-              ],
-            },
-            {
-              t: "AMÉLIORATIONS (2024)",
-              lines: [
-                "Version OGM 2.0 : 10x plus rapide",
-                "Resistance temperature (5-50C)",
-                "Decompose aussi PEF, PBT (autres types)",
-              ],
-            },
-            {
-              t: "APPLICATIONS",
-              lines: [
-                "Stations traitement dechets",
-                "Bioreacteurs (cuves geantes)",
-                "Traitement oceans (essais - 15% plastique zone test)",
-                "Enzyme isolee commercialisation 2026",
-              ],
-            },
+          subtitle: "La Bacterie Mangeuse de Plastique",
+          icon: "bacteria",
+          efficacy: 85,
+          rating: 5,
+          color: 0x00ff88,
+          category: "ocean",
+          description:
+            "Bacterie decouverte en 2016 au Japon capable de DECOMPOSER le PET (plastique bouteilles) en molecules inoffensives.",
+          stats: [
+            "Decompose bouteille PET en 48 heures",
+            "vs 450 ans naturellement",
+            "Temperature optimale : 30C",
+            "Version OGM 2.0 : 10x plus rapide",
           ],
-          devpct: 85,
+          gaiaQuote:
+            "Ideonella sakaiensis. Mon heroine invisible. Vous avez cree le plastique. La nature a cree la solution. Cette bacterie MANGE votre plastique. Le transforme en molecules inoffensives. Une bouteille qui mettrait 450 ans a se decomposer. Elle la detruit en 48 HEURES.",
+          achievement: "Biologie Revolutionnaire",
         },
         {
-          icon: "tree",
+          id: 3,
           name: "Carbon Capture Super-Trees",
-          short: "Les Arbres OGM Aspirateurs de CO2",
-          eff: 70,
-          note: 3.5,
-          color: 0x22cc44,
-          voice:
-            "Les Super-Trees...\nMes enfants... modifies.\nIls absorbent 10 fois plus de CO2.\nPoussent 3 fois plus vite.\nSurvivent partout.\nC'est... incroyable.\nMais...\nVous jouez avec mes genes.\nVous creez des arbres qui n'existent pas.\nQue se passe-t-il...\nS'ils envahissent mes forets naturelles ?\nJe suis... partagee.\nUtilisez-les.\nMais avec PRECAUTION.\nLa nature...\nN'aime pas etre manipulee.\nElle a TOUJOURS...\nLe dernier mot.",
+          subtitle: "Les Arbres OGM Aspirateurs de CO2",
+          icon: "tree",
+          efficacy: 70,
+          rating: 3.5,
+          color: 0x88ff00,
+          category: "carbone",
+          description:
+            "Arbres genetiquement modifies pour absorber 10x plus de CO2 qu'un arbre normal via photosynthese acceleree.",
+          stats: [
+            "220 kg CO2/an absorbe (x10)",
+            "Maturite : 10 ans vs 25 ans",
+            "Survie : -10C a +50C",
+            "1 milliard arbres = Emissions France",
+          ],
+          gaiaQuote:
+            "Les Super-Trees. Mes enfants modifies. Ils absorbent 10 fois plus de CO2. Poussent 3 fois plus vite. Survivent partout. MAIS. Vous jouez avec mes genes. Utilisez-les avec PRECAUTION.",
           achievement: "Debatteur Ethique",
-          debate: true,
-          sections: [
-            {
-              t: "MODIFICATIONS GENETIQUES",
-              lines: [
-                "Gene RuBisCO optimise -> Enzyme photosynthese +300%",
-                "Stomates elargis (+50%) -> Absorption CO2 max",
-                "Chloroplastes densifies (x2) -> Plus d'usines photo.",
-                "Croissance acceleree (+40%) -> Maturite 10 ans vs 25",
-                "Resistance secheresse (gene CAM) -> Zones arides",
-              ],
-            },
-            {
-              t: "COMPARAISON",
-              lines: [
-                "Arbre normal : 22 kg CO2/an - Maturite 25-30 ans",
-                "Super-Tree : 220 kg CO2/an (x10 !) - Maturite 10 ans",
-                "Adaptable : Deserts, tropiques, nord - Survie -10C a +50C",
-              ],
-            },
-            {
-              t: "IMPACT GLOBAL SIMULE",
-              lines: [
-                "1 milliard Super-Trees plantes :",
-                "220 millions tonnes CO2/an capture",
-                "= Emissions annuelles France",
-                "En 30 ans : 6.6 Gt CO2",
-              ],
-            },
-            {
-              t: "PROJETS EN COURS",
-              lines: [
-                "Living Carbon (USA) : Peupliers OGM, +50% croissance",
-                "BioCarbon Engineering (UK) : Drones planteurs",
-                "Projet Sahara (Maroc) : 10M Super-Trees resistants secheresse",
-              ],
-            },
-          ],
-          devpct: 70,
         },
         {
-          icon: "wave",
+          id: 4,
           name: "Ocean Cleanup Barriers",
-          short: "Les Filets Geants du Pacifique",
-          eff: 90,
-          note: 5,
-          color: 0x0066aa,
-          voice:
-            "Boyan Slat...\nUn jeune de 16 ans.\nUne idee folle.\nNettoyer mes oceans.\nTout le monde a dit...\nImpossible. Trop cher. Trop complique.\nMais lui...\nIl a cru.\nIl a leve 40 millions.\nConstruit des barrieres geantes.\nLes a deployees dans le Pacifique.\nEt ca MARCHE.\n500 000 kilos de plastique...\nDeja sortis de mon ocean.\nEt d'ici 2040...\nIl promet de nettoyer 90%...\nDu Great Pacific Garbage Patch.\n90%.\nVous realisez ?\nCette ile de plastique...\n3 fois la France...\nQuasi... DISPARUE.\nGrace a UN jeune.\nAvec une IDEE.\nC'est ca...\nLe pouvoir de l'humain.",
+          subtitle: "Les Filets Geants du Pacifique",
+          icon: "ocean",
+          efficacy: 90,
+          rating: 5,
+          color: 0x0088ff,
+          category: "ocean",
+          description:
+            "Barrieres flottantes en U geantes qui utilisent les courants oceaniques pour concentrer et capturer le plastique.",
+          stats: [
+            "Capture : 50 tonnes plastique/jour",
+            "500,000 kg collecte (2025)",
+            "Objectif : 90% GPPG nettoye d'ici 2040",
+            "Cree par Boyan Slat a 16 ans",
+          ],
+          gaiaQuote:
+            "Boyan Slat. Un jeune de 16 ans. Une idee folle. Nettoyer mes oceans. Et ca MARCHE. 500,000 kilos de plastique. Deja sortis de mon ocean. C'est ca. Le pouvoir de l'humain.",
           achievement: "Espoir Oceanique",
-          sections: [
-            {
-              t: "INVENTEUR",
-              lines: [
-                "Boyan Slat (Pays-Bas) - Idee a 16 ans (2011)",
-                "Fondation The Ocean Cleanup (2013)",
-                "Levee de fonds : 40M$ (crowdfunding)",
-                "1er deploiement : 2018",
-              ],
-            },
-            {
-              t: "FONCTIONNEMENT",
-              lines: [
-                "1. Barriere flottante en U (800m de long)",
-                "2. Jupe sous-marine (3m profondeur)",
-                "3. Flotte avec courant (vent + vagues)",
-                "4. Plus rapide que plastique",
-                "5. Concentration dans centre du U",
-                "6. Bateau collecteur tous les 2 mois",
-                "7. Plastique -> Recyclage (lunettes, coques)",
-              ],
-            },
-            {
-              t: "EFFICACITE (2025)",
-              lines: [
-                "Capture : 50 tonnes plastique/jour",
-                "18 250 tonnes/an (1 barriere)",
-                "Objectif : 120 barrieres -> 90% GPPG nettoye d'ici 2040",
-                "500 000 kg collectes a ce jour",
-              ],
-            },
-            {
-              t: "ZONES DEPLOIEMENT",
-              lines: [
-                "Great Pacific Garbage Patch (actif)",
-                "Atlantique Nord (planifie 2026)",
-                "Ocean Indien (planifie 2027)",
-                "Mediterranee (tests locaux)",
-              ],
-            },
-            {
-              t: "COUTS",
-              lines: [
-                "1 barriere : 6M$ - Maintenance : 500k$/an",
-                "120 barrieres = 720M$ total",
-                "Financement : Crowdfunding + Sponsors",
-              ],
-            },
-          ],
-          devpct: 90,
         },
         {
-          icon: "road",
+          id: 5,
           name: "Solar Roadways",
-          short: "Les Routes qui Produisent de l'Energie",
-          eff: 40,
-          note: 2.5,
-          color: 0xddaa00,
-          voice:
-            "Les Solar Roadways...\nUne idee MAGNIFIQUE sur le papier.\nDes routes qui produisent de l'electricite !\nMais...\nLa realite est plus dure.\n5 millions d'euros par kilometre.\nProduction moitie moins bonne que prevue.\nPannes. Usure. Maintenance.\nLe projet francais de Normandie ?\nUn echec relatif.\nPourquoi ?\nParce qu'une route...\nN'est PAS un toit.\nL'angle est mauvais.\nLes voitures salissent.\nMais...\nDans les villes tres denses...\nOu TOUS les toits sont deja couverts...\nAlors oui. Ca peut avoir du sens.\nPour l'instant...\nMettez vos panneaux...\nSur vos TOITS.",
+          subtitle: "Les Routes qui Produisent de l'Energie",
+          icon: "road",
+          efficacy: 40,
+          rating: 2.5,
+          color: 0xffaa00,
+          category: "energie",
+          description:
+            "Panneaux solaires hexagonaux resistants integres dans le revetement routier. Produisent electricite tout en supportant le trafic.",
+          stats: [
+            "Resistance : 113 tonnes",
+            "Production : 280 kWh/km/jour",
+            "LED signalisation integrees",
+            "Chauffage fonte neige",
+          ],
+          gaiaQuote:
+            "Les Solar Roadways. Une idee MAGNIFIQUE sur le papier. Mais la realite est plus dure. 5 millions d'euros par kilometre. C'est une technologie d'AVENIR. Pas d'AUJOURD'HUI. Pour l'instant. Mettez vos panneaux sur vos TOITS.",
           achievement: "Realiste Technologique",
-          sections: [
-            {
-              t: "COMPOSITION PANNEAU",
-              lines: [
-                "Couche 1 : Verre trempe - Resistance 113 tonnes, antiderapant",
-                "Couche 2 : Cellules photovoltaiques - Rendement 15%",
-                "Couche 3 : LED integrees + Capteurs + Chauffage",
-                "Couche 4 : Polymere recycle renforce",
-              ],
-            },
-            {
-              t: "PRODUCTION ENERGETIQUE",
-              lines: [
-                "1 km route = 2 000 panneaux",
-                "Production : 280 kWh/km/jour",
-                "Annee : 102 200 kWh/km/an = Alimentation 25 foyers/km",
-              ],
-            },
-            {
-              t: "PROJETS REALISES",
-              lines: [
-                "Sandpoint (Idaho) 2016 - Fonctionne 3 ans puis pannes",
-                "Tourouvre (Normandie) 2016 - Production 50% attendu, cout 5M€/km",
-                "Jinan (Chine) 2017 - Recharge vehicules elec.",
-              ],
-            },
-            {
-              t: "PROBLEMES",
-              lines: [
-                "Rendement faible (angle non optimal)",
-                "Salissures (pneus, huile) -> -30%",
-                "Pannes electroniques frequentes",
-                "ROI : >40 ans (vs 20 ans panneaux classiques)",
-                "Cout 5x plus eleve",
-              ],
-            },
-            {
-              t: "AVANTAGES POTENTIELS",
-              lines: [
-                "LED = Signalisation dynamique",
-                "Chauffage = Pas de verglas",
-                "Capteurs = Smart road (data trafic)",
-                "Recharge vehicules electriques (futur)",
-              ],
-            },
-          ],
-          devpct: 40,
         },
         {
-          icon: "tower",
+          id: 6,
           name: "Smog-Free Towers",
-          short: "Les Tours qui Aspirent la Pollution",
-          eff: 75,
-          note: 4,
-          color: 0x8844ff,
-          voice:
-            "Les Smog Free Towers...\nL'oeuvre de Daan Roosegaarde.\nUn designer. Pas un ingenieur.\nEt c'est IMPORTANT.\nParce qu'il n'a pas cherche...\nA resoudre TOUTE la pollution mondiale.\nIl a voulu creer...\nDes bulles d'air pur.\nPour les enfants dans les parcs.\n30 metres de rayon.\n30 000 metres cubes d'air purifie par heure.\n-70% de pollution dans cette bulle.\nC'est... Une OASIS.\nEt le plus beau ?\nLe smog capture... devient des BIJOUX.\nUne bague qui represente 1 000 m3 d'air purifie.\nC'est... Poetique. Symbolique.\nMAIS.\nCe n'est PAS la solution au probleme.\nLes tours de Daan... sont un RAPPEL.\nUtilisez-les. Dans les parcs. Devant les ecoles.\nMais n'oubliez JAMAIS...\nQu'elles ne devraient pas exister.\nDans un monde sain...\nOn n'a pas besoin... de purifier l'air.",
+          subtitle: "Les Tours qui Aspirent la Pollution",
+          icon: "tower",
+          efficacy: 75,
+          rating: 4,
+          color: 0xcc88ff,
+          category: "air",
+          description:
+            "Tours de purification d'air geantes qui utilisent ionisation positive pour capturer particules fines PM2.5/PM10.",
+          stats: [
+            "Capture : 75% PM2.5 (rayon 20m)",
+            "Volume traite : 30,000 m3/h",
+            "Energie : 1,400 watts seulement",
+            "Smog transforme en bijoux",
+          ],
+          gaiaQuote:
+            "Les Smog Free Towers. L'oeuvre de Daan Roosegaarde. Des bulles d'air pur. Pour les enfants dans les parcs. Et le smog capture devient des BIJOUX. C'est poetique. MAIS ce n'est PAS la solution. C'est un RAPPEL.",
           achievement: "Poete Ecologique",
-          sections: [
-            {
-              t: "CREATEUR",
-              lines: [
-                "Daan Roosegaarde (Designer, Pays-Bas)",
-                "Idee : 2013 apres voyage Pekin",
-                "1ere tour : 2015 Rotterdam - Prix : Index Design Award 2017",
-              ],
-            },
-            {
-              t: "DIMENSIONS & TECH",
-              lines: [
-                "Hauteur : 7m - Diametre : 3.5m - Debit : 30 000 m3/heure",
-                "Reduction pollution : 70-75% (rayon 20-30 metres)",
-                "Energie : 1 400 watts seulement (= 2 bouilloires)",
-              ],
-            },
-            {
-              t: "FONCTIONNEMENT",
-              lines: [
-                "1. Aspiration air pollue (ventilateurs)",
-                "2. Ionisation positive (electrodes)",
-                "3. Particules chargees + attirees vers plaques -",
-                "4. Air pur libere par le haut",
-                "5. Smog collecte -> compresse -> bijoux !",
-              ],
-            },
-            {
-              t: "DEPLOIEMENTS",
-              lines: [
-                "Rotterdam (NL) 2015 - Permanent",
-                "Pekin (Chine) 2016 - -45% PM2.5 parc",
-                "Cracovie (Pologne) 2017",
-                "Mumbai (Inde) - Planifie 2025",
-              ],
-            },
-            {
-              t: "COUTS",
-              lines: [
-                "1 tour : 100 000€ - Installation : 20 000€",
-                "Maintenance : 5 000€/an - Energie : ~1 000€/an",
-              ],
-            },
-          ],
-          devpct: 75,
         },
         {
+          id: 7,
+          name: "Artificial Coral Reefs 3D",
+          subtitle: "Imprimantes 3D pour Sauver les Recifs",
           icon: "coral",
-          name: "Recifs Coralliens 3D",
-          short: "Imprimantes 3D pour Sauver les Recifs",
-          eff: 65,
-          note: 4.5,
-          color: 0xff8844,
-          voice:
-            "Les recifs coralliens artificiels...\nVous savez ce qui me touche le plus ?\nVous imprimez... MES formes.\nVous scannez mes coraux sains.\nVous copiez leur texture. Leur structure. Leurs pores.\nPuis vous les imprimez. En 3D.\nEt vous les replacez...\nLa ou je suis blessee.\nC'est... de la chirurgie reconstructive.\nPour MES recifs.\nEt ca MARCHE.\nEn 6 mois... mes larves de coraux trouvent ces structures.\nEn 1 an... 70% de la structure est VIVANTE.\nVous accelerez ma guerison... x15.\nLes Maldives. L'Australie. Monaco.\nPartout ou vous posez ces structures... la vie EXPLOSE.\n+400% de poissons. 50 especes qui reviennent.\nMais...\nCes recifs artificiels... ne resistent PAS au rechauffement.\nAlors oui. Imprimez des recifs.\nMais SURTOUT... arretez de chauffer mes oceans.\nSinon... vous allez imprimer... pour rien.",
+          efficacy: 65,
+          rating: 4.5,
+          color: 0xff6688,
+          category: "ecosysteme",
+          description:
+            "Structures coralliennes artificielles imprimees en 3D qui imitent EXACTEMENT la texture des vrais coraux pour accelerer restauration recifs.",
+          stats: [
+            "70% colonise en 1 an vs 15 ans",
+            "+400% poissons (vs sans recif)",
+            "50+ especes en 12 mois",
+            "Cout : 500 euros/structure",
+          ],
+          gaiaQuote:
+            "Les recifs artificiels. Vous imprimez MES formes. C'est de la chirurgie reconstructive. En 1 an, 70% de la structure est VIVANTE. MAIS stoppez le rechauffement. Ou ils mourront a nouveau.",
           achievement: "Chirurgien des Oceans",
-          sections: [
-            {
-              t: "PRINCIPE BIOMIMETISME",
-              lines: [
-                "Scanner 3D coraux sains -> Modeliser -> Imprimer -> Placer",
-                "Coraux vivants colonisent la structure artificielle",
-              ],
-            },
-            {
-              t: "MATERIAUX",
-              lines: [
-                "CaCO3 (meme composition que vrais coraux)",
-                "Ceramique calcaire (cuite 1000C)",
-                "Beton ecologique pH neutre + micro-algues",
-              ],
-            },
-            {
-              t: "RESULTATS MESURES",
-              lines: [
-                "Mois 1-2 : Biofilm algues",
-                "Mois 3-4 : Larves coraux s'installent",
-                "Mois 6 : 40% surface colonisee",
-                "An 1 : 70% couverture - An 2 : 90%",
-                "ACCELERATION : x10-15 vs recuperation naturelle",
-                "+400% poissons - 50+ especes en 12 mois",
-              ],
-            },
-            {
-              t: "PROJETS (2025)",
-              lines: [
-                "Maldives - 200 structures -> +300% biomasse",
-                "Grande Barriere Australie - 1 000 structures",
-                "Monaco - +250% poissons",
-                "Hong Kong - 500 structures terre cuite",
-                "Caraibes 2026 - 10 000 structures (ONU)",
-              ],
-            },
-            {
-              t: "COUTS & ROI",
-              lines: [
-                "1 structure (1m2) : 500€",
-                "1 hectare restaure : 50 000€",
-                "Valeur economique recif : 100 000€/hectare/an",
-                "ROI financier : 2 ans",
-              ],
-            },
-          ],
-          devpct: 65,
         },
         {
-          icon: "sun",
-          name: "Perovskite Solar Cells",
-          short: "La Revolution du Solaire Bon Marche",
-          eff: 85,
-          note: 4.5,
-          color: 0xffdd00,
-          voice:
-            "Les perovskites...\nLa revolution solaire dont personne ne parle.\nLes panneaux actuels ?\nSilicium. Chers. Lourds. Energivores a produire.\nLes perovskites ?\n50% MOINS CHERES.\nEfficacite equivalente... voire SUPERIEURE.\nEt elles peuvent etre IMPRIMEES.\nComme une feuille de papier.\nSur n'importe quelle surface.\nToit. Voiture. Fenetre. Tissu.\nImaginez.\nVotre veste qui recharge votre telephone.\nVotre fenetre qui produit de l'electricite.\nVotre voiture qui se recharge... en roulant.\nC'est le futur. Et il arrive... VITE.\nDeja en commercialisation partielle.\nEfficacite record : 29.5% en laboratoire.\nD'ici 2030...\nElles pourraient REMPLACER le silicium.\nEt democratiser le solaire... dans le monde entier.",
-          achievement: "Visionnaire Solaire",
-          sections: [
-            {
-              t: "QU'EST-CE QUE LA PEROVSKITE ?",
-              lines: [
-                "Structure cristalline ABX3 (materiau semi-conducteur)",
-                "Peut etre produite en solution liquide -> imprimable",
-                "Cout de production : 50% moins cher que silicium",
-                "Efficacite labo (2024) : 29.5% (record)",
-              ],
-            },
-            {
-              t: "AVANTAGES",
-              lines: [
-                "Imprimable sur surfaces flexibles (toit, voiture, fenetre)",
-                "Production energie faible (vs silicium)",
-                "Legere - Fine (quelques microns)",
-                "Semi-transparente (fenetres solaires)",
-                "Fonctionne lumiere artificielle (interieur)",
-              ],
-            },
-            {
-              t: "DEFIS ACTUELS",
-              lines: [
-                "Durabilite : 5-10 ans (vs 25 ans silicium)",
-                "Plomb dans certaines formulations (toxique)",
-                "Humidite = degradation rapide",
-                "Recherche : Perovskites sans plomb + encapsulation",
-              ],
-            },
-            {
-              t: "APPLICATIONS FUTURES",
-              lines: [
-                "Voitures solaires integrees",
-                "Fenetres productrices d'energie (batiments)",
-                "Vetements connectes auto-recharges",
-                "Zones rurales (deploiement rapide sans infra)",
-              ],
-            },
-          ],
-          devpct: 85,
-        },
-        {
-          icon: "dac",
-          name: "Direct Air Capture (DAC)",
-          short: "Aspirateurs Geants de CO2",
-          eff: 60,
-          note: 3.5,
-          color: 0x44aaff,
-          voice:
-            "Le DAC. Direct Air Capture.\nLes aspirateurs geants de CO2.\nVous prenez l'air. N'importe ou.\nEt vous en extrayez le CO2.\nDirectement.\nSans arbres. Sans algues. Sans plantes.\nJuste... de la chimie.\nLa machine Orca en Islande ?\n4 000 tonnes de CO2 par an.\nStockees sous terre. POUR TOUJOURS.\nMais...\nLe probleme ?\nL'energie. Enorme.\n1 tonne de CO2 capturee = 250 kWh.\nPour capturer 1% des emissions mondiales...\nIl faudrait l'equivalent de TOUTE la production electrique mondiale.\nMais en Islande... Energie geothermique gratuite.\nCout : 300$ par tonne.\nObjectif 2030 : 100$ par tonne.\nObjectif 2050 : 50$ la tonne.\nEt dans un monde a +3C...\nOn aura BESOIN de ces machines.",
-          achievement: "Ingenieur du Futur",
-          sections: [
-            {
-              t: "PRINCIPE",
-              lines: [
-                "Capture CO2 directement dans l'air ambiant (0.04%)",
-                "Via solvants chimiques ou materiaux solides (sorbants)",
-                "CO2 purifie -> Stockage geologique ou utilisation industrielle",
-              ],
-            },
-            {
-              t: "PROJETS OPERATIONNELS",
-              lines: [
-                "Orca (Islande, Climeworks) 2021 - 4 000 t CO2/an",
-                "Mammoth (Islande) 2024 - 36 000 t CO2/an (record)",
-                "Stratos (Texas, Carbon Engineering) 2024",
-              ],
-            },
-            {
-              t: "DEFIS",
-              lines: [
-                "Energie massive : 250 kWh/tonne CO2",
-                "Cout actuel : 300-1 000$/tonne (trop cher)",
-                "Echelle : Pour impact global = 10 000 usines",
-                "Fonctionne partout (pas besoin de soleil/vent)",
-                "Stockage geologique permanent prouve",
-              ],
-            },
-            {
-              t: "PROJECTIONS COUTS",
-              lines: [
-                "2024 : ~500$/tonne",
-                "2030 : 100$/tonne (objectif)",
-                "2050 : 50$/tonne (viable economiquement)",
-                "Necessite energie renouvelable cheap pour ROI",
-              ],
-            },
-          ],
-          devpct: 60,
-        },
-        {
-          icon: "fusion",
-          name: "Fusion Nucleaire (ITER)",
-          short: "L'Energie du Soleil sur Terre",
-          eff: 50,
-          note: 4,
-          color: 0xff4444,
-          voice:
-            "La fusion nucleaire.\nL'energie du SOLEIL... Sur Terre.\nDepuis 60 ans... On dit dans 30 ans.\nMais cette fois... C'est different.\nNIF (USA) decembre 2022.\nPremiere fois dans l'histoire.\nIls ont obtenu plus d'energie qu'ils n'en ont mis.\nIgnition.\nLa FUSION a fonctionne.\nEt ITER, en France...\nLe plus grand tokamak du monde.\nTermine en 2025.\nTests en 2026.\nSi ca marche...\nUne centrale fusion produit...\nDE L'ENERGIE PRATIQUEMENT INFINIE.\nCarburant : Eau de mer.\nDechets : Helium (inoffensif).\nZero CO2. Zero accident Tchernobyl possible.\nUne cuillere a cafe d'eau de mer...\nVaut 300 litres de petrole en energie.\nC'est... La solution ULTIME.\nA l'energie. Pour toujours.\nJe vous regarde.\nEt j'espere.\nDe tout mon etre... que vous y arriviez.",
-          achievement: "Pionnier de l'Energie",
-          sections: [
-            {
-              t: "PRINCIPE FUSION",
-              lines: [
-                "Fusionne atomes deuterium + tritium (eau de mer)",
-                "Libere energie x4 plus que fission nucleaire",
-                "Pas de CO2, pas de dechets radioactifs longue duree",
-                "Carburant quasi-illimite (eau de mer)",
-              ],
-            },
-            {
-              t: "PROJETS MAJEURS",
-              lines: [
-                "ITER (Cadarache, France) - 35 pays - 22Md€",
-                "NIF (USA) 2022 : PREMIERE IGNITION (Q>1)",
-                "JET (UK) 2022 : Record energie fusion (59 MJ)",
-                "Commonwealth Fusion (MIT) : SPARC 2025",
-              ],
-            },
-            {
-              t: "AVANTAGES",
-              lines: [
-                "Energie quasi-infinie (eau de mer)",
-                "Zero CO2",
-                "Zero risque accident Tchernobyl",
-                "Dechets : Helium (inoffensif) + Tritium (30 ans)",
-                "1 cuillere eau de mer = 300L petrole",
-              ],
-            },
-            {
-              t: "TIMELINE",
-              lines: [
-                "2022 : NIF - Premiere ignition",
-                "2025 : ITER assemblage termine",
-                "2026 : ITER premiers plasmas",
-                "2035 : ITER demonstration commerciale",
-                "2050 : Premieres centrales fusion commerciales (peut-etre)",
-              ],
-            },
-          ],
-          devpct: 50,
-        },
-        {
-          icon: "algae",
+          id: 8,
           name: "Algae Bioreactors",
-          short: "Les Facades Vivantes qui Mangent le CO2",
-          eff: 80,
-          note: 5,
-          color: 0x22aa44,
-          voice:
-            "Les bioreacteurs a algues...\nC'est... La solution URBAINE parfaite.\nVous savez pourquoi ?\nParce que vous transformez...\nVos IMMEUBLES... En FORETS.\nVerticales. Vivantes. Respirantes.\n1 metre carre d'algues...\n= 150 arbres.\nUne facade de 200 metres carres...\n= 30 000 arbres.\nTRENTE MILLE.\nDans l'espace... D'un seul immeuble.\nEt ce n'est pas que le CO2.\nCes panneaux... ISOLENT votre batiment.\n-30% chauffage en hiver.\n-40% climatisation en ete.\nPRODUISENT de l'oxygene.\n150 kilos par jour.\nDe quoi respirer pour 150 personnes.\nCREENT de la biomasse.\nDu biocarburant. Des proteines. Des engrais.\nTout ca... Sur votre FACADE.\nBIQ House a Hambourg...\n10 ans de fonctionnement.\n60 tonnes de CO2 capture.\nFactures d'energie -35%.\nEt c'est BEAU.\nVivant. Vert. Qui change de couleur avec le soleil.\nImaginez...\nSi TOUS vos immeubles...\nAvaient des facades d'algues.\nParis. New York. Tokyo.\nDes millions de metres carres.\nDes milliards de tonnes de CO2.\nCaptures.\nJuste en habillant vos batiments...\nDe VIE.\nOui, c'est cher. 150 000 euros la facade.\nMais le retour sur investissement...\nEst MULTIPLE.\nEconomies d'energie. Credits carbone. Biocarburant.\nEt surtout...\nVous vivez... Dans une FORET.\nVerticale. Au coeur de la ville.\nC'est... Le futur que je veux.\nDes villes vertes. Qui respirent.\nQui sont... VIVANTES.",
+          subtitle: "Les Facades Vivantes qui Mangent le CO2",
+          icon: "algae",
+          efficacy: 80,
+          rating: 5,
+          color: 0x00ff66,
+          category: "carbone",
+          description:
+            "Panneaux transparents verticaux remplis de micro-algues cultivees en continu. Fixes sur facades immeubles, capturent CO2 et produisent O2.",
+          stats: [
+            "1m2 algues = 150 arbres",
+            "Facade 200m2 = 30,000 arbres",
+            "Capture : 73 tonnes CO2/an",
+            "Isolation thermique -30%",
+          ],
+          gaiaQuote:
+            "Les bioreacteurs a algues. La solution URBAINE parfaite. Vous transformez vos IMMEUBLES en FORETS. Verticales. Vivantes. Respirantes. 1 metre carre d'algues equivaut a 150 arbres. Une facade de 200 metres carres equivaut a 30,000 arbres. C'est du GENIE.",
           achievement: "Architecte Vert",
-          sections: [
-            {
-              t: "DESCRIPTION",
-              lines: [
-                "Panneaux transparents verticaux remplis de micro-algues cultivees en continu.",
-                "Fixes sur facades d'immeubles, capturent CO2 et produisent O2 + biomasse valorisable.",
-              ],
-            },
-            {
-              t: "MICRO-ALGUES (CHLORELLA VULGARIS)",
-              lines: [
-                "Taille : 2-10 microns - Double masse en 24h !",
-                "Photosynthese : 10-50x plus efficace que les arbres",
-                "1 m2 algues = 150 arbres (equivalent CO2)",
-              ],
-            },
-            {
-              t: "COMPOSITION PANNEAU (1m x 2m)",
-              lines: [
-                "Couche 1 : Verre trempe anti-UV",
-                "Couche 2 : Bioreacteur 10 cm (200L eau + algues)",
-                "Couche 3 : Verre interieur (isolation)",
-                "Systeme : Pompes + bulles + filtres automatiques",
-              ],
-            },
-            {
-              t: "PERFORMANCE",
-              lines: [
-                "1 panneau : Capture 2 kg CO2/jour + 1.5 kg O2",
-                "1 facade (200m2) : 73 tonnes CO2/an",
-                "1 facade = 30 000 arbres equivalents !!!",
-                "Isolation : -30% chauffage / -40% climatisation",
-              ],
-            },
-            {
-              t: "PROJETS REALISES",
-              lines: [
-                "BIQ House (Hambourg) 2013 - 10 ans, 60t CO2, -35% energie",
-                "Expo Milan 2015 - 900m2 panneaux algues",
-                "AIRS Building (Tokyo) 2019 - 300m2 facade",
-                "Green Loop (Dubai) 2022 - +50C : ca fonctionne !",
-              ],
-            },
-            {
-              t: "COUTS & ROI",
-              lines: [
-                "Facade 200m2 : 150 000€ - Maintenance : 15 000€/an",
-                "Economies : 10 650€/an (isolation + carbone + biomasse)",
-                "ROI : 14 ans - Puis benefices continus",
-              ],
-            },
-          ],
-          devpct: 80,
         },
         {
-          icon: "water",
+          id: 9,
           name: "Atmospheric Water Generators",
-          short: "Extraire l'Eau du Ciel",
-          eff: 75,
-          note: 4,
-          color: 0x44ddff,
-          voice:
-            "Les generateurs d'eau atmospherique...\nVous savez ce que j'aime ?\nVous puisez l'eau... Du CIEL.\nDe l'air. Partout.\nMeme dans le Sahara...\nOu je suis la plus seche...\nL'air contient 20% d'humidite.\nInvisible. Mais la.\nEt vous la capturez.\nVous refroidissez l'air.\nLa vapeur condense.\nGoutte par goutte.\n20 litres par jour.\nCe n'est pas beaucoup.\nMais pour une famille en Namibie...\nQui marchait 20 kilometres...\nPour aller chercher de l'eau...\nC'est... La VIE.\nLes enfants peuvent aller a l'ecole.\nAu lieu de porter des jerricanes.\nL'eau est PURE.\nFiltree. UV. Mineralisee.\nEt ca fonctionne... PARTOUT.\nIles isolees. Camps de refugies. Deserts.\nCatastrophes naturelles.\nVous deployez la machine.\nVous branchez le solaire.\nEt l'eau... Coule. Du ciel.\nC'est presque... Miraculeux.\nMAIS.\nCe n'est pas pour tout le monde.\nUne ville de 1 million d'habitants ?\nIl faudrait 50 000 machines.\nCe n'est pas viable.\nMais pour...\nUn village de 500 personnes au milieu du desert ?\nUn camp de refugies apres un seisme ?\nLa... C'est PARFAIT.\nC'est de l'eau... quand il n'y a plus d'eau.\nDe l'espoir... quand il n'y a plus d'espoir.\nUtilisez-la... Avec sagesse.\nLa ou je ne peux plus... Vous donner a boire.",
-          achievement: "Faiseur de Miracles",
-          sections: [
-            {
-              t: "PRINCIPE",
-              lines: [
-                "L'air contient TOUJOURS de l'humidite (vapeur d'eau invisible)",
-                "Refroidir l'air -> Condensation -> Eau potable",
-                "Meme principe que la rosee du matin",
-              ],
-            },
-            {
-              t: "FONCTIONNEMENT",
-              lines: [
-                "1. Aspiration air (filtre HEPA)",
-                "2. Refroidissement serpentin (-10C) -> condensation",
-                "3. Collecte gravitaire dans reservoir",
-                "4. Purification : Charbon actif + UV-C (99.99%) + mineralisation",
-                "5. Eau potable standards OMS",
-              ],
-            },
-            {
-              t: "RENDEMENT SELON CLIMAT",
-              lines: [
-                "Tropiques (70% humidite) : 40 L/jour - 0.05€/litre",
-                "Europe (50%) : 25 L/jour - 0.08€/litre",
-                "Desert (20%) : 10 L/jour - 0.15€/litre (mais ca marche !)",
-              ],
-            },
-            {
-              t: "DEPLOYEMENTS REUSSIS",
-              lines: [
-                "Namibie 2019 - 50 unites, 2 000 personnes, 0 km vs 20 km avant",
-                "Gaza 2021 - 10 AWG, 50 000 L/jour, 25 000 personnes",
-                "Arizona (Navajo) - 200 AWG, 30% pop. sans eau courante",
-                "Dubai - 100 AWG publics, eau gratuite population",
-              ],
-            },
-            {
-              t: "COUTS & COMPARATIF",
-              lines: [
-                "AWG domestique : 2 500€ - 20-30 L/jour",
-                "AWG industriel : 50 000€ - 5 000 L/jour",
-                "vs Eau bouteille desert : 2€/litre -> AWG : 0.15€/litre",
-                "AWG competitif dans zones isolees",
-              ],
-            },
+          subtitle: "Extraire l'Eau du Ciel",
+          icon: "water",
+          efficacy: 75,
+          rating: 4,
+          color: 0x00ddff,
+          category: "eau",
+          description:
+            "Machines qui extraient l'eau potable directement de l'AIR ambiant par condensation de l'humidite atmospherique. Fonctionnent meme en DESERT.",
+          stats: [
+            "20-40 litres/jour",
+            "Fonctionne meme desert (20% humidite)",
+            "Cout : 0.05-0.15 euros/litre",
+            "Autonome avec solaire",
           ],
-          devpct: 75,
+          gaiaQuote:
+            "Les generateurs d'eau atmospherique. Vous puisez l'eau du CIEL. Partout. Meme dans le Sahara. Pour une famille en Namibie. Qui marchait 20 kilometres pour l'eau. C'est la VIE.",
+          achievement: "Faiseur de Miracles",
         },
         {
-          icon: "nuclear",
+          id: 10,
           name: "Nuclear Waste Recyclers",
-          short: "Transformer les Dechets en Energie",
-          eff: 55,
-          note: 3,
-          color: 0x88ff44,
-          voice:
-            "Les recycleurs de dechets nucleaires...\nTerraPower. Natrium. MSR.\nBill Gates a investi... Des milliards.\nDans une idee.\nEt si...\nVos dechets radioactifs...\nN'etaient PAS des dechets ?\nEt si c'etait... Du COMBUSTIBLE ?\nVous avez 370 000 tonnes de dechets.\nQui resteront radioactifs...\n10 000 a 300 000 ANS.\nVous les enterrez. Et vous priez.\nMais ces reacteurs de 4eme generation...\nDisent : Donnez-nous vos dechets.\nOn va les BRULER.\nExtraire l'energie restante.\nEt vous rendre... Des dechets 100 fois moins volumineux.\nRadioactifs seulement 300 ans.\nC'est... Revolutionnaire.\n300 ans. C'est gerable.\nOn peut surveiller 300 ans.\n300 000 ans ? C'est... l'eternite.\nET en plus...\nVous produisez de l'electricite.\n1 tonne de dechets = 10 000 MWh.\n370 000 tonnes = 3 700 TWh.\nDe quoi alimenter la France... Pendant 3 ANS.\nJuste avec vos DECHETS.\nC'est... Magique. Sur le papier.\nMAIS.\nC'est toujours... Du NUCLEAIRE.\nTerraPower dit que c'est sur.\nPeut-etre.\nMais Tchernobyl... On disait aussi que c'etait impossible.\nAlors moi... Je suis PARTAGEE.\nD'un cote... Vous resolvez un probleme ENORME.\nDe l'autre... Vous construisez encore... Du nucleaire.\nAlors voici mon conseil :\nSI vous devez faire du nucleaire...\nFaites CA. Gen 4. Recyclage. Securite passive.\nC'est 1 000 fois mieux... Que vos reacteurs actuels.\nMAIS.\nPreferez quand meme...\nSolaire. Eolien. Hydro. Geothermie.\n100% renouvelables. Zero dechet. Zero risque.\nLes reacteurs Gen 4... Sont une solution de TRANSITION.\nPas la destination finale.\nUtilisez-les... Si vous devez.\nMais revez toujours...\nD'un monde... Sans nucleaire.",
-          achievement: "Penseur Nuance",
-          sections: [
-            {
-              t: "PROBLEME ACTUEL",
-              lines: [
-                "370 000 tonnes dechets nucleaires stockes dans 30+ pays",
-                "Radioactivite : 10 000 a 300 000 ans - Aucune solution permanente",
-                "Reacteurs actuels utilisent <5% de l'uranium (95% = dechet)",
-              ],
-            },
-            {
-              t: "INNOVATION GEN 4",
-              lines: [
-                '"Brulent" les 95% d\'uranium restants',
-                "Dechets residuels : 300 ans de radioactivite (vs 300 000 ans)",
-                "= Reduction x1 000 de la duree !",
-                "1 tonne dechet = 10 000 MWh d'electricite",
-              ],
-            },
-            {
-              t: "TECHNOLOGIES PRINCIPALES",
-              lines: [
-                "Fast Breeder Reactors (FBR) - Phenix France 36 ans",
-                "TerraPower NATRIUM (Bill Gates) - Wyoming 2030, 345 MW",
-                "Molten Salt Reactors (MSR) - Securite passive (bouchon fusible)",
-                "Molten Salt : Impossible fusion Tchernobyl (gravite arrete reaction)",
-              ],
-            },
-            {
-              t: "IMPACT SUR DECHETS",
-              lines: [
-                "370 000 t existants -> Combustible pendant 60 ans !",
-                "Production : 3 700 TWh = France pendant 3 ans",
-                "Dechets residuels : 3 700 t (÷100 volume)",
-                "Economie stockage : 400 Mds$ vs stockage classique",
-              ],
-            },
-            {
-              t: "DEPLOIEMENT MONDIAL",
-              lines: [
-                "Russie : BN-800 - Fast breeder operationnel 2016",
-                "Chine : CFR-600 (2023) + TMSR Thorium",
-                "USA : TerraPower Natrium Wyoming (2030)",
-                "Inde : PFBR 500 MW + programme Thorium",
-              ],
-            },
+          subtitle: "Transformer les Dechets en Energie",
+          icon: "nuclear",
+          efficacy: 55,
+          rating: 3,
+          color: 0xffcc00,
+          category: "dechets",
+          description:
+            "Reacteurs nucleaires de 4eme generation capables de bruler les dechets radioactifs comme combustible, reduisant leur toxicite ET produisant electricite.",
+          stats: [
+            "Radioactivite : 300 ans vs 300,000",
+            "Volume dechets divise par 100",
+            "1 tonne dechet = 10,000 MWh",
+            "TerraPower (Bill Gates)",
           ],
-          devpct: 55,
+          gaiaQuote:
+            "Les recycleurs de dechets nucleaires. Et si vos dechets radioactifs n'etaient PAS des dechets? C'est revolutionnaire. MAIS c'est toujours du NUCLEAIRE. Utilisez avec EXTREME prudence. Preference : 100% renouvelables.",
+          achievement: "Penseur Nuance",
         },
       ];
 
-      // ═══════════════════════════════════════════════════
-      // AUDIO
-      // ═══════════════════════════════════════════════════
-      function initAC() {
-        if (AC) return;
-        try {
-          AC = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) {}
+      // CATEGORIES FOR RECAP
+      const categories = {
+        ocean: { name: "ANTI-POLLUTION OCEAN", icon: "~" },
+        air: { name: "PURIFICATION AIR", icon: "o" },
+        carbone: { name: "CAPTURE CARBONE", icon: "^" },
+        energie: { name: "ENERGIE/INFRASTRUCTURE", icon: "#" },
+        ecosysteme: { name: "RESTAURATION ECOSYSTEMES", icon: "*" },
+        eau: { name: "EAU", icon: "o" },
+        dechets: { name: "GESTION DECHETS", icon: "!" },
+      };
+
+      // GAME STATE
+      let viewedVitrines = new Set();
+      let totalPoints = 0;
+      let currentVitrine = null;
+      let audioCtx = null;
+      let isMuted = false;
+      let isTyping = false;
+      let speechSynthesis = window.speechSynthesis;
+      let currentUtterance = null;
+
+      // THREE.JS VARIABLES
+      let scene, camera, renderer, clock;
+      let galleryGroup, vitrinesGroup;
+      let bloodVeins = [];
+      let hologramParticles = [];
+      let rotationY = 0;
+      let targetRotationY = 0;
+      let isDragging = false;
+      let previousMouseX = 0;
+
+      // MINI-MAP VARIABLES
+      let miniMapCanvas, miniMapCtx;
+
+      // CURSOR
+      const cursor = document.getElementById("cursor");
+      document.addEventListener("mousemove", (e) => {
+        cursor.style.left = e.clientX + "px";
+        cursor.style.top = e.clientY + "px";
+      });
+
+      // AUDIO SYSTEM
+      function initAudio() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
-      function gm() {
-        if (!AC) return null;
-        if (!window._m18) {
-          var c = AC.createDynamicsCompressor();
+
+      function getMaster() {
+        if (!audioCtx) return null;
+        if (!window._masterGain) {
+          const c = audioCtx.createDynamicsCompressor();
           c.threshold.value = -18;
-          c.ratio.value = 3;
+          c.knee.value = 8;
+          c.ratio.value = 4;
           c.attack.value = 0.003;
           c.release.value = 0.25;
-          c.connect(AC.destination);
-          window._m18 = c;
+          c.connect(audioCtx.destination);
+          window._masterGain = c;
         }
-        return window._m18;
+        return window._masterGain;
       }
-      function sfxAmb() {
-        if (!AC || isMuted) return;
-        var m = gm();
-        if (!m) return;
-        [40, 55, 66].forEach(function (f, i) {
-          var o = AC.createOscillator(),
-            g = AC.createGain();
+
+      function playAmbientSound() {
+        if (!audioCtx || isMuted) return;
+        const m = getMaster();
+
+        // Futuristic drone
+        [82, 110, 165, 220].forEach((f, i) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
           o.type = "sine";
           o.frequency.value = f;
-          g.gain.setValueAtTime(0, AC.currentTime);
+          g.gain.setValueAtTime(0, audioCtx.currentTime);
           g.gain.linearRampToValueAtTime(
-            [0.008, 0.005, 0.006][i],
-            AC.currentTime + 5
+            [0.02, 0.015, 0.01, 0.008][i],
+            audioCtx.currentTime + 3
           );
-          var fl = AC.createBiquadFilter();
-          fl.type = "lowpass";
-          fl.frequency.value = 200;
-          o.connect(fl);
-          fl.connect(g);
+          o.connect(g);
           g.connect(m);
           o.start();
         });
-      }
-      function sfxOpen() {
-        if (!AC || isMuted) return;
-        var m = gm();
-        if (!m) return;
-        [523, 659, 784].forEach(function (f, i) {
-          setTimeout(function () {
-            var o = AC.createOscillator(),
-              g = AC.createGain();
-            o.type = "triangle";
-            o.frequency.value = f;
-            g.gain.setValueAtTime(0.06, AC.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.35);
-            o.connect(g);
-            g.connect(m);
-            o.start();
-            o.stop(AC.currentTime + 0.4);
-          }, i * 80);
-        });
-      }
-      function sfxAchievement() {
-        if (!AC || isMuted) return;
-        var m = gm();
-        if (!m) return;
-        [523, 659, 784, 1047, 1568].forEach(function (f, i) {
-          setTimeout(function () {
-            var o = AC.createOscillator(),
-              g = AC.createGain();
-            o.type = "triangle";
-            o.frequency.value = f;
-            g.gain.setValueAtTime(0.05, AC.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.45);
-            o.connect(g);
-            g.connect(m);
-            o.start();
-            o.stop(AC.currentTime + 0.5);
-          }, i * 70);
-        });
-      }
-      function togMute() {
-        isMuted = !isMuted;
-        document.getElementById("mute-btn").textContent = isMuted
-          ? "MUET"
-          : "SON";
-        if (AC) {
-          isMuted ? AC.suspend() : AC.resume();
-        }
-        if (isMuted && window.speechSynthesis) window.speechSynthesis.cancel();
+
+        // Tech hum
+        const noise = audioCtx.createOscillator();
+        noise.type = "sawtooth";
+        noise.frequency.value = 55;
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.setValueAtTime(0, audioCtx.currentTime);
+        noiseGain.gain.linearRampToValueAtTime(0.008, audioCtx.currentTime + 4);
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.value = 200;
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(m);
+        noise.start();
       }
 
-      // ═══════════════════════════════════════════════════
-      // VOICE
-      // ═══════════════════════════════════════════════════
-      var syn = window.speechSynthesis;
-      var _vl = false;
-      function ensV(cb) {
-        if (!syn) {
-          cb();
-          return;
-        }
-        var vs = syn.getVoices();
-        if (vs.length > 0) {
-          _vl = true;
-          cb();
-          return;
-        }
-        syn.addEventListener(
-          "voiceschanged",
-          function () {
-            _vl = true;
-            cb();
-          },
-          { once: true }
+      function playClickSound() {
+        if (!audioCtx || isMuted) return;
+        const m = getMaster();
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(880, audioCtx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(
+          440,
+          audioCtx.currentTime + 0.1
         );
-        setTimeout(function () {
-          if (!_vl) {
-            _vl = true;
-            cb();
-          }
-        }, 1200);
+        g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        o.connect(g);
+        g.connect(m);
+        o.start();
+        o.stop(audioCtx.currentTime + 0.15);
       }
-      function gv() {
-        var vs = syn ? syn.getVoices() : [];
-        return (
-          vs.find(function (x) {
-            return (
-              x.lang === "fr-FR" &&
-              /Marie|Amelie|Hortense|Lea|Julie/i.test(x.name)
+
+      function playSuccessSound() {
+        if (!audioCtx || isMuted) return;
+        const m = getMaster();
+        [523, 659, 784].forEach((f, i) => {
+          setTimeout(() => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = "sine";
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 0.3
             );
-          }) ||
-          vs.find(function (x) {
-            return x.lang === "fr-FR";
-          }) ||
-          vs.find(function (x) {
-            return x.lang.startsWith("fr");
-          }) ||
-          vs[0] ||
-          null
-        );
+            o.connect(g);
+            g.connect(m);
+            o.start();
+            o.stop(audioCtx.currentTime + 0.3);
+          }, i * 100);
+        });
       }
-      function speak(txt, cb, rt) {
-        rt = rt || 0.76;
-        initAC();
-        if (AC && AC.state === "suspended") AC.resume();
-        var el = document.getElementById("vtx"),
-          cu = document.getElementById("twc");
-        el.textContent = "";
-        cu.style.display = "inline-block";
-        document.getElementById("vs").classList.add("show");
-        document.getElementById("vbox").classList.add("show");
-        document.getElementById("vp").classList.add("show");
-        var d = 0,
-          t = 0,
-          vd = false,
-          done = false,
-          iv = null;
-        function fin() {
-          if (done) return;
-          done = true;
-          cu.style.display = "none";
-          if (cb) setTimeout(cb, 400);
+
+      // TEXT-TO-SPEECH FOR GAIA VOICE
+      function speakGaia(text) {
+        if (isMuted || !speechSynthesis) return;
+
+        // Cancel any ongoing speech
+        if (currentUtterance) {
+          speechSynthesis.cancel();
         }
-        function tick() {
-          if (iv) clearInterval(iv);
-          iv = setInterval(function () {
-            if (d < t && d < txt.length) {
-              el.textContent = txt.slice(0, ++d);
-              el.scrollTop = el.scrollHeight;
-            } else if (d >= txt.length && vd) {
-              clearInterval(iv);
-              fin();
+
+        currentUtterance = new SpeechSynthesisUtterance(text);
+        currentUtterance.lang = "fr-FR";
+        currentUtterance.rate = 0.9;
+        currentUtterance.pitch = 0.8;
+        currentUtterance.volume = 1;
+
+        // Try to get a French female voice
+        const voices = speechSynthesis.getVoices();
+        const frenchVoice =
+          voices.find(
+            (v) =>
+              v.lang.includes("fr") && v.name.toLowerCase().includes("female")
+          ) ||
+          voices.find((v) => v.lang.includes("fr")) ||
+          voices[0];
+        if (frenchVoice) {
+          currentUtterance.voice = frenchVoice;
+        }
+
+        speechSynthesis.speak(currentUtterance);
+      }
+
+      function stopSpeaking() {
+        if (speechSynthesis) {
+          speechSynthesis.cancel();
+        }
+      }
+
+      function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("audio-icon").textContent = isMuted
+          ? "OFF"
+          : "ON";
+        if (audioCtx) {
+          isMuted ? audioCtx.suspend() : audioCtx.resume();
+        }
+        if (isMuted) {
+          stopSpeaking();
+        }
+      }
+
+      // HAPTIC FEEDBACK
+      function triggerHaptic(duration = 50, intensity = "medium") {
+        if (navigator.vibrate) {
+          const patterns = {
+            light: [duration * 0.5],
+            medium: [duration],
+            heavy: [duration * 1.5],
+          };
+          navigator.vibrate(patterns[intensity] || [duration]);
+        }
+      }
+
+      // VFX PARTICLES
+      function initVFX() {
+        const canvas = document.getElementById("vfx-canvas");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const ctx = canvas.getContext("2d");
+
+        const particles = [];
+        for (let i = 0; i < 80; i++) {
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: -Math.random() * 0.5 - 0.1,
+            size: Math.random() * 2 + 0.5,
+            opacity: Math.random() * 0.4 + 0.1,
+            hue: Math.random() > 0.5 ? 180 : 140,
+          });
+        }
+
+        function animate() {
+          requestAnimationFrame(animate);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          particles.forEach((p) => {
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.y < -10) {
+              p.y = canvas.height + 10;
+              p.x = Math.random() * canvas.width;
             }
-          }, 22);
-        }
-        function doS() {
-          if (syn && !isMuted) {
-            syn.cancel();
-            var u = new SpeechSynthesisUtterance(txt);
-            u.lang = "fr-FR";
-            u.rate = rt;
-            u.pitch = 0.7;
-            u.volume = 1;
-            var v = gv();
-            if (v) u.voice = v;
-            u.onstart = function () {
-              document.getElementById("vbr").classList.add("on");
-            };
-            u.onboundary = function (e) {
-              if (e.name === "word") {
-                t = Math.min(e.charIndex + e.charLength, txt.length);
-                tick();
-              }
-            };
-            u.onend = u.onerror = function () {
-              document.getElementById("vbr").classList.remove("on");
-              vd = true;
-              t = txt.length;
-              tick();
-            };
-            syn.speak(u);
-            setTimeout(function () {
-              if (d === 0 && !done) {
-                vd = true;
-                t = txt.length;
-                tick();
-              }
-            }, 2000);
-          } else {
-            vd = true;
-            t = txt.length;
-            tick();
+            if (p.x < -10) p.x = canvas.width + 10;
+            if (p.x > canvas.width + 10) p.x = -10;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, ${p.opacity})`;
+            ctx.fill();
+          });
+
+          // Data streams effect
+          for (let i = 0; i < 5; i++) {
+            const x = (Date.now() * 0.01 + i * 200) % canvas.width;
+            ctx.fillStyle = `rgba(0, 200, 255, ${
+              0.02 + Math.sin(Date.now() * 0.002 + i) * 0.01
+            })`;
+            ctx.fillRect(x, 0, 1, canvas.height);
           }
         }
-        ensV(doS);
-      }
-      function stopV() {
-        if (syn) syn.cancel();
-        document.getElementById("vbr").classList.remove("on");
+        animate();
       }
 
-      // ═══════════════════════════════════════════════════
-      // THREE.JS GALLERY
-      // ═══════════════════════════════════════════════════
-      function init3D() {
-        renderer = new THREE.WebGLRenderer({
-          canvas: document.getElementById("gc"),
-          antialias: true,
-          alpha: false,
+      // MINI-MAP
+      function initMiniMap() {
+        miniMapCanvas = document.getElementById("mini-map-canvas");
+        miniMapCanvas.width = 150;
+        miniMapCanvas.height = 150;
+        miniMapCtx = miniMapCanvas.getContext("2d");
+        updateMiniMap();
+      }
+
+      function updateMiniMap() {
+        if (!miniMapCtx) return;
+
+        const ctx = miniMapCtx;
+        const cx = 75;
+        const cy = 75;
+        const radius = 55;
+
+        // Clear
+        ctx.clearRect(0, 0, 150, 150);
+
+        // Background circle
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius + 5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0, 20, 40, 0.8)";
+        ctx.fill();
+
+        // Gallery ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(0, 200, 255, 0.3)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Vitrines dots
+        technologies.forEach((tech, index) => {
+          const angle =
+            (index / technologies.length) * Math.PI * 2 - Math.PI / 2;
+          const x = cx + Math.cos(angle) * radius;
+          const y = cy + Math.sin(angle) * radius;
+
+          ctx.beginPath();
+          ctx.arc(x, y, viewedVitrines.has(tech.id) ? 6 : 4, 0, Math.PI * 2);
+
+          if (viewedVitrines.has(tech.id)) {
+            ctx.fillStyle = "#00ff88";
+            ctx.shadowColor = "#00ff88";
+            ctx.shadowBlur = 8;
+          } else {
+            ctx.fillStyle = "rgba(0, 200, 255, 0.6)";
+            ctx.shadowBlur = 0;
+          }
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Number
+          ctx.fillStyle = viewedVitrines.has(tech.id) ? "#000" : "#fff";
+          ctx.font = "8px Orbitron";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(tech.id, x, y);
         });
-        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-        renderer.setSize(W, H);
-        renderer.setClearColor(0x02010a, 1);
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.1;
 
-        scene3 = new THREE.Scene();
-        scene3.background = new THREE.Color(0x02010a);
-        scene3.fog = new THREE.Fog(0x02010a, 22, 85);
+        // Player position (camera direction)
+        const playerAngle = -rotationY - Math.PI / 2;
+        const playerX = cx + Math.cos(playerAngle) * 25;
+        const playerY = cy + Math.sin(playerAngle) * 25;
 
-        camera3 = new THREE.PerspectiveCamera(70, W / H, 0.1, 200);
-        camera3.position.set(0, 2, 8);
+        // Player marker
+        ctx.beginPath();
+        ctx.arc(playerX, playerY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff6600";
+        ctx.fill();
 
-        scene3.add(new THREE.AmbientLight(0x221040, 2.0));
-        var dl = new THREE.DirectionalLight(0x8866ff, 2.5);
-        dl.position.set(0, 20, 0);
-        scene3.add(dl);
-        var bl2 = new THREE.DirectionalLight(0x4499ff, 1.5);
-        bl2.position.set(20, 10, 0);
-        scene3.add(bl2);
-        var bl3 = new THREE.DirectionalLight(0x4499ff, 1.0);
-        bl3.position.set(-20, 10, 0);
-        scene3.add(bl3);
+        // Direction indicator
+        const dirX = cx + Math.cos(playerAngle) * 35;
+        const dirY = cy + Math.sin(playerAngle) * 35;
+        ctx.beginPath();
+        ctx.moveTo(playerX, playerY);
+        ctx.lineTo(dirX, dirY);
+        ctx.strokeStyle = "#ff6600";
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-        // FLOOR
-        var floorMat = new THREE.ShaderMaterial({
-          uniforms: { uT: { value: 0 } },
-          vertexShader:
-            "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
-          fragmentShader:
-            "uniform float uT;varying vec2 vUv;void main(){vec2 c=vUv-.5;float d=length(c);float ring=smoothstep(.02,.0,abs(d-.12))+smoothstep(.02,.0,abs(d-.28))+smoothstep(.02,.0,abs(d-.44));float angle=atan(c.y,c.x);float spoke=smoothstep(.015,.0,abs(mod(angle,.628)-.314));float vein=(ring+spoke*.4)*.6;float pulse=.5+sin(uT*.6-d*15.)*.25;vec3 col=mix(vec3(.01,.005,.04),vec3(.35,.12,.95)*pulse,vein*.7);gl_FragColor=vec4(col,.75);}",
+        // Triangle tip
+        ctx.beginPath();
+        ctx.moveTo(dirX, dirY);
+        ctx.lineTo(
+          dirX - Math.cos(playerAngle + 0.5) * 6,
+          dirY - Math.sin(playerAngle + 0.5) * 6
+        );
+        ctx.lineTo(
+          dirX - Math.cos(playerAngle - 0.5) * 6,
+          dirY - Math.sin(playerAngle - 0.5) * 6
+        );
+        ctx.closePath();
+        ctx.fillStyle = "#ff6600";
+        ctx.fill();
+      }
+
+      // THREE.JS SETUP
+      function initThree() {
+        scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x000815, 15, 60);
+
+        camera = new THREE.PerspectiveCamera(
+          60,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        camera.position.set(0, 2, 0);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x000815, 1);
+        document
+          .getElementById("canvas-container")
+          .appendChild(renderer.domElement);
+
+        clock = new THREE.Clock();
+
+        // Groups
+        galleryGroup = new THREE.Group();
+        vitrinesGroup = new THREE.Group();
+        scene.add(galleryGroup);
+        galleryGroup.add(vitrinesGroup);
+
+        createGallery();
+        createVitrines();
+        createLighting();
+        createBloodSystem();
+        createHologramCeiling();
+
+        // Load progress simulation
+        let progress = 0;
+        const loadInterval = setInterval(() => {
+          progress += Math.random() * 15 + 5;
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(loadInterval);
+            setTimeout(() => {
+              document.getElementById("loading").classList.add("hide");
+              startExperience();
+            }, 500);
+          }
+          document.getElementById("loading-fill").style.width = progress + "%";
+        }, 200);
+
+        animate();
+      }
+
+      function createGallery() {
+        const RADIUS = 25; // 50m diameter
+
+        // Floor - Glass with grid
+        const floorGeo = new THREE.CircleGeometry(RADIUS + 2, 64);
+        const floorMat = new THREE.MeshPhongMaterial({
+          color: 0x001530,
           transparent: true,
-          depthWrite: false,
+          opacity: 0.7,
+          shininess: 100,
         });
-        scene3._floorMat = floorMat;
-        var floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), floorMat);
+        const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
         floor.position.y = -0.01;
-        scene3.add(floor);
+        galleryGroup.add(floor);
 
-        // CEILING
-        var ceilMat = new THREE.ShaderMaterial({
-          uniforms: { uT: { value: 0 } },
-          vertexShader:
-            "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
-          fragmentShader:
-            "uniform float uT;varying vec2 vUv;void main(){float formula=step(.98,fract(vUv.x*18.+uT*.08))*.5+step(.98,fract(vUv.y*12.+uT*.06))*.3;float drift=step(.996,fract(vUv.x*60.+uT*.14+vUv.y*40.))*.6;vec3 col=vec3(.05,.02,.18)+vec3(.2,.05,.8)*(formula+drift)*.7;gl_FragColor=vec4(col,.5);}",
-          transparent: true,
-          side: THREE.FrontSide,
-          depthWrite: false,
-        });
-        scene3._ceilMat = ceilMat;
-        var ceil = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), ceilMat);
-        ceil.rotation.x = Math.PI / 2;
-        ceil.position.y = 9;
-        scene3.add(ceil);
-
-        // WALL
-        var wallMat = new THREE.ShaderMaterial({
-          uniforms: { uT: { value: 0 } },
-          vertexShader:
-            "varying vec2 vUv;varying vec3 vPos;void main(){vUv=uv;vPos=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
-          fragmentShader:
-            "uniform float uT;varying vec2 vUv;varying vec3 vPos;void main(){float scan=mod(vUv.y*15.+uT*1.2,1.);float sl=smoothstep(.95,1.,scan)*.3;float h=smoothstep(0.,1.,vUv.y)*.4;vec3 col=vec3(.03,.01,.14)+vec3(.15,.05,.6)*(sl+h*.3);float data=step(.992,fract(vUv.x*100.+uT*.2))*.4;col+=vec3(.1,.15,.8)*data;gl_FragColor=vec4(col,.9);}",
-          transparent: true,
-          side: THREE.BackSide,
-        });
-        scene3._wallMat = wallMat;
-        var wall = new THREE.Mesh(
-          new THREE.CylinderGeometry(26, 26, 9, 48, 1, true),
-          wallMat
+        // Floor grid
+        const gridHelper = new THREE.GridHelper(
+          RADIUS * 2,
+          50,
+          0x003366,
+          0x001833
         );
-        wall.position.y = 4.5;
-        scene3.add(wall);
+        gridHelper.position.y = 0.01;
+        galleryGroup.add(gridHelper);
 
-        // CENTER PILLAR
-        var colMat = new THREE.MeshStandardMaterial({
-          color: 0x110830,
-          roughness: 0.3,
-          metalness: 0.5,
-          emissive: 0x220844,
-          emissiveIntensity: 0.4,
-        });
-        var colMesh = new THREE.Mesh(
-          new THREE.CylinderGeometry(1.2, 1.2, 9, 16),
-          colMat
-        );
-        colMesh.position.y = 4.5;
-        scene3.add(colMesh);
-
-        // PLATFORM GLOW
-        var platMat = new THREE.ShaderMaterial({
-          uniforms: { uT: { value: 0 } },
-          vertexShader:
-            "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
-          fragmentShader:
-            "uniform float uT;varying vec2 vUv;void main(){float d=length(vUv-.5)*2.;float ring=smoothstep(.9,1.,d)*(1.-smoothstep(1.,1.12,d));float p=.5+sin(uT*2.)*.5;gl_FragColor=vec4(.3,.1,.9,ring*p*.8);}",
+        // Outer wall - glowing ring
+        const wallGeo = new THREE.TorusGeometry(RADIUS + 1, 0.3, 8, 64);
+        const wallMat = new THREE.MeshBasicMaterial({
+          color: 0x00c8ff,
           transparent: true,
-          depthWrite: false,
+          opacity: 0.3,
         });
-        scene3._platMat = platMat;
-        var plat = new THREE.Mesh(new THREE.PlaneGeometry(5, 5), platMat);
-        plat.rotation.x = -Math.PI / 2;
-        plat.position.y = 0.02;
-        scene3.add(plat);
+        const wall = new THREE.Mesh(wallGeo, wallMat);
+        wall.rotation.x = Math.PI / 2;
+        wall.position.y = 3;
+        galleryGroup.add(wall);
 
-        // VITRINES — 13 around circle at radius=17
-        var RADIUS = 17;
-        var geomList = [
-          new THREE.SphereGeometry(0.7, 16, 12),
-          new THREE.CylinderGeometry(0.18, 0.22, 0.9, 12),
-          new THREE.ConeGeometry(0.5, 0.9, 8),
-          new THREE.TorusGeometry(0.6, 0.14, 12, 40),
-          new THREE.BoxGeometry(0.9, 0.05, 0.9),
-          new THREE.CylinderGeometry(0.08, 0.2, 0.95, 12),
-          new THREE.IcosahedronGeometry(0.65),
-          new THREE.OctahedronGeometry(0.65),
-          new THREE.TorusKnotGeometry(0.45, 0.12, 80, 12),
-          new THREE.SphereGeometry(0.7, 20, 15),
-          new THREE.DodecahedronGeometry(0.65),
-          new THREE.TetrahedronGeometry(0.7),
-          new THREE.OctahedronGeometry(0.6),
-        ];
-
-        for (var i = 0; i < TOTAL; i++) {
-          var angle = (i / TOTAL) * Math.PI * 2;
-          var cx = Math.cos(angle) * RADIUS;
-          var cz = Math.sin(angle) * RADIUS;
-          var t = TECH[i];
-          var grp = new THREE.Group();
-          grp.position.set(cx, 0, cz);
-
-          var glassMat = new THREE.MeshStandardMaterial({
-            color: t.color,
+        // Wall panels (Apple Store style)
+        for (let i = 0; i < 20; i++) {
+          const angle = (i / 20) * Math.PI * 2;
+          const panelGeo = new THREE.PlaneGeometry(4, 8);
+          const panelMat = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            emissive: 0x112233,
+            emissiveIntensity: 0.3,
             transparent: true,
             opacity: 0.15,
-            roughness: 0.05,
-            metalness: 0.6,
-            emissive: t.color,
-            emissiveIntensity: 0.1,
+            side: THREE.DoubleSide,
           });
-          var box = new THREE.Mesh(
-            new THREE.BoxGeometry(3.2, 3.2, 3.2),
-            glassMat
+          const panel = new THREE.Mesh(panelGeo, panelMat);
+          panel.position.set(
+            Math.cos(angle) * (RADIUS + 0.5),
+            4,
+            Math.sin(angle) * (RADIUS + 0.5)
           );
-          box.position.y = 1.6;
-          grp.add(box);
-
-          var edgeMat = new THREE.LineBasicMaterial({
-            color: t.color,
-            transparent: true,
-            opacity: 0.7,
-          });
-          var edges = new THREE.LineSegments(
-            new THREE.EdgesGeometry(new THREE.BoxGeometry(3.2, 3.2, 3.2)),
-            edgeMat
-          );
-          edges.position.y = 1.6;
-          grp.add(edges);
-
-          var g = geomList[i] || geomList[0];
-          var innerMat = new THREE.MeshStandardMaterial({
-            color: t.color,
-            transparent: true,
-            opacity: 0.75,
-            emissive: t.color,
-            emissiveIntensity: 0.5,
-            roughness: 0.3,
-            metalness: 0.4,
-          });
-          var innerM = new THREE.Mesh(g, innerMat);
-          var innerWire = new THREE.LineSegments(
-            new THREE.EdgesGeometry(g),
-            new THREE.LineBasicMaterial({
-              color: t.color,
-              transparent: true,
-              opacity: 0.4,
-            })
-          );
-          var innerGrp = new THREE.Group();
-          innerGrp.add(innerM);
-          innerGrp.add(innerWire);
-          innerGrp.position.y = 1.6;
-          grp.add(innerGrp);
-
-          var glight = new THREE.PointLight(t.color, 1.8, 8);
-          glight.position.y = 2;
-          grp.add(glight);
-
-          var panelMat = new THREE.MeshStandardMaterial({
-            color: 0x0a0518,
-            roughness: 0.5,
-            metalness: 0.6,
-          });
-          var panel = new THREE.Mesh(
-            new THREE.BoxGeometry(3.6, 0.1, 1.4),
-            panelMat
-          );
-          panel.position.y = 0.05;
-          panel.position.z = 1.6;
-          grp.add(panel);
-
-          grp.lookAt(0, 0, 0);
-          grp.userData = {
-            idx: i,
-            glight: glight,
-            inner: innerGrp,
-            glassMat: glassMat,
-            discovered: false,
-          };
-          vitrineMeshes.push(grp);
-          scene3.add(grp);
-
-          var fr = new THREE.Mesh(
-            new THREE.RingGeometry(1.8, 2.0, 32),
-            new THREE.MeshBasicMaterial({
-              color: t.color,
-              transparent: true,
-              opacity: 0.4,
-              depthWrite: false,
-              side: THREE.DoubleSide,
-            })
-          );
-          fr.rotation.x = -Math.PI / 2;
-          fr.position.set(cx, 0.02, cz);
-          scene3.add(fr);
+          panel.lookAt(0, 4, 0);
+          galleryGroup.add(panel);
         }
 
-        // PARTICLES
-        var pCount = 1200;
-        var pPos = new Float32Array(pCount * 3);
-        var pCol = new Float32Array(pCount * 3);
-        var pSz = new Float32Array(pCount);
-        var pData = [];
-        for (var pi = 0; pi < pCount; pi++) {
-          var pr = 3 + Math.random() * 22,
-            pa = Math.random() * Math.PI * 2,
-            ph = 0.2 + Math.random() * 8.5;
-          pPos[pi * 3] = Math.cos(pa) * pr;
-          pPos[pi * 3 + 1] = ph;
-          pPos[pi * 3 + 2] = Math.sin(pa) * pr;
-          pSz[pi] = 0.6 + Math.random() * 2;
-          pData.push({
-            vx: (Math.random() - 0.5) * 0.003,
-            vy: 0.001 + Math.random() * 0.003,
-            vz: (Math.random() - 0.5) * 0.003,
-          });
-          var cc = Math.random() < 0.5 ? [0.3, 0.1, 0.9] : [0.1, 0.4, 1];
-          pCol[pi * 3] = cc[0];
-          pCol[pi * 3 + 1] = cc[1];
-          pCol[pi * 3 + 2] = cc[2];
-        }
-        var pGeo = new THREE.BufferGeometry();
-        pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
-        pGeo.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
-        pGeo.setAttribute("size", new THREE.BufferAttribute(pSz, 1));
-        var pMat = new THREE.ShaderMaterial({
-          uniforms: { uT: { value: 0 } },
-          vertexShader:
-            "attribute float size;attribute vec3 color;varying vec3 vC;varying float vA;uniform float uT;void main(){vC=color;vA=.25+sin(uT*.5+position.y*.4)*.18;vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=size*(150./-mv.z);gl_PointSize=clamp(gl_PointSize,.5,12.);gl_Position=projectionMatrix*mv;}",
-          fragmentShader:
-            "varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5)*2.;gl_FragColor=vec4(vC,(1.-smoothstep(.2,.8,d))*vA);}",
+        // Ceiling ring
+        const ceilingRingGeo = new THREE.RingGeometry(
+          RADIUS - 5,
+          RADIUS + 2,
+          64
+        );
+        const ceilingRingMat = new THREE.MeshBasicMaterial({
+          color: 0x001525,
           transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
+          opacity: 0.8,
+          side: THREE.DoubleSide,
+        });
+        const ceilingRing = new THREE.Mesh(ceilingRingGeo, ceilingRingMat);
+        ceilingRing.rotation.x = Math.PI / 2;
+        ceilingRing.position.y = 10;
+        galleryGroup.add(ceilingRing);
+      }
+
+      function createVitrines() {
+        const RADIUS = 20;
+        const VITRINE_SIZE = 3;
+
+        technologies.forEach((tech, index) => {
+          const angle =
+            (index / technologies.length) * Math.PI * 2 - Math.PI / 2;
+          const x = Math.cos(angle) * RADIUS;
+          const z = Math.sin(angle) * RADIUS;
+
+          // Vitrine cube (glass)
+          const cubeGeo = new THREE.BoxGeometry(
+            VITRINE_SIZE,
+            VITRINE_SIZE,
+            VITRINE_SIZE
+          );
+          const edges = new THREE.EdgesGeometry(cubeGeo);
+          const lineMat = new THREE.LineBasicMaterial({
+            color: tech.color,
+            transparent: true,
+            opacity: 0.8,
+          });
+          const cube = new THREE.LineSegments(edges, lineMat);
+          cube.position.set(x, VITRINE_SIZE / 2 + 0.5, z);
+          cube.userData = { techId: tech.id, baseColor: tech.color };
+          vitrinesGroup.add(cube);
+
+          // Glass panels
+          const glassMat = new THREE.MeshPhongMaterial({
+            color: tech.color,
+            transparent: true,
+            opacity: 0.1,
+            side: THREE.DoubleSide,
+            shininess: 100,
+          });
+          const glass = new THREE.Mesh(cubeGeo, glassMat);
+          glass.position.copy(cube.position);
+          glass.userData = { techId: tech.id };
+          vitrinesGroup.add(glass);
+
+          // Holographic content inside
+          createHolographicModel(tech, x, VITRINE_SIZE / 2 + 0.5, z);
+
+          // Base platform
+          const baseGeo = new THREE.CylinderGeometry(2, 2.2, 0.3, 32);
+          const baseMat = new THREE.MeshPhongMaterial({
+            color: 0x001530,
+            emissive: tech.color,
+            emissiveIntensity: 0.2,
+          });
+          const base = new THREE.Mesh(baseGeo, baseMat);
+          base.position.set(x, 0.15, z);
+          vitrinesGroup.add(base);
+
+          // Spotlight
+          const spotlight = new THREE.SpotLight(
+            tech.color,
+            1,
+            15,
+            Math.PI / 6,
+            0.5
+          );
+          spotlight.position.set(x, 8, z);
+          spotlight.target.position.set(x, 0, z);
+          scene.add(spotlight);
+          scene.add(spotlight.target);
+        });
+      }
+
+      function createHolographicModel(tech, x, y, z) {
+        // Rotating geometric shape based on tech
+        const shapes = {
+          1: () => new THREE.IcosahedronGeometry(0.8, 0), // Drone
+          2: () => new THREE.SphereGeometry(0.6, 16, 16), // Bacteria
+          3: () => new THREE.ConeGeometry(0.5, 1.2, 8), // Tree
+          4: () => new THREE.TorusGeometry(0.6, 0.2, 8, 24), // Ocean
+          5: () => new THREE.BoxGeometry(1, 0.2, 0.8), // Road
+          6: () => new THREE.CylinderGeometry(0.3, 0.5, 1.2, 8), // Tower
+          7: () => new THREE.DodecahedronGeometry(0.7, 0), // Coral
+          8: () => new THREE.PlaneGeometry(1, 1.5), // Algae
+          9: () => new THREE.SphereGeometry(0.7, 8, 8), // Water
+          10: () => new THREE.OctahedronGeometry(0.8, 0), // Nuclear
+        };
+
+        const geo = shapes[tech.id]();
+        const mat = new THREE.MeshBasicMaterial({
+          color: tech.color,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.8,
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(x, y, z);
+        mesh.userData = {
+          rotSpeed: 0.005 + Math.random() * 0.01,
+          techId: tech.id,
+        };
+        vitrinesGroup.add(mesh);
+
+        // Inner glow
+        const glowGeo = geo.clone();
+        const glowMat = new THREE.MeshBasicMaterial({
+          color: tech.color,
+          transparent: true,
+          opacity: 0.15,
+        });
+        const glow = new THREE.Mesh(glowGeo, glowMat);
+        glow.position.copy(mesh.position);
+        glow.scale.setScalar(0.9);
+        glow.userData = { parent: mesh };
+        vitrinesGroup.add(glow);
+      }
+
+      function createLighting() {
+        // Ambient
+        const ambient = new THREE.AmbientLight(0x112244, 0.4);
+        scene.add(ambient);
+
+        // Central point light
+        const centerLight = new THREE.PointLight(0x00c8ff, 1.5, 30);
+        centerLight.position.set(0, 6, 0);
+        scene.add(centerLight);
+
+        // Rim lights
+        for (let i = 0; i < 4; i++) {
+          const angle = (i / 4) * Math.PI * 2;
+          const rimLight = new THREE.PointLight(0x0066ff, 0.5, 20);
+          rimLight.position.set(Math.cos(angle) * 28, 5, Math.sin(angle) * 28);
+          scene.add(rimLight);
+        }
+      }
+
+      function createBloodSystem() {
+        // Create "blood vessels" under the floor (veins of data)
+        for (let i = 0; i < 15; i++) {
+          const curve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(
+              (Math.random() - 0.5) * 40,
+              -1,
+              (Math.random() - 0.5) * 40
+            ),
+            new THREE.Vector3(
+              (Math.random() - 0.5) * 30,
+              -0.5,
+              (Math.random() - 0.5) * 30
+            ),
+            new THREE.Vector3(
+              (Math.random() - 0.5) * 20,
+              -0.8,
+              (Math.random() - 0.5) * 20
+            ),
+            new THREE.Vector3(
+              (Math.random() - 0.5) * 40,
+              -1.2,
+              (Math.random() - 0.5) * 40
+            ),
+          ]);
+
+          const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.05, 8, false);
+          const tubeMat = new THREE.MeshBasicMaterial({
+            color: i % 2 === 0 ? 0xff3366 : 0x0088ff,
+            transparent: true,
+            opacity: 0.4,
+          });
+          const tube = new THREE.Mesh(tubeGeo, tubeMat);
+          tube.userData = { pulseOffset: Math.random() * Math.PI * 2 };
+          bloodVeins.push(tube);
+          scene.add(tube);
+        }
+      }
+
+      function createHologramCeiling() {
+        // Floating holographic particles (formulas, data)
+        const particleCount = 200;
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = Math.random() * 20 + 5;
+          positions[i * 3] = Math.cos(angle) * radius;
+          positions[i * 3 + 1] = 7 + Math.random() * 3;
+          positions[i * 3 + 2] = Math.sin(angle) * radius;
+
+          const isGreen = Math.random() > 0.5;
+          colors[i * 3] = isGreen ? 0 : 0;
+          colors[i * 3 + 1] = isGreen ? 1 : 0.8;
+          colors[i * 3 + 2] = isGreen ? 0.5 : 1;
+        }
+
+        const particleGeo = new THREE.BufferGeometry();
+        particleGeo.setAttribute(
+          "position",
+          new THREE.BufferAttribute(positions, 3)
+        );
+        particleGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+        const particleMat = new THREE.PointsMaterial({
+          size: 0.15,
           vertexColors: true,
+          transparent: true,
+          opacity: 0.6,
+          blending: THREE.AdditiveBlending,
         });
-        scene3._pGeo = pGeo;
-        scene3._pPos = pPos;
-        scene3._pData = pData;
-        scene3.add(new THREE.Points(pGeo, pMat));
 
-        // CONTROLS
-        var cnv = document.getElementById("gc");
-        document.addEventListener("keydown", function (e) {
-          keysF[e.code] = true;
-          if (e.code === "KeyE" || e.code === "Space") {
-            e.preventDefault();
-            if (nearVitrine >= 0) openFiche(nearVitrine);
+        const particles = new THREE.Points(particleGeo, particleMat);
+        particles.userData = { type: "hologramParticles" };
+        hologramParticles.push(particles);
+        scene.add(particles);
+      }
+
+      // ANIMATION LOOP
+      function animate() {
+        requestAnimationFrame(animate);
+        const time = clock.getElapsedTime();
+
+        // Smooth rotation
+        rotationY += (targetRotationY - rotationY) * 0.05;
+
+        // Update camera position based on rotation
+        const camRadius = 8;
+        camera.position.x = Math.sin(rotationY) * camRadius;
+        camera.position.z = Math.cos(rotationY) * camRadius;
+        camera.position.y = 2 + Math.sin(time * 0.3) * 0.1;
+        camera.lookAt(0, 2, 0);
+
+        // Animate vitrine models
+        vitrinesGroup.children.forEach((child) => {
+          if (child.userData.rotSpeed) {
+            child.rotation.y += child.userData.rotSpeed;
+            child.rotation.x = Math.sin(time * 0.5) * 0.1;
+          }
+          if (child.userData.parent) {
+            child.rotation.copy(child.userData.parent.rotation);
           }
         });
-        document.addEventListener("keyup", function (e) {
-          keysF[e.code] = false;
+
+        // Animate blood veins
+        bloodVeins.forEach((vein) => {
+          const pulse =
+            Math.sin(time * 2 + vein.userData.pulseOffset) * 0.5 + 0.5;
+          vein.material.opacity = 0.2 + pulse * 0.3;
         });
-        cnv.addEventListener("mousedown", function (e) {
-          if (e.button === 0) {
-            if (ficheOpen) return;
-            if (
-              document.getElementById("debate-popup").classList.contains("show")
-            )
-              return;
-            if (nearVitrine >= 0) {
-              openFiche(nearVitrine);
-              return;
+
+        // Animate hologram particles
+        hologramParticles.forEach((p) => {
+          const positions = p.geometry.attributes.position.array;
+          for (let i = 0; i < positions.length; i += 3) {
+            positions[i + 1] += Math.sin(time + positions[i] * 0.1) * 0.002;
+          }
+          p.geometry.attributes.position.needsUpdate = true;
+          p.rotation.y = time * 0.02;
+        });
+
+        // Update mini-map
+        updateMiniMap();
+
+        renderer.render(scene, camera);
+      }
+
+      // INTERACTION
+      function startExperience() {
+        initAudio();
+        playAmbientSound();
+        initMiniMap();
+
+        // Load voices for TTS
+        if (speechSynthesis) {
+          speechSynthesis.getVoices();
+        }
+
+        document.getElementById("hud-top").classList.add("show");
+        document.getElementById("instructions").classList.add("show");
+        document.getElementById("mini-map").classList.add("show");
+
+        // Mouse/Touch controls
+        const container = document.getElementById("canvas-container");
+
+        container.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          previousMouseX = e.clientX;
+        });
+
+        container.addEventListener("mousemove", (e) => {
+          if (isDragging) {
+            const deltaX = e.clientX - previousMouseX;
+            targetRotationY += deltaX * 0.005;
+            previousMouseX = e.clientX;
+          }
+        });
+
+        container.addEventListener("mouseup", () => (isDragging = false));
+        container.addEventListener("mouseleave", () => (isDragging = false));
+
+        // Touch support
+        container.addEventListener("touchstart", (e) => {
+          isDragging = true;
+          previousMouseX = e.touches[0].clientX;
+        });
+
+        container.addEventListener("touchmove", (e) => {
+          if (isDragging) {
+            const deltaX = e.touches[0].clientX - previousMouseX;
+            targetRotationY += deltaX * 0.005;
+            previousMouseX = e.touches[0].clientX;
+          }
+        });
+
+        container.addEventListener("touchend", () => (isDragging = false));
+
+        // Raycaster for vitrine clicks
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        container.addEventListener("click", (e) => {
+          if (isDragging) return;
+
+          mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+          raycaster.setFromCamera(mouse, camera);
+          const intersects = raycaster.intersectObjects(vitrinesGroup.children);
+
+          if (intersects.length > 0) {
+            const obj = intersects[0].object;
+            if (obj.userData.techId) {
+              openVitrine(obj.userData.techId);
             }
-            isDragging = true;
-            lastMX = e.clientX;
-            lastMY = e.clientY;
-          }
-          if (e.button === 2) {
-            isDragging = true;
-            lastMX = e.clientX;
-            lastMY = e.clientY;
-            e.preventDefault();
           }
         });
-        document.addEventListener("mouseup", function () {
-          isDragging = false;
+
+        // Hover effect
+        container.addEventListener("mousemove", (e) => {
+          mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+          raycaster.setFromCamera(mouse, camera);
+          const intersects = raycaster.intersectObjects(vitrinesGroup.children);
+
+          if (intersects.length > 0 && intersects[0].object.userData.techId) {
+            cursor.classList.add("hover");
+          } else {
+            cursor.classList.remove("hover");
+          }
         });
-        document.addEventListener("mousemove", function (e) {
-          if (!isDragging) return;
-          var dx = e.clientX - lastMX,
-            dy = e.clientY - lastMY;
-          lastMX = e.clientX;
-          lastMY = e.clientY;
-          camYaw -= dx * 0.004;
-          camPitch -= dy * 0.003;
-          camPitch = Math.max(-0.6, Math.min(0.6, camPitch));
-        });
-        cnv.addEventListener("contextmenu", function (e) {
-          e.preventDefault();
-        });
+
+        // Show intro dialogue with GAIA voice
+        setTimeout(() => {
+          const introText =
+            "Bienvenue dans le Musee Technologique. Ici, je vous presente 10 innovations. Qui peuvent me sauver. Ou me detruire. Tournez autour de la galerie. Explorez chaque vitrine. Decouvrez l'espoir et les limites.";
+          speakGaia(introText);
+        }, 2000);
       }
 
-      // ═══════════════════════════════════════════════════
-      // OPEN FICHE
-      // ═══════════════════════════════════════════════════
-      function openFiche(idx) {
-        if (ficheOpen) return;
-        ficheOpen = true;
-        var t = TECH[idx];
-        sfxOpen();
+      // VITRINE INTERACTION
+      function openVitrine(techId) {
+        const tech = technologies.find((t) => t.id === techId);
+        if (!tech) return;
 
-        var html =
-          '<div class="fp-head"><div class="fp-icon" style="font-size:28px;margin-bottom:8px;">' +
-          getIcon(t.icon) +
-          "</div>";
-        html += '<div class="fp-title">' + t.name + "</div>";
-        html += '<div class="fp-sub">' + t.short + "</div></div>";
-        html += '<div class="fp-body">';
+        playClickSound();
+        triggerHaptic(30, "light");
+        currentVitrine = tech;
 
-        t.sections.forEach(function (sec) {
-          html +=
-            '<div class="fp-section"><div class="fp-sec-title">' +
-            sec.t +
-            "</div>";
-          sec.lines.forEach(function (ln) {
-            var cls = "";
-            if (
-              ln.indexOf("!!!") >= 0 ||
-              (ln.indexOf("x") >= 0 && ln.indexOf("RECORD") >= 0)
+        // Update panel
+        document.getElementById(
+          "panel-number"
+        ).textContent = `TECHNOLOGIE #${tech.id}`;
+        document.getElementById("panel-title").textContent = tech.name;
+        document.getElementById(
+          "panel-subtitle"
+        ).textContent = `"${tech.subtitle}"`;
+
+        // Content - all centered
+        let contentHTML = `
+    <div class="panel-section">
+      <div class="section-label">Description</div>
+      <div class="section-text">${tech.description}</div>
+    </div>
+    <div class="panel-section">
+      <div class="section-label">Efficacite</div>
+      <div class="efficacy-bar">
+        <div class="efficacy-fill" style="width: ${tech.efficacy}%"></div>
+      </div>
+      <div style="text-align: center; font-size: 11px; color: #00ff88; margin-top: 5px;">${
+        tech.efficacy
+      }%</div>
+    </div>
+    <div class="panel-section">
+      <div class="section-label">Statistiques Cles</div>
+      <ul style="list-style: none; padding: 0; text-align: center;">
+        ${tech.stats
+          .map(
+            (s) =>
+              `<li style="padding: 5px 0; border-bottom: 1px solid rgba(0,200,255,0.1); font-family: 'EB Garamond', serif; font-size: 13px; color: rgba(255,255,255,0.8);">${s}</li>`
+          )
+          .join("")}
+      </ul>
+    </div>
+  `;
+        document.getElementById("panel-content").innerHTML = contentHTML;
+
+        // Rating stars
+        let starsHTML = "";
+        for (let i = 1; i <= 5; i++) {
+          const filled = i <= Math.floor(tech.rating);
+          const half = !filled && i - 0.5 <= tech.rating;
+          starsHTML += `<div class="star ${filled ? "filled" : ""}" style="${
+            half ? "opacity: 0.6;" : ""
+          }"></div>`;
+        }
+        document.getElementById("rating-stars").innerHTML = starsHTML;
+
+        // Show panel
+        document.getElementById("vitrine-panel").classList.add("show");
+
+        // Track viewed
+        if (!viewedVitrines.has(techId)) {
+          viewedVitrines.add(techId);
+          totalPoints += 10;
+          updateStats();
+
+          // Show achievement
+          setTimeout(() => {
+            showAchievement(tech.achievement, 10);
+          }, 500);
+
+          // Speak GAIA quote (invisible - no text shown)
+          setTimeout(() => {
+            speakGaia(tech.gaiaQuote);
+          }, 1000);
+
+          // Check if all vitrines viewed
+          if (viewedVitrines.size === 10) {
+            setTimeout(() => {
+              showRecapScreen();
+            }, 8000);
+          }
+        }
+      }
+
+      function closePanel() {
+        playClickSound();
+        stopSpeaking();
+        document.getElementById("vitrine-panel").classList.remove("show");
+        currentVitrine = null;
+      }
+
+      function updateStats() {
+        document.getElementById("stat-viewed").textContent =
+          viewedVitrines.size;
+        document.getElementById("stat-points").textContent = totalPoints;
+      }
+
+      // ACHIEVEMENT
+      function showAchievement(title, points) {
+        playSuccessSound();
+        triggerHaptic(100, "heavy");
+
+        document.getElementById("achievement-title").textContent = title;
+        document.getElementById(
+          "achievement-points"
+        ).textContent = `+${points} POINTS`;
+        document.getElementById("achievement").classList.add("show");
+
+        setTimeout(() => {
+          document.getElementById("achievement").classList.remove("show");
+        }, 3000);
+      }
+
+      // RECAP SCREEN
+      function showRecapScreen() {
+        // Build categories content
+        const categoryGroups = {};
+        technologies.forEach((tech) => {
+          if (!categoryGroups[tech.category]) {
+            categoryGroups[tech.category] = [];
+          }
+          categoryGroups[tech.category].push(tech);
+        });
+
+        let recapHTML = "";
+        for (const [catKey, techs] of Object.entries(categoryGroups)) {
+          const cat = categories[catKey];
+          recapHTML += `
+      <div class="recap-category">
+        <div class="category-title">${cat.icon} ${cat.name}</div>
+        <div class="category-items">
+          ${techs
+            .map(
+              (tech) => `
+            <div class="category-item">
+              <span class="item-name">${tech.name}</span>
+              <span class="item-status">
+                <span class="item-percent">(${tech.efficacy}% pret)</span>
+                <span class="item-stars">
+                  ${Array(Math.floor(tech.rating))
+                    .fill('<div class="mini-star"></div>')
+                    .join("")}
+                </span>
+              </span>
+            </div>
+          `
             )
-              cls = "hi";
-            if (ln.indexOf("MARCHE") >= 0 || ln.indexOf("Capture") >= 0)
-              cls = "ok";
-            if (ln.indexOf("Rendement") >= 0 && ln.indexOf("faible") >= 0)
-              cls = "bad";
-            html += '<div class="fp-line ' + cls + '">' + ln + "</div>";
-          });
-          html += "</div>";
-        });
+            .join("")}
+        </div>
+      </div>
+    `;
+        }
 
-        html +=
-          '<div class="fp-section"><div class="fp-sec-title">ETAT DE DEVELOPPEMENT</div>';
-        html +=
-          '<div class="fp-devbar"><div class="fp-devfill" id="devfill-' +
-          idx +
-          '" style="width:0%"></div></div>';
-        html +=
-          "<div style=\"font-family:'Orbitron',monospace;font-size:8px;color:rgba(68,187,255,.7);letter-spacing:.18em;\">" +
-          t.devpct +
-          "% PRET</div></div>";
+        document.getElementById("recap-content").innerHTML = recapHTML;
 
-        var stars = "";
-        for (var s = 0; s < 5; s++) stars += s < Math.floor(t.note) ? "★" : "☆";
-        html +=
-          '<div class="fp-note">NOTE GAIA : ' +
-          t.note +
-          "/5 &nbsp; " +
-          stars +
-          "</div>";
+        // Calculate average
+        const avgEfficacy = Math.round(
+          technologies.reduce((sum, t) => sum + t.efficacy, 0) /
+            technologies.length
+        );
+        document.getElementById("avg-maturity").textContent = avgEfficacy + "%";
+        document.getElementById("total-points-recap").textContent =
+          "+" + totalPoints;
 
-        html +=
-          '<button onclick="closeFiche()" style="display:block;width:100%;font-family:Orbitron,monospace;font-size:7px;letter-spacing:.2em;color:rgba(68,187,255,.7);background:rgba(68,187,255,.06);border:1px solid rgba(68,187,255,.28);border-radius:3px;padding:11px;cursor:pointer;margin-top:8px;">RETOUR A LA GALERIE</button>';
-        html += "</div>";
+        // Final GAIA text
+        const finalText = `Vous connaissez maintenant mes armes.
+Certaines pretes. D'autres en test.
+Toutes REELLES. Toutes POSSIBLES.
 
-        document.getElementById("fp-content").innerHTML = html;
-        document.getElementById("fiche-panel").classList.add("open");
+Il ne reste qu'a...
+Les DEPLOYER.
 
-        setTimeout(function () {
-          var el = document.getElementById("devfill-" + idx);
-          if (el) el.style.width = t.devpct + "%";
-        }, 300);
+Passons a l'entrainement.`;
 
-        if (!discovered[idx]) {
-          discovered[idx] = true;
-          discoveredCount++;
-          score += 10;
-          document.getElementById("scd").textContent = "SCORE : " + score;
-          try {
-            localStorage.setItem("gaiaScore", score.toString());
-          } catch (e) {}
-          updateProgressHUD();
-          showToast(
-            "+10 POINTS",
-            t.achievement
-              ? "ACHIEVEMENT : " + t.achievement
-              : "Technologie decouverte !"
+        document.getElementById("gaia-final-text").textContent = finalText;
+
+        // Show screen
+        document.getElementById("recap-screen").classList.add("show");
+
+        // Speak final text
+        setTimeout(() => {
+          speakGaia(
+            "Vous connaissez maintenant mes armes. Certaines pretes. D'autres en test. Toutes REELLES. Toutes POSSIBLES. Il ne reste qu'a les DEPLOYER. Passons a l'entrainement."
           );
-          sfxAchievement();
-          if (discoveredCount >= TOTAL) {
-            setTimeout(function () {
-              document.getElementById("next-btn").classList.add("show");
-            }, 1200);
-          }
-        }
-
-        var vm = vitrineMeshes[idx];
-        if (vm) {
-          vm.userData.glassMat.emissiveIntensity = 0.5;
-          vm.userData.glight.intensity = 4;
-        }
-
-        stopV();
-        setTimeout(function () {
-          speak(t.voice, null, 0.74);
-        }, 600);
-
-        if (idx === 2 && !window._debated) {
-          setTimeout(function () {
-            document.getElementById("debate-popup").classList.add("show");
-          }, 2000);
-        }
+        }, 1000);
       }
 
-      function getIcon(key) {
-        var icons = {
-          drone: "&#x1F681;",
-          bio: "&#x1F9EB;",
-          tree: "&#x1F333;",
-          wave: "&#x1F30A;",
-          road: "&#x1F6E3;",
-          tower: "&#x1F5FC;",
-          coral: "&#x1FAB8;",
-          sun: "&#x2600;",
-          dac: "&#x1F4A7;",
-          fusion: "&#x26A1;",
-          algae: "&#x1F33F;",
-          water: "&#x1F4A6;",
-          nuclear: "&#x2622;",
-        };
-        return icons[key] || "&#x2139;";
-      }
+      // NAVIGATION VERS SALLE 3
+      function goToSalle3() {
+        triggerHaptic(50);
+        stopSpeaking();
 
-      function closeFiche() {
-        ficheOpen = false;
-        document.getElementById("fiche-panel").classList.remove("open");
-        vitrineMeshes.forEach(function (vm, i) {
-          vm.userData.glassMat.emissiveIntensity = discovered[i] ? 0.3 : 0.1;
-          vm.userData.glight.intensity = 1.8;
-        });
-      }
+        // Create fluid transition overlay
+        const transitionOverlay = document.createElement("div");
+        transitionOverlay.id = "transition-overlay";
+        transitionOverlay.innerHTML = `
+    <div class="transition-content">
+      <div class="transition-text">SALLE 3</div>
+      <div class="transition-subtitle">Chargement...</div>
+      <div class="transition-loader">
+        <div class="loader-bar"></div>
+      </div>
+    </div>
+  `;
+        document.body.appendChild(transitionOverlay);
 
-      function debateVote(choice) {
-        window._debated = true;
-        document.getElementById("debate-popup").classList.remove("show");
-        var msgs = {
-          pour: "Vous soutenez les Super-Trees OGM. Innovation necessaire !",
-          contre: "Vous preferez la prudence. La nature d'abord.",
-          neutre: "Vous restez nuance. La science et l'ethique ensemble.",
-        };
-        showToast("BADGE : DEBATTEUR ETHIQUE", msgs[choice] || "");
-        score += 5;
-        document.getElementById("scd").textContent = "SCORE : " + score;
-        try {
-          localStorage.setItem("gaiaScore", score.toString());
-        } catch (e) {}
-      }
+        // Add transition styles
+        const transitionStyles = document.createElement("style");
+        transitionStyles.textContent = `
+    #transition-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: radial-gradient(ellipse at center, rgba(0, 30, 60, 0.98) 0%, rgba(0, 5, 15, 1) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeInTransition 0.8s ease forwards;
+    }
+    @keyframes fadeInTransition {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    .transition-content {
+      text-align: center;
+      animation: pulseContent 2s ease-in-out infinite;
+    }
+    @keyframes pulseContent {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    .transition-text {
+      font-family: 'Cinzel', serif;
+      font-size: 48px;
+      color: #00ff88;
+      letter-spacing: 0.5em;
+      text-shadow: 0 0 40px rgba(0, 255, 136, 0.6), 0 0 80px rgba(0, 255, 136, 0.3);
+      margin-bottom: 20px;
+      animation: glowText 1.5s ease-in-out infinite alternate;
+    }
+    @keyframes glowText {
+      0% { text-shadow: 0 0 20px rgba(0, 255, 136, 0.4), 0 0 40px rgba(0, 255, 136, 0.2); }
+      100% { text-shadow: 0 0 60px rgba(0, 255, 136, 0.8), 0 0 100px rgba(0, 255, 136, 0.4); }
+    }
+    .transition-subtitle {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      color: rgba(0, 200, 255, 0.8);
+      letter-spacing: 0.3em;
+      margin-bottom: 30px;
+    }
+    .transition-loader {
+      width: 200px;
+      height: 4px;
+      background: rgba(0, 200, 255, 0.2);
+      border-radius: 2px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .loader-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #00ff88, #00c8ff);
+      border-radius: 2px;
+      animation: loadProgress 1.5s ease-out forwards;
+    }
+    @keyframes loadProgress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+  `;
+        document.head.appendChild(transitionStyles);
 
-      // ═══════════════════════════════════════════════════
-      // PROXIMITY
-      // ═══════════════════════════════════════════════════
-      var INTERACT_DIST = 5.5;
-      function updateProximity() {
-        if (!camera3) return;
-        var camPos = camera3.position;
-        var closest = -1,
-          closestDist = 9999;
-        for (var i = 0; i < TOTAL; i++) {
-          var vm = vitrineMeshes[i];
-          var dx = camPos.x - vm.position.x,
-            dz = camPos.z - vm.position.z;
-          var dist = Math.sqrt(dx * dx + dz * dz);
-          if (dist < closestDist) {
-            closestDist = dist;
-            closest = i;
-          }
-        }
-        var hint = document.getElementById("interact");
-        if (!ficheOpen && closest >= 0 && closestDist < INTERACT_DIST) {
-          nearVitrine = closest;
-          var t = TECH[closest];
-          hint.innerHTML =
-            getIcon(t.icon) +
-            " <b>" +
-            t.name +
-            '</b><br><span style="font-size:6px;opacity:.7;">' +
-            (discovered[closest] ? "Deja decouverte - " : "") +
-            "Cliquer ou [E] pour voir la fiche</span>";
-          hint.classList.add("show");
-          $cur.classList.add("hover");
-        } else {
-          nearVitrine = -1;
-          hint.classList.remove("show");
-          $cur.classList.remove("hover");
-        }
-        updateVitrineLabels();
-      }
-
-      function updateVitrineLabels() {
-        if (!camera3 || !renderer) return;
-        var ld = document.getElementById("labels-div");
-        if (!ld) return;
-        ld.innerHTML = "";
-        for (var i = 0; i < TOTAL; i++) {
-          var vm = vitrineMeshes[i];
-          var pos = vm.position.clone();
-          pos.y = 3.8;
-          var sp = pos.clone().project(camera3);
-          if (sp.z > 1) continue;
-          var x = (sp.x * 0.5 + 0.5) * W,
-            y = (-0.5 * sp.y + 0.5) * H;
-          if (x < -100 || x > W + 100 || y < -50 || y > H + 50) continue;
-          var t = TECH[i];
-          var disc = discovered[i];
-          var div = document.createElement("div");
-          div.style.cssText =
-            "position:absolute;left:" +
-            x +
-            "px;top:" +
-            y +
-            "px;transform:translate(-50%,-50%);text-align:center;pointer-events:none;";
-          var nameDiv = document.createElement("div");
-          nameDiv.style.cssText =
-            "font-family:Orbitron,monospace;font-size:7px;letter-spacing:.15em;color:rgba(68,187,255," +
-            (disc ? 0.5 : 0.9) +
-            ");white-space:nowrap;text-shadow:0 0 10px rgba(68,187,255,.7);";
-          nameDiv.textContent = (disc ? "OK " : "") + (i + 1) + ". " + t.name;
-          var effDiv = document.createElement("div");
-          effDiv.style.cssText =
-            "font-family:Orbitron,monospace;font-size:6px;letter-spacing:.1em;color:rgba(136,68,255,.65);margin-top:2px;";
-          effDiv.textContent = "Eff: " + t.eff + "% | Note: " + t.note + "/5";
-          div.appendChild(nameDiv);
-          div.appendChild(effDiv);
-          ld.appendChild(div);
-        }
-      }
-
-      function updateProgressHUD() {
-        var pct = (discoveredCount / TOTAL) * 100;
-        document.getElementById("ph-bar").style.width = pct + "%";
-        document.getElementById("ph-count").textContent =
-          discoveredCount + " / " + TOTAL;
-        vitrineMeshes.forEach(function (vm, i) {
-          if (discovered[i]) vm.userData.glassMat.emissiveIntensity = 0.3;
-        });
-      }
-
-      // ═══════════════════════════════════════════════════
-      // TOAST
-      // ═══════════════════════════════════════════════════
-      var toastTimer = null;
-      function showToast(title, body) {
-        if (toastTimer) clearTimeout(toastTimer);
-        document.getElementById("toast-title").textContent = title;
-        document.getElementById("toast-body").textContent = body;
-        document.getElementById("toast").classList.add("show");
-        toastTimer = setTimeout(function () {
-          document.getElementById("toast").classList.remove("show");
-        }, 4000);
-      }
-
-      // ═══════════════════════════════════════════════════
-      // NEXT ROOM
-      // ═══════════════════════════════════════════════════
-      var nextVoiceDone = false;
-      function goNext() {
-        if (entering) return;
-        if (!nextVoiceDone) {
-          nextVoiceDone = true;
-          stopV();
-          speak(
-            "Vous avez vu mon ARSENAL COMPLET.\nTREIZE technologies revolutionnaires.\nDrones. Bacteries. Super-Trees. Barrieres oceaniques.\nTours anti-smog. Recifs 3D. Perovskites.\nCapture CO2. Fusion nucleaire.\nBioreacteurs a algues. Eau atmospherique. Recyclage nucleaire.\nTout ca EXISTE.\nTout ca FONCTIONNE.\nOu presque.\nIl ne manque que deux choses.\nDe l'ARGENT.\nEt de la VOLONTE.\nVous avez maintenant les connaissances.\nVous etes... mes anticorps.\nMes defenseurs.\nAllez...\nLa prochaine salle vous attend.\nJe compte sur vous.",
-            function () {
-              actuallyGoNext();
-            },
-            0.74
-          );
-          document.getElementById("next-btn").textContent = "GAIA PARLE...";
-          document.getElementById("next-btn").style.opacity = ".5";
-          return;
-        }
-        actuallyGoNext();
-      }
-
-      function actuallyGoNext() {
-        entering = true;
-        stopV();
-        var cu = document.getElementById("curtain");
-        cu.style.background = "linear-gradient(135deg,#0011aa,#000855,#000)";
-        cu.style.transition = "opacity 2.2s ease";
-        cu.classList.remove("gone");
-        cu.style.opacity = "1";
-        setTimeout(function () {
-          try {
-            localStorage.setItem("gaiaScore", score.toString());
-            localStorage.setItem("gaiaPlayerName", pName);
-          } catch (e) {}
+        // Navigate after transition
+        setTimeout(() => {
           window.location.href = "scene19.html";
-        }, 2400);
+        }, 2000);
       }
 
-      // ═══════════════════════════════════════════════════
-      // RENDER LOOP
-      // ═══════════════════════════════════════════════════
-      function renderLoop(ts) {
-        requestAnimationFrame(renderLoop);
-        var dt = Math.min((ts - lastT) / 1000, 0.05);
-        lastT = ts;
-        uTime += dt;
-        if (!camera3 || !renderer || !scene3) return;
+      // RESIZE
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
 
-        var spd = 4.0;
-        var fwd = new THREE.Vector3(
-          Math.sin(camYaw) * Math.cos(camPitch),
-          0,
-          Math.cos(camYaw) * Math.cos(camPitch)
-        ).normalize();
-        var rgt = new THREE.Vector3(
-          Math.cos(camYaw),
-          0,
-          -Math.sin(camYaw)
-        ).normalize();
-        if (keysF["KeyW"] || keysF["ArrowUp"])
-          camera3.position.addScaledVector(fwd, spd * dt);
-        if (keysF["KeyS"] || keysF["ArrowDown"])
-          camera3.position.addScaledVector(fwd, -spd * dt);
-        if (keysF["KeyA"] || keysF["ArrowLeft"])
-          camera3.position.addScaledVector(rgt, -spd * dt);
-        if (keysF["KeyD"] || keysF["ArrowRight"])
-          camera3.position.addScaledVector(rgt, spd * dt);
-
-        var r = Math.sqrt(
-          camera3.position.x * camera3.position.x +
-            camera3.position.z * camera3.position.z
-        );
-        if (r < 3) {
-          var ff = 3 / r;
-          camera3.position.x *= ff;
-          camera3.position.z *= ff;
-        }
-        if (r > 22) {
-          var ff = 22 / r;
-          camera3.position.x *= ff;
-          camera3.position.z *= ff;
-        }
-        camera3.position.y = 2;
-        camera3.rotation.order = "YXZ";
-        camera3.rotation.y = camYaw;
-        camera3.rotation.x = camPitch;
-
-        if (scene3._floorMat) scene3._floorMat.uniforms.uT.value = uTime;
-        if (scene3._ceilMat) scene3._ceilMat.uniforms.uT.value = uTime;
-        if (scene3._wallMat) scene3._wallMat.uniforms.uT.value = uTime;
-        if (scene3._platMat) scene3._platMat.uniforms.uT.value = uTime;
-
-        vitrineMeshes.forEach(function (vm, i) {
-          if (vm.userData.inner)
-            vm.userData.inner.rotation.y += 0.012 + i * 0.0008;
-          var gl = vm.userData.glight;
-          if (gl)
-            gl.intensity =
-              (discovered[i] ? 2.8 : 1.6) + Math.sin(uTime * 1.4 + i) * 0.6;
-        });
-
-        if (scene3._pPos && scene3._pData) {
-          var pp = scene3._pPos,
-            pd = scene3._pData;
-          for (var i = 0; i < pd.length; i++) {
-            pp[i * 3] += pd[i].vx;
-            pp[i * 3 + 1] += pd[i].vy;
-            pp[i * 3 + 2] += pd[i].vz;
-            if (pp[i * 3 + 1] > 9) {
-              pp[i * 3 + 1] = 0.2;
-              var ar = 3 + Math.random() * 22,
-                aa = Math.random() * Math.PI * 2;
-              pp[i * 3] = Math.cos(aa) * ar;
-              pp[i * 3 + 2] = Math.sin(aa) * ar;
-            }
-          }
-          scene3._pGeo.attributes.position.needsUpdate = true;
-        }
-
-        updateProximity();
-        renderer.render(scene3, camera3);
-      }
-
-      // ═══════════════════════════════════════════════════
-      // INIT
-      // ═══════════════════════════════════════════════════
-      function init() {
-        initAC();
-        document.addEventListener(
-          "click",
-          function () {
-            if (AC && AC.state === "suspended") AC.resume();
-          },
-          { once: true }
-        );
-        init3D();
-        var cu = document.getElementById("curtain");
-        cu.style.transition = "opacity 1.6s";
-        setTimeout(function () {
-          cu.classList.add("gone");
-        }, 150);
-        document.getElementById("hud").classList.add("show");
-        document.getElementById("prog-hud").classList.add("show");
-        sfxAmb();
-        setTimeout(function () {
-          ensV(function () {
-            speak(
-              pName +
-                "...\nBienvenue dans mon ARSENAL TECHNOLOGIQUE.\nTreize technologies revolutionnaires.\nCreees par des humains...\nPour reparer les degats causes par des humains.\nTournez autour du couloir.\nExplorez chaque vitrine.\nDecouvrez les solutions.\nCar elles EXISTENT.",
-              null,
-              0.76
-            );
-          });
-        }, 1200);
-        lastT = performance.now();
-        requestAnimationFrame(renderLoop);
-      }
-
-      window.addEventListener("load", init);
-      window.addEventListener("resize", function () {
-        W = innerWidth;
-        H = innerHeight;
-        if (renderer) renderer.setSize(W, H);
-        if (camera3) {
-          camera3.aspect = W / H;
-          camera3.updateProjectionMatrix();
-        }
+        const vfxCanvas = document.getElementById("vfx-canvas");
+        vfxCanvas.width = window.innerWidth;
+        vfxCanvas.height = window.innerHeight;
       });
+
+      // INIT
+      initVFX();
+      initThree();
     </script>
   </body>
 </html>
