@@ -3,168 +3,153 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Scène 20 - Centre de Réparation Écologique</title>
+    <title>Scène 20 — Centre de Réparation Écologique</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,300&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap");
-
+      /* ═══════════════════════════════════════════
+       RESET & ROOT
+    ═══════════════════════════════════════════ */
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
       :root {
-        --g: #00ff88;
-        --g2: #00cc6a;
-        --g3: #004d2a;
-        --b: #00f0ff;
-        --p: #ff00ff;
-        --r: #ff4444;
-        --o: #ff8800;
-        --sg: #44ff44;
-        --bg: #03080a;
-        --panel: rgba(3, 20, 15, 0.97);
-        --t: #ffffff;
-        --t2: #88ffaa;
+        --g: #00ffa3;
+        --g2: #00c97a;
+        --g3: #003d22;
+        --b: #00e5ff;
+        --b2: #0099bb;
+        --p: #d400ff;
+        --r: #ff3355;
+        --o: #ff8c00;
+        --sg: #55ff88;
+        --bg: #020d08;
+        --panel: rgba(3, 22, 14, 0.97);
+        --t: #e8fff2;
+        --t2: #7fcca0;
+        --glass: rgba(0, 255, 160, 0.06);
+        --glass-border: rgba(0, 255, 160, 0.18);
+        --red-glow: rgba(255, 51, 85, 0.25);
+        --amber-glow: rgba(255, 140, 0, 0.25);
       }
-
       html,
       body {
         width: 100%;
         height: 100%;
         overflow: hidden;
         background: var(--bg);
-        font-family: "Rajdhani", sans-serif;
+        font-family: "Exo 2", sans-serif;
         color: var(--t);
         user-select: none;
       }
 
-      /* ===== 3D ROOM ===== */
-      #room-wrap {
+      /* ═══════════════════════════════════════════
+       BACKGROUND — HÔPITAL STATIQUE
+    ═══════════════════════════════════════════ */
+      #bg-wrap {
         position: fixed;
         inset: 0;
         overflow: hidden;
-      }
-      #room-canvas {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
+        z-index: 0;
       }
 
-      #room-scene {
+      /* Mur arrière principal */
+      #bg-wall {
         position: absolute;
         inset: 0;
-        perspective: 900px;
-        perspective-origin: 50% 42%;
+        background: linear-gradient(
+          180deg,
+          #020f0a 0%,
+          #030e09 55%,
+          #020a06 100%
+        );
       }
-      #room-inner {
-        position: absolute;
-        inset: 0;
-        transform-style: preserve-3d;
-        transition: transform 0.05s linear;
-      }
-
-      /* Floor */
-      .room-floor {
+      /* Grille sol */
+      #bg-floor {
         position: absolute;
         bottom: 0;
-        left: -50%;
-        width: 200%;
-        height: 60%;
+        left: 0;
+        width: 100%;
+        height: 48%;
         background: repeating-linear-gradient(
             90deg,
-            rgba(0, 255, 136, 0.07) 0,
-            rgba(0, 255, 136, 0.07) 1px,
-            transparent 1px,
-            transparent 80px
+            rgba(0, 255, 160, 0.06) 0 1px,
+            transparent 1px 90px
           ),
           repeating-linear-gradient(
             0deg,
-            rgba(0, 255, 136, 0.07) 0,
-            rgba(0, 255, 136, 0.07) 1px,
-            transparent 1px,
-            transparent 80px
+            rgba(0, 255, 160, 0.06) 0 1px,
+            transparent 1px 90px
           ),
-          linear-gradient(180deg, #020f08 0%, #010805 100%);
-        transform: rotateX(65deg);
-        transform-origin: 50% 0;
+          linear-gradient(180deg, #021008 0%, #010806 100%);
+        transform: perspective(700px) rotateX(45deg);
+        transform-origin: 50% 0%;
       }
-      /* Ceiling */
-      .room-ceil {
-        position: absolute;
-        top: 0;
-        left: -50%;
-        width: 200%;
-        height: 30%;
-        background: repeating-linear-gradient(
-            90deg,
-            rgba(0, 240, 255, 0.04) 0 1px,
-            transparent 1px 80px
-          ),
-          linear-gradient(0deg, #020f0c 0%, #010805 100%);
-        transform: rotateX(-65deg);
-        transform-origin: 50% 100%;
-      }
-      /* Left wall */
-      .room-wall-l {
-        position: absolute;
-        top: 0;
-        left: -50%;
-        width: 50%;
-        height: 100%;
-        background: linear-gradient(90deg, #020a06 0%, #04120a 100%);
-        transform: rotateY(55deg);
-        transform-origin: 100% 50%;
-        border-right: 1px solid rgba(0, 255, 136, 0.15);
-      }
-      /* Right wall */
-      .room-wall-r {
-        position: absolute;
-        top: 0;
-        right: -50%;
-        width: 50%;
-        height: 100%;
-        background: linear-gradient(-90deg, #020a06 0%, #04120a 100%);
-        transform: rotateY(-55deg);
-        transform-origin: 0 50%;
-        border-left: 1px solid rgba(0, 255, 136, 0.15);
-      }
-      /* Back wall */
-      .room-wall-b {
+      /* Plafond lignes néon */
+      #bg-ceil {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
+        height: 22%;
+        background: repeating-linear-gradient(
+            90deg,
+            rgba(0, 230, 255, 0.05) 0 1px,
+            transparent 1px 120px
+          ),
+          linear-gradient(0deg, transparent 0%, rgba(0, 20, 15, 0.8) 100%);
+      }
+      /* Murs latéraux */
+      #wall-left,
+      #wall-right {
+        position: absolute;
+        top: 0;
+        width: 18%;
         height: 100%;
-        background: linear-gradient(180deg, #020d08 0%, #030f0a 100%);
-        border: 1px solid rgba(0, 255, 136, 0.08);
+        background: linear-gradient(90deg, #010a06 0%, #020e09 100%);
+      }
+      #wall-left {
+        left: 0;
+        border-right: 1px solid rgba(0, 255, 160, 0.1);
+      }
+      #wall-right {
+        right: 0;
+        border-left: 1px solid rgba(0, 255, 160, 0.1);
       }
 
-      /* Neon ceiling lines */
-      .ceil-neon {
+      /* Barres lumineuses plafond */
+      .ceil-strip {
         position: absolute;
-        top: 8%;
-        left: 10%;
-        width: 80%;
-        height: 2px;
+        top: 0;
+        height: 3px;
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(0, 255, 136, 0.8),
-          rgba(0, 240, 255, 0.8),
+          rgba(0, 255, 160, 0.9),
+          rgba(0, 230, 255, 0.9),
           transparent
         );
-        box-shadow: 0 0 20px rgba(0, 255, 136, 0.6),
-          0 0 40px rgba(0, 255, 136, 0.3);
-        animation: ceilPulse 4s ease-in-out infinite;
+        box-shadow: 0 0 30px rgba(0, 255, 160, 0.5),
+          0 0 60px rgba(0, 255, 160, 0.2);
+        animation: stripPulse 4s ease-in-out infinite;
       }
-      .ceil-neon:nth-child(2) {
-        top: 12%;
+      .ceil-strip:nth-child(1) {
+        left: 10%;
+        width: 80%;
+        animation-delay: 0s;
+      }
+      .ceil-strip:nth-child(2) {
         left: 5%;
         width: 90%;
-        animation-delay: 1s;
+        top: 6px;
+        opacity: 0.4;
+        animation-delay: 1.5s;
       }
-      @keyframes ceilPulse {
+      @keyframes stripPulse {
         0%,
         100% {
           opacity: 0.6;
@@ -174,332 +159,519 @@
         }
       }
 
-      /* Ambient light beams */
-      .light-beam {
+      /* Rayons lumineux */
+      .beam {
         position: absolute;
         top: 0;
-        width: 2px;
-        height: 60%;
+        width: 280px;
+        height: 70%;
         background: linear-gradient(
           180deg,
-          rgba(0, 255, 136, 0.4),
-          transparent
+          rgba(0, 255, 160, 0.07) 0%,
+          transparent 100%
         );
         transform-origin: top center;
-        animation: beamSway 8s ease-in-out infinite;
+        clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
       }
-      @keyframes beamSway {
-        0%,
-        100% {
-          opacity: 0.3;
-        }
-        50% {
-          opacity: 0.7;
-        }
+      .beam:nth-child(1) {
+        left: 15%;
+      }
+      .beam:nth-child(2) {
+        left: 42%;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 230, 255, 0.05) 0%,
+          transparent 100%
+        );
+      }
+      .beam:nth-child(3) {
+        right: 15%;
       }
 
-      /* ===== PARTICLES ===== */
+      /* Équipements hôpital fond */
+      .hosp-deco {
+        position: absolute;
+        font-size: 1.2rem;
+        opacity: 0.12;
+        filter: blur(0.5px);
+      }
+
+      /* Particules ambiantes */
       #particles {
         position: absolute;
         inset: 0;
         pointer-events: none;
-        overflow: hidden;
       }
       .pt {
         position: absolute;
         border-radius: 50%;
-        background: var(--g);
-        animation: ptFloat 10s infinite ease-in-out;
+        animation: ptFloat linear infinite;
       }
       @keyframes ptFloat {
-        0%,
-        100% {
+        0% {
           opacity: 0;
-          transform: translateY(0) translateX(0);
+          transform: translateY(100px) scale(0.5);
         }
-        10% {
+        15% {
           opacity: 0.7;
         }
-        90% {
-          opacity: 0.5;
+        85% {
+          opacity: 0.4;
         }
-        50% {
-          transform: translateY(-300px) translateX(60px);
+        100% {
+          opacity: 0;
+          transform: translateY(-120px) scale(1.2);
         }
       }
 
-      /* ===== HEADER ===== */
+      /* ═══════════════════════════════════════════
+       HEADER
+    ═══════════════════════════════════════════ */
       #hdr {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
-        padding: 16px 36px;
         z-index: 200;
-        background: linear-gradient(
-          180deg,
-          rgba(0, 20, 12, 0.98) 0%,
-          rgba(0, 10, 6, 0.7) 80%,
-          transparent
-        );
+        padding: 0 32px;
+        height: 72px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid rgba(0, 255, 136, 0.15);
+        background: linear-gradient(
+          180deg,
+          rgba(1, 14, 8, 0.98) 0%,
+          rgba(1, 10, 6, 0.85) 70%,
+          transparent
+        );
+        border-bottom: 1px solid rgba(0, 255, 160, 0.12);
+        backdrop-filter: blur(12px);
       }
-      .hdr-title {
+      .hdr-left {
         display: flex;
         align-items: center;
         gap: 16px;
       }
-      .hdr-icon {
-        font-size: 2.4rem;
-        animation: iconPulse 2s infinite;
+      .hdr-logo {
+        width: 46px;
+        height: 46px;
+        background: linear-gradient(135deg, var(--g), var(--b));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        box-shadow: 0 0 20px rgba(0, 255, 160, 0.35);
+        animation: logoPulse 3s ease-in-out infinite;
       }
-      @keyframes iconPulse {
+      @keyframes logoPulse {
         0%,
         100% {
-          filter: drop-shadow(0 0 8px var(--g));
+          box-shadow: 0 0 20px rgba(0, 255, 160, 0.35);
         }
         50% {
-          filter: drop-shadow(0 0 20px var(--g));
+          box-shadow: 0 0 40px rgba(0, 230, 255, 0.5);
         }
       }
-      .hdr-text h1 {
+      .hdr-titles h1 {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.5rem;
+        font-size: 1.15rem;
+        font-weight: 700;
         color: var(--g);
-        text-shadow: 0 0 15px var(--g);
+        text-shadow: 0 0 18px rgba(0, 255, 160, 0.5);
         letter-spacing: 3px;
       }
-      .hdr-text .sub {
-        font-size: 0.85rem;
+      .hdr-titles .sub {
+        font-size: 0.78rem;
         color: var(--t2);
-        opacity: 0.8;
         font-style: italic;
+        opacity: 0.8;
+        margin-top: 2px;
       }
 
-      .hdr-right {
+      /* Indicateurs statut hôpital */
+      .hdr-status {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 8px;
       }
-      .prog-box {
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--g);
+        box-shadow: 0 0 8px var(--g);
+        animation: blink2 2s ease-in-out infinite;
+      }
+      @keyframes blink2 {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+      .status-txt {
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.65rem;
+        color: var(--t2);
+        letter-spacing: 2px;
+      }
+
+      /* Progression */
+      .hdr-prog {
         display: flex;
         align-items: center;
-        gap: 12px;
-        background: rgba(0, 20, 12, 0.9);
-        padding: 10px 22px;
-        border-radius: 10px;
-        border: 1px solid rgba(0, 255, 136, 0.3);
+        gap: 14px;
+      }
+      .prog-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(0, 255, 160, 0.05);
+        border: 1px solid var(--glass-border);
+        padding: 8px 18px;
+        border-radius: 30px;
       }
       .prog-lbl {
         font-family: "Orbitron", sans-serif;
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         color: var(--t2);
+        letter-spacing: 2px;
       }
-      .prog-bar {
-        width: 160px;
-        height: 14px;
+      .prog-track {
+        width: 150px;
+        height: 8px;
         background: rgba(0, 0, 0, 0.5);
-        border-radius: 7px;
+        border-radius: 4px;
         overflow: hidden;
-        border: 1px solid rgba(0, 255, 136, 0.3);
+        border: 1px solid rgba(0, 255, 160, 0.2);
       }
       .prog-fill {
         height: 100%;
-        background: linear-gradient(90deg, var(--g), var(--b));
         width: 0%;
-        transition: width 0.5s ease;
-        box-shadow: 0 0 8px var(--g);
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--g), var(--b));
+        box-shadow: 0 0 10px var(--g);
+        transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .prog-num {
         font-family: "Orbitron", sans-serif;
-        font-size: 1rem;
+        font-size: 0.85rem;
         color: var(--g);
       }
-      .score-box {
+      .score-badge {
+        background: rgba(0, 229, 255, 0.08);
+        border: 1px solid rgba(0, 229, 255, 0.25);
+        padding: 8px 18px;
+        border-radius: 30px;
         font-family: "Orbitron", sans-serif;
-        font-size: 1.3rem;
+        font-size: 1rem;
         color: var(--b);
         text-shadow: 0 0 12px var(--b);
       }
 
-      /* ===== CROSSHAIR / COMPASS ===== */
-      #crosshair {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-        z-index: 50;
-        opacity: 0.35;
-      }
-      .ch-ring {
-        width: 40px;
-        height: 40px;
-        border: 1px solid var(--g);
-        border-radius: 50%;
-        position: relative;
-      }
-      .ch-ring::before,
-      .ch-ring::after {
-        content: "";
+      /* ═══════════════════════════════════════════
+       MONITEURS MURAUX (déco hôpital)
+    ═══════════════════════════════════════════ */
+      .wall-monitor {
         position: absolute;
-        background: var(--g);
-      }
-      .ch-ring::before {
-        width: 1px;
-        height: 14px;
-        top: -7px;
-        left: 50%;
-        transform: translateX(-50%);
-      }
-      .ch-ring::after {
-        width: 14px;
-        height: 1px;
-        left: -7px;
-        top: 50%;
-        transform: translateY(-50%);
-      }
-      #compass {
-        position: fixed;
-        bottom: 140px;
-        right: 24px;
-        z-index: 150;
-        width: 70px;
-        height: 70px;
+        top: 18%;
+        width: 120px;
+        height: 80px;
         background: rgba(0, 20, 12, 0.9);
-        border: 2px solid rgba(0, 255, 136, 0.4);
+        border: 1px solid rgba(0, 255, 160, 0.25);
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0, 255, 160, 0.08);
+      }
+      .wall-monitor.left {
+        left: 1%;
+      }
+      .wall-monitor.right {
+        right: 1%;
+      }
+      .wm-header {
+        height: 16px;
+        background: rgba(0, 255, 160, 0.1);
+        display: flex;
+        align-items: center;
+        padding: 0 6px;
+        gap: 4px;
+      }
+      .wm-dot {
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
+        background: var(--g);
+        box-shadow: 0 0 4px var(--g);
+      }
+      .wm-line {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 0.5rem;
+        color: var(--g);
+        margin-left: 4px;
+      }
+      .wm-body {
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .wm-wave {
+        height: 18px;
+        position: relative;
+        overflow: hidden;
+      }
+      .wm-wave svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        animation: waveSVG 3s linear infinite;
+      }
+      @keyframes waveSVG {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      .wm-data {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 3px;
+      }
+      .wm-val {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 0.55rem;
+        color: var(--b);
+      }
+
+      /* Meubles hôpital latéraux */
+      .side-cabinet {
+        position: absolute;
+        bottom: 32%;
+        width: 90px;
+        height: 130px;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 30, 18, 0.9),
+          rgba(0, 15, 9, 0.95)
+        );
+        border: 1px solid rgba(0, 255, 160, 0.2);
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      }
+      .side-cabinet.left {
+        left: 2%;
+      }
+      .side-cabinet.right {
+        right: 2%;
+      }
+      .cab-top {
+        height: 12px;
+        background: rgba(0, 255, 160, 0.08);
+        border-radius: 8px 8px 0 0;
+        border-bottom: 1px solid rgba(0, 255, 160, 0.15);
+      }
+      .cab-light {
+        width: 30px;
+        height: 4px;
+        background: var(--g);
+        border-radius: 2px;
+        margin: 4px auto;
+        box-shadow: 0 0 8px var(--g);
+        animation: cabBlink 2s infinite;
+      }
+      @keyframes cabBlink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+      .cab-screen {
+        margin: 6px;
+        height: 40px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 4px;
+        border: 1px solid rgba(0, 255, 160, 0.15);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.65rem;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 0.5rem;
         color: var(--g);
-      }
-      .compass-arrow {
-        position: absolute;
-        width: 4px;
-        height: 28px;
-        background: linear-gradient(180deg, var(--r), var(--g));
-        border-radius: 2px;
-        transform-origin: 50% 100%;
-        transition: transform 0.2s ease;
+        text-align: center;
+        line-height: 1.4;
       }
 
-      /* ===== CONTROLS HINT ===== */
-      #ctrl-hint {
-        position: fixed;
-        bottom: 24px;
+      /* Robot assistants */
+      .robot {
+        position: absolute;
+        bottom: 30%;
+        font-size: 2.5rem;
+        z-index: 35;
+        filter: drop-shadow(0 0 15px rgba(0, 255, 160, 0.6));
+        animation: robotHover 4s ease-in-out infinite;
+      }
+      .robot.left {
+        left: 6%;
+      }
+      .robot.right {
+        right: 6%;
+        animation-delay: 2s;
+      }
+      @keyframes robotHover {
+        0%,
+        100% {
+          transform: translateY(0) rotate(-2deg);
+        }
+        50% {
+          transform: translateY(-12px) rotate(2deg);
+        }
+      }
+
+      /* ═══════════════════════════════════════════
+       PODS — PATIENTS
+    ═══════════════════════════════════════════ */
+      #pods-area {
+        position: absolute;
+        bottom: 28%;
         left: 50%;
         transform: translateX(-50%);
         display: flex;
-        gap: 10px;
-        z-index: 150;
-      }
-      .ctrl-key {
-        padding: 6px 14px;
-        background: rgba(0, 20, 12, 0.9);
-        border: 1px solid rgba(0, 255, 136, 0.3);
-        border-radius: 6px;
-        font-family: "Share Tech Mono", monospace;
-        font-size: 0.75rem;
-        color: var(--t2);
+        gap: 18px;
+        z-index: 40;
+        align-items: flex-end;
       }
 
-      /* ===== PODS ===== */
-      #pods-area {
-        position: absolute;
-        bottom: 30%;
-        left: 0;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        gap: 2.5%;
-        z-index: 40;
-      }
       .pod {
-        width: 140px;
-        height: 230px;
+        width: 145px;
+        height: 240px;
         background: linear-gradient(
           180deg,
-          rgba(0, 60, 30, 0.25) 0%,
-          rgba(0, 15, 8, 0.85) 100%
+          rgba(0, 50, 28, 0.3) 0%,
+          rgba(0, 12, 7, 0.92) 100%
         );
-        border: 2px solid rgba(0, 255, 136, 0.35);
-        border-radius: 18px 18px 10px 10px;
+        border: 1px solid var(--glass-border);
+        border-radius: 20px 20px 12px 12px;
         position: relative;
         cursor: pointer;
-        transition: all 0.35s ease;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
-        box-shadow: 0 0 20px rgba(0, 255, 136, 0.08);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4),
+          0 0 0 1px rgba(0, 255, 160, 0.05);
+      }
+      .pod::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 255, 160, 0.05) 0%,
+          transparent 60%
+        );
+        opacity: 0;
+        transition: opacity 0.4s;
       }
       .pod:hover {
-        transform: translateY(-12px) scale(1.06);
+        transform: translateY(-16px) scale(1.04);
         border-color: var(--g);
-        box-shadow: 0 20px 40px rgba(0, 255, 136, 0.3),
-          0 0 30px rgba(0, 255, 136, 0.15);
+        box-shadow: 0 24px 60px rgba(0, 255, 160, 0.25),
+          0 0 40px rgba(0, 255, 160, 0.1), 0 0 0 1px rgba(0, 255, 160, 0.3);
       }
-      .pod.done {
-        border-color: var(--sg);
-        background: linear-gradient(
-          180deg,
-          rgba(0, 80, 40, 0.35) 0%,
-          rgba(0, 30, 15, 0.85) 100%
-        );
+      .pod:hover::before {
+        opacity: 1;
       }
-      .pod.done::after {
-        content: "✓";
-        position: absolute;
-        top: 8px;
-        right: 10px;
-        font-size: 1.3rem;
-        color: var(--sg);
-        text-shadow: 0 0 10px var(--sg);
+
+      /* Pod état critique — rouge pulsant */
+      .pod.crit-pod {
+        border-color: rgba(255, 51, 85, 0.4);
       }
+      .pod.crit-pod:hover {
+        border-color: var(--r);
+        box-shadow: 0 24px 60px rgba(255, 51, 85, 0.2),
+          0 0 40px rgba(255, 51, 85, 0.1);
+      }
+      .pod.warn-pod {
+        border-color: rgba(255, 140, 0, 0.4);
+      }
+      .pod.recov-pod {
+        border-color: rgba(0, 255, 160, 0.4);
+      }
+
+      /* Vitrine holographique */
       .pod-glass {
         position: absolute;
-        top: 8px;
-        left: 8px;
-        right: 8px;
-        height: 110px;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        height: 120px;
         background: linear-gradient(
           180deg,
-          rgba(0, 255, 200, 0.08),
-          rgba(0, 100, 80, 0.03)
+          rgba(0, 255, 180, 0.07),
+          rgba(0, 100, 70, 0.02)
         );
-        border-radius: 12px 12px 50% 50%;
-        border: 1px solid rgba(0, 255, 136, 0.2);
+        border-radius: 14px 14px 50% 50%;
+        border: 1px solid rgba(0, 255, 160, 0.15);
         overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
       }
       .pod-holo {
-        font-size: 2.8rem;
-        animation: holoFloat 3s ease-in-out infinite;
+        font-size: 3rem;
+        animation: holoFloat 3.5s ease-in-out infinite;
       }
       @keyframes holoFloat {
         0%,
         100% {
-          transform: translateY(0);
+          transform: translateY(0) scale(1);
         }
         50% {
-          transform: translateY(-6px);
+          transform: translateY(-8px) scale(1.05);
+        }
+      }
+      .pod-rings {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 50% 80%,
+          rgba(0, 255, 160, 0.15) 0%,
+          transparent 65%
+        );
+        animation: ringPulse2 2s ease-in-out infinite;
+      }
+      @keyframes ringPulse2 {
+        0%,
+        100% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 0.9;
         }
       }
       .pod-scan {
         position: absolute;
-        top: 0;
         left: 0;
         width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, transparent, var(--g), transparent);
-        animation: scanLine 2s linear infinite;
+        height: 2px;
+        top: 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 160, 0.8),
+          transparent
+        );
+        animation: scanDown 2.5s ease-in-out infinite;
       }
-      @keyframes scanLine {
+      @keyframes scanDown {
         0% {
           top: 0;
           opacity: 1;
@@ -509,108 +681,223 @@
           opacity: 0;
         }
       }
+
+      /* Infos pod */
       .pod-info {
         position: absolute;
-        bottom: 8px;
+        bottom: 10px;
         left: 8px;
         right: 8px;
         text-align: center;
       }
       .pod-name {
         font-family: "Orbitron", sans-serif;
-        font-size: 0.6rem;
+        font-size: 0.55rem;
+        font-weight: 700;
         color: var(--g);
-        margin-bottom: 4px;
-        line-height: 1.3;
+        line-height: 1.4;
+        margin-bottom: 6px;
+        text-shadow: 0 0 8px rgba(0, 255, 160, 0.4);
+        letter-spacing: 1px;
       }
-      .pod-badge {
+      .pod-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
         font-size: 0.6rem;
-        padding: 4px 8px;
-        border-radius: 4px;
-        display: inline-block;
-        margin-top: 2px;
+        font-family: "Share Tech Mono", monospace;
+        padding: 4px 10px;
+        border-radius: 20px;
       }
-      .b-critical {
-        background: rgba(255, 68, 68, 0.25);
+      .pod-status .sdot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+      }
+      .st-critical {
+        background: rgba(255, 51, 85, 0.15);
         color: var(--r);
-        border: 1px solid var(--r);
-        animation: blink 1s infinite;
+        border: 1px solid rgba(255, 51, 85, 0.4);
       }
-      @keyframes blink {
-        0%,
-        100% {
-          box-shadow: 0 0 4px var(--r);
-        }
-        50% {
-          box-shadow: 0 0 12px var(--r);
-        }
+      .st-critical .sdot {
+        background: var(--r);
+        box-shadow: 0 0 6px var(--r);
+        animation: blink2 1s infinite;
       }
-      .b-warning {
-        background: rgba(255, 136, 0, 0.25);
+      .st-warning {
+        background: rgba(255, 140, 0, 0.15);
         color: var(--o);
-        border: 1px solid var(--o);
+        border: 1px solid rgba(255, 140, 0, 0.4);
       }
-      .b-recovering {
-        background: rgba(68, 255, 68, 0.25);
+      .st-warning .sdot {
+        background: var(--o);
+        box-shadow: 0 0 6px var(--o);
+      }
+      .st-recovering {
+        background: rgba(0, 255, 160, 0.12);
         color: var(--sg);
-        border: 1px solid var(--sg);
+        border: 1px solid rgba(0, 255, 160, 0.3);
       }
-      .b-healed {
-        background: rgba(0, 240, 255, 0.25);
+      .st-recovering .sdot {
+        background: var(--sg);
+        box-shadow: 0 0 6px var(--sg);
+      }
+      .st-healed {
+        background: rgba(0, 229, 255, 0.12);
         color: var(--b);
-        border: 1px solid var(--b);
+        border: 1px solid rgba(0, 229, 255, 0.3);
+      }
+      .st-healed .sdot {
+        background: var(--b);
+        box-shadow: 0 0 6px var(--b);
       }
 
-      /* Robot assistants */
-      .robot {
+      /* Numéro patient */
+      .pod-num {
         position: absolute;
-        bottom: 28%;
-        font-size: 1.8rem;
-        z-index: 35;
-        animation: robotIdle 3s ease-in-out infinite;
-        filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
+        top: 8px;
+        left: 10px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.6rem;
+        color: rgba(0, 255, 160, 0.4);
       }
-      @keyframes robotIdle {
+
+      /* Ligne vitale pod */
+      .pod-vitals {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        top: 135px;
+        height: 20px;
+      }
+      .pod-vitals svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Pod traité */
+      .pod.done-pod {
+        border-color: rgba(0, 229, 255, 0.5);
+        box-shadow: 0 0 30px rgba(0, 229, 255, 0.12);
+      }
+      .pod-done-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0, 229, 255, 0.15);
+        border: 1px solid rgba(0, 229, 255, 0.4);
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: var(--b);
+      }
+
+      /* ═══════════════════════════════════════════
+       SON
+    ═══════════════════════════════════════════ */
+      #snd-btn {
+        position: fixed;
+        bottom: 24px;
+        left: 24px;
+        z-index: 150;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        background: rgba(0, 255, 160, 0.05);
+        border: 1px solid var(--glass-border);
+        padding: 8px 16px;
+        border-radius: 24px;
+        transition: all 0.3s;
+      }
+      #snd-btn:hover {
+        background: rgba(0, 255, 160, 0.1);
+        border-color: var(--g);
+      }
+      .snd-bars {
+        display: flex;
+        gap: 2px;
+        align-items: flex-end;
+        height: 16px;
+      }
+      .snd-bar {
+        width: 3px;
+        background: var(--g);
+        border-radius: 2px;
+        animation: sndWave 0.5s ease-in-out infinite;
+      }
+      .snd-bar:nth-child(1) {
+        height: 6px;
+        animation-delay: 0s;
+      }
+      .snd-bar:nth-child(2) {
+        height: 13px;
+        animation-delay: 0.1s;
+      }
+      .snd-bar:nth-child(3) {
+        height: 8px;
+        animation-delay: 0.2s;
+      }
+      .snd-bar:nth-child(4) {
+        height: 15px;
+        animation-delay: 0.3s;
+      }
+      @keyframes sndWave {
         0%,
         100% {
-          transform: translateY(0);
+          transform: scaleY(1);
         }
         50% {
-          transform: translateY(-8px);
+          transform: scaleY(0.4);
         }
       }
+      #snd-btn.muted .snd-bar {
+        animation: none;
+        height: 3px;
+        opacity: 0.3;
+      }
+      #snd-btn span {
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.65rem;
+        color: var(--g);
+        letter-spacing: 2px;
+      }
 
-      /* ===== OVERLAY BASE ===== */
+      /* ═══════════════════════════════════════════
+       OVERLAY BASE
+    ═══════════════════════════════════════════ */
       .overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.97);
         z-index: 500;
         display: none;
         opacity: 0;
-        transition: opacity 0.4s ease;
+        transition: opacity 0.35s ease;
         flex-direction: column;
-        overflow: hidden;
+        background: rgba(0, 0, 0, 0.96);
       }
       .overlay.open {
         display: flex;
         opacity: 1;
       }
-
       .ov-close {
         position: absolute;
-        top: 18px;
-        right: 18px;
-        width: 46px;
-        height: 46px;
+        top: 20px;
+        right: 20px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.08);
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        color: #fff;
-        font-size: 1.3rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
         z-index: 10;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #fff;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s;
       }
       .ov-close:hover {
         border-color: var(--g);
@@ -618,140 +905,123 @@
         transform: rotate(90deg);
       }
 
-      /* ===== GUIDE OVERLAY ===== */
+      /* ═══════════════════════════════════════════
+       GUIDE OVERLAY
+    ═══════════════════════════════════════════ */
       #guide-ov {
-        background: linear-gradient(135deg, #020d08 0%, #010a06 100%);
-      }
-      .guide-inner {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
+        background: linear-gradient(135deg, #020f09 0%, #010b06 100%);
         align-items: center;
-        justify-content: flex-start;
-        padding: 40px 20px;
-        overflow-y: auto;
+        justify-content: center;
       }
-      .guide-badge {
+      .guide-wrap {
+        width: 92%;
+        max-width: 900px;
+        max-height: 94vh;
+        overflow-y: auto;
+        padding: 44px 40px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 255, 160, 0.3) transparent;
+      }
+      .guide-wrap::-webkit-scrollbar {
+        width: 5px;
+      }
+      .guide-wrap::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 160, 0.3);
+        border-radius: 3px;
+      }
+
+      .guide-eyebrow {
         font-family: "Orbitron", sans-serif;
-        font-size: 0.75rem;
-        letter-spacing: 4px;
+        font-size: 0.7rem;
+        letter-spacing: 5px;
         color: var(--b);
-        border: 1px solid rgba(0, 240, 255, 0.3);
-        padding: 8px 20px;
+        border: 1px solid rgba(0, 229, 255, 0.25);
+        display: inline-block;
+        padding: 7px 20px;
         border-radius: 20px;
-        margin-bottom: 20px;
+        margin-bottom: 22px;
       }
       .guide-title {
         font-family: "Orbitron", sans-serif;
-        font-size: 2.2rem;
+        font-size: 2rem;
+        font-weight: 900;
         color: var(--g);
-        text-shadow: 0 0 20px var(--g);
-        text-align: center;
+        text-shadow: 0 0 30px rgba(0, 255, 160, 0.4);
         margin-bottom: 6px;
+        line-height: 1.2;
       }
       .guide-sub {
         color: var(--t2);
-        text-align: center;
-        margin-bottom: 32px;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
+        margin-bottom: 36px;
+        font-weight: 300;
       }
 
-      .guide-steps {
+      .steps-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 20px;
-        max-width: 1000px;
-        width: 100%;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
         margin-bottom: 32px;
       }
       .gstep {
-        background: rgba(0, 30, 15, 0.8);
-        border: 1px solid rgba(0, 255, 136, 0.25);
+        background: rgba(0, 255, 160, 0.04);
+        border: 1px solid rgba(0, 255, 160, 0.18);
         border-radius: 16px;
-        padding: 24px;
+        padding: 22px;
         position: relative;
         overflow: hidden;
       }
-      .gstep::before {
+      .gstep::after {
         content: "";
         position: absolute;
         top: 0;
         left: 0;
-        width: 4px;
+        width: 3px;
         height: 100%;
-        background: var(--g);
+        background: linear-gradient(180deg, var(--g), var(--b));
       }
-      .gstep-num {
+      .gstep-n {
         font-family: "Orbitron", sans-serif;
-        font-size: 2.5rem;
-        color: rgba(0, 255, 136, 0.15);
+        font-size: 2rem;
+        font-weight: 900;
+        color: rgba(0, 255, 160, 0.1);
         position: absolute;
-        top: 10px;
-        right: 16px;
+        top: 12px;
+        right: 14px;
       }
       .gstep-icon {
-        font-size: 2rem;
-        margin-bottom: 12px;
+        font-size: 1.8rem;
+        margin-bottom: 10px;
       }
       .gstep-title {
         font-family: "Orbitron", sans-serif;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         color: var(--g);
         margin-bottom: 8px;
+        letter-spacing: 1px;
       }
       .gstep p {
-        font-size: 0.9rem;
+        font-size: 0.88rem;
         color: var(--t2);
-        line-height: 1.6;
+        line-height: 1.7;
+        font-weight: 300;
       }
 
-      .guide-nav {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 14px;
-        max-width: 800px;
-        width: 100%;
-        margin-bottom: 32px;
-      }
-      .nav-card {
-        background: rgba(0, 240, 255, 0.06);
-        border: 1px solid rgba(0, 240, 255, 0.2);
-        border-radius: 12px;
-        padding: 16px;
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-      }
-      .nav-icon {
-        font-size: 1.5rem;
-        flex-shrink: 0;
-      }
-      .nav-key {
-        font-family: "Share Tech Mono", monospace;
-        font-size: 0.75rem;
-        color: var(--b);
-        margin-bottom: 4px;
-      }
-      .nav-desc {
-        font-size: 0.82rem;
-        color: var(--t2);
-      }
-
-      .guide-scoring {
-        background: rgba(0, 60, 30, 0.4);
-        border: 2px solid rgba(0, 255, 136, 0.3);
+      /* Scoring */
+      .score-section {
+        background: rgba(0, 255, 160, 0.04);
+        border: 1px solid rgba(0, 255, 160, 0.2);
         border-radius: 16px;
-        padding: 24px 32px;
-        max-width: 700px;
-        width: 100%;
-        margin-bottom: 32px;
+        padding: 24px 28px;
+        margin-bottom: 28px;
         text-align: center;
       }
-      .guide-scoring h3 {
+      .score-section h3 {
         font-family: "Orbitron", sans-serif;
         color: var(--g);
-        margin-bottom: 16px;
+        margin-bottom: 18px;
+        font-size: 0.95rem;
+        letter-spacing: 2px;
       }
       .score-grid {
         display: grid;
@@ -760,60 +1030,61 @@
       }
       .sc-item {
         background: rgba(0, 0, 0, 0.3);
-        border-radius: 10px;
-        padding: 12px;
-        border: 1px solid rgba(0, 255, 136, 0.15);
+        border-radius: 12px;
+        padding: 14px;
+        border: 1px solid rgba(0, 255, 160, 0.1);
       }
       .sc-val {
         font-family: "Orbitron", sans-serif;
         font-size: 1.4rem;
-        color: var(--g);
       }
       .sc-lbl {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         color: var(--t2);
-        margin-top: 4px;
+        margin-top: 5px;
+        font-weight: 300;
       }
 
-      .guide-start-btn {
+      .guide-btn {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.1rem;
-        padding: 18px 50px;
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 18px 52px;
+        letter-spacing: 3px;
         background: linear-gradient(135deg, var(--g), var(--g2));
         border: none;
         border-radius: 14px;
-        color: #020d08;
+        color: #010d06;
         cursor: pointer;
-        transition: all 0.3s ease;
-        letter-spacing: 2px;
-        box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        transition: all 0.3s;
+        box-shadow: 0 8px 32px rgba(0, 255, 160, 0.3);
       }
-      .guide-start-btn:hover {
+      .guide-btn:hover {
         transform: translateY(-4px);
-        box-shadow: 0 16px 40px rgba(0, 255, 136, 0.5);
+        box-shadow: 0 16px 48px rgba(0, 255, 160, 0.45);
       }
 
-      /* ===== DIAGNOSTIC OVERLAY ===== */
+      /* ═══════════════════════════════════════════
+       DIAGNOSTIC OVERLAY
+    ═══════════════════════════════════════════ */
       #diag-ov {
-        background: rgba(2, 10, 6, 0.98);
+        background: rgba(2, 10, 6, 0.99);
       }
-      .diag-inner {
+      .diag-grid {
         width: 100%;
         height: 100%;
         display: grid;
-        grid-template-columns: 1fr 1.1fr;
-        gap: 0;
-        overflow: hidden;
+        grid-template-columns: 1fr 1.15fr;
       }
 
-      /* Left holo section */
-      .diag-holo-sec {
+      /* Section hologramme */
+      .diag-holo {
         background: linear-gradient(
           135deg,
-          rgba(0, 40, 20, 0.9),
-          rgba(0, 15, 8, 0.98)
+          rgba(0, 35, 20, 0.95),
+          rgba(0, 12, 7, 1)
         );
-        border-right: 1px solid rgba(0, 255, 136, 0.2);
+        border-right: 1px solid rgba(0, 255, 160, 0.15);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -822,72 +1093,76 @@
         position: relative;
         overflow: hidden;
       }
-      .holo-rings {
-        position: absolute;
-        width: 350px;
-        height: 350px;
-        border: 2px solid rgba(0, 255, 136, 0.2);
-        border-radius: 50%;
-        animation: ringPulse 3s ease-in-out infinite;
+      .h-rings-wrap {
+        position: relative;
+        width: 260px;
+        height: 260px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-      .holo-rings::before,
-      .holo-rings::after {
-        content: "";
+      .h-ring {
         position: absolute;
         border-radius: 50%;
-        border: 1px solid rgba(0, 240, 255, 0.15);
+        border: 1px solid;
+        animation: hRing 4s ease-in-out infinite;
       }
-      .holo-rings::before {
-        inset: -22px;
-        animation: ringPulse 3s ease-in-out infinite 0.6s;
-      }
-      .holo-rings::after {
-        inset: -44px;
-        animation: ringPulse 3s ease-in-out infinite 1.2s;
-      }
-      @keyframes ringPulse {
-        0%,
-        100% {
-          transform: scale(1);
-          opacity: 0.5;
-        }
-        50% {
-          transform: scale(1.04);
-          opacity: 0.8;
-        }
-      }
-
-      .holo-main {
-        font-size: 8rem;
-        z-index: 2;
-        filter: drop-shadow(0 0 30px var(--g));
-        animation: holoGlow 2.5s ease-in-out infinite;
-      }
-      @keyframes holoGlow {
-        0%,
-        100% {
-          filter: drop-shadow(0 0 30px var(--g)) brightness(1);
-        }
-        50% {
-          filter: drop-shadow(0 0 50px var(--b)) brightness(1.2);
-        }
-      }
-      .holo-scan {
-        position: absolute;
-        top: 0;
-        left: 0;
+      .h-ring:nth-child(1) {
         width: 100%;
         height: 100%;
+        border-color: rgba(0, 255, 160, 0.25);
+      }
+      .h-ring:nth-child(2) {
+        width: 78%;
+        height: 78%;
+        border-color: rgba(0, 229, 255, 0.2);
+        animation-delay: 0.8s;
+      }
+      .h-ring:nth-child(3) {
+        width: 56%;
+        height: 56%;
+        border-color: rgba(0, 255, 160, 0.35);
+        animation-delay: 1.6s;
+      }
+      @keyframes hRing {
+        0%,
+        100% {
+          transform: scale(1) rotate(0deg);
+          opacity: 0.6;
+        }
+        50% {
+          transform: scale(1.05) rotate(3deg);
+          opacity: 1;
+        }
+      }
+      .h-icon {
+        font-size: 6rem;
+        z-index: 2;
+        position: relative;
+        filter: drop-shadow(0 0 24px var(--g));
+        animation: hIcon 3s ease-in-out infinite;
+      }
+      @keyframes hIcon {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 24px var(--g)) brightness(1);
+        }
+        50% {
+          filter: drop-shadow(0 0 40px var(--b)) brightness(1.15);
+        }
+      }
+      .h-scan-line {
+        position: absolute;
+        inset: 0;
         background: linear-gradient(
           180deg,
-          transparent,
-          rgba(0, 255, 136, 0.06),
-          transparent
+          transparent 0%,
+          rgba(0, 255, 160, 0.07) 50%,
+          transparent 100%
         );
-        animation: medScan 3s ease-in-out infinite;
-        pointer-events: none;
+        animation: hScan 3.5s ease-in-out infinite;
       }
-      @keyframes medScan {
+      @keyframes hScan {
         0% {
           transform: translateY(-100%);
         }
@@ -895,118 +1170,168 @@
           transform: translateY(100%);
         }
       }
-
-      .holo-patient-title {
-        position: absolute;
-        bottom: 60px;
-        left: 0;
-        right: 0;
+      .h-label {
+        margin-top: 28px;
         text-align: center;
         font-family: "Orbitron", sans-serif;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         color: var(--g);
-        text-shadow: 0 0 10px var(--g);
+        text-shadow: 0 0 12px rgba(0, 255, 160, 0.4);
+        letter-spacing: 2px;
       }
-      .holo-location {
-        position: absolute;
-        bottom: 38px;
-        left: 0;
-        right: 0;
-        text-align: center;
+      .h-sub {
+        margin-top: 6px;
         font-size: 0.8rem;
         color: var(--t2);
       }
 
-      /* Right info section */
-      .diag-info-sec {
+      /* Coins décoratifs hôpital */
+      .corner-deco {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+      }
+      .corner-deco::before,
+      .corner-deco::after {
+        content: "";
+        position: absolute;
+        background: var(--g);
+        opacity: 0.3;
+      }
+      .corner-deco.tl {
+        top: 20px;
+        left: 20px;
+      }
+      .corner-deco.tl::before {
+        width: 20px;
+        height: 1px;
+        top: 0;
+        left: 0;
+      }
+      .corner-deco.tl::after {
+        width: 1px;
+        height: 20px;
+        top: 0;
+        left: 0;
+      }
+      .corner-deco.br {
+        bottom: 20px;
+        right: 20px;
+      }
+      .corner-deco.br::before {
+        width: 20px;
+        height: 1px;
+        bottom: 0;
+        right: 0;
+      }
+      .corner-deco.br::after {
+        width: 1px;
+        height: 20px;
+        bottom: 0;
+        right: 0;
+      }
+
+      /* Section infos */
+      .diag-info {
         display: flex;
         flex-direction: column;
         overflow-y: auto;
-        padding: 30px;
-        gap: 16px;
+        padding: 28px;
+        gap: 14px;
       }
-      .diag-info-sec::-webkit-scrollbar {
-        width: 6px;
+      .diag-info::-webkit-scrollbar {
+        width: 5px;
       }
-      .diag-info-sec::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.3);
-      }
-      .diag-info-sec::-webkit-scrollbar-thumb {
-        background: rgba(0, 255, 136, 0.3);
+      .diag-info::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 160, 0.2);
         border-radius: 3px;
       }
 
       .dcard {
-        background: rgba(0, 20, 10, 0.9);
-        border: 1px solid rgba(0, 255, 136, 0.25);
+        background: rgba(0, 18, 10, 0.95);
+        border: 1px solid rgba(0, 255, 160, 0.18);
         border-radius: 14px;
         padding: 18px;
         position: relative;
         overflow: hidden;
         flex-shrink: 0;
       }
-      .dcard::before {
-        content: "";
+      .dcard.warn-c {
+        border-color: rgba(255, 140, 0, 0.3);
+      }
+      .dcard.crit-c {
+        border-color: rgba(255, 51, 85, 0.3);
+      }
+      .dcard-stripe {
         position: absolute;
         top: 0;
         left: 0;
-        width: 4px;
+        width: 3px;
         height: 100%;
         background: var(--g);
       }
-      .dcard.warn::before {
+      .dcard.warn-c .dcard-stripe {
         background: var(--o);
       }
-      .dcard.crit::before {
+      .dcard.crit-c .dcard-stripe {
         background: var(--r);
       }
+
       .dcard-hdr {
         display: flex;
         align-items: center;
         gap: 10px;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
       }
-      .dcard-icon {
-        font-size: 1.3rem;
+      .dcard-ico {
+        font-size: 1.2rem;
       }
       .dcard-lbl {
         font-family: "Orbitron", sans-serif;
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         color: var(--g);
+        letter-spacing: 2px;
+      }
+      .dcard.warn-c .dcard-lbl {
+        color: var(--o);
+      }
+      .dcard.crit-c .dcard-lbl {
+        color: var(--r);
       }
 
-      .patient-bigname {
+      .patient-name {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.3rem;
+        font-size: 1.15rem;
         color: var(--t);
         margin-bottom: 4px;
       }
-      .patient-loc,
-      .patient-sz {
-        font-size: 0.85rem;
+      .patient-meta {
+        font-size: 0.82rem;
         color: var(--t2);
-        margin-top: 2px;
+        margin-top: 3px;
+        font-weight: 300;
       }
 
-      .stat-grid {
+      .stat-grid2 {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        gap: 8px;
       }
       .stat-item {
-        background: rgba(0, 0, 0, 0.3);
-        padding: 10px;
+        background: rgba(0, 0, 0, 0.35);
+        padding: 10px 12px;
         border-radius: 8px;
-        border-left: 3px solid var(--g);
+        border-left: 2px solid rgba(0, 255, 160, 0.3);
       }
       .stat-lbl {
-        font-size: 0.72rem;
+        font-size: 0.68rem;
         color: var(--t2);
         margin-bottom: 4px;
+        font-weight: 300;
       }
       .stat-val {
         font-family: "Orbitron", sans-serif;
-        font-size: 1rem;
+        font-size: 0.95rem;
         color: var(--r);
       }
       .stat-val.ok {
@@ -1018,232 +1343,251 @@
       }
       .causes-list li {
         padding: 7px 0;
-        border-bottom: 1px solid rgba(0, 255, 136, 0.08);
-        font-size: 0.88rem;
+        border-bottom: 1px solid rgba(0, 255, 160, 0.07);
+        font-size: 0.85rem;
         color: var(--t2);
         display: flex;
         align-items: flex-start;
         gap: 8px;
+        font-weight: 300;
       }
       .causes-list li::before {
-        content: "⚠";
+        content: "▸";
         color: var(--o);
         flex-shrink: 0;
+        margin-top: 1px;
       }
 
-      .prognosis-box {
-        background: rgba(255, 68, 68, 0.08);
-        border: 1px solid rgba(255, 68, 68, 0.3);
-        padding: 14px;
+      .prog-box-diag {
+        background: rgba(255, 51, 85, 0.06);
+        border: 1px solid rgba(255, 51, 85, 0.2);
         border-radius: 10px;
+        padding: 14px;
         text-align: center;
-        font-size: 0.88rem;
-        color: var(--r);
+        font-size: 0.85rem;
       }
-      .prognosis-box h4 {
+      .prog-box-diag h4 {
         color: var(--r);
-        margin-bottom: 8px;
-        font-size: 0.9rem;
+        margin-bottom: 7px;
+        font-size: 0.85rem;
+        font-family: "Orbitron", sans-serif;
+      }
+      .prog-box-diag p {
+        color: rgba(255, 150, 150, 0.8);
+        font-weight: 300;
       }
 
-      .start-treat-btn {
+      .treat-start-btn {
         font-family: "Orbitron", sans-serif;
-        font-size: 1rem;
-        padding: 16px 30px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        padding: 15px;
         background: linear-gradient(135deg, var(--g), var(--g2));
         border: none;
         border-radius: 12px;
-        color: #020d08;
+        color: #010d06;
         cursor: pointer;
         transition: all 0.3s;
         letter-spacing: 2px;
-        box-shadow: 0 8px 24px rgba(0, 255, 136, 0.25);
+        box-shadow: 0 6px 22px rgba(0, 255, 160, 0.25);
         flex-shrink: 0;
       }
-      .start-treat-btn:hover {
+      .treat-start-btn:hover {
         transform: translateY(-3px);
-        box-shadow: 0 14px 36px rgba(0, 255, 136, 0.4);
+        box-shadow: 0 12px 36px rgba(0, 255, 160, 0.4);
       }
 
-      /* ===== TREATMENT OVERLAY ===== */
+      /* ═══════════════════════════════════════════
+       TREATMENT OVERLAY
+    ═══════════════════════════════════════════ */
       #treat-ov {
-        background: rgba(2, 10, 6, 0.98);
+        background: rgba(2, 10, 6, 0.99);
       }
-      .treat-inner {
+      .treat-wrap {
         width: 100%;
         height: 100%;
         display: flex;
         flex-direction: column;
-        padding: 30px;
-        gap: 20px;
+        padding: 28px;
+        gap: 18px;
         overflow: hidden;
       }
-      .treat-hdr {
+      .treat-top {
         text-align: center;
         flex-shrink: 0;
+        padding: 8px 0;
       }
-      .treat-hdr h2 {
+      .treat-top h2 {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         color: var(--g);
-        text-shadow: 0 0 15px var(--g);
+        text-shadow: 0 0 20px rgba(0, 255, 160, 0.4);
+        letter-spacing: 3px;
       }
-      .treat-hdr p {
+      .treat-top p {
         color: var(--t2);
         margin-top: 8px;
+        font-weight: 300;
       }
 
-      .treat-body {
+      .treat-main {
         flex: 1;
         display: grid;
         grid-template-columns: 1.1fr 1fr;
-        gap: 24px;
+        gap: 20px;
         min-height: 0;
-        overflow: hidden;
       }
 
-      .treat-options {
-        background: rgba(0, 15, 8, 0.9);
-        border: 2px solid rgba(0, 255, 136, 0.25);
-        border-radius: 18px;
-        padding: 22px;
+      .opt-panel {
+        background: rgba(0, 14, 8, 0.95);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 20px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
       }
-      .treat-options h3 {
+      .opt-panel h3 {
         font-family: "Orbitron", sans-serif;
+        font-size: 0.85rem;
         color: var(--g);
-        margin-bottom: 16px;
+        margin-bottom: 14px;
         text-align: center;
+        letter-spacing: 2px;
         flex-shrink: 0;
       }
-      .opt-list {
+      .opt-scroll {
         flex: 1;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        padding-right: 6px;
+        gap: 8px;
+        padding-right: 4px;
       }
-      .opt-list::-webkit-scrollbar {
-        width: 5px;
+      .opt-scroll::-webkit-scrollbar {
+        width: 4px;
       }
-      .opt-list::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.3);
-      }
-      .opt-list::-webkit-scrollbar-thumb {
-        background: rgba(0, 255, 136, 0.3);
-        border-radius: 3px;
+      .opt-scroll::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 160, 0.25);
+        border-radius: 2px;
       }
 
       .opt-item {
         background: rgba(0, 0, 0, 0.4);
-        border: 2px solid rgba(0, 255, 136, 0.2);
-        border-radius: 12px;
-        padding: 13px 16px;
+        border: 1px solid rgba(0, 255, 160, 0.15);
+        border-radius: 10px;
+        padding: 12px 14px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.25s;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         flex-shrink: 0;
       }
       .opt-item:hover {
-        border-color: var(--g);
-        background: rgba(0, 255, 136, 0.08);
-        transform: translateX(4px);
+        border-color: rgba(0, 255, 160, 0.5);
+        background: rgba(0, 255, 160, 0.07);
+        transform: translateX(3px);
       }
       .opt-item.sel {
         border-color: var(--b);
-        background: rgba(0, 240, 255, 0.12);
-        box-shadow: 0 0 16px rgba(0, 240, 255, 0.2);
+        background: rgba(0, 229, 255, 0.1);
+        box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
       }
-      .opt-cb {
-        width: 22px;
-        height: 22px;
-        border: 2px solid var(--g);
-        border-radius: 5px;
+      .opt-check {
+        width: 20px;
+        height: 20px;
+        border: 1.5px solid rgba(0, 255, 160, 0.5);
+        border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        transition: all 0.3s;
+        transition: all 0.25s;
       }
-      .opt-item.sel .opt-cb {
+      .opt-item.sel .opt-check {
         background: var(--b);
         border-color: var(--b);
       }
-      .opt-item.sel .opt-cb::after {
+      .opt-item.sel .opt-check::after {
         content: "✓";
-        color: #020d08;
+        color: #010d06;
+        font-size: 0.75rem;
         font-weight: 700;
-        font-size: 0.8rem;
       }
       .opt-icon {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         flex-shrink: 0;
       }
-      .opt-txt .opt-name {
+      .opt-name {
+        font-size: 0.9rem;
         font-weight: 600;
-        font-size: 0.95rem;
       }
-      .opt-txt .opt-desc {
-        font-size: 0.75rem;
+      .opt-desc {
+        font-size: 0.72rem;
         color: var(--t2);
         margin-top: 2px;
+        font-weight: 300;
       }
 
-      /* Right prescription */
-      .prescr-sec {
+      /* Prescription */
+      .rx-panel {
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        overflow: hidden;
+        gap: 14px;
       }
-      .rx-box {
-        background: rgba(0, 15, 8, 0.9);
-        border: 2px solid rgba(0, 240, 255, 0.3);
-        border-radius: 18px;
-        padding: 22px;
+      .rx-card {
+        background: rgba(0, 14, 8, 0.95);
+        border: 1px solid rgba(0, 229, 255, 0.25);
+        border-radius: 16px;
+        padding: 20px;
         flex: 1;
         display: flex;
         flex-direction: column;
         overflow: hidden;
       }
-      .rx-box h3 {
+      .rx-card h3 {
         font-family: "Orbitron", sans-serif;
+        font-size: 0.85rem;
         color: var(--b);
         margin-bottom: 14px;
         text-align: center;
+        letter-spacing: 2px;
         flex-shrink: 0;
       }
-      .rx-list {
+      .rx-items {
         flex: 1;
         overflow-y: auto;
       }
-      .rx-list::-webkit-scrollbar {
-        width: 5px;
+      .rx-items::-webkit-scrollbar {
+        width: 4px;
       }
-      .rx-list::-webkit-scrollbar-thumb {
-        background: rgba(0, 240, 255, 0.3);
-        border-radius: 3px;
+      .rx-items::-webkit-scrollbar-thumb {
+        background: rgba(0, 229, 255, 0.2);
+        border-radius: 2px;
+      }
+      .rx-empty {
+        color: var(--t2);
+        text-align: center;
+        padding: 20px;
+        font-size: 0.85rem;
+        font-weight: 300;
       }
       .rx-item {
-        background: rgba(0, 240, 255, 0.08);
-        border: 1px solid rgba(0, 240, 255, 0.2);
+        background: rgba(0, 229, 255, 0.07);
+        border: 1px solid rgba(0, 229, 255, 0.15);
         border-radius: 8px;
-        padding: 9px 14px;
-        margin-bottom: 8px;
+        padding: 9px 12px;
+        margin-bottom: 7px;
         display: flex;
         align-items: center;
-        gap: 10px;
-        animation: slideIn 0.3s ease;
-        font-size: 0.9rem;
+        gap: 8px;
+        font-size: 0.87rem;
+        animation: slideIn 0.25s ease;
       }
       @keyframes slideIn {
         from {
-          transform: translateX(-18px);
+          transform: translateX(-12px);
           opacity: 0;
         }
         to {
@@ -1252,110 +1596,114 @@
         }
       }
       .rx-counter {
-        text-align: center;
-        padding: 12px;
-        background: rgba(0, 0, 0, 0.3);
+        background: rgba(0, 0, 0, 0.35);
         border-radius: 10px;
+        padding: 12px;
+        text-align: center;
+        font-family: "Orbitron", sans-serif;
         flex-shrink: 0;
       }
-      .rx-val {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.8rem;
+      .rx-count-val {
+        font-size: 1.6rem;
         color: var(--g);
       }
-      .rx-val.max {
+      .rx-count-val.maxed {
         color: var(--o);
       }
 
       .apply-btn {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.05rem;
+        font-size: 0.95rem;
+        font-weight: 700;
         padding: 16px;
         background: linear-gradient(135deg, var(--g), var(--g2));
         border: none;
-        border-radius: 14px;
-        color: #020d08;
+        border-radius: 12px;
+        color: #010d06;
         cursor: pointer;
         transition: all 0.3s;
         letter-spacing: 2px;
         flex-shrink: 0;
-        box-shadow: 0 8px 24px rgba(0, 255, 136, 0.25);
       }
-      .apply-btn:hover {
+      .apply-btn:hover:not(:disabled) {
         transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 255, 160, 0.35);
       }
       .apply-btn:disabled {
-        background: rgba(100, 100, 100, 0.4);
+        background: rgba(80, 80, 80, 0.4);
         cursor: not-allowed;
-        box-shadow: none;
+        color: rgba(255, 255, 255, 0.3);
       }
 
-      /* ===== ANIMATION OVERLAY ===== */
+      /* ═══════════════════════════════════════════
+       ANIMATION OVERLAY
+    ═══════════════════════════════════════════ */
       #anim-ov {
-        background: linear-gradient(135deg, #020d08 0%, #010a06 100%);
+        background: linear-gradient(135deg, #020f09 0%, #010b06 100%);
         align-items: center;
         justify-content: center;
       }
-      .anim-inner {
+      .anim-wrap {
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
         padding: 40px;
         width: 100%;
+        max-width: 1000px;
       }
       .anim-title {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         color: var(--g);
-        text-shadow: 0 0 20px var(--g);
-        margin-bottom: 30px;
-        text-align: center;
+        text-shadow: 0 0 20px rgba(0, 255, 160, 0.4);
+        margin-bottom: 24px;
+        letter-spacing: 3px;
       }
       .anim-eco {
-        font-size: 7rem;
-        margin: 20px 0;
+        font-size: 6rem;
+        margin: 16px 0;
         filter: drop-shadow(0 0 30px var(--g));
         animation: ecoHeal 3s ease-in-out infinite;
       }
       @keyframes ecoHeal {
         0%,
         100% {
-          transform: scale(1);
-          filter: hue-rotate(0deg) drop-shadow(0 0 30px var(--g));
+          filter: drop-shadow(0 0 30px var(--g)) hue-rotate(0deg);
         }
         50% {
-          transform: scale(1.1);
-          filter: hue-rotate(25deg) drop-shadow(0 0 50px var(--b));
+          filter: drop-shadow(0 0 50px var(--b)) hue-rotate(20deg);
         }
       }
 
+      /* Timeline */
       .tl-wrap {
-        width: 85%;
+        width: 88%;
         max-width: 900px;
+        margin: 20px 0;
       }
       .tl {
         position: relative;
-        padding: 24px 0;
+        padding: 28px 0;
       }
-      .tl::before {
-        content: "";
+      .tl-track {
         position: absolute;
         top: 50%;
         left: 0;
         width: 100%;
-        height: 4px;
-        background: rgba(0, 255, 136, 0.15);
+        height: 3px;
+        background: rgba(0, 255, 160, 0.12);
         transform: translateY(-50%);
+        border-radius: 2px;
       }
       .tl-prog {
         position: absolute;
         top: 50%;
         left: 0;
         width: 0%;
-        height: 4px;
+        height: 3px;
         background: linear-gradient(90deg, var(--g), var(--b));
         transform: translateY(-50%);
+        border-radius: 2px;
         transition: width 1.8s ease;
         box-shadow: 0 0 10px var(--g);
       }
@@ -1368,8 +1716,8 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 12px;
-        opacity: 0.3;
+        gap: 10px;
+        opacity: 0.25;
         transition: all 0.5s;
       }
       .tl-step.act {
@@ -1379,28 +1727,28 @@
         opacity: 1;
       }
       .tl-marker {
-        width: 55px;
-        height: 55px;
-        background: rgba(0, 20, 10, 0.9);
-        border: 3px solid rgba(0, 255, 136, 0.25);
+        width: 52px;
+        height: 52px;
+        background: rgba(0, 18, 10, 0.95);
+        border: 2px solid rgba(0, 255, 160, 0.2);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.4rem;
-        transition: all 0.5s;
+        font-size: 1.3rem;
         z-index: 5;
+        transition: all 0.5s;
       }
       .tl-step.act .tl-marker {
         border-color: var(--g);
-        box-shadow: 0 0 18px var(--g);
-        animation: stepPulse 1s infinite;
+        box-shadow: 0 0 20px rgba(0, 255, 160, 0.4);
+        animation: markerPulse 1s ease-in-out infinite;
       }
       .tl-step.done .tl-marker {
-        background: rgba(0, 255, 136, 0.2);
+        background: rgba(0, 255, 160, 0.15);
         border-color: var(--g);
       }
-      @keyframes stepPulse {
+      @keyframes markerPulse {
         0%,
         100% {
           transform: scale(1);
@@ -1411,198 +1759,294 @@
       }
       .tl-info {
         text-align: center;
-        max-width: 130px;
+        max-width: 120px;
       }
       .tl-year {
         font-family: "Orbitron", sans-serif;
-        font-size: 0.8rem;
+        font-size: 0.72rem;
         color: var(--b);
       }
       .tl-desc {
-        font-size: 0.72rem;
+        font-size: 0.68rem;
         color: var(--t2);
-        margin-top: 4px;
+        margin-top: 3px;
+        line-height: 1.4;
+        font-weight: 300;
       }
 
       .anim-stats {
         display: flex;
-        gap: 28px;
-        margin-top: 28px;
+        gap: 22px;
+        margin-top: 24px;
         flex-wrap: wrap;
         justify-content: center;
       }
       .as-item {
         text-align: center;
-        padding: 18px 26px;
-        background: rgba(0, 20, 10, 0.9);
-        border: 1px solid rgba(0, 255, 136, 0.3);
+        padding: 16px 22px;
+        background: rgba(0, 18, 10, 0.9);
+        border: 1px solid rgba(0, 255, 160, 0.25);
         border-radius: 14px;
       }
       .as-val {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         color: var(--g);
       }
       .as-lbl {
         color: var(--t2);
         margin-top: 4px;
-        font-size: 0.82rem;
+        font-size: 0.78rem;
+        font-weight: 300;
       }
 
-      /* ===== RESULT OVERLAY ===== */
+      /* ═══════════════════════════════════════════
+       RÉSULTAT OVERLAY
+    ═══════════════════════════════════════════ */
       #result-ov {
         align-items: center;
         justify-content: center;
       }
-      .result-box {
-        width: 92%;
-        max-width: 780px;
+      .result-card {
+        width: 90%;
+        max-width: 760px;
         max-height: 92vh;
-        background: rgba(0, 15, 8, 0.97);
-        border: 3px solid var(--g);
-        border-radius: 28px;
-        padding: 36px;
+        background: linear-gradient(
+          160deg,
+          rgba(0, 20, 12, 0.98),
+          rgba(0, 10, 6, 0.99)
+        );
+        border: 2px solid rgba(0, 255, 160, 0.3);
+        border-radius: 24px;
+        padding: 34px;
         overflow-y: auto;
         position: relative;
+        box-shadow: 0 0 80px rgba(0, 255, 160, 0.08);
       }
-      .result-box::-webkit-scrollbar {
-        width: 6px;
+      .result-card::-webkit-scrollbar {
+        width: 5px;
       }
-      .result-box::-webkit-scrollbar-thumb {
-        background: rgba(0, 255, 136, 0.3);
+      .result-card::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 160, 0.2);
         border-radius: 3px;
       }
+
+      /* Coins carte résultat */
+      .rc-corner {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+      }
+      .rc-corner::before,
+      .rc-corner::after {
+        content: "";
+        position: absolute;
+        background: var(--g);
+        opacity: 0.5;
+      }
+      .rc-corner.tl {
+        top: 14px;
+        left: 14px;
+      }
+      .rc-corner.tl::before {
+        width: 16px;
+        height: 1px;
+        top: 0;
+        left: 0;
+      }
+      .rc-corner.tl::after {
+        width: 1px;
+        height: 16px;
+        top: 0;
+        left: 0;
+      }
+      .rc-corner.tr {
+        top: 14px;
+        right: 14px;
+      }
+      .rc-corner.tr::before {
+        width: 16px;
+        height: 1px;
+        top: 0;
+        right: 0;
+      }
+      .rc-corner.tr::after {
+        width: 1px;
+        height: 16px;
+        top: 0;
+        right: 0;
+      }
+      .rc-corner.bl {
+        bottom: 14px;
+        left: 14px;
+      }
+      .rc-corner.bl::before {
+        width: 16px;
+        height: 1px;
+        bottom: 0;
+        left: 0;
+      }
+      .rc-corner.bl::after {
+        width: 1px;
+        height: 16px;
+        bottom: 0;
+        left: 0;
+      }
+      .rc-corner.br {
+        bottom: 14px;
+        right: 14px;
+      }
+      .rc-corner.br::before {
+        width: 16px;
+        height: 1px;
+        bottom: 0;
+        right: 0;
+      }
+      .rc-corner.br::after {
+        width: 1px;
+        height: 16px;
+        bottom: 0;
+        right: 0;
+      }
+
       .res-hdr {
         text-align: center;
-        margin-bottom: 28px;
+        margin-bottom: 26px;
       }
       .res-ico {
-        font-size: 3.5rem;
+        font-size: 3rem;
         margin-bottom: 10px;
       }
       .res-title {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         color: var(--sg);
-        text-shadow: 0 0 16px var(--sg);
+        text-shadow: 0 0 16px rgba(85, 255, 136, 0.5);
       }
       .res-title.partial {
         color: var(--o);
-        text-shadow: 0 0 16px var(--o);
+        text-shadow: 0 0 16px rgba(255, 140, 0, 0.5);
       }
       .res-title.palliative {
         color: var(--r);
-        text-shadow: 0 0 16px var(--r);
+        text-shadow: 0 0 16px rgba(255, 51, 85, 0.5);
       }
 
-      .res-stats {
+      .res-stats-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 14px;
-        margin-bottom: 22px;
+        gap: 12px;
+        margin-bottom: 20px;
       }
       .rs-item {
         background: rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(0, 255, 136, 0.2);
-        border-radius: 13px;
-        padding: 16px;
+        border: 1px solid rgba(0, 255, 160, 0.15);
+        border-radius: 12px;
+        padding: 15px;
         text-align: center;
       }
       .rs-lbl {
         color: var(--t2);
-        font-size: 0.82rem;
-        margin-bottom: 8px;
+        font-size: 0.78rem;
+        margin-bottom: 7px;
+        font-weight: 300;
       }
       .rs-val {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         color: var(--g);
       }
       .rs-change {
         color: var(--sg);
-        font-size: 0.8rem;
-        margin-top: 5px;
+        font-size: 0.75rem;
+        margin-top: 4px;
+        font-weight: 300;
       }
 
-      .res-cost {
+      .res-finance {
+        background: rgba(0, 229, 255, 0.05);
+        border: 1px solid rgba(0, 229, 255, 0.2);
+        border-radius: 12px;
+        padding: 14px;
         text-align: center;
-        padding: 16px;
-        background: rgba(0, 240, 255, 0.07);
-        border: 1px solid rgba(0, 240, 255, 0.25);
-        border-radius: 13px;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
-      .res-cost-val {
+      .res-finance-val {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         color: var(--b);
       }
-      .res-cost p {
+      .res-finance p {
         color: var(--t2);
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         margin-top: 4px;
+        font-weight: 300;
       }
 
-      .res-case {
-        background: rgba(0, 255, 136, 0.07);
-        border: 1px solid rgba(0, 255, 136, 0.2);
-        border-radius: 13px;
-        padding: 16px;
-        margin-bottom: 16px;
+      .res-real {
+        background: rgba(0, 255, 160, 0.04);
+        border: 1px solid rgba(0, 255, 160, 0.15);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
       }
-      .res-case-title {
+      .res-real-lbl {
         font-family: "Orbitron", sans-serif;
         color: var(--g);
-        margin-bottom: 8px;
-        font-size: 0.9rem;
+        font-size: 0.78rem;
+        margin-bottom: 7px;
+        letter-spacing: 2px;
       }
-      .res-case p {
+      .res-real p {
         color: var(--t2);
-        font-size: 0.88rem;
+        font-size: 0.85rem;
         line-height: 1.6;
+        font-weight: 300;
       }
 
-      .res-score-box {
+      .score-wrap {
         text-align: center;
-        padding: 22px;
+        padding: 20px;
         background: linear-gradient(
           135deg,
-          rgba(0, 255, 136, 0.12),
-          rgba(0, 100, 50, 0.1)
+          rgba(0, 255, 160, 0.08),
+          rgba(0, 100, 50, 0.06)
         );
-        border: 2px solid var(--g);
-        border-radius: 16px;
-        margin-bottom: 20px;
+        border: 1px solid rgba(0, 255, 160, 0.25);
+        border-radius: 14px;
+        margin-bottom: 18px;
       }
-      .rs-lbl2 {
+      .sw-lbl {
         color: var(--t2);
-        font-size: 0.9rem;
-        margin-bottom: 8px;
+        font-size: 0.82rem;
+        margin-bottom: 6px;
+        font-weight: 300;
       }
-      .rs-score {
+      .sw-score {
         font-family: "Orbitron", sans-serif;
-        font-size: 2.8rem;
+        font-size: 2.5rem;
         color: var(--g);
-        text-shadow: 0 0 16px var(--g);
+        text-shadow: 0 0 16px rgba(0, 255, 160, 0.4);
       }
-      .rs-grade {
+      .sw-grade {
         color: var(--sg);
-        font-size: 1rem;
-        margin-top: 6px;
-      }
-      .rs-pts {
+        font-size: 0.95rem;
+        margin-top: 5px;
         font-family: "Orbitron", sans-serif;
-        font-size: 1.3rem;
-        color: var(--b);
-        margin-top: 8px;
-        animation: ptsPulse 0.8s ease-in-out;
       }
-      @keyframes ptsPulse {
+      .sw-pts {
+        font-family: "Orbitron", sans-serif;
+        font-size: 1.2rem;
+        color: var(--b);
+        margin-top: 7px;
+        animation: ptsBounce 0.8s ease-in-out;
+      }
+      @keyframes ptsBounce {
         0% {
           transform: scale(1);
         }
         50% {
-          transform: scale(1.2);
+          transform: scale(1.25);
         }
         100% {
           transform: scale(1);
@@ -1611,20 +2055,21 @@
 
       .res-actions {
         display: flex;
-        gap: 16px;
+        gap: 14px;
         justify-content: center;
       }
       .res-btn {
-        padding: 13px 28px;
+        padding: 13px 26px;
         font-family: "Orbitron", sans-serif;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.3s;
+        letter-spacing: 1px;
       }
       .rb-back {
         background: transparent;
-        border: 2px solid var(--t2);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         color: var(--t2);
       }
       .rb-back:hover {
@@ -1634,41 +2079,44 @@
       .rb-next {
         background: linear-gradient(135deg, var(--g), var(--g2));
         border: none;
-        color: #020d08;
+        color: #010d06;
+        font-weight: 700;
       }
       .rb-next:hover {
         transform: translateY(-3px);
-        box-shadow: 0 10px 26px rgba(0, 255, 136, 0.35);
+        box-shadow: 0 10px 28px rgba(0, 255, 160, 0.35);
       }
 
-      /* ===== GAIA DIALOGUE ===== */
+      /* ═══════════════════════════════════════════
+       GAÏA DIALOGUE
+    ═══════════════════════════════════════════ */
       #gaia-dial {
         position: fixed;
-        bottom: 28px;
+        bottom: 24px;
         left: 50%;
         transform: translateX(-50%);
-        width: 82%;
-        max-width: 820px;
+        width: 80%;
+        max-width: 800px;
+        z-index: 900;
         background: linear-gradient(
           135deg,
-          rgba(0, 50, 25, 0.98),
-          rgba(0, 20, 12, 0.99)
+          rgba(0, 45, 24, 0.99),
+          rgba(0, 18, 10, 1)
         );
-        border: 2px solid var(--g);
+        border: 1px solid rgba(0, 255, 160, 0.35);
         border-radius: 20px;
-        padding: 24px 28px;
-        z-index: 900;
+        padding: 22px 26px;
         display: none;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6),
-          0 0 28px rgba(0, 255, 136, 0.18);
+          0 0 30px rgba(0, 255, 160, 0.12);
       }
       #gaia-dial.open {
         display: block;
-        animation: dialUp 0.45s ease;
+        animation: gDial 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       }
-      @keyframes dialUp {
+      @keyframes gDial {
         from {
-          transform: translateX(-50%) translateY(40px);
+          transform: translateX(-50%) translateY(30px);
           opacity: 0;
         }
         to {
@@ -1676,365 +2124,446 @@
           opacity: 1;
         }
       }
-
-      .gaia-hdr {
+      .gaia-hdr2 {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
         margin-bottom: 12px;
       }
-      .gaia-av {
-        width: 46px;
-        height: 46px;
+      .gaia-av2 {
+        width: 42px;
+        height: 42px;
         background: linear-gradient(135deg, var(--g), var(--b));
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.4rem;
-        animation: avGlow 2s ease-in-out infinite;
+        font-size: 1.3rem;
         flex-shrink: 0;
+        box-shadow: 0 0 16px rgba(0, 255, 160, 0.4);
+        animation: avGlow2 2.5s ease-in-out infinite;
       }
-      @keyframes avGlow {
+      @keyframes avGlow2 {
         0%,
         100% {
-          box-shadow: 0 0 12px var(--g);
+          box-shadow: 0 0 16px rgba(0, 255, 160, 0.4);
         }
         50% {
-          box-shadow: 0 0 24px var(--b);
+          box-shadow: 0 0 28px rgba(0, 229, 255, 0.5);
         }
       }
-      .gaia-name {
+      .gaia-name2 {
         font-family: "Orbitron", sans-serif;
         color: var(--g);
-        font-size: 1.1rem;
-      }
-      .gaia-txt {
         font-size: 1rem;
+        letter-spacing: 2px;
+      }
+      .gaia-txt2 {
+        font-size: 0.95rem;
         line-height: 1.8;
         color: var(--t);
+        font-weight: 300;
       }
-      .gaia-txt .hl {
+      .gaia-txt2 .hl {
         color: var(--g);
         font-weight: 600;
       }
-
-      .gaia-close-btn {
+      .gaia-close2 {
         position: absolute;
         top: 14px;
         right: 14px;
         background: none;
         border: none;
         color: var(--t2);
-        font-size: 1.3rem;
+        font-size: 1.1rem;
         cursor: pointer;
         transition: color 0.3s;
       }
-      .gaia-close-btn:hover {
+      .gaia-close2:hover {
         color: var(--g);
       }
 
-      /* ===== SOUND BTN ===== */
-      #snd-btn {
+      /* ═══════════════════════════════════════════
+       TOAST FINAL
+    ═══════════════════════════════════════════ */
+      #toast-final {
         position: fixed;
-        bottom: 28px;
-        left: 28px;
-        z-index: 150;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(0, 20, 12, 0.9);
-        border: 1px solid rgba(0, 255, 136, 0.3);
-        padding: 9px 18px;
-        border-radius: 28px;
-        cursor: pointer;
-      }
-      .snd-bars {
-        display: flex;
-        gap: 2px;
-        align-items: flex-end;
-        height: 18px;
-      }
-      .snd-bar {
-        width: 3px;
-        background: var(--g);
-        animation: sndWave 0.5s ease-in-out infinite;
-      }
-      .snd-bar:nth-child(1) {
-        height: 7px;
-        animation-delay: 0s;
-      }
-      .snd-bar:nth-child(2) {
-        height: 14px;
-        animation-delay: 0.1s;
-      }
-      .snd-bar:nth-child(3) {
-        height: 9px;
-        animation-delay: 0.2s;
-      }
-      .snd-bar:nth-child(4) {
-        height: 16px;
-        animation-delay: 0.3s;
-      }
-      @keyframes sndWave {
-        0%,
-        100% {
-          transform: scaleY(1);
-        }
-        50% {
-          transform: scaleY(0.5);
-        }
-      }
-      #snd-btn.muted .snd-bar {
-        animation: none;
-        height: 3px;
-        opacity: 0.4;
-      }
-      #snd-btn span {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.7rem;
-        color: var(--g);
-      }
-
-      /* ===== COMPLETION TOAST ===== */
-      #complete-toast {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 800;
-        background: rgba(0, 20, 10, 0.98);
-        border: 3px solid var(--g);
-        border-radius: 24px;
-        padding: 40px 60px;
-        text-align: center;
+        inset: 0;
+        z-index: 1000;
         display: none;
-        box-shadow: 0 0 80px rgba(0, 255, 136, 0.3);
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.92);
       }
-      #complete-toast.open {
-        display: block;
-        animation: toastIn 0.5s ease;
+      #toast-final.open {
+        display: flex;
       }
-      @keyframes toastIn {
+      .toast-card {
+        background: linear-gradient(
+          160deg,
+          rgba(0, 22, 13, 0.99),
+          rgba(0, 10, 6, 1)
+        );
+        border: 2px solid var(--g);
+        border-radius: 28px;
+        padding: 44px 52px;
+        text-align: center;
+        max-width: 520px;
+        box-shadow: 0 0 100px rgba(0, 255, 160, 0.2);
+        animation: toastPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      @keyframes toastPop {
         from {
-          transform: translate(-50%, -50%) scale(0.8);
+          transform: scale(0.85);
           opacity: 0;
         }
         to {
-          transform: translate(-50%, -50%) scale(1);
+          transform: scale(1);
           opacity: 1;
         }
       }
-      .ct-ico {
+      .toast-ico {
         font-size: 4rem;
         margin-bottom: 16px;
       }
-      .ct-title {
+      .toast-title {
         font-family: "Orbitron", sans-serif;
-        font-size: 2rem;
+        font-size: 1.8rem;
         color: var(--g);
-        text-shadow: 0 0 20px var(--g);
+        text-shadow: 0 0 24px rgba(0, 255, 160, 0.5);
         margin-bottom: 10px;
+        letter-spacing: 2px;
       }
-      .ct-score {
+      .toast-score {
         font-family: "Orbitron", sans-serif;
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         color: var(--b);
-        margin-bottom: 24px;
+        margin-bottom: 20px;
       }
-      .ct-btn {
+      .toast-msg {
+        color: var(--t2);
+        line-height: 1.8;
+        margin-bottom: 28px;
+        font-weight: 300;
+      }
+      .toast-btn {
         font-family: "Orbitron", sans-serif;
-        font-size: 1rem;
-        padding: 15px 36px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        padding: 15px 38px;
+        letter-spacing: 3px;
         background: linear-gradient(135deg, var(--g), var(--g2));
         border: none;
         border-radius: 12px;
-        color: #020d08;
+        color: #010d06;
         cursor: pointer;
         transition: all 0.3s;
-        letter-spacing: 2px;
       }
-      .ct-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 32px rgba(0, 255, 136, 0.4);
+      .toast-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 36px rgba(0, 255, 160, 0.4);
       }
 
-      /* ===== RESPONSIVE ===== */
-      @media (max-width: 900px) {
-        .diag-inner {
+      /* ═══════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════ */
+      @media (max-width: 860px) {
+        .diag-grid {
           grid-template-columns: 1fr;
           overflow-y: auto;
         }
-        .diag-holo-sec {
-          height: 280px;
+        .diag-holo {
+          height: 260px;
           padding: 20px;
         }
-        .holo-main {
-          font-size: 5rem;
+        .h-icon {
+          font-size: 4rem;
         }
-        .treat-body {
+        .treat-main {
           grid-template-columns: 1fr;
           overflow-y: auto;
         }
-        .tl-steps {
-          flex-direction: column;
-          gap: 20px;
-        }
-        .tl::before {
-          width: 4px;
-          height: 100%;
-          top: 0;
-          left: 28px;
-        }
-        .tl-prog {
-          width: 4px;
-          height: 0%;
-          top: 0;
-          left: 28px;
-          transition: height 1.8s ease;
-        }
         #pods-area {
+          gap: 10px;
           flex-wrap: wrap;
-          bottom: 20%;
+          bottom: 22%;
+          justify-content: center;
         }
         .pod {
-          width: 110px;
-          height: 190px;
+          width: 115px;
+          height: 200px;
         }
-        .guide-steps {
-          grid-template-columns: 1fr;
+        .pod-holo {
+          font-size: 2.3rem;
         }
         .score-grid {
           grid-template-columns: 1fr 1fr;
+        }
+        .tl-steps {
+          flex-direction: column;
+          gap: 16px;
+        }
+        .tl-track {
+          width: 3px;
+          height: 100%;
+          top: 0;
+          left: 26px;
+        }
+        .tl-prog {
+          width: 3px;
+          height: 0%;
+          top: 0;
+          left: 26px;
+          transition: height 1.8s ease;
         }
       }
     </style>
   </head>
   <body>
-    <!-- ===== 3D ROOM ===== -->
-    <div id="room-wrap">
-      <div id="room-scene">
-        <div id="room-inner">
-          <div class="room-wall-b"></div>
-          <div class="room-wall-l"></div>
-          <div class="room-wall-r"></div>
-          <div class="room-floor"></div>
-          <div class="room-ceil">
-            <div class="ceil-neon"></div>
-            <div class="ceil-neon"></div>
+    <!-- ═══════════════════════════════════════════ DÉCOR HÔPITAL ═══ -->
+    <div id="bg-wrap">
+      <div id="bg-wall"></div>
+      <div id="bg-floor"></div>
+      <div id="bg-ceil">
+        <div class="ceil-strip"></div>
+        <div class="ceil-strip"></div>
+      </div>
+      <div id="wall-left"></div>
+      <div id="wall-right"></div>
+      <!-- Rayons lumineux -->
+      <div class="beam"></div>
+      <div class="beam"></div>
+      <div class="beam"></div>
+      <!-- Moniteurs muraux -->
+      <div class="wall-monitor left">
+        <div class="wm-header">
+          <div class="wm-dot"></div>
+          <span class="wm-line">BIO-SIG</span>
+        </div>
+        <div class="wm-body">
+          <div class="wm-wave">
+            <svg width="240" height="18" viewBox="0 0 240 18">
+              <polyline
+                points="0,9 15,9 20,3 25,15 30,9 45,9 50,3 55,15 60,9 75,9 80,3 85,15 90,9 105,9 110,3 115,15 120,9 135,9 140,3 145,15 150,9 165,9 170,3 175,15 180,9 195,9 200,3 205,15 210,9 225,9 230,3 235,15 240,9"
+                fill="none"
+                stroke="#00ffa3"
+                stroke-width="1.5"
+              />
+            </svg>
           </div>
-          <!-- Light beams -->
-          <div class="light-beam" style="left: 20%; animation-delay: 0s"></div>
-          <div class="light-beam" style="left: 50%; animation-delay: 2s"></div>
-          <div class="light-beam" style="left: 80%; animation-delay: 4s"></div>
+          <div class="wm-data">
+            <span class="wm-val">72 bpm</span>
+            <span class="wm-val">O₂ 98%</span>
+          </div>
         </div>
       </div>
+      <div class="wall-monitor right">
+        <div class="wm-header">
+          <div
+            class="wm-dot"
+            style="background: var(--b); box-shadow: 0 0 4px var(--b)"
+          ></div>
+          <span class="wm-line">ECO-SCAN</span>
+        </div>
+        <div class="wm-body">
+          <div class="wm-wave">
+            <svg width="240" height="18" viewBox="0 0 240 18">
+              <polyline
+                points="0,9 10,9 15,4 20,14 25,9 35,9 40,4 45,14 50,9 60,9 65,4 70,14 75,9 85,9 90,4 95,14 100,9 110,9 115,4 120,14 125,9 135,9 140,4 145,14 150,9 160,9 165,4 170,14 175,9 185,9 190,4 195,14 200,9 210,9 215,4 220,14 225,9 235,9 240,9"
+                fill="none"
+                stroke="#00e5ff"
+                stroke-width="1.5"
+              />
+            </svg>
+          </div>
+          <div class="wm-data">
+            <span class="wm-val" style="color: var(--b)">5 PAT.</span>
+            <span class="wm-val" style="color: var(--o)">URGENT</span>
+          </div>
+        </div>
+      </div>
+      <!-- Armoires latérales -->
+      <div class="side-cabinet left">
+        <div class="cab-top"><div class="cab-light"></div></div>
+        <div class="cab-screen">STOCK<br />MÉDICAL<br />✓ OK</div>
+      </div>
+      <div class="side-cabinet right">
+        <div class="cab-top">
+          <div class="cab-light" style="animation-delay: 0.7s"></div>
+        </div>
+        <div class="cab-screen">PROTO<br />TRAITE<br />✓ PRÊT</div>
+      </div>
+      <!-- Particules -->
       <div id="particles"></div>
     </div>
 
-    <!-- Crosshair -->
-    <div id="crosshair"><div class="ch-ring"></div></div>
-
-    <!-- Compass -->
-    <div id="compass">
-      <div class="compass-arrow" id="compass-arrow"></div>
-      <span id="compass-dir">N</span>
-    </div>
-
-    <!-- ===== HEADER ===== -->
+    <!-- ═══════════════════════════════════════════ HEADER ═══ -->
     <div id="hdr">
-      <div class="hdr-title">
-        <span class="hdr-icon">🏥</span>
-        <div class="hdr-text">
+      <div class="hdr-left">
+        <div class="hdr-logo">🏥</div>
+        <div class="hdr-titles">
           <h1>CENTRE DE RÉPARATION ÉCOLOGIQUE</h1>
-          <p class="sub">"Guérissez mes blessures" — Gaïa</p>
+          <p class="sub">"Guérissez mes blessures" — Gaïa · Scène 20</p>
         </div>
       </div>
-      <div class="hdr-right">
-        <div class="prog-box">
-          <span class="prog-lbl">PROGRESSION</span>
-          <div class="prog-bar">
+      <div class="hdr-prog">
+        <div class="hdr-status">
+          <div class="status-dot"></div>
+          <span class="status-txt">EN LIGNE</span>
+        </div>
+        <div class="prog-wrap">
+          <span class="prog-lbl">PATIENTS</span>
+          <div class="prog-track">
             <div class="prog-fill" id="prog-fill"></div>
           </div>
-          <span class="prog-num" id="prog-num">0/5</span>
-          <span class="score-box">⚡ <span id="tot-score">0</span></span>
+          <span class="prog-num" id="prog-num">0 / 5</span>
         </div>
+        <div class="score-badge">⚡ <span id="tot-score">0</span> pts</div>
       </div>
     </div>
 
-    <!-- Robot assistants -->
-    <div
-      class="robot"
-      style="left: 8%; animation-delay: 0s"
-      title="Robot assistant"
-    >
-      🤖
-    </div>
-    <div class="robot" style="right: 8%; animation-delay: 1.5s">🦾</div>
+    <!-- ═══════════════════════════════════════════ ROBOTS ═══ -->
+    <div class="robot left">🤖</div>
+    <div class="robot right">🦾</div>
 
-    <!-- ===== PODS ===== -->
+    <!-- ═══════════════════════════════════════════ PODS ═══ -->
     <div id="pods-area">
-      <div class="pod" data-pid="coral" onclick="openDiag('coral')">
+      <div class="pod crit-pod" data-pid="coral" onclick="openDiag('coral')">
+        <div class="pod-num">01</div>
         <div class="pod-glass">
+          <div class="pod-rings"></div>
           <div class="pod-holo">🪸</div>
           <div class="pod-scan"></div>
         </div>
+        <div class="pod-vitals">
+          <svg viewBox="0 0 125 20">
+            <polyline
+              points="0,10 15,10 20,4 24,16 28,10 40,10 45,4 49,16 53,10 65,10 70,4 74,16 78,10 90,10 95,4 99,16 103,10 115,10 120,4 125,10"
+              fill="none"
+              stroke="#ff3355"
+              stroke-width="1.2"
+              opacity=".6"
+            />
+          </svg>
+        </div>
         <div class="pod-info">
-          <div class="pod-name">GRANDE BARRIÈRE DE CORAIL</div>
-          <span class="pod-badge b-critical">CRITIQUE 50%</span>
+          <div class="pod-name">GRANDE<br />BARRIÈRE CORAIL</div>
+          <div class="pod-status st-critical">
+            <span class="sdot"></span>CRITIQUE 50%
+          </div>
         </div>
       </div>
-      <div class="pod" data-pid="aral" onclick="openDiag('aral')">
+
+      <div class="pod crit-pod" data-pid="aral" onclick="openDiag('aral')">
+        <div class="pod-num">02</div>
         <div class="pod-glass">
+          <div class="pod-rings"></div>
           <div class="pod-holo">🌊</div>
           <div class="pod-scan"></div>
         </div>
+        <div class="pod-vitals">
+          <svg viewBox="0 0 125 20">
+            <polyline
+              points="0,10 15,10 18,3 22,17 26,10 40,10 43,3 47,17 51,10 65,10 68,3 72,17 76,10 90,10 93,3 97,17 101,10 115,10 118,3 122,17 125,10"
+              fill="none"
+              stroke="#ff3355"
+              stroke-width="1.2"
+              opacity=".6"
+            />
+          </svg>
+        </div>
         <div class="pod-info">
           <div class="pod-name">MER D'ARAL</div>
-          <span class="pod-badge b-critical">DÉSERTIFIÉE −90%</span>
+          <div class="pod-status st-critical">
+            <span class="sdot"></span>DÉSERTIFIÉE −90%
+          </div>
         </div>
       </div>
-      <div class="pod" data-pid="forest" onclick="openDiag('forest')">
+
+      <div class="pod crit-pod" data-pid="forest" onclick="openDiag('forest')">
+        <div class="pod-num">03</div>
         <div class="pod-glass">
+          <div class="pod-rings"></div>
           <div class="pod-holo">🌳</div>
           <div class="pod-scan"></div>
         </div>
+        <div class="pod-vitals">
+          <svg viewBox="0 0 125 20">
+            <polyline
+              points="0,10 20,10 23,5 27,15 31,10 50,10 53,5 57,15 61,10 80,10 83,5 87,15 91,10 110,10 113,5 117,15 121,10 125,10"
+              fill="none"
+              stroke="#ff3355"
+              stroke-width="1.2"
+              opacity=".6"
+            />
+          </svg>
+        </div>
         <div class="pod-info">
-          <div class="pod-name">FORÊT ATLANTIQUE</div>
-          <span class="pod-badge b-critical">FRAGMENTÉE 93%</span>
+          <div class="pod-name">FORÊT<br />ATLANTIQUE</div>
+          <div class="pod-status st-critical">
+            <span class="sdot"></span>FRAGMENTÉE 93%
+          </div>
         </div>
       </div>
-      <div class="pod" data-pid="chernobyl" onclick="openDiag('chernobyl')">
+
+      <div
+        class="pod warn-pod"
+        data-pid="chernobyl"
+        onclick="openDiag('chernobyl')"
+      >
+        <div class="pod-num">04</div>
         <div class="pod-glass">
+          <div class="pod-rings" style="animation-delay: 0.5s"></div>
           <div class="pod-holo">☢️</div>
           <div class="pod-scan"></div>
         </div>
+        <div class="pod-vitals">
+          <svg viewBox="0 0 125 20">
+            <polyline
+              points="0,10 25,10 28,6 32,14 36,10 60,10 63,6 67,14 71,10 95,10 98,6 102,14 106,10 125,10"
+              fill="none"
+              stroke="#ff8c00"
+              stroke-width="1.2"
+              opacity=".6"
+            />
+          </svg>
+        </div>
         <div class="pod-info">
-          <div class="pod-name">ZONE TCHERNOBYL</div>
-          <span class="pod-badge b-warning">CONTAMINÉE</span>
+          <div class="pod-name">ZONE<br />TCHERNOBYL</div>
+          <div class="pod-status st-warning">
+            <span class="sdot"></span>CONTAMINÉE
+          </div>
         </div>
       </div>
-      <div class="pod" data-pid="rhine" onclick="openDiag('rhine')">
+
+      <div class="pod recov-pod" data-pid="rhine" onclick="openDiag('rhine')">
+        <div class="pod-num">05</div>
         <div class="pod-glass">
+          <div class="pod-rings" style="animation-delay: 1s"></div>
           <div class="pod-holo">🐟</div>
           <div class="pod-scan"></div>
         </div>
+        <div class="pod-vitals">
+          <svg viewBox="0 0 125 20">
+            <polyline
+              points="0,10 18,10 21,7 25,13 29,10 47,10 50,7 54,13 58,10 76,10 79,7 83,13 87,10 105,10 108,7 112,13 116,10 125,10"
+              fill="none"
+              stroke="#00ffa3"
+              stroke-width="1.2"
+              opacity=".6"
+            />
+          </svg>
+        </div>
         <div class="pod-info">
-          <div class="pod-name">FLEUVE RHIN</div>
-          <span class="pod-badge b-recovering">EN RÉCUPÉRATION</span>
+          <div class="pod-name">FLEUVE<br />RHIN</div>
+          <div class="pod-status st-recovering">
+            <span class="sdot"></span>EN RÉCUPÉRATION
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Controls hint -->
-    <div id="ctrl-hint">
-      <div class="ctrl-key">🖱 Glisser → Regarder</div>
-      <div class="ctrl-key">Scroll → Zoom</div>
-      <div class="ctrl-key">1-5 → Patients</div>
-      <div class="ctrl-key">ESC → Fermer</div>
-    </div>
-
-    <!-- Sound btn -->
+    <!-- Son -->
     <div id="snd-btn" onclick="toggleSound()">
       <div class="snd-bars">
         <div class="snd-bar"></div>
@@ -2045,38 +2574,47 @@
       <span>SON</span>
     </div>
 
-    <!-- ===== GUIDE OVERLAY ===== -->
-    <div class="overlay" id="guide-ov">
-      <div class="guide-inner">
-        <div class="guide-badge">📋 BRIEFING MÉDECIN</div>
+    <!-- ═══════════════════════════════════════════ GUIDE OVERLAY ═══ -->
+    <div
+      class="overlay"
+      id="guide-ov"
+      style="
+        background: linear-gradient(135deg, #020f09, #010b06);
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div class="guide-wrap">
+        <div class="guide-eyebrow">📋 BRIEFING MÉDECIN</div>
         <h1 class="guide-title">🏥 CENTRE DE RÉPARATION ÉCOLOGIQUE</h1>
         <p class="guide-sub">
-          Bienvenue, Docteur. Votre mission : soigner 5 écosystèmes en danger.
+          Bienvenue, Docteur. Votre mission : soigner 5 écosystèmes en danger
+          critique.
         </p>
 
-        <div class="guide-steps">
+        <div class="steps-grid">
           <div class="gstep">
-            <div class="gstep-num">01</div>
+            <div class="gstep-n">01</div>
             <div class="gstep-icon">🔬</div>
             <div class="gstep-title">LIRE LE DIAGNOSTIC</div>
             <p>
-              Cliquez sur un pod médical pour accéder au dossier du patient.
-              Analysez les statistiques, causes et pronostics de chaque
+              Cliquez sur un pod médical pour accéder au dossier complet du
+              patient. Analysez les statistiques, causes et pronostics de chaque
               écosystème.
             </p>
           </div>
           <div class="gstep">
-            <div class="gstep-num">02</div>
+            <div class="gstep-n">02</div>
             <div class="gstep-icon">💊</div>
             <div class="gstep-title">CHOISIR LE TRAITEMENT</div>
             <p>
               Sélectionnez les technologies de restauration adaptées. Attention
               : certaines options sont inefficaces ou contre-productives.
-              Maximum autorisé par patient !
+              Maximum autorisé !
             </p>
           </div>
           <div class="gstep">
-            <div class="gstep-num">03</div>
+            <div class="gstep-n">03</div>
             <div class="gstep-icon">⏱️</div>
             <div class="gstep-title">APPLIQUER & OBSERVER</div>
             <p>
@@ -2085,7 +2623,7 @@
             </p>
           </div>
           <div class="gstep">
-            <div class="gstep-num">04</div>
+            <div class="gstep-n">04</div>
             <div class="gstep-icon">📊</div>
             <div class="gstep-title">ÉVALUER LES RÉSULTATS</div>
             <p>
@@ -2095,7 +2633,7 @@
             </p>
           </div>
           <div class="gstep">
-            <div class="gstep-num">05</div>
+            <div class="gstep-n">05</div>
             <div class="gstep-icon">🌍</div>
             <div class="gstep-title">ÉCOUTER GAÏA</div>
             <p>
@@ -2105,58 +2643,7 @@
           </div>
         </div>
 
-        <div
-          style="
-            font-family: 'Orbitron', sans-serif;
-            color: var(--g);
-            font-size: 0.9rem;
-            margin-bottom: 14px;
-            letter-spacing: 2px;
-          "
-        >
-          NAVIGATION 360°
-        </div>
-        <div class="guide-nav">
-          <div class="nav-card">
-            <span class="nav-icon">🖱️</span>
-            <div>
-              <div class="nav-key">CLIC + GLISSER</div>
-              <div class="nav-desc">
-                Regardez autour de vous dans la salle médicale (vue 360°)
-              </div>
-            </div>
-          </div>
-          <div class="nav-card">
-            <span class="nav-icon">🔍</span>
-            <div>
-              <div class="nav-key">MOLETTE / PINCH</div>
-              <div class="nav-desc">
-                Zoomez sur les pods pour mieux les observer
-              </div>
-            </div>
-          </div>
-          <div class="nav-card">
-            <span class="nav-icon">⌨️</span>
-            <div>
-              <div class="nav-key">TOUCHES 1 → 5</div>
-              <div class="nav-desc">
-                Accès rapide à chaque patient (1=Corail, 5=Rhin)
-              </div>
-            </div>
-          </div>
-          <div class="nav-card">
-            <span class="nav-icon">📱</span>
-            <div>
-              <div class="nav-key">GYROSCOPE</div>
-              <div class="nav-desc">
-                Sur mobile : inclinez votre appareil pour regarder autour de
-                vous
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="guide-scoring">
+        <div class="score-section">
           <h3>🏆 SYSTÈME DE SCORE</h3>
           <div class="score-grid">
             <div class="sc-item">
@@ -2178,68 +2665,62 @@
           </div>
         </div>
 
-        <button class="guide-start-btn" onclick="startGame()">
-          🚀 COMMENCER LA MISSION
-        </button>
+        <div style="text-align: center">
+          <button class="guide-btn" onclick="startGame()">
+            🚀 COMMENCER LA MISSION
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- ===== DIAGNOSTIC OVERLAY ===== -->
+    <!-- ═══════════════════════════════════════════ DIAGNOSTIC OVERLAY ═══ -->
     <div class="overlay" id="diag-ov">
       <button class="ov-close" onclick="closeOv('diag-ov')">✕</button>
-      <div class="diag-inner">
-        <div class="diag-holo-sec">
-          <div class="holo-rings"></div>
-          <div class="holo-main" id="diag-icon">🪸</div>
-          <div class="holo-scan"></div>
-          <div class="holo-patient-title" id="diag-pname">
-            GRANDE BARRIÈRE DE CORAIL
+      <div class="diag-grid">
+        <div class="diag-holo">
+          <div class="corner-deco tl"></div>
+          <div class="corner-deco br"></div>
+          <div class="h-rings-wrap">
+            <div class="h-ring"></div>
+            <div class="h-ring"></div>
+            <div class="h-ring"></div>
+            <div class="h-icon" id="diag-icon">🪸</div>
           </div>
-          <div class="holo-location" id="diag-ploc">
-            📍 Australie (Queensland)
-          </div>
+          <div class="h-scan-line"></div>
+          <div class="h-label" id="diag-pname">GRANDE BARRIÈRE DE CORAIL</div>
+          <div class="h-sub" id="diag-ploc">📍 Australie (Queensland)</div>
         </div>
-        <div class="diag-info-sec" id="diag-info">
-          <!-- filled dynamically -->
-        </div>
+        <div class="diag-info" id="diag-info"></div>
       </div>
     </div>
 
-    <!-- ===== TREATMENT OVERLAY ===== -->
+    <!-- ═══════════════════════════════════════════ TRAITEMENT OVERLAY ═══ -->
     <div class="overlay" id="treat-ov">
       <button class="ov-close" onclick="closeOv('treat-ov');openOv('diag-ov')">
         ✕
       </button>
-      <div class="treat-inner">
-        <div class="treat-hdr">
+      <div class="treat-wrap">
+        <div class="treat-top">
           <h2>⚕️ PROTOCOLE DE TRAITEMENT</h2>
-          <p id="treat-subtitle">Sélectionnez les technologies appropriées</p>
+          <p id="treat-sub">Sélectionnez les technologies appropriées</p>
         </div>
-        <div class="treat-body">
-          <div class="treat-options">
+        <div class="treat-main">
+          <div class="opt-panel">
             <h3>TECHNOLOGIES DISPONIBLES</h3>
-            <div class="opt-list" id="opt-list"></div>
+            <div class="opt-scroll" id="opt-list"></div>
           </div>
-          <div class="prescr-sec">
-            <div class="rx-box">
+          <div class="rx-panel">
+            <div class="rx-card">
               <h3>📋 PRESCRIPTION</h3>
-              <div class="rx-list" id="rx-list">
-                <p
-                  style="
-                    color: var(--t2);
-                    text-align: center;
-                    padding: 20px;
-                    font-size: 0.9rem;
-                  "
-                >
-                  Cliquez sur les technologies pour les ajouter
+              <div class="rx-items" id="rx-list">
+                <p class="rx-empty">
+                  Cliquez sur les technologies pour les ajouter à la
+                  prescription
                 </p>
               </div>
               <div class="rx-counter">
-                <div>
-                  Sélection : <span class="rx-val" id="rx-count">0</span> /
-                  <span id="rx-max">5</span>
-                </div>
+                Sélection : <span class="rx-count-val" id="rx-count">0</span> /
+                <span id="rx-max">5</span>
               </div>
             </div>
             <button
@@ -2255,13 +2736,14 @@
       </div>
     </div>
 
-    <!-- ===== ANIMATION OVERLAY ===== -->
+    <!-- ═══════════════════════════════════════════ ANIMATION OVERLAY ═══ -->
     <div class="overlay" id="anim-ov">
-      <div class="anim-inner">
-        <h2 class="anim-title">🔄 APPLICATION DU TRAITEMENT EN COURS...</h2>
+      <div class="anim-wrap">
+        <h2 class="anim-title">🔄 TRAITEMENT EN COURS...</h2>
         <div class="anim-eco" id="anim-eco">🪸</div>
         <div class="tl-wrap">
           <div class="tl">
+            <div class="tl-track"></div>
             <div class="tl-prog" id="tl-prog"></div>
             <div class="tl-steps" id="tl-steps"></div>
           </div>
@@ -2270,27 +2752,31 @@
       </div>
     </div>
 
-    <!-- ===== RESULT OVERLAY ===== -->
+    <!-- ═══════════════════════════════════════════ RÉSULTAT OVERLAY ═══ -->
     <div class="overlay" id="result-ov">
-      <div class="result-box">
+      <div class="result-card">
+        <div class="rc-corner tl"></div>
+        <div class="rc-corner tr"></div>
+        <div class="rc-corner bl"></div>
+        <div class="rc-corner br"></div>
         <div class="res-hdr">
           <div class="res-ico" id="res-ico">✅</div>
           <h2 class="res-title" id="res-title">TRAITEMENT RÉUSSI !</h2>
         </div>
-        <div class="res-stats" id="res-stats"></div>
-        <div class="res-cost">
-          <div class="res-cost-val" id="res-cost-val">2.5 milliards $</div>
+        <div class="res-stats-grid" id="res-stats"></div>
+        <div class="res-finance">
+          <div class="res-finance-val" id="res-cost-val">2.5 milliards $</div>
           <p id="res-funders">Australie + UNESCO + ONG</p>
         </div>
-        <div class="res-case">
-          <div class="res-case-title">📚 CAS RÉEL</div>
+        <div class="res-real">
+          <div class="res-real-lbl">📚 CAS RÉEL DOCUMENTÉ</div>
           <p id="res-case-desc"></p>
         </div>
-        <div class="res-score-box">
-          <div class="rs-lbl2">SCORE PATIENT</div>
-          <div class="rs-score" id="rs-score">90/100</div>
-          <div class="rs-grade" id="rs-grade">EXCELLENT</div>
-          <div class="rs-pts" id="rs-pts">+50 POINTS</div>
+        <div class="score-wrap">
+          <div class="sw-lbl">SCORE PATIENT</div>
+          <div class="sw-score" id="sw-score">90/100</div>
+          <div class="sw-grade" id="sw-grade">EXCELLENT</div>
+          <div class="sw-pts" id="sw-pts">+50 POINTS</div>
         </div>
         <div class="res-actions">
           <button class="res-btn rb-back" onclick="closeResult()">
@@ -2303,33 +2789,38 @@
       </div>
     </div>
 
-    <!-- ===== GAIA DIALOGUE ===== -->
+    <!-- ═══════════════════════════════════════════ GAÏA ═══ -->
     <div id="gaia-dial">
-      <button class="gaia-close-btn" onclick="closeGaia()">✕</button>
-      <div class="gaia-hdr">
-        <div class="gaia-av">🌍</div>
-        <span class="gaia-name">GAÏA</span>
+      <button class="gaia-close2" onclick="closeGaia()">✕</button>
+      <div class="gaia-hdr2">
+        <div class="gaia-av2">🌍</div>
+        <span class="gaia-name2">GAÏA</span>
       </div>
-      <p class="gaia-txt" id="gaia-txt">Bienvenue...</p>
+      <p class="gaia-txt2" id="gaia-txt">...</p>
     </div>
 
-    <!-- ===== COMPLETION TOAST ===== -->
-    <div id="complete-toast">
-      <div class="ct-ico">🌟</div>
-      <div class="ct-title">MISSION ACCOMPLIE !</div>
-      <div class="ct-score">
-        Score total : <span id="ct-score-val">0</span> points
+    <!-- ═══════════════════════════════════════════ TOAST FINAL ═══ -->
+    <div id="toast-final">
+      <div class="toast-card">
+        <div class="toast-ico">🌟</div>
+        <div class="toast-title">MISSION ACCOMPLIE !</div>
+        <div class="toast-score">
+          Score total : <span id="toast-score">0</span> points
+        </div>
+        <p class="toast-msg">
+          Vous avez traité tous les patients.<br />Certains ont guéri, d'autres
+          ont été stabilisés.<br />C'est ça, la médecine écologique.
+        </p>
+        <button class="toast-btn" onclick="goNext()">
+          🚀 SALLE SUIVANTE →
+        </button>
       </div>
-      <p style="color: var(--t2); margin-bottom: 24px; line-height: 1.7">
-        Vous avez traité tous les patients.<br />
-        Certains ont guéri, d'autres ont été stabilisés.<br />
-        C'est ça, la médecine écologique.
-      </p>
-      <button class="ct-btn" onclick="goNext()">🚀 SALLE SUIVANTE →</button>
     </div>
 
     <script>
-      // ===== DATA =====
+      // ═══════════════════════════════════════════════════════════
+      // DONNÉES PATIENTS
+      // ═══════════════════════════════════════════════════════════
       const PD = {
         coral: {
           name: "GRANDE BARRIÈRE DE CORAIL",
@@ -2430,12 +2921,12 @@
             cost: "2.5 milliards $",
             funders: "Australie + UNESCO + ONG",
             realCase:
-              "Projet 'Reef Restoration' (2018–2028). Résultats préliminaires : +30% coraux en zones traitées (Moore Reef).",
+              'Projet "Reef Restoration" (2018–2028). Résultats préliminaires : +30% coraux en zones traitées (Moore Reef).',
             score: 90,
             grade: "EXCELLENT",
             pts: 50,
           },
-          gaia: `Ma Grande Barrière...<br><span class='hl'>50% morte</span> il y a quelques années.<br>Maintenant... <span class='hl'>80% VIVANTE</span>.<br><br>Vous voyez ? Avec les bonnes technologies... Les bons investissements...<br>Mes écosystèmes <span class='hl'>PEUVENT guérir</span>. Ce n'est pas trop tard. Jamais trop tard.`,
+          gaia: `Ma Grande Barrière...<br><span class='hl'>50% morte</span> il y a quelques années.<br>Maintenant... <span class='hl'>80% VIVANTE</span>.<br><br>Avec les bonnes technologies et les bons investissements...<br>Mes écosystèmes <span class='hl'>PEUVENT guérir</span>. Ce n'est pas trop tard. Jamais trop tard.`,
         },
         aral: {
           name: "MER D'ARAL",
@@ -2454,7 +2945,7 @@
             "Évaporation extrême (climat aride)",
           ],
           prognosis:
-            "Disparition totale. Désertification et maladies respiratoires.",
+            "Disparition totale. Désertification et maladies respiratoires pour des millions de personnes.",
           maxT: 4,
           treats: [
             {
@@ -2503,7 +2994,7 @@
           correct: ["dam", "saxaoul", "drip", "cotton"],
           timeline: [
             { y: "An 1–2", d: "Construction du barrage de Kokaral", i: "🏗️" },
-            { y: "An 2–5", d: "Niveau 'Petite Mer' remonte (+3m)", i: "📈" },
+            { y: "An 2–5", d: 'Niveau "Petite Mer" remonte (+3m)', i: "📈" },
             { y: "An 5–8", d: "Millions de saxaouls sur fond sec", i: "🌱" },
             {
               y: "An 8–10",
@@ -2628,7 +3119,7 @@
             cost: "~1,5 milliard $",
             funders: "Gouvernement + ONG + Entreprises",
             realCase:
-              "'Pacte pour la Restauration de la Mata Atlântica' (reconnu ONU). Objectif : restaurer 15 millions d'hectares d'ici 2050.",
+              "\"Pacte pour la Restauration de la Mata Atlântica\" (reconnu ONU). Objectif : restaurer 15 millions d'hectares d'ici 2050.",
             score: 50,
             grade: "CHRONIQUE STABLE",
             pts: 50,
@@ -2730,7 +3221,7 @@
             cost: "2,1 milliards €",
             funders: "Financement international / BERD",
             realCase:
-              "Le 'New Safe Confinement' achevé en 2016. La zone est devenue la plus grande réserve naturelle d'Europe.",
+              'Le "New Safe Confinement" achevé en 2016. La zone est devenue la plus grande réserve naturelle d\'Europe.',
             score: 30,
             grade: "SOINS PALLIATIFS",
             pts: 30,
@@ -2835,7 +3326,7 @@
             cost: "~15 milliards €",
             funders: "Effort conjoint de 5 pays européens",
             realCase:
-              "Programme 'Saumon 2000' et 'Rhin 2020' (CIPR). L'un des plus grands succès mondiaux de restauration écologique.",
+              'Programme "Saumon 2000" et "Rhin 2020" (CIPR). L\'un des plus grands succès mondiaux de restauration écologique.',
             score: 100,
             grade: "PARFAIT ✅",
             pts: 60,
@@ -2844,26 +3335,21 @@
         },
       };
 
-      // ===== STATE =====
+      // ═══════════════════════════════════════════════════════════
+      // ÉTAT — réinitialisé à chaque chargement (pas de localStorage)
+      // ═══════════════════════════════════════════════════════════
       let curPat = null,
         selT = [],
         done = [],
         totScore = 0,
         soundOn = true;
-      let rotX = 0,
-        rotY = 0,
-        isDrag = false,
-        lastMX = 0,
-        lastMY = 0,
-        zoom = 1;
-      let speechSynth = window.speechSynthesis;
-      let voiceReady = false;
+      let audioCtx = null;
 
-      // ===== INIT =====
+      // ═══════════════════════════════════════════════════════════
+      // INIT
+      // ═══════════════════════════════════════════════════════════
       window.addEventListener("DOMContentLoaded", () => {
         createParticles();
-        initRoom360();
-        loadSpeechVoices();
         openOv("guide-ov");
       });
 
@@ -2871,124 +3357,47 @@
         closeOv("guide-ov");
         setTimeout(() => {
           showGaia(
-            "Bienvenue dans mon <span class='hl'>Centre de Réparation Écologique</span>.<br><br>5 patients attendent vos soins. Chaque écosystème a besoin de traitements spécifiques.<br><br>Choisissez judicieusement...",
-            true
+            "Bienvenue dans mon <span class='hl'>Centre de Réparation Écologique</span>.<br><br>5 patients attendent vos soins. Chaque écosystème a besoin de traitements spécifiques.<br><br>Choisissez judicieusement, Docteur...",
+            false
           );
         }, 300);
       }
 
-      // ===== PARTICLES =====
+      // ═══════════════════════════════════════════════════════════
+      // PARTICULES
+      // ═══════════════════════════════════════════════════════════
       function createParticles() {
         const c = document.getElementById("particles");
-        for (let i = 0; i < 60; i++) {
+        const colors = ["#00ffa3", "#00e5ff", "#55ff88"];
+        for (let i = 0; i < 50; i++) {
           const p = document.createElement("div");
           p.className = "pt";
+          const col = colors[Math.floor(Math.random() * colors.length)];
+          const sz = 1.5 + Math.random() * 3;
           Object.assign(p.style, {
             left: Math.random() * 100 + "%",
-            top: Math.random() * 100 + "%",
-            width: 2 + Math.random() * 4 + "px",
-            height: 2 + Math.random() * 4 + "px",
-            animationDelay: Math.random() * 10 + "s",
-            animationDuration: 6 + Math.random() * 6 + "s",
-            opacity: Math.random() * 0.6,
+            top: 30 + Math.random() * 70 + "%",
+            width: sz + "px",
+            height: sz + "px",
+            background: col,
+            animationDelay: Math.random() * 12 + "s",
+            animationDuration: 8 + Math.random() * 8 + "s",
+            boxShadow: `0 0 ${sz * 2}px ${col}`,
+            opacity: "0",
           });
           c.appendChild(p);
         }
       }
 
-      // ===== 360 ROOM =====
-      function initRoom360() {
-        const inner = document.getElementById("room-inner");
-        const comp = document.getElementById("compass-arrow");
-        const dirs = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
-
-        document.addEventListener("mousedown", (e) => {
-          if (document.querySelector(".overlay.open")) return;
-          isDrag = true;
-          lastMX = e.clientX;
-          lastMY = e.clientY;
-          document.body.style.cursor = "grabbing";
-        });
-        document.addEventListener("mousemove", (e) => {
-          if (!isDrag) return;
-          const dx = e.clientX - lastMX,
-            dy = e.clientY - lastMY;
-          rotY += dx * 0.18;
-          rotX -= dy * 0.12;
-          rotX = Math.max(-20, Math.min(20, rotX));
-          applyRotation(inner, comp, dirs);
-          lastMX = e.clientX;
-          lastMY = e.clientY;
-        });
-        document.addEventListener("mouseup", () => {
-          isDrag = false;
-          document.body.style.cursor = "default";
-        });
-
-        // Touch
-        let tLast = { x: 0, y: 0 };
-        document.addEventListener(
-          "touchstart",
-          (e) => {
-            if (document.querySelector(".overlay.open")) return;
-            tLast = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-          },
-          { passive: true }
-        );
-        document.addEventListener(
-          "touchmove",
-          (e) => {
-            if (document.querySelector(".overlay.open")) return;
-            const dx = e.touches[0].clientX - tLast.x,
-              dy = e.touches[0].clientY - tLast.y;
-            rotY += dx * 0.15;
-            rotX -= dy * 0.1;
-            rotX = Math.max(-20, Math.min(20, rotX));
-            applyRotation(inner, comp, dirs);
-            tLast = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-          },
-          { passive: true }
-        );
-
-        // Scroll zoom
-        document.addEventListener(
-          "wheel",
-          (e) => {
-            if (document.querySelector(".overlay.open")) return;
-            zoom -= e.deltaY * 0.001;
-            zoom = Math.max(0.7, Math.min(1.8, zoom));
-            inner.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${zoom})`;
-          },
-          { passive: true }
-        );
-
-        // Gyroscope
-        if (window.DeviceOrientationEvent) {
-          window.addEventListener("deviceorientation", (e) => {
-            if (document.querySelector(".overlay.open")) return;
-            if (e.gamma != null) {
-              rotY = e.gamma * 1.5;
-              rotX = Math.max(-20, Math.min(20, -(e.beta - 45) * 0.3));
-              applyRotation(inner, comp, dirs);
-            }
-          });
-        }
-      }
-
-      function applyRotation(inner, comp, dirs) {
-        inner.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${zoom})`;
-        const deg = ((rotY % 360) + 360) % 360;
-        comp.style.transform = `translateX(-50%) rotate(${deg}deg)`;
-        const idx = Math.round(deg / 45) % 8;
-        document.getElementById("compass-dir").textContent = dirs[idx];
-      }
-
-      // ===== OVERLAY HELPERS =====
+      // ═══════════════════════════════════════════════════════════
+      // OVERLAYS
+      // ═══════════════════════════════════════════════════════════
       function openOv(id) {
         const el = document.getElementById(id);
         el.classList.add("open");
         el.style.opacity = "0";
         requestAnimationFrame(() => {
+          el.style.transition = "opacity .35s";
           el.style.opacity = "1";
         });
       }
@@ -2996,57 +3405,23 @@
         document.getElementById(id).classList.remove("open");
       }
 
-      // ===== SPEECH SYNTHESIS =====
-      function loadSpeechVoices() {
-        if (speechSynth.getVoices().length > 0) {
-          voiceReady = true;
-          return;
-        }
-        speechSynth.onvoiceschanged = () => {
-          voiceReady = true;
-        };
-      }
-
-      function speakGaia(text) {
-        if (!soundOn) return;
-        if (!speechSynth) return;
-        speechSynth.cancel();
-        // Strip HTML tags for speech
-        const clean = text.replace(/<[^>]*>/g, "");
-        const utt = new SpeechSynthesisUtterance(clean);
-        utt.lang = "fr-FR";
-        utt.rate = 0.92;
-        utt.pitch = 1.1;
-        utt.volume = 0.9;
-        const voices = speechSynth.getVoices();
-        const frVoice =
-          voices.find(
-            (v) =>
-              v.lang.startsWith("fr") && v.name.toLowerCase().includes("female")
-          ) ||
-          voices.find((v) => v.lang.startsWith("fr")) ||
-          voices[0];
-        if (frVoice) utt.voice = frVoice;
-        speechSynth.speak(utt);
-      }
-
-      // ===== GAIA =====
-      function showGaia(msg, speak = false) {
+      // ═══════════════════════════════════════════════════════════
+      // GAÏA
+      // ═══════════════════════════════════════════════════════════
+      function showGaia(msg) {
         document.getElementById("gaia-txt").innerHTML = msg;
         document.getElementById("gaia-dial").classList.add("open");
-        if (speak) speakGaia(msg);
       }
       function closeGaia() {
         document.getElementById("gaia-dial").classList.remove("open");
-        if (speechSynth) speechSynth.cancel();
       }
 
-      // ===== DIAGNOSTIC =====
+      // ═══════════════════════════════════════════════════════════
+      // DIAGNOSTIC
+      // ═══════════════════════════════════════════════════════════
       function openDiag(pid) {
         if (done.includes(pid)) {
-          showGaia(
-            "Ce patient a déjà été traité avec succès. Passez au suivant !"
-          );
+          showGaia("Ce patient a déjà été traité. Passez au suivant !");
           return;
         }
         curPat = pid;
@@ -3055,20 +3430,20 @@
         document.getElementById("diag-pname").textContent = p.name;
         document.getElementById("diag-ploc").textContent = "📍 " + p.location;
 
-        const sec = document.getElementById("diag-info");
-        sec.innerHTML = `
+        document.getElementById("diag-info").innerHTML = `
     <div class="dcard">
-      <div class="dcard-hdr"><span class="dcard-icon">${
+      <div class="dcard-stripe"></div>
+      <div class="dcard-hdr"><span class="dcard-ico">${
         p.icon
       }</span><span class="dcard-lbl">DOSSIER PATIENT</span></div>
-      <div class="patient-bigname">${p.name}</div>
-      <div class="patient-loc">📍 ${p.location}</div>
-      <div class="patient-sz">📐 ${p.size}</div>
+      <div class="patient-name">${p.name}</div>
+      <div class="patient-meta">📍 ${p.location}</div>
+      <div class="patient-meta">📐 ${p.size}</div>
     </div>
-
-    <div class="dcard crit">
-      <div class="dcard-hdr"><span class="dcard-icon">📊</span><span class="dcard-lbl">ÉTAT ACTUEL</span></div>
-      <div class="stat-grid">
+    <div class="dcard crit-c">
+      <div class="dcard-stripe"></div>
+      <div class="dcard-hdr"><span class="dcard-ico">📊</span><span class="dcard-lbl">ÉTAT ACTUEL</span></div>
+      <div class="stat-grid2">
         ${p.stats
           .map(
             (s) =>
@@ -3081,44 +3456,43 @@
           .join("")}
       </div>
     </div>
-
-    <div class="dcard warn">
-      <div class="dcard-hdr"><span class="dcard-icon">🔍</span><span class="dcard-lbl">CAUSES</span></div>
-      <ul class="causes-list">
-        ${p.causes.map((c) => `<li>${c}</li>`).join("")}
-      </ul>
+    <div class="dcard warn-c">
+      <div class="dcard-stripe"></div>
+      <div class="dcard-hdr"><span class="dcard-ico">🔍</span><span class="dcard-lbl">CAUSES IDENTIFIÉES</span></div>
+      <ul class="causes-list">${p.causes
+        .map((c) => `<li>${c}</li>`)
+        .join("")}</ul>
     </div>
-
-    <div class="prognosis-box">
-      <h4>💀 SI RIEN N'EST FAIT</h4>
+    <div class="prog-box-diag">
+      <h4>💀 PRONOSTIC SANS INTERVENTION</h4>
       <p>${p.prognosis}</p>
     </div>
-
-    <button class="start-treat-btn" onclick="openTreat()">⚕️ COMMENCER LE TRAITEMENT</button>
+    <button class="treat-start-btn" onclick="openTreat()">⚕️ COMMENCER LE TRAITEMENT</button>
   `;
-
         openOv("diag-ov");
-        playBeep(440, 0.08, 0.1);
+        playBeep(440, 0.07, 0.12);
       }
 
-      // ===== TREATMENT =====
+      // ═══════════════════════════════════════════════════════════
+      // TRAITEMENT
+      // ═══════════════════════════════════════════════════════════
       function openTreat() {
         const p = PD[curPat];
         selT = [];
         document.getElementById(
-          "treat-subtitle"
+          "treat-sub"
         ).innerHTML = `Sélectionnez les technologies adaptées <strong>(max ${p.maxT})</strong>`;
         document.getElementById("rx-max").textContent = p.maxT;
         document.getElementById("rx-count").textContent = "0";
+        document.getElementById("rx-count").className = "rx-count-val";
         document.getElementById("apply-btn").disabled = true;
-
         document.getElementById("opt-list").innerHTML = p.treats
           .map(
             (t) => `
     <div class="opt-item" data-id="${t.id}" onclick="togT('${t.id}')">
-      <div class="opt-cb"></div>
+      <div class="opt-check"></div>
       <span class="opt-icon">${t.icon}</span>
-      <div class="opt-txt">
+      <div>
         <div class="opt-name">${t.name}</div>
         <div class="opt-desc">${t.desc}</div>
       </div>
@@ -3126,14 +3500,11 @@
   `
           )
           .join("");
-
-        document.getElementById(
-          "rx-list"
-        ).innerHTML = `<p style="color:var(--t2);text-align:center;padding:20px;font-size:.9rem;">Cliquez sur les technologies pour les ajouter</p>`;
-
+        document.getElementById("rx-list").innerHTML =
+          '<p class="rx-empty">Cliquez sur les technologies pour les ajouter à la prescription</p>';
         closeOv("diag-ov");
         openOv("treat-ov");
-        playBeep(520, 0.08, 0.1);
+        playBeep(520, 0.07, 0.1);
       }
 
       function togT(tid) {
@@ -3144,28 +3515,28 @@
           el.classList.remove("sel");
         } else {
           if (selT.length >= p.maxT) {
-            playBeep(220, 0.1, 0.15);
+            playBeep(220, 0.08, 0.15);
             return;
           }
           selT.push(tid);
           el.classList.add("sel");
         }
         updateRx();
-        playBeep(660, 0.05, 0.08);
+        playBeep(660, 0.04, 0.07);
       }
 
       function updateRx() {
         const p = PD[curPat];
         const cnt = document.getElementById("rx-count");
         cnt.textContent = selT.length;
-        cnt.className = "rx-val" + (selT.length >= p.maxT ? " max" : "");
-
+        cnt.className =
+          "rx-count-val" + (selT.length >= p.maxT ? " maxed" : "");
+        const rxList = document.getElementById("rx-list");
         if (selT.length === 0) {
-          document.getElementById(
-            "rx-list"
-          ).innerHTML = `<p style="color:var(--t2);text-align:center;padding:20px;font-size:.9rem;">Cliquez sur les technologies pour les ajouter</p>`;
+          rxList.innerHTML =
+            '<p class="rx-empty">Cliquez sur les technologies pour les ajouter à la prescription</p>';
         } else {
-          document.getElementById("rx-list").innerHTML = selT
+          rxList.innerHTML = selT
             .map((tid) => {
               const t = p.treats.find((x) => x.id === tid);
               return `<div class="rx-item"><span>${t.icon}</span><span>${t.name}</span></div>`;
@@ -3175,71 +3546,71 @@
         document.getElementById("apply-btn").disabled = selT.length === 0;
       }
 
-      // ===== APPLY TREATMENT =====
+      // ═══════════════════════════════════════════════════════════
+      // APPLICATION
+      // ═══════════════════════════════════════════════════════════
       function applyTreatment() {
         const p = PD[curPat];
         closeOv("treat-ov");
         openOv("anim-ov");
-
         document.getElementById("anim-eco").textContent = p.icon;
         document.getElementById("tl-steps").innerHTML = p.timeline
           .map(
             (s, i) => `
-      <div class="tl-step" id="ts-${i}">
-        <div class="tl-marker">${s.i}</div>
-        <div class="tl-info">
-          <div class="tl-year">${s.y}</div>
-          <div class="tl-desc">${s.d}</div>
-        </div>
+    <div class="tl-step" id="ts-${i}">
+      <div class="tl-marker">${s.i}</div>
+      <div class="tl-info">
+        <div class="tl-year">${s.y}</div>
+        <div class="tl-desc">${s.d}</div>
       </div>
-    `
+    </div>
+  `
           )
           .join("");
-
         document.getElementById("tl-prog").style.width = "0%";
         document.getElementById("anim-stats").innerHTML = p.result.stats
           .slice(0, 3)
           .map(
             (s) => `
-      <div class="as-item">
-        <div class="as-val">${s.a}</div>
-        <div class="as-lbl">${s.l}</div>
-      </div>
-    `
+    <div class="as-item">
+      <div class="as-val">${s.a}</div>
+      <div class="as-lbl">${s.l}</div>
+    </div>
+  `
           )
           .join("");
-
-        playBeep(200, 0.04, 2);
-        runAnim(p.timeline.length);
+        playBeep(220, 0.04, 2);
+        runTimeline(p.timeline.length);
       }
 
-      function runAnim(total) {
+      function runTimeline(total) {
         let cur = 0;
         const prog = document.getElementById("tl-prog");
         const id = setInterval(() => {
           if (cur < total) {
             document.getElementById(`ts-${cur}`).classList.add("act");
             prog.style.width = ((cur + 1) / total) * 100 + "%";
-            playBeep(440 + cur * 60, 0.06, 0.12);
+            playBeep(400 + cur * 55, 0.05, 0.12);
             setTimeout(() => {
               document
                 .getElementById(`ts-${cur}`)
                 ?.classList.replace("act", "done");
-            }, 1600);
+            }, 1500);
             cur++;
           } else {
             clearInterval(id);
             setTimeout(showResult, 900);
           }
-        }, 2100);
+        }, 2000);
       }
 
-      // ===== RESULT =====
+      // ═══════════════════════════════════════════════════════════
+      // RÉSULTAT
+      // ═══════════════════════════════════════════════════════════
       function showResult() {
         const p = PD[curPat];
         const r = p.result;
         closeOv("anim-ov");
-
         const icoMap = {
           perfect: "🌟",
           success: "✅",
@@ -3258,7 +3629,6 @@
             : r.status === "palliative"
             ? " palliative"
             : "");
-
         document.getElementById("res-stats").innerHTML = r.stats
           .map(
             (s) => `
@@ -3270,25 +3640,18 @@
   `
           )
           .join("");
-
         document.getElementById("res-cost-val").textContent = r.cost;
         document.getElementById("res-funders").textContent = r.funders;
         document.getElementById("res-case-desc").textContent = r.realCase;
-        document.getElementById("rs-score").textContent = r.score + "/100";
-        document.getElementById("rs-grade").textContent = r.grade;
-        document.getElementById("rs-pts").textContent = "+" + r.pts + " POINTS";
-
+        document.getElementById("sw-score").textContent = r.score + "/100";
+        document.getElementById("sw-grade").textContent = r.grade;
+        document.getElementById("sw-pts").textContent = "+" + r.pts + " POINTS";
         totScore += r.pts;
         document.getElementById("tot-score").textContent = totScore;
-
         openOv("result-ov");
-        playBeep(523, 0.15, 0.5);
-        setTimeout(() => {
-          playBeep(659, 0.15, 0.3);
-        }, 160);
-        setTimeout(() => {
-          playBeep(784, 0.15, 0.4);
-        }, 320);
+        playBeep(523, 0.12, 0.4);
+        setTimeout(() => playBeep(659, 0.12, 0.3), 150);
+        setTimeout(() => playBeep(784, 0.12, 0.35), 300);
       }
 
       function closeResult() {
@@ -3306,31 +3669,44 @@
           updateProgress();
           const pod = document.querySelector(`.pod[data-pid="${curPat}"]`);
           if (pod) {
-            pod.classList.add("done");
-            const badge = pod.querySelector(".pod-badge");
-            badge.className = "pod-badge b-healed";
-            badge.textContent = "TRAITÉ ✓";
+            pod.classList.remove("crit-pod", "warn-pod", "recov-pod");
+            pod.classList.add("done-pod");
+            const sd = pod.querySelector(".sdot");
+            if (sd) sd.style.animation = "none";
+            const ps = pod.querySelector(".pod-status");
+            if (ps) {
+              ps.className = "pod-status st-healed";
+              ps.innerHTML = '<span class="sdot"></span>TRAITÉ ✓';
+            }
+            // badge check
+            if (!pod.querySelector(".pod-done-badge")) {
+              const b = document.createElement("div");
+              b.className = "pod-done-badge";
+              b.textContent = "✓";
+              pod.appendChild(b);
+            }
+            // vitals line to green
+            const vl = pod.querySelector(".pod-vitals polyline");
+            if (vl) vl.setAttribute("stroke", "#00ffa3");
           }
         }
         const pat = PD[curPat];
-        showGaia(pat.gaia, true);
+        showGaia(pat.gaia);
         curPat = null;
-
-        if (done.length === 5) {
-          setTimeout(showComplete, 4000);
-        }
+        if (done.length === 5) setTimeout(showComplete, 3500);
       }
 
       function updateProgress() {
         const pct = (done.length / 5) * 100;
         document.getElementById("prog-fill").style.width = pct + "%";
-        document.getElementById("prog-num").textContent = done.length + "/5";
+        document.getElementById("prog-num").textContent = done.length + " / 5";
       }
 
       function showComplete() {
         closeGaia();
-        document.getElementById("ct-score-val").textContent = totScore;
-        document.getElementById("complete-toast").classList.add("open");
+        document.getElementById("toast-score").textContent = totScore;
+        const t = document.getElementById("toast-final");
+        t.classList.add("open");
         playBeep(523, 0.2, 0.4);
         setTimeout(() => playBeep(659, 0.2, 0.4), 200);
         setTimeout(() => playBeep(784, 0.2, 0.4), 400);
@@ -3338,37 +3714,12 @@
       }
 
       function goNext() {
-        saveProgress();
         window.location.href = "scene21.html";
       }
 
-      // ===== PROGRESS SAVE/LOAD =====
-      function saveProgress() {
-        localStorage.setItem("eco20", JSON.stringify({ done, totScore }));
-      }
-      function loadProgress() {
-        try {
-          const s = JSON.parse(localStorage.getItem("eco20") || "null");
-          if (!s) return;
-          done = s.done || [];
-          totScore = s.totScore || 0;
-          updateProgress();
-          document.getElementById("tot-score").textContent = totScore;
-          done.forEach((pid) => {
-            const pod = document.querySelector(`.pod[data-pid="${pid}"]`);
-            if (pod) {
-              pod.classList.add("done");
-              const b = pod.querySelector(".pod-badge");
-              b.className = "pod-badge b-healed";
-              b.textContent = "TRAITÉ ✓";
-            }
-          });
-        } catch (e) {}
-      }
-      loadProgress();
-
-      // ===== AUDIO =====
-      let audioCtx = null;
+      // ═══════════════════════════════════════════════════════════
+      // AUDIO
+      // ═══════════════════════════════════════════════════════════
       function getCtx() {
         if (!audioCtx)
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -3393,19 +3744,16 @@
       function toggleSound() {
         soundOn = !soundOn;
         document.getElementById("snd-btn").classList.toggle("muted", !soundOn);
-        if (!soundOn && speechSynth) speechSynth.cancel();
       }
 
-      // ===== KEYBOARD =====
+      // ═══════════════════════════════════════════════════════════
+      // CLAVIER — ESC uniquement pour fermer
+      // ═══════════════════════════════════════════════════════════
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           ["diag-ov", "treat-ov", "anim-ov", "result-ov"].forEach(closeOv);
           closeGaia();
         }
-        const pids = ["coral", "aral", "forest", "chernobyl", "rhine"];
-        const n = parseInt(e.key) - 1;
-        if (n >= 0 && n < 5 && !document.querySelector(".overlay.open"))
-          openDiag(pids[n]);
       });
     </script>
   </body>

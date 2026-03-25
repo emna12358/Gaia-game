@@ -561,7 +561,7 @@
         opacity: 1;
       }
 
-      /* Feedback */
+      /* Feedback in-card */
       .q-feedback {
         margin-top: 18px;
         padding: 14px 18px;
@@ -595,6 +595,57 @@
         font-size: 10px;
         letter-spacing: 0.25em;
         margin-top: 10px;
+      }
+
+      /* Gaia voice feedback indicator inside quiz card */
+      .q-gaia-speaking {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+      .q-gaia-speaking.on {
+        opacity: 1;
+      }
+      .q-gaia-label {
+        font-family: "Cinzel", serif;
+        font-size: 7px;
+        letter-spacing: 0.3em;
+        color: rgba(0, 220, 130, 0.5);
+      }
+      .q-gaia-bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 10px;
+      }
+      .q-gaia-bar {
+        width: 2px;
+        border-radius: 1px;
+        background: #00cc88;
+        transform-origin: bottom;
+        animation: vba 0.9s ease-in-out infinite alternate;
+      }
+      .q-gaia-bar:nth-child(1) {
+        height: 3px;
+        animation-duration: 0.38s;
+      }
+      .q-gaia-bar:nth-child(2) {
+        height: 9px;
+        animation-duration: 0.52s;
+        animation-delay: 0.04s;
+      }
+      .q-gaia-bar:nth-child(3) {
+        height: 4px;
+        animation-duration: 0.41s;
+        animation-delay: 0.09s;
+      }
+      .q-gaia-bar:nth-child(4) {
+        height: 11px;
+        animation-duration: 0.58s;
+        animation-delay: 0.07s;
       }
 
       /* Next button */
@@ -846,7 +897,6 @@
         color: rgba(0, 255, 180, 0.55);
       }
 
-      /* Glow particles canvas (decorative) */
       #gc2 {
         position: fixed;
         inset: 0;
@@ -874,12 +924,12 @@
       <div id="vs"></div>
       <div id="vbox">
         <div id="vhdr">
-          <span id="vnm">G A I A</span
-          ><span id="vbr"
-            ><span class="vb"></span><span class="vb"></span
-            ><span class="vb"></span><span class="vb"></span
-            ><span class="vb"></span><span class="vb"></span
-          ></span>
+          <span id="vnm">G A I A</span>
+          <span id="vbr">
+            <span class="vb"></span><span class="vb"></span>
+            <span class="vb"></span><span class="vb"></span>
+            <span class="vb"></span><span class="vb"></span>
+          </span>
         </div>
         <div id="vtx"></div>
         <span id="twc"></span>
@@ -940,6 +990,8 @@
         timerSec = 0;
       var syn = window.speechSynthesis;
       var voicesReady = false;
+      // Track whether Gaia is currently giving feedback (block "next" until done)
+      var gaiaIsSpeaking = false;
 
       // CURSOR
       document.addEventListener("mousemove", function (e) {
@@ -965,6 +1017,10 @@
             "1,6 million de km². 3 fois la France. Flottant dans mon Pacifique.\n\nC'est... GIGANTESQUE.\n\nMais Boyan Slat a promis... De la nettoyer à 90% d'ici 2040.\n\nUn jeune. Une idée. Un espoir.",
           feedbackWrong:
             "La bonne réponse : 1,6 million de km². 3 fois la France.\n\nC'est... GIGANTESQUE.\n\nMais Boyan Slat a promis de la nettoyer à 90% d'ici 2040.\n\nUn jeune. Une idée. Un espoir.",
+          voiceCorrect:
+            "Exact. Un million six cent mille kilomètres carrés. Trois fois la France. Boyan Slat a promis de la nettoyer d'ici 2040. Un jeune. Une idée. Un espoir.",
+          voiceWrong:
+            "Non. La bonne réponse est un million six cent mille kilomètres carrés. Trois fois la France flottant dans mon Pacifique. Mais il existe un espoir — Boyan Slat veut la nettoyer d'ici 2040.",
         },
         {
           q: "Combien de temps Ideonella sakaiensis met-elle pour décomposer une bouteille PET ?",
@@ -974,6 +1030,10 @@
             "48 heures. 2 jours.\n\nUne bouteille qui mettrait 450 ANS... Détruite en 2 JOURS.\n\nPar une bactérie. Qui a ÉVOLUÉ pour ça.\n\nLa vie trouve toujours un chemin.\n\nMême face à votre plastique.",
           feedbackWrong:
             "La bonne réponse : 48 heures.\n\nUne bouteille qui mettrait 450 ANS... Détruite en 2 JOURS.\n\nPar une bactérie. Qui a ÉVOLUÉ pour ça.\n\nLa vie trouve toujours un chemin.",
+          voiceCorrect:
+            "Oui. Quarante-huit heures. Une bouteille qui mettrait quatre cent cinquante ans à disparaître... détruite en deux jours. Par une bactérie. Qui a évolué pour ça. La vie trouve toujours un chemin.",
+          voiceWrong:
+            "Non. La réponse est quarante-huit heures. Une bactérie nommée Ideonella sakaiensis détruit en deux jours ce qui prendrait quatre cent cinquante ans. La vie s'adapte. Même face à votre plastique.",
         },
         {
           q: "Combien de morts par an à cause de la pollution atmosphérique selon l'OMS ?",
@@ -983,6 +1043,10 @@
             "7 millions de morts. Par an.\n\nC'est... La population de Hong Kong. Qui DISPARAÎT. Chaque année.\n\nÀ cause de l'air... Que vous respirez.\n\nMes poumons ne suffisent plus. J'ai besoin de technologies. De Smog Towers. De drones.\n\nPour vous SAUVER.",
           feedbackWrong:
             "La bonne réponse : 7 millions de morts par an.\n\nC'est la population de Hong Kong qui disparaît chaque année.\n\nÀ cause de l'air que vous respirez.\n\nMes poumons ne suffisent plus.",
+          voiceCorrect:
+            "Sept millions. Chaque année. La population entière de Hong Kong. Qui disparaît. À cause de l'air. Mes poumons ne suffisent plus. J'ai besoin de vos technologies pour vous sauver.",
+          voiceWrong:
+            "Non. Sept millions de morts par an. La population de Hong Kong qui disparaît. Chaque année. À cause de l'air que vous respirez. Mes poumons ne suffisent plus.",
         },
         {
           q: "Quel fleuve européen était biologiquement MORT en 1986 et compte aujourd'hui 63 espèces de poissons ?",
@@ -992,6 +1056,10 @@
             "Le Rhin.\n\n1986 : Accident chimique Sandoz. Toute vie aquatique... morte.\n\nAujourd'hui, 2025 : 63 espèces de poissons. Saumons revenus.\n\nComment ?\n\n25 MILLIARDS d'euros. 40 ans d'efforts. VOLONTÉ politique.\n\nPreuve que... TOUT est réparable.\n\nSi vous VOULEZ.",
           feedbackWrong:
             "La bonne réponse : Le Rhin.\n\n1986 : Accident chimique Sandoz. Toute vie aquatique... morte.\n\nAujourd'hui : 63 espèces de poissons. Saumons revenus.\n\nTOUT est réparable. Si vous VOULEZ.",
+          voiceCorrect:
+            "Le Rhin. Mort en 1986 après l'accident Sandoz. Aujourd'hui soixante-trois espèces de poissons. Les saumons sont revenus. Vingt-cinq milliards d'euros. Quarante ans d'efforts. Preuve que tout est réparable. Si vous voulez.",
+          voiceWrong:
+            "Non. C'est le Rhin. Mort après l'accident chimique Sandoz en 1986. Aujourd'hui soixante-trois espèces de poissons y vivent à nouveau. Tout est réparable. Si vous le voulez vraiment.",
         },
         {
           q: "Un Super-Tree (arbre génétiquement modifié) absorbe combien de fois plus de CO₂ qu'un arbre normal ?",
@@ -1006,6 +1074,10 @@
             "10 fois plus.\n\nArbre normal : 22 kg CO2/an\nSuper-Tree : 220 kg CO2/an\n\nC'est... Une arme PUISSANTE.\n\nMais c'est un OGM. Vous modifiez mon ADN.\n\nAlors... Utilisez-le avec PRÉCAUTION.\n\nJe vous fais confiance. Ne me décevez pas.",
           feedbackWrong:
             "La bonne réponse : 10 fois plus.\n\nArbre normal : 22 kg CO2/an\nSuper-Tree : 220 kg CO2/an\n\nC'est une arme puissante.\n\nMais utilisez-le avec PRÉCAUTION.\n\nJe vous fais confiance.",
+          voiceCorrect:
+            "Dix fois plus. Un arbre normal absorbe vingt-deux kilogrammes de CO2 par an. Le Super-Tree en absorbe deux cent vingt. C'est une arme puissante. Mais vous modifiez mon ADN. Utilisez-le avec précaution. Je vous fais confiance.",
+          voiceWrong:
+            "Non. La réponse est dix fois plus. Un Super-Tree absorbe deux cent vingt kilogrammes de CO2 par an contre vingt-deux pour un arbre normal. Puissant. Mais utilisez-le avec précaution. Je vous fais confiance.",
         },
       ];
 
@@ -1033,7 +1105,7 @@
         camera3 = new THREE.PerspectiveCamera(72, W / H, 0.1, 600);
         camera3.position.set(0, camH, 0);
 
-        // ── SKY (gradient bleu-vert guéri) ──
+        // SKY
         var skyGeo = new THREE.SphereGeometry(350, 32, 16);
         var skyMat = new THREE.ShaderMaterial({
           side: THREE.BackSide,
@@ -1056,7 +1128,7 @@
         scene3._skyMat = skyMat;
         scene3.add(new THREE.Mesh(skyGeo, skyMat));
 
-        // ── LIGHTS ──
+        // LIGHTS
         scene3.add(new THREE.AmbientLight(0x88ddcc, 1.0));
         var sun = new THREE.DirectionalLight(0xfff5cc, 2.2);
         sun.position.set(60, 50, 30);
@@ -1074,7 +1146,7 @@
         fill.position.set(-50, 20, -40);
         scene3.add(fill);
 
-        // ── GROUND (herbe verte) ──
+        // GROUND
         var gndMat = new THREE.MeshStandardMaterial({
           color: 0x2d6b3a,
           roughness: 0.9,
@@ -1085,7 +1157,6 @@
         gnd.receiveShadow = true;
         scene3.add(gnd);
 
-        // Patches d'herbe variée
         var patchColors = [0x3a8045, 0x2d6b3a, 0x44924c, 0x255c30];
         for (var i = 0; i < 80; i++) {
           var px = (Math.random() - 0.5) * 200,
@@ -1105,7 +1176,7 @@
           scene3.add(pm);
         }
 
-        // ── OCEAN CRISTALLIN ──
+        // OCEAN
         var oceanMat = new THREE.ShaderMaterial({
           uniforms: { uT: { value: 0 } },
           vertexShader: [
@@ -1154,7 +1225,7 @@
           scene3.add(om);
         });
 
-        // ── TREES (luxuriants, vivants) ──
+        // TREES
         var trunkMat = new THREE.MeshStandardMaterial({
           color: 0x3d1e07,
           roughness: 0.88,
@@ -1173,7 +1244,6 @@
           trunk.position.y = th / 2;
           trunk.castShadow = true;
           grp.add(trunk);
-          // Feuillage
           var nlayers = 2 + Math.floor(Math.random() * 2);
           for (var l = 0; l < nlayers; l++) {
             var lr = th * (0.55 - l * 0.1) + Math.random() * 0.5;
@@ -1204,7 +1274,7 @@
           });
         }
 
-        // ── GOLDEN PARTICLES (oxygène pur, énergie vitale) ──
+        // GOLDEN PARTICLES
         var gpCount = 800;
         var gpPos = new Float32Array(gpCount * 3),
           gpSz = new Float32Array(gpCount);
@@ -1246,7 +1316,7 @@
         scene3._gpData = gpData;
         scene3.add(new THREE.Points(gpGeo, gpMat));
 
-        // ── FPS Controls ──
+        // FPS Controls
         document.addEventListener("keydown", function (e) {
           keysF[e.code] = true;
           if (e.code === "Space") e.preventDefault();
@@ -1308,23 +1378,16 @@
         camera3.rotation.order = "YXZ";
         camera3.rotation.y = camYaw;
         camera3.rotation.x = camPitch;
-
         if (scene3._skyMat) scene3._skyMat.uniforms.uT.value = uTime;
         if (scene3._gpMat) scene3._gpMat.uniforms.uT.value = uTime;
-
-        // Ocean clones
         scene3.children.forEach(function (c) {
           if (c.material && c.material.uniforms && c.material.uniforms.uT)
             c.material.uniforms.uT.value = uTime;
         });
-
-        // Trees sway
         treeInstances.forEach(function (t) {
           t.grp.rotation.z = Math.sin(uTime * t.spd + t.ph) * 0.012;
           t.grp.rotation.x = Math.sin(uTime * t.spd * 0.7 + t.ph + 1) * 0.008;
         });
-
-        // Golden particles
         if (scene3._gpPos && scene3._gpData) {
           var gp = scene3._gpPos,
             gd = scene3._gpData;
@@ -1346,7 +1409,6 @@
           }
           scene3._gpGeo.attributes.position.needsUpdate = true;
         }
-
         renderer.render(scene3, camera3);
       }
 
@@ -1372,12 +1434,10 @@
         }
         return window._m17;
       }
-
       function sfxAmb() {
         if (!AC || isMuted) return;
         var m = gm();
         if (!m) return;
-        // Sons de nature apaisants
         [220, 330, 440].forEach(function (f, i) {
           var o = AC.createOscillator(),
             g = AC.createGain();
@@ -1396,10 +1456,8 @@
           g.connect(m);
           o.start();
         });
-        // Vent doux
         sfxWind(0.08);
       }
-
       function sfxWind(vol) {
         if (!AC || isMuted) return;
         var m = gm();
@@ -1429,7 +1487,6 @@
         src.start();
         src.stop(AC.currentTime + 5.1);
       }
-
       function sfxChime() {
         if (!AC || isMuted) return;
         var m = gm();
@@ -1454,7 +1511,6 @@
           o.stop(AC.currentTime + i * 0.08 + 1);
         });
       }
-
       function sfxBuzz() {
         if (!AC || isMuted) return;
         var m = gm();
@@ -1470,7 +1526,6 @@
         o.start();
         o.stop(AC.currentTime + 0.36);
       }
-
       function sfxTick() {
         if (!AC || isMuted) return;
         var m = gm();
@@ -1486,7 +1541,6 @@
         o.start();
         o.stop(AC.currentTime + 0.05);
       }
-
       function togMute() {
         isMuted = !isMuted;
         document.getElementById("mute-btn").textContent = isMuted
@@ -1521,6 +1575,7 @@
         );
       }
 
+      // speak() — voix panel bas de page (intro/recap)
       function speak(txt, cb, rt) {
         rt = rt || 0.76;
         initAC();
@@ -1594,6 +1649,50 @@
         }
       }
 
+      // speakFeedback() — Gaia parle le feedback de réponse inline dans la card quiz
+      function speakFeedback(txt, cb) {
+        initAC();
+        if (AC && AC.state === "suspended") AC.resume();
+        gaiaIsSpeaking = true;
+
+        // Afficher l'indicateur de parole dans la card
+        var indicator = document.getElementById("qGaiaSpeaking");
+        if (indicator) indicator.classList.add("on");
+
+        if (syn && !isMuted) {
+          syn.cancel();
+          var u = new SpeechSynthesisUtterance(txt);
+          u.lang = "fr-FR";
+          u.rate = 0.74;
+          u.pitch = 0.78;
+          u.volume = 1;
+          var v = gv();
+          if (v) u.voice = v;
+          u.onend = u.onerror = function () {
+            gaiaIsSpeaking = false;
+            if (indicator) indicator.classList.remove("on");
+            if (cb) cb();
+          };
+          syn.speak(u);
+          // Fallback si la voix ne démarre pas
+          setTimeout(function () {
+            if (gaiaIsSpeaking) {
+              gaiaIsSpeaking = false;
+              if (indicator) indicator.classList.remove("on");
+              if (cb) cb();
+            }
+          }, Math.max(3000, txt.length * 65));
+        } else {
+          // Pas de voix : simuler un délai de lecture
+          var delay = Math.max(1800, txt.length * 42);
+          setTimeout(function () {
+            gaiaIsSpeaking = false;
+            if (indicator) indicator.classList.remove("on");
+            if (cb) cb();
+          }, delay);
+        }
+      }
+
       function hideV() {
         var vb = document.getElementById("vbox");
         vb.style.transition = "opacity .8s";
@@ -1647,8 +1746,6 @@
         var q = QUESTIONS[idx];
         var pct = Math.round((idx / QUESTIONS.length) * 100);
         var panel = document.getElementById("quiz-panel");
-
-        // Circumference for SVG timer
         var R = 20,
           C = 2 * Math.PI * R;
 
@@ -1658,16 +1755,21 @@
           (idx + 1) +
           " / " +
           QUESTIONS.length +
-          '</span><div class="q-prog-bar"><div class="q-prog-fill" id="qpf" style="width:' +
+          "</span>" +
+          '<div class="q-prog-bar"><div class="q-prog-fill" id="qpf" style="width:' +
           pct +
           '%"></div></div></div>' +
-          '<div class="q-timer-wrap"><div class="q-timer-arc"><svg width="48" height="48" viewBox="0 0 48 48"><circle class="q-timer-track" cx="24" cy="24" r="' +
+          '<div class="q-timer-wrap"><div class="q-timer-arc"><svg width="48" height="48" viewBox="0 0 48 48">' +
+          '<circle class="q-timer-track" cx="24" cy="24" r="' +
           R +
-          '"/><circle class="q-timer-prog" id="qtarc" cx="24" cy="24" r="' +
+          '"/>' +
+          '<circle class="q-timer-prog" id="qtarc" cx="24" cy="24" r="' +
           R +
           '" stroke-dasharray="' +
           C.toFixed(2) +
-          '" stroke-dashoffset="0"/></svg><div class="q-timer-num" id="qtnum">25</div></div><div class="q-timer-label">SECONDES RESTANTES</div></div>' +
+          '" stroke-dashoffset="0"/>' +
+          '</svg><div class="q-timer-num" id="qtnum">25</div></div>' +
+          '<div class="q-timer-label">SECONDES RESTANTES</div></div>' +
           '<div class="q-text">' +
           q.q +
           "</div>" +
@@ -1694,7 +1796,16 @@
         });
         html +=
           "</div>" +
-          '<div class="q-feedback" id="qfb"><div class="q-feedback-title" id="qfbt">G A I A</div><div class="q-feedback-text" id="qfbtx"></div><div class="q-feedback-pts" id="qfbp"></div></div>' +
+          '<div class="q-feedback" id="qfb">' +
+          '<div class="q-feedback-title" id="qfbt">G A I A</div>' +
+          '<div class="q-feedback-text" id="qfbtx"></div>' +
+          '<div class="q-feedback-pts" id="qfbp"></div>' +
+          // Indicateur Gaia parle
+          '<div class="q-gaia-speaking" id="qGaiaSpeaking">' +
+          '<span class="q-gaia-label">G A I A &nbsp; P A R L E</span>' +
+          '<span class="q-gaia-bars"><span class="q-gaia-bar"></span><span class="q-gaia-bar"></span><span class="q-gaia-bar"></span><span class="q-gaia-bar"></span></span>' +
+          "</div>" +
+          "</div>" +
           '<div class="q-next"><button class="q-next-btn" id="qnext" onclick="nextQuestion()">SUIVANT &#9658;</button></div>' +
           "</div>";
 
@@ -1724,7 +1835,6 @@
       }
 
       function timeOut(idx) {
-        // Mark all choices locked, reveal correct
         lockChoices(idx, -1);
         var q = QUESTIONS[idx];
         var fb = document.getElementById("qfb");
@@ -1738,9 +1848,13 @@
         }
         quizAnswers.push({ correct: false, timedOut: true });
         sfxBuzz();
-        var nb = document.getElementById("qnext");
-        if (nb) nb.classList.add("show");
         updateScore();
+
+        // Gaia parle le feedback — bouton suivant bloqué jusqu'à la fin
+        speakFeedback("Temps écoulé. " + q.voiceWrong, function () {
+          var nb = document.getElementById("qnext");
+          if (nb) nb.classList.add("show");
+        });
       }
 
       function answerQ(qIdx, choiceIdx) {
@@ -1753,25 +1867,27 @@
         lockChoices(qIdx, choiceIdx);
         quizAnswers.push({ correct: correct, chosen: choiceIdx });
 
+        var fb = document.getElementById("qfb");
+        var fbt = document.getElementById("qfbt");
+        var fbtx = document.getElementById("qfbtx");
+        var fbp = document.getElementById("qfbp");
+
         if (correct) {
           score += 20;
           sfxChime();
-          var fb = document.getElementById("qfb");
-          var fbt = document.getElementById("qfbt");
-          var fbtx = document.getElementById("qfbtx");
-          var fbp = document.getElementById("qfbp");
           if (fb && fbtx) {
             if (fbt) fbt.textContent = "✅ EXACT — G A I A";
             fbtx.textContent = q.feedbackCorrect;
             fbp.innerHTML = '<span style="color:#00ff88">+20 POINTS ✦</span>';
             fb.classList.add("show");
           }
+          // Gaia parle le feedback positif — bouton suivant débloqué après
+          speakFeedback(q.voiceCorrect, function () {
+            var nb = document.getElementById("qnext");
+            if (nb) nb.classList.add("show");
+          });
         } else {
           sfxBuzz();
-          var fb = document.getElementById("qfb");
-          var fbt = document.getElementById("qfbt");
-          var fbtx = document.getElementById("qfbtx");
-          var fbp = document.getElementById("qfbp");
           if (fb && fbtx) {
             if (fbt) fbt.textContent = "✗ INCORRECT — G A I A";
             fbtx.textContent = q.feedbackWrong;
@@ -1779,14 +1895,13 @@
               '<span style="color:rgba(255,120,80,0.8)">+0 POINTS</span>';
             fb.classList.add("show");
           }
+          // Gaia parle le feedback négatif — bouton suivant débloqué après
+          speakFeedback(q.voiceWrong, function () {
+            var nb = document.getElementById("qnext");
+            if (nb) nb.classList.add("show");
+          });
         }
         updateScore();
-        var nb = document.getElementById("qnext");
-        if (nb) {
-          setTimeout(function () {
-            nb.classList.add("show");
-          }, 800);
-        }
       }
 
       function lockChoices(qIdx, chosen) {
@@ -1807,6 +1922,10 @@
       }
 
       function nextQuestion() {
+        // Bloquer si Gaia parle encore
+        if (gaiaIsSpeaking) return;
+        if (syn) syn.cancel();
+        gaiaIsSpeaking = false;
         currentQ++;
         var panel = document.getElementById("quiz-panel");
         panel.style.opacity = "0";
@@ -1834,7 +1953,7 @@
           return a.correct;
         }).length;
         var pct = Math.round((correct / total) * 100);
-        var pass = pct >= 80;
+        var pass = pct >= 80; // ← seuil 80%
 
         var rank, rankColor;
         if (pct === 100) {
@@ -1907,15 +2026,20 @@
         if (correct >= 5)
           badgesHTML += '<div class="recap-badge">🌳 Gardien des Arbres</div>';
 
+        // ──────────────────────────────────────────────
+        // BOUTONS RECAP : retour hub visible SEULEMENT si >= 80%
+        // ──────────────────────────────────────────────
         var btnsHTML = "";
         if (pass) {
+          // ≥ 80% : bouton Stage 4 + bouton Retour Hub
           btnsHTML =
             '<button class="recap-btn recap-btn-main" onclick="goNext()">STAGE 4 — LES CICATRICES &#9658;</button>' +
             '<button class="recap-btn recap-btn-sec" onclick="goHub()">RETOUR AU HUB</button>';
         } else {
+          // < 80% : uniquement Recommencer — pas de retour au hub
           btnsHTML =
-            '<button class="recap-btn recap-btn-main" onclick="retryQuiz()">RECOMMENCER LE QUIZ &#8635;</button>' +
-            '<button class="recap-btn recap-btn-sec" onclick="goHub()">RETOUR AU HUB</button>';
+            '<button class="recap-btn recap-btn-main" onclick="retryQuiz()">RECOMMENCER LE QUIZ &#8635;</button>';
+          // Message d'encouragement à retry
         }
 
         document.getElementById("recap-panel").innerHTML =
@@ -1947,9 +2071,9 @@
             : "") +
           (pass
             ? "<div style=\"text-align:center;margin-bottom:16px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:0.25em;color:rgba(0,220,130,0.5)\">🦠 BADGE : GARDIEN IMMUNITAIRE — STAGE 3 COMPLÉTÉ ✅</div>"
-            : '<div class="recap-retry">Vous avez besoin de ' +
-              Math.ceil((80 * total) / 100 - correct) +
-              " réponse(s) supplémentaire(s) pour passer au Stage 4 (minimum 80%)</div>") +
+            : '<div class="recap-retry">Il vous faut ' +
+              (Math.ceil(total * 0.8) - correct) +
+              " bonne(s) réponse(s) supplémentaire(s) pour passer (minimum 80%).<br>Réessayez — Gaïa a besoin de gardiens qui SAVENT.</div>") +
           '<div class="recap-btns">' +
           btnsHTML +
           "</div>" +
@@ -1973,10 +2097,12 @@
 
       function retryQuiz() {
         document.getElementById("recap-overlay").classList.remove("show");
-        score = Math.max(0, score - 20); // small penalty
+        if (syn) syn.cancel();
+        score = Math.max(0, score - 20); // petite pénalité
         updateScore();
         quizAnswers = [];
         currentQ = 0;
+        gaiaIsSpeaking = false;
         setTimeout(function () {
           document.getElementById("quiz-overlay").classList.add("show");
           renderQuestion(0);
@@ -2022,7 +2148,6 @@
         }, 1400);
         sfxAmb();
 
-        // Attendre que les voix soient chargées ou lancer l'intro après un délai
         var introLaunched = false;
         function launchIntro() {
           if (introLaunched) return;
@@ -2031,14 +2156,11 @@
         }
         if (syn && syn.getVoices().length === 0) {
           syn.addEventListener("voiceschanged", launchIntro, { once: true });
-          // Fallback si les voix ne se chargent jamais
           setTimeout(launchIntro, 3000);
         } else {
           launchIntro();
         }
         requestAnimationFrame(renderLoop);
-
-        // Attacher l'événement pour le bouton ready
         document.getElementById("ready-btn").onclick = startQuiz;
         document.getElementById("mute-btn").onclick = togMute;
       }

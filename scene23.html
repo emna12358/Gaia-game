@@ -1,0 +1,1986 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GAIA - Memorial des Catastrophes</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #000;
+        overflow: hidden;
+        font-family: "EB Garamond", Georgia, serif;
+        cursor: none;
+        color: #e8e8e8;
+      }
+
+      /* CURSEUR */
+      #cursor {
+        position: fixed;
+        width: 18px;
+        height: 18px;
+        border: 1px solid rgba(255, 200, 100, 0.7);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: transform 0.1s ease, border-color 0.3s;
+      }
+      #cursor::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 180, 80, 0.9);
+        border-radius: 50%;
+      }
+      #cursor.hovering {
+        transform: translate(-50%, -50%) scale(1.6);
+        border-color: rgba(255, 220, 150, 1);
+      }
+      #cursor.dragging {
+        transform: translate(-50%, -50%) scale(0.8);
+        border-color: rgba(255, 150, 50, 1);
+      }
+
+      /* CANVAS LAYERS */
+      #bg-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+      }
+      #memorial-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+      }
+      #particles-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      /* VIGNETTE */
+      #vignette {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse 75% 75% at 50% 50%,
+          transparent 30%,
+          rgba(0, 0, 0, 0.5) 60%,
+          rgba(0, 0, 0, 0.9) 100%
+        );
+      }
+
+      /* LOADING */
+      #loading {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        background: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        transition: opacity 1.5s ease;
+      }
+      #loading.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #loading-label {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.5em;
+        color: rgba(255, 180, 80, 0.6);
+      }
+      #loading-track {
+        width: 240px;
+        height: 2px;
+        background: rgba(255, 180, 80, 0.15);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      #loading-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #ff9040, #ffcc80);
+        border-radius: 2px;
+        transition: width 0.3s ease;
+      }
+
+      /* HEADER */
+      #header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        padding: 25px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 2s ease;
+      }
+      #header.show {
+        opacity: 1;
+      }
+
+      #logo {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.5em;
+        color: rgba(255, 180, 80, 0.4);
+      }
+
+      #stele-counter {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: rgba(255, 180, 80, 0.5);
+      }
+
+      /* TITRE CENTRAL */
+      #memorial-title {
+        position: fixed;
+        top: 12%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 15;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 2.5s ease;
+        pointer-events: none;
+      }
+      #memorial-title.show {
+        opacity: 1;
+      }
+      #memorial-title h1 {
+        font-family: "Cinzel", serif;
+        font-size: clamp(20px, 3vw, 32px);
+        font-weight: 400;
+        letter-spacing: 0.35em;
+        color: rgba(255, 200, 120, 0.85);
+        text-shadow: 0 0 40px rgba(255, 150, 50, 0.3);
+        margin-bottom: 8px;
+      }
+      #memorial-title p {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        font-style: italic;
+        color: rgba(255, 200, 120, 0.45);
+        letter-spacing: 0.15em;
+      }
+
+      /* INSTRUCTIONS */
+      #instructions {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 15;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 2s ease;
+      }
+      #instructions.show {
+        opacity: 1;
+      }
+      #instructions p {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.4em;
+        color: rgba(255, 180, 80, 0.35);
+        animation: pulse-soft 3s ease-in-out infinite;
+      }
+      #instructions .hint-360 {
+        margin-top: 8px;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: rgba(255, 180, 80, 0.25);
+      }
+      @keyframes pulse-soft {
+        0%,
+        100% {
+          opacity: 0.35;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      /* PANNEAU STELE */
+      #stele-panel {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 100;
+        width: min(92vw, 700px);
+        max-height: 85vh;
+        background: rgba(5, 3, 0, 0.96);
+        border: 1px solid rgba(255, 180, 80, 0.2);
+        border-radius: 3px;
+        backdrop-filter: blur(25px);
+        box-shadow: 0 0 100px rgba(0, 0, 0, 0.8),
+          0 0 60px rgba(255, 100, 30, 0.1);
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, -50%) scale(0.95);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+        overflow: hidden;
+      }
+      #stele-panel.show {
+        opacity: 1;
+        pointer-events: all;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      #panel-header {
+        padding: 25px 30px 20px;
+        border-bottom: 1px solid rgba(255, 180, 80, 0.12);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      #panel-title-zone h2 {
+        font-family: "Cinzel", serif;
+        font-size: clamp(18px, 2.5vw, 26px);
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        margin-bottom: 6px;
+      }
+      #panel-title-zone .subtitle {
+        font-family: "EB Garamond", serif;
+        font-size: 13px;
+        color: rgba(255, 200, 120, 0.6);
+        font-style: italic;
+      }
+
+      #close-panel {
+        background: none;
+        border: 1px solid rgba(255, 180, 80, 0.3);
+        color: rgba(255, 180, 80, 0.7);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #close-panel:hover {
+        background: rgba(255, 180, 80, 0.1);
+        border-color: rgba(255, 180, 80, 0.6);
+      }
+
+      #panel-content {
+        padding: 20px 30px 25px;
+        max-height: calc(85vh - 100px);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 180, 80, 0.3) transparent;
+      }
+      #panel-content::-webkit-scrollbar {
+        width: 6px;
+      }
+      #panel-content::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      #panel-content::-webkit-scrollbar-thumb {
+        background: rgba(255, 180, 80, 0.3);
+        border-radius: 3px;
+      }
+
+      /* Fiche technique */
+      .info-block {
+        background: rgba(255, 180, 80, 0.04);
+        border: 1px solid rgba(255, 180, 80, 0.1);
+        border-radius: 2px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .info-block h3 {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        color: rgba(255, 200, 120, 0.7);
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 180, 80, 0.1);
+      }
+      .info-block p {
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        line-height: 1.8;
+        color: rgba(230, 220, 200, 0.85);
+        margin-bottom: 12px;
+      }
+      .info-block p:last-child {
+        margin-bottom: 0;
+      }
+      .info-block strong {
+        color: rgba(255, 200, 120, 0.95);
+      }
+      .info-block .stat {
+        display: inline-block;
+        background: rgba(255, 100, 50, 0.15);
+        padding: 3px 10px;
+        border-radius: 2px;
+        font-weight: 600;
+        color: #ff9966;
+      }
+
+      /* Bouton temoignage */
+      #audio-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 100, 50, 0.15),
+          rgba(255, 150, 80, 0.08)
+        );
+        border: 1px solid rgba(255, 150, 80, 0.35);
+        border-radius: 3px;
+        color: rgba(255, 200, 150, 0.9);
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.25em;
+        cursor: pointer;
+        transition: all 0.4s;
+        margin-bottom: 20px;
+      }
+      #audio-btn:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 100, 50, 0.25),
+          rgba(255, 150, 80, 0.15)
+        );
+        border-color: rgba(255, 180, 100, 0.6);
+        box-shadow: 0 0 30px rgba(255, 100, 50, 0.2);
+      }
+      #audio-btn.playing {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 80, 30, 0.3),
+          rgba(255, 120, 60, 0.2)
+        );
+        border-color: rgba(255, 150, 80, 0.7);
+      }
+      #audio-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+
+      /* Audio waveform animation */
+      .audio-wave {
+        display: none;
+        gap: 3px;
+        align-items: center;
+        height: 20px;
+      }
+      .audio-wave.active {
+        display: flex;
+      }
+      .audio-wave span {
+        width: 3px;
+        height: 8px;
+        background: currentColor;
+        border-radius: 2px;
+        animation: wave 0.8s ease-in-out infinite;
+      }
+      .audio-wave span:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .audio-wave span:nth-child(3) {
+        animation-delay: 0.2s;
+      }
+      .audio-wave span:nth-child(4) {
+        animation-delay: 0.3s;
+      }
+      @keyframes wave {
+        0%,
+        100% {
+          transform: scaleY(0.5);
+        }
+        50% {
+          transform: scaleY(1.5);
+        }
+      }
+
+      /* Temoignage texte */
+      #testimony-text {
+        background: rgba(30, 20, 10, 0.5);
+        border-left: 3px solid rgba(255, 150, 80, 0.4);
+        padding: 20px 25px;
+        margin-bottom: 20px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      #testimony-text p {
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        line-height: 2;
+        color: rgba(220, 200, 180, 0.9);
+        font-style: italic;
+      }
+
+      /* Message Gaia */
+      #gaia-message {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 80, 60, 0.2),
+          rgba(0, 100, 80, 0.1)
+        );
+        border: 1px solid rgba(0, 200, 150, 0.2);
+        border-radius: 3px;
+        padding: 20px;
+      }
+      #gaia-message .speaker {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.4em;
+        color: rgba(0, 255, 180, 0.5);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      #gaia-message .speaker-btn {
+        background: none;
+        border: 1px solid rgba(0, 200, 150, 0.4);
+        color: rgba(0, 255, 180, 0.7);
+        padding: 4px 10px;
+        border-radius: 3px;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      #gaia-message .speaker-btn:hover {
+        background: rgba(0, 200, 150, 0.15);
+        border-color: rgba(0, 200, 150, 0.7);
+      }
+      #gaia-message .speaker-btn.playing {
+        background: rgba(0, 200, 150, 0.2);
+        border-color: rgba(0, 255, 180, 0.8);
+      }
+      #gaia-message p {
+        font-family: "EB Garamond", serif;
+        font-size: 15px;
+        line-height: 1.9;
+        color: rgba(180, 255, 220, 0.85);
+      }
+
+      /* FLAMME CENTRALE (CSS) */
+      #flame-indicator {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 2s ease;
+      }
+      #flame-indicator.show {
+        opacity: 1;
+      }
+      #flame-indicator .flame-icon {
+        font-size: 32px;
+        animation: flame-dance 1.5s ease-in-out infinite;
+      }
+      @keyframes flame-dance {
+        0%,
+        100% {
+          transform: scale(1) translateY(0);
+          filter: brightness(1);
+        }
+        50% {
+          transform: scale(1.1) translateY(-3px);
+          filter: brightness(1.3);
+        }
+      }
+      #flame-indicator.complete .flame-icon {
+        color: #4af;
+        animation: flame-complete 2s ease-in-out infinite;
+      }
+      @keyframes flame-complete {
+        0%,
+        100% {
+          transform: scale(1);
+          filter: brightness(1) hue-rotate(0deg);
+        }
+        50% {
+          transform: scale(1.15);
+          filter: brightness(1.4) hue-rotate(20deg);
+        }
+      }
+
+      /* BOUTON SORTIE */
+      #exit-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 20;
+        padding: 14px 28px;
+        background: transparent;
+        border: 1px solid rgba(0, 200, 150, 0.3);
+        color: rgba(0, 200, 150, 0.7);
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.5s;
+      }
+      #exit-btn.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #exit-btn:hover {
+        background: rgba(0, 200, 150, 0.1);
+        border-color: rgba(0, 200, 150, 0.6);
+        box-shadow: 0 0 25px rgba(0, 200, 150, 0.2);
+      }
+
+      /* AUDIO CONTROL */
+      #audio-hint {
+        position: fixed;
+        bottom: 25px;
+        left: 25px;
+        z-index: 30;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.25em;
+        color: rgba(255, 180, 80, 0.3);
+        cursor: pointer;
+        transition: color 0.3s;
+      }
+      #audio-hint:hover {
+        color: rgba(255, 180, 80, 0.7);
+      }
+
+      /* CONTROLES 360 */
+      #controls-hint {
+        position: fixed;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 30;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        color: rgba(255, 180, 80, 0.25);
+        text-align: center;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+      #controls-hint.show {
+        opacity: 1;
+      }
+
+      /* RIDEAU */
+      #curtain {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: #000;
+        opacity: 1;
+        transition: opacity 2s ease;
+      }
+      #curtain.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* MESSAGE FINAL */
+      #final-message {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: rgba(0, 0, 0, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 1.5s ease;
+      }
+      #final-message.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+      #final-message .gaia-final {
+        font-family: "EB Garamond", serif;
+        font-size: clamp(16px, 2.5vw, 22px);
+        line-height: 2;
+        color: rgba(0, 255, 180, 0.85);
+        text-align: center;
+        max-width: 700px;
+        margin-bottom: 40px;
+        white-space: pre-line;
+      }
+      #final-message .continue-btn {
+        padding: 16px 40px;
+        background: transparent;
+        border: 1px solid rgba(0, 200, 150, 0.4);
+        color: rgba(0, 200, 150, 0.8);
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        cursor: pointer;
+        transition: all 0.4s;
+      }
+      #final-message .continue-btn:hover {
+        background: rgba(0, 200, 150, 0.1);
+        border-color: rgba(0, 200, 150, 0.7);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Rideau -->
+    <div id="curtain"></div>
+
+    <!-- Loading -->
+    <div id="loading">
+      <div id="loading-label">ENTREE DANS LE MEMORIAL...</div>
+      <div id="loading-track"><div id="loading-fill"></div></div>
+    </div>
+
+    <!-- Curseur -->
+    <div id="cursor"></div>
+
+    <!-- Canvas -->
+    <canvas id="bg-canvas"></canvas>
+    <canvas id="memorial-canvas"></canvas>
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Vignette -->
+    <div id="vignette"></div>
+
+    <!-- Header -->
+    <div id="header">
+      <div id="logo">G A I A - M E M O R I A L</div>
+      <div id="stele-counter">
+        STELES VISITEES : <span id="visited-count">0</span> / 5
+      </div>
+    </div>
+
+    <!-- Titre -->
+    <div id="memorial-title">
+      <h1>LIEU DE MEMOIRE</h1>
+      <p>Pour que l'oubli ne soit jamais complice</p>
+    </div>
+
+    <!-- Instructions -->
+    <div id="instructions">
+      <p>- CLIQUEZ SUR UNE STELE POUR DECOUVRIR SON HISTOIRE -</p>
+      <p class="hint-360">GLISSEZ POUR TOURNER LA VUE 360</p>
+    </div>
+
+    <!-- Controles hint -->
+    <div id="controls-hint"></div>
+
+    <!-- Flamme -->
+    <div id="flame-indicator">
+      <div class="flame-icon">&#128293;</div>
+    </div>
+
+    <!-- Panneau Stele -->
+    <div id="stele-panel">
+      <div id="panel-header">
+        <div id="panel-title-zone">
+          <h2 id="panel-title">BHOPAL</h2>
+          <div class="subtitle" id="panel-subtitle">
+            2-3 Decembre 1984, Inde
+          </div>
+        </div>
+        <button id="close-panel" onclick="closePanel()">&#10005;</button>
+      </div>
+      <div id="panel-content">
+        <div class="info-block" id="info-block">
+          <!-- Contenu dynamique -->
+        </div>
+        <button id="audio-btn" onclick="toggleTestimony()">
+          <svg id="play-icon" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <svg id="pause-icon" viewBox="0 0 24 24" style="display: none">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+          </svg>
+          <div class="audio-wave" id="audio-wave">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <span id="audio-btn-text">ECOUTER LE TEMOIGNAGE</span>
+        </button>
+        <div id="testimony-text" style="display: none">
+          <p id="testimony-content"></p>
+        </div>
+        <div id="gaia-message">
+          <div class="speaker">
+            G A I A
+            <button
+              class="speaker-btn"
+              id="gaia-speak-btn"
+              onclick="playGaiaVoice()"
+            >
+              ECOUTER
+            </button>
+          </div>
+          <p id="gaia-text"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message Final -->
+    <div id="final-message">
+      <p class="gaia-final" id="final-text"></p>
+      <button class="continue-btn" onclick="goToNextScene()">
+        CONTINUER LE VOYAGE
+      </button>
+    </div>
+
+    <!-- Bouton sortie -->
+    <button id="exit-btn" onclick="goToNextScene()">QUITTER LE MEMORIAL</button>
+
+    <!-- Audio -->
+    <div id="audio-hint" onclick="toggleMute()">SON ACTIVE</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      /* ====================================================
+       GAIA - SCENE 23 : MEMORIAL DES CATASTROPHES
+       Lieu sacre de memoire (style Yad Vashem)
+       5 steles monumentales en cercle
+       Flamme eternelle centrale
+       VUE 360 DEGRES COMPLETE
+    ==================================================== */
+
+      // ====================================================
+      // DONNEES DES CATASTROPHES
+      // ====================================================
+      const catastrophes = [
+        {
+          id: "bhopal",
+          name: "BHOPAL",
+          icon: "&#127981;",
+          date: "2-3 Decembre 1984",
+          location: "Madhya Pradesh, Inde",
+          color: "#ff6b35",
+          deaths: "15,000-20,000 MORTS",
+          impact: "500,000 BLESSES",
+          quote: "La pire catastrophe industrielle de l'histoire",
+          info: `<p><strong>L'Evenement :</strong> Nuit du 2 au 3 decembre 1984, 00h56. Fuite de <span class="stat">40 TONNES</span> d'isocyanate de methyle (MIC) a l'usine Union Carbide.</p>
+        <p><strong>Cause :</strong> Negligence criminelle - systeme de securite desactive, refrigeration arretee, personnel reduit, formation insuffisante.</p>
+        <p><strong>Bilan :</strong> 3,800 morts la nuit meme, +8,000 la semaine suivante, +8,000 des suites de maladies chroniques.</p>
+        <p><strong>Sequelles :</strong> 200,000 personnes avec sequelles permanentes - cecite, insuffisance respiratoire, cancers, malformations congenitales.</p>
+        <p><strong>Injustice :</strong> Union Carbide a paye <span class="stat">470M$</span> soit 1,200$ par victime. Aucun dirigeant emprisonne. Site jamais nettoye, nappes phreatiques contaminees en 2026.</p>`,
+          testimony: `Je m'appelle Champa Devi. J'avais 35 ans cette nuit-la.
+
+Mon mari dormait. Mes enfants aussi. Trois enfants. 8 ans, 6 ans, 2 ans.
+
+Vers 1 heure du matin... J'ai senti une odeur. Comme des piments qui brulent les yeux. Mais en PIRE.
+
+Mon mari s'est reveille. Il a dit : Sors ! Cours !
+
+J'ai pris mes enfants. On a couru. Dehors... C'etait l'enfer. Un brouillard blanc. Epais. On ne voyait rien.
+
+Les gens couraient. En criant. En toussant. Beaucoup... tombaient. Et ne se relevaient plus.
+
+Mon plus jeune... il est mort dans mes bras. En courant. Il a juste... arrete de respirer.
+
+Mon deuxieme... est mort a l'hopital. 3 jours plus tard.
+
+Mon aine a survecu. Mais il est aveugle. Le gaz... a brule ses yeux.
+
+Mon mari... est mort 6 mois plus tard. Ses poumons ne fonctionnaient plus.
+
+Aujourd'hui, 2026... 42 ans apres... Je vis toujours a Bhopal. Avec mon fils aveugle. L'usine est toujours la. Abandonnee. Toxique.
+
+Union Carbide m'a donne 1,200 dollars. Pour mes deux enfants morts. Pour mon mari mort. Pour mon fils aveugle.
+
+1,200 dollars. Et personne n'est alle en prison. Personne.
+
+Quarante-deux ans... Et je crie encore justice.`,
+          gaia: `Champa Devi vit toujours. A Bhopal. Avec son fils aveugle. Et l'eau qu'elle boit est ENCORE empoisonnee. 42 ans apres.
+
+Union Carbide est devenu Dow Chemical. Une des plus grandes entreprises du monde. Personne en prison.
+
+C'est ca... L'injustice. 15,000 morts. 500,000 blesses. Et 1,200 dollars par victime.
+
+Souvenez-vous d'elle. Souvenez-vous de Bhopal. Pour que JAMAIS on laisse une entreprise tuer impunement.`,
+          voicePitch: 0.9,
+          voiceRate: 0.85,
+        },
+        {
+          id: "tchernobyl",
+          name: "TCHERNOBYL",
+          icon: "&#9762;",
+          date: "26 Avril 1986",
+          location: "Pripyat, Ukraine (URSS)",
+          color: "#66ccff",
+          deaths: "4,000-93,000 MORTS",
+          impact: "200,000 km2 CONTAMINES",
+          quote: "L'atome hors de controle",
+          info: `<p><strong>L'Evenement :</strong> Explosion du reacteur n4 de la centrale Lenine suite a un test de securite rate.</p>
+        <p><strong>Rejet :</strong> <span class="stat">400 fois</span> plus de radioactivite que la bombe d'Hiroshima.</p>
+        <p><strong>Les Liquidateurs :</strong> 600,000 hommes envoyes au "feu" nucleaire avec des protections de fortune. Beaucoup sont morts dans les semaines/mois suivants.</p>
+        <p><strong>Aujourd'hui (2026) :</strong> Zone d'exclusion de 30 km toujours interdite. Le nouveau "Sarcophage" de confinement doit tenir 100 ans.</p>
+        <p><strong>Mensonge d'Etat :</strong> Le nuage radioactif "arrete a la frontiere" selon les autorites francaises. Des millions d'Europeens exposes sans protection.</p>`,
+          testimony: `On nous appelait les Bio-robots. Les machines tombaient en panne a cause des radiations sur le toit, alors on nous y envoyait, nous.
+
+90 secondes pour pelleter du graphite brulant. On nous disait que c'etait pour la patrie.
+
+J'ai senti un gout de metal dans ma bouche... c'etait le gout de ma propre mort.
+
+Mes camarades sont partis en quelques semaines. Leurs corps... se decomposaient de l'interieur.
+
+Moi, je suis une ombre qui attend que le cesium finisse son travail dans mes os.
+
+Chaque annee, je retourne a la zone. C'est devenu une attraction touristique. Les gens prennent des selfies devant le reacteur.
+
+Ils ne comprennent pas. Cette terre est morte pour 20,000 ans.
+
+Et nous, les liquidateurs survivants... on est les fantomes d'une erreur que l'humanite refuse d'admettre.`,
+          gaia: `20,000 ans. C'est le temps qu'il me faudra pour respirer a nouveau normalement sur ces terres.
+
+Ils ont voulu dompter le soleil, ils ont cree un desert invisible.
+
+La radioactivite ne se voit pas. Ne se sent pas. Mais elle tue. Lentement. Surement.
+
+Pripyat etait une ville de 50,000 ames. Aujourd'hui, seuls les arbres y vivent. Et meme eux portent les cicatrices de l'atome.`,
+          voicePitch: 0.7,
+          voiceRate: 0.8,
+        },
+        {
+          id: "exxon",
+          name: "EXXON VALDEZ",
+          icon: "&#128738;",
+          date: "24 Mars 1989",
+          location: "Alaska, Etats-Unis",
+          color: "#2a2a2a",
+          deaths: "AUCUN MORT HUMAIN",
+          impact: "41 MILLIONS L. DE PETROLE",
+          quote: "La mort par l'or noir",
+          info: `<p><strong>Cause :</strong> Petrolier echoue sur le recif Bligh Reef. Capitaine sous influence d'alcool, radar en panne, equipage epuise.</p>
+        <p><strong>Deversement :</strong> <span class="stat">41 millions de litres</span> de petrole brut dans la baie du Prince-William.</p>
+        <p><strong>Bilan animal :</strong> 250,000 oiseaux marins, 2,800 loutres, 300 phoques, 250 pygargues, 22 orques morts dans les semaines suivantes.</p>
+        <p><strong>2,100 km</strong> de cotes recouvertes de petrole noir.</p>
+        <p><strong>Aujourd'hui (2026) :</strong> Si vous creusez le sable en Alaska, vous trouvez encore du petrole brut non degrade.</p>
+        <p><strong>Injustice :</strong> Exxon a reduit son amende de <span class="stat">5 milliards a 500 millions $</span> apres 20 ans de procedures judiciaires.</p>`,
+          testimony: `Je suis pecheur. Enfin, j'etais.
+
+Le matin de l'echouage, l'odeur de bitume couvrait celle de l'ocean. On ne voyait plus l'eau. Juste... cette masse noire et epaisse.
+
+On ramassait les oiseaux a la main. Ils nous regardaient avec des yeux pleins de goudron avant de mourir. Des milliers. Chaque jour.
+
+Les loutres... elles essayaient de se nettoyer en se lechant. Elles s'empoisonnaient elles-memes.
+
+La mer etait devenue une prison de colle noire.
+
+Ma famille pechait ici depuis cinq generations. En une nuit, tout a disparu. Les harengs ne sont jamais revenus. Les saumons... decimes.
+
+Exxon a survecu. Leurs profits ont explose l'annee suivante.
+
+Ma communaute, elle, ne s'est jamais relevee. La mer est restee silencieuse pendant des annees.
+
+37 ans plus tard, je trouve encore du petrole quand je creuse le sable. 37 ans.`,
+          gaia: `Le sang de la terre a etouffe mes plumes et mes ecailles.
+
+Pour quelques barils, ils ont sacrifie un sanctuaire de glace et de vie.
+
+L'argent se lave. Le petrole, jamais.
+
+Chaque goutte de cet or noir est une larme que je verse encore aujourd'hui. L'Alaska portera cette cicatrice pour des siecles.`,
+          voicePitch: 0.8,
+          voiceRate: 0.85,
+        },
+        {
+          id: "aral",
+          name: "MER D'ARAL",
+          icon: "&#127754;",
+          date: "1960 - Aujourd'hui",
+          location: "Ouzbekistan / Kazakhstan",
+          color: "#d4a574",
+          deaths: "MORT D'UN ECOSYSTEME",
+          impact: "-90% DU VOLUME D'EAU",
+          quote: "Le suicide d'une mer",
+          info: `<p><strong>L'Erreur :</strong> Detournement massif des fleuves Amou-Daria et Syr-Daria par l'URSS pour irriguer le coton en plein desert.</p>
+        <p><strong>Resultat :</strong> La <span class="stat">4eme plus grande mer interieure du monde</span> est devenue un desert de sel toxique appele Aralkum.</p>
+        <p><strong>Impact sante :</strong> Taux de cancer et de tuberculose record dans la region a cause des tempetes de sel charge de pesticides.</p>
+        <p><strong>Economie :</strong> 60,000 emplois de pecheurs perdus. Des villes portuaires se retrouvent a 100 km de toute eau.</p>
+        <p><strong>Aujourd'hui :</strong> Des squelettes de navires rouillent au milieu du desert. Les enfants naissent avec des malformations dues a l'eau contaminee.</p>`,
+          testimony: `Mon grand-pere amarrait son bateau ici, devant notre porte.
+
+Aujourd'hui, je marche deux jours pour trouver l'eau. Et elle est trop salee pour etre bue.
+
+On a voulu faire pousser du coton dans le sable. On a recolte la mort.
+
+Le vent souffle le sel et les produits chimiques de l'ancien fond marin dans les poumons de nos enfants.
+
+Ma fille a des problemes respiratoires. Mon fils... des troubles du developpement. L'eau que nous buvons est empoisonnee par les pesticides qu'ils ont deverses pendant 60 ans.
+
+Les bateaux de mon grand-pere... ils sont toujours la. Rouilles. Au milieu du desert. A 100 kilometres de la moindre goutte d'eau.
+
+On a tue une mer pour des chemises.
+
+Et personne n'en parle. Personne ne sait. C'est comme si cette mer n'avait jamais existe.`,
+          gaia: `J'avais un oeil bleu au coeur de l'Asie. Vous l'avez creve.
+
+Il ne reste qu'une cicatrice de sel et de regrets.
+
+La mer d'Aral n'est pas morte de cause naturelle. Elle a ete assassinee. Deliberement. Pour du coton.
+
+Chaque tempete de sable qui s'eleve de son cadavre emporte avec elle le souvenir de ce qu'elle etait. Et le poison de ce qu'elle est devenue.`,
+          voicePitch: 0.75,
+          voiceRate: 0.9,
+        },
+        {
+          id: "corail",
+          name: "GRANDE BARRIERE DE CORAIL",
+          icon: "&#129704;",
+          date: "2016 - Aujourd'hui",
+          location: "Australie",
+          color: "#ffffff",
+          deaths: "50% DE CORAUX MORTS",
+          impact: "2,300 km D'ECOSYSTEME",
+          quote: "Le blanchissement final",
+          info: `<p><strong>Phenomene :</strong> Le rechauffement climatique expulse les algues symbiotiques (zooxanthelles) des coraux, causant leur blanchissement et leur mort.</p>
+        <p><strong>Evenements cles :</strong> Canicules sous-marines massives en 2016, 2017, 2020, 2024 et 2025.</p>
+        <p><strong>Biodiversite :</strong> <span class="stat">1,500 especes de poissons</span> perdent leur habitat. Des milliers d'especes dependent de ce recif.</p>
+        <p><strong>Aujourd'hui (2026) :</strong> Seules les zones les plus profondes ou protegees survivent. La structure meme du recif s'effondre.</p>
+        <p><strong>C'est :</strong> Le plus grand organisme vivant de la planete. Visible depuis l'espace. En train de mourir sous nos yeux.</p>`,
+          testimony: `Plonger ici en 2010, c'etait comme voir un festival de couleurs. Des bleus electriques, des roses fluo, des jaunes eclatants. La vie partout.
+
+Aujourd'hui, c'est un cimetiere sous-marin.
+
+Les coraux sont blancs comme des os. Comme des squelettes. Parce que c'est exactement ce qu'ils sont.
+
+Il n'y a plus de bruit sous l'eau. Plus de claquements des crevettes. Plus de chants des poissons. Plus de vie.
+
+On documente une extinction en temps reel. C'est notre travail. Compter les morts.
+
+C'est comme regarder le Louvre bruler. Et ne rien pouvoir faire d'autre que prendre des notes.
+
+J'ai 34 ans. J'ai vu 50% du recif mourir en 10 ans. Mes enfants ne verront jamais ce que j'ai vu.
+
+On leur montrera des photos. Des videos. Regarde, c'etait comme ca avant.
+
+Avant que vous ne le tuiez.`,
+          gaia: `Ma parure la plus precieuse s'eteint.
+
+Le silence de mes recifs est le prelude au silence de vos oceans.
+
+La fievre vous consume. Mais c'est moi qui meurs.
+
+La Grande Barriere etait mon chef-d'oeuvre. 500,000 ans pour la construire. 10 ans pour la detruire.
+
+Chaque degre de plus est un coup de couteau dans mon coeur de corail.`,
+          voicePitch: 0.95,
+          voiceRate: 0.82,
+        },
+      ];
+
+      // ====================================================
+      // ETAT
+      // ====================================================
+      let visitedSteles = new Set();
+      let currentStele = null;
+      let isTestimonyPlaying = false;
+      let isGaiaPlaying = false;
+      let audioCtx = null;
+      let isMuted = false;
+      let scene, camera, renderer, clock;
+      let steleObjects = [];
+      let flameObject = null;
+      let raycaster, mouse;
+
+      // Vue 360
+      let isDragging = false;
+      let previousMousePosition = { x: 0, y: 0 };
+      let cameraAngleH = 0;
+      let cameraAngleV = 0.3;
+      let cameraDistance = 10;
+      let targetAngleH = 0;
+      let targetAngleV = 0.3;
+
+      // Speech synthesis
+      let currentUtterance = null;
+      let speechSynth = null;
+
+      // ====================================================
+      // CURSEUR
+      // ====================================================
+      const cur = document.getElementById("cursor");
+      document.addEventListener("mousemove", (e) => {
+        cur.style.left = e.clientX + "px";
+        cur.style.top = e.clientY + "px";
+      });
+
+      // ====================================================
+      // AUDIO ENGINE
+      // ====================================================
+      function initAudio() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        speechSynth = window.speechSynthesis;
+      }
+
+      function getMaster() {
+        if (!audioCtx) return null;
+        if (!window._master) {
+          const comp = audioCtx.createDynamicsCompressor();
+          comp.threshold.value = -18;
+          comp.knee.value = 10;
+          comp.ratio.value = 4;
+          comp.connect(audioCtx.destination);
+          window._master = comp;
+        }
+        return window._master;
+      }
+
+      function playAmbience() {
+        if (!audioCtx || isMuted) return;
+        const master = getMaster();
+
+        // Drone grave solennel
+        [55, 82.5, 110, 55.1].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(
+            [0.025, 0.015, 0.01, 0.02][i],
+            audioCtx.currentTime + 4
+          );
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start();
+        });
+
+        // Vent leger
+        const bufferSize = audioCtx.sampleRate * 3;
+        const noiseBuffer = audioCtx.createBuffer(
+          1,
+          bufferSize,
+          audioCtx.sampleRate
+        );
+        const data = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.value = 400;
+
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.value = 0.008;
+
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(master);
+        noise.start();
+      }
+
+      function playFlameSound() {
+        if (!audioCtx || isMuted) return;
+        const master = getMaster();
+
+        // Crepitement subtil
+        setInterval(() => {
+          if (isMuted) return;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "triangle";
+          osc.frequency.value = 200 + Math.random() * 300;
+          gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 0.1
+          );
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.1);
+        }, 200 + Math.random() * 300);
+      }
+
+      function playSteleActivation() {
+        if (!audioCtx || isMuted) return;
+        const master = getMaster();
+
+        // Son solennel
+        [220, 277, 330].forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 1.5
+            );
+            osc.connect(gain);
+            gain.connect(master);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1.5);
+          }, i * 150);
+        });
+      }
+
+      function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById("audio-hint").textContent = isMuted
+          ? "SON DESACTIVE"
+          : "SON ACTIVE";
+        if (audioCtx) isMuted ? audioCtx.suspend() : audioCtx.resume();
+        if (isMuted && speechSynth) speechSynth.cancel();
+      }
+
+      // ====================================================
+      // SYNTHESE VOCALE - TEMOIGNAGES
+      // ====================================================
+      function speakText(text, pitch = 1, rate = 0.9, onEnd = null) {
+        if (!speechSynth || isMuted) return;
+
+        // Stop any current speech
+        speechSynth.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "fr-FR";
+        utterance.pitch = pitch;
+        utterance.rate = rate;
+        utterance.volume = 1;
+
+        // Get French voice if available
+        const voices = speechSynth.getVoices();
+        const frenchVoice =
+          voices.find((v) => v.lang.startsWith("fr")) || voices[0];
+        if (frenchVoice) utterance.voice = frenchVoice;
+
+        currentUtterance = utterance;
+
+        utterance.onend = () => {
+          currentUtterance = null;
+          if (onEnd) onEnd();
+        };
+
+        utterance.onerror = () => {
+          currentUtterance = null;
+          if (onEnd) onEnd();
+        };
+
+        speechSynth.speak(utterance);
+      }
+
+      function stopSpeaking() {
+        if (speechSynth) {
+          speechSynth.cancel();
+          currentUtterance = null;
+        }
+      }
+
+      // ====================================================
+      // BACKGROUND CANVAS
+      // ====================================================
+      function initBackground() {
+        const c = document.getElementById("bg-canvas");
+        c.width = innerWidth;
+        c.height = innerHeight;
+        const ctx = c.getContext("2d");
+
+        // Fond degrade sombre
+        const grad = ctx.createRadialGradient(
+          c.width / 2,
+          c.height / 2,
+          0,
+          c.width / 2,
+          c.height / 2,
+          c.width * 0.7
+        );
+        grad.addColorStop(0, "#0a0806");
+        grad.addColorStop(0.5, "#050403");
+        grad.addColorStop(1, "#000000");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, c.width, c.height);
+
+        // Etoiles discretes
+        for (let i = 0; i < 150; i++) {
+          const x = Math.random() * c.width;
+          const y = Math.random() * c.height;
+          const r = Math.random() * 0.8;
+          const o = Math.random() * 0.3 + 0.05;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 220, 180, ${o})`;
+          ctx.fill();
+        }
+      }
+
+      // ====================================================
+      // PARTICULES (Cendres / Poussiere)
+      // ====================================================
+      function initParticles() {
+        const c = document.getElementById("particles-canvas");
+        c.width = innerWidth;
+        c.height = innerHeight;
+        const ctx = c.getContext("2d");
+
+        const particles = Array.from({ length: 80 }, () => ({
+          x: Math.random() * c.width,
+          y: Math.random() * c.height,
+          r: Math.random() * 1.2 + 0.3,
+          speedY: Math.random() * 0.3 + 0.1,
+          speedX: (Math.random() - 0.5) * 0.2,
+          opacity: Math.random() * 0.25 + 0.05,
+        }));
+
+        function animate() {
+          requestAnimationFrame(animate);
+          ctx.clearRect(0, 0, c.width, c.height);
+
+          particles.forEach((p) => {
+            p.y -= p.speedY;
+            p.x += p.speedX;
+
+            if (p.y < 0) {
+              p.y = c.height;
+              p.x = Math.random() * c.width;
+            }
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 180, 100, ${p.opacity})`;
+            ctx.fill();
+          });
+        }
+        animate();
+      }
+
+      // ====================================================
+      // THREE.JS - MEMORIAL 3D AVEC VUE 360
+      // ====================================================
+      function initThree() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(
+          50,
+          innerWidth / innerHeight,
+          0.1,
+          1000
+        );
+        updateCameraPosition();
+
+        renderer = new THREE.WebGLRenderer({
+          canvas: document.getElementById("memorial-canvas"),
+          antialias: true,
+          alpha: true,
+        });
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.setClearColor(0x000000, 0);
+
+        clock = new THREE.Clock();
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+        // SOL - Pierre sombre etendu pour 360
+        const floorGeo = new THREE.CircleGeometry(25, 64);
+        const floorMat = new THREE.MeshStandardMaterial({
+          color: 0x1a1512,
+          roughness: 0.9,
+          metalness: 0.1,
+        });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = 0;
+        scene.add(floor);
+
+        // CERCLE CENTRAL (paves)
+        const circleGeo = new THREE.RingGeometry(2.8, 3.2, 64);
+        const circleMat = new THREE.MeshStandardMaterial({
+          color: 0x2a2018,
+          roughness: 0.8,
+          side: THREE.DoubleSide,
+        });
+        const circle = new THREE.Mesh(circleGeo, circleMat);
+        circle.rotation.x = -Math.PI / 2;
+        circle.position.y = 0.01;
+        scene.add(circle);
+
+        // FLAMME ETERNELLE (Centre)
+        const flameGeo = new THREE.ConeGeometry(0.15, 0.6, 8);
+        const flameMat = new THREE.ShaderMaterial({
+          uniforms: {
+            uTime: { value: 0 },
+            uColor1: { value: new THREE.Color(0xff6600) },
+            uColor2: { value: new THREE.Color(0xffcc00) },
+          },
+          vertexShader: `
+          varying vec2 vUv;
+          uniform float uTime;
+          void main() {
+            vUv = uv;
+            vec3 pos = position;
+            pos.x += sin(uTime * 5.0 + position.y * 3.0) * 0.02;
+            pos.z += cos(uTime * 4.0 + position.y * 2.0) * 0.02;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+          }
+        `,
+          fragmentShader: `
+          uniform vec3 uColor1;
+          uniform vec3 uColor2;
+          uniform float uTime;
+          varying vec2 vUv;
+          void main() {
+            float gradient = vUv.y;
+            vec3 color = mix(uColor1, uColor2, gradient);
+            float flicker = 0.8 + 0.2 * sin(uTime * 10.0);
+            float alpha = (1.0 - vUv.y) * flicker;
+            gl_FragColor = vec4(color * flicker, alpha);
+          }
+        `,
+          transparent: true,
+          side: THREE.DoubleSide,
+        });
+        flameObject = new THREE.Mesh(flameGeo, flameMat);
+        flameObject.position.set(0, 0.8, 0);
+        scene.add(flameObject);
+
+        // Socle flamme
+        const pedestalGeo = new THREE.CylinderGeometry(0.3, 0.4, 0.5, 16);
+        const pedestalMat = new THREE.MeshStandardMaterial({
+          color: 0x1a1a1a,
+          roughness: 0.7,
+          metalness: 0.3,
+        });
+        const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
+        pedestal.position.set(0, 0.25, 0);
+        scene.add(pedestal);
+
+        // Point light flamme
+        const flameLight = new THREE.PointLight(0xff8844, 1.5, 12);
+        flameLight.position.set(0, 1.2, 0);
+        scene.add(flameLight);
+        window._flameLight = flameLight;
+
+        // STELES - Disposition en cercle (5 steles)
+        const radius = 5;
+        catastrophes.forEach((cat, i) => {
+          const angle = (i / catastrophes.length) * Math.PI * 2 - Math.PI / 2;
+          const x = Math.cos(angle) * radius;
+          const z = Math.sin(angle) * radius;
+
+          // Stele principale
+          const steleGeo = new THREE.BoxGeometry(0.8, 2.5, 0.3);
+          const steleMat = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(cat.color).multiplyScalar(0.3),
+            roughness: 0.85,
+            metalness: 0.1,
+            emissive: new THREE.Color(cat.color),
+            emissiveIntensity: 0.05,
+          });
+          const stele = new THREE.Mesh(steleGeo, steleMat);
+          stele.position.set(x, 1.25, z);
+          stele.lookAt(0, 1.25, 0);
+          stele.userData = {
+            catastropheId: cat.id,
+            index: i,
+            originalEmissive: 0.05,
+          };
+          scene.add(stele);
+          steleObjects.push(stele);
+
+          // Plaque gravee
+          const plaqueGeo = new THREE.PlaneGeometry(0.6, 0.4);
+          const plaqueMat = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(cat.color).multiplyScalar(0.6),
+            roughness: 0.7,
+            emissive: new THREE.Color(cat.color),
+            emissiveIntensity: 0.2,
+          });
+          const plaque = new THREE.Mesh(plaqueGeo, plaqueMat);
+          plaque.position.set(x, 1.8, z);
+          plaque.lookAt(0, 1.8, 0);
+          plaque.translateZ(0.16);
+          scene.add(plaque);
+
+          // Base stele
+          const baseGeo = new THREE.BoxGeometry(1.0, 0.15, 0.5);
+          const baseMat = new THREE.MeshStandardMaterial({
+            color: 0x151210,
+            roughness: 0.9,
+          });
+          const base = new THREE.Mesh(baseGeo, baseMat);
+          base.position.set(x, 0.075, z);
+          base.lookAt(0, 0.075, 0);
+          scene.add(base);
+
+          // Lumiere individuelle par stele
+          const steleLight = new THREE.PointLight(
+            new THREE.Color(cat.color),
+            0.3,
+            3
+          );
+          steleLight.position.set(x, 2, z);
+          scene.add(steleLight);
+        });
+
+        // LUMIERES
+        const ambientLight = new THREE.AmbientLight(0x221810, 0.4);
+        scene.add(ambientLight);
+
+        const moonLight = new THREE.DirectionalLight(0x8899aa, 0.3);
+        moonLight.position.set(5, 10, 5);
+        scene.add(moonLight);
+
+        // Resize handler
+        window.addEventListener("resize", () => {
+          camera.aspect = innerWidth / innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(innerWidth, innerHeight);
+
+          // Resize canvases
+          document.getElementById("bg-canvas").width = innerWidth;
+          document.getElementById("bg-canvas").height = innerHeight;
+          document.getElementById("particles-canvas").width = innerWidth;
+          document.getElementById("particles-canvas").height = innerHeight;
+          initBackground();
+        });
+
+        // CONTROLES 360 DEGRES
+        const canvas = document.getElementById("memorial-canvas");
+
+        // Mouse events pour 360
+        canvas.addEventListener("mousedown", onMouseDown);
+        canvas.addEventListener("mousemove", onMouseMove);
+        canvas.addEventListener("mouseup", onMouseUp);
+        canvas.addEventListener("mouseleave", onMouseUp);
+        canvas.addEventListener("click", onMouseClick);
+        canvas.addEventListener("wheel", onMouseWheel);
+
+        // Touch events pour mobile
+        canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+        canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+        canvas.addEventListener("touchend", onTouchEnd);
+
+        animate();
+      }
+
+      function updateCameraPosition() {
+        // Clamp vertical angle
+        targetAngleV = Math.max(0.1, Math.min(1.2, targetAngleV));
+
+        // Smooth interpolation
+        cameraAngleH += (targetAngleH - cameraAngleH) * 0.08;
+        cameraAngleV += (targetAngleV - cameraAngleV) * 0.08;
+
+        const x =
+          Math.sin(cameraAngleH) * Math.cos(cameraAngleV) * cameraDistance;
+        const y = Math.sin(cameraAngleV) * cameraDistance * 0.5 + 2;
+        const z =
+          Math.cos(cameraAngleH) * Math.cos(cameraAngleV) * cameraDistance;
+
+        camera.position.set(x, y, z);
+        camera.lookAt(0, 1, 0);
+      }
+
+      // MOUSE CONTROLS 360
+      function onMouseDown(event) {
+        if (document.getElementById("stele-panel").classList.contains("show"))
+          return;
+        isDragging = true;
+        previousMousePosition = { x: event.clientX, y: event.clientY };
+        cur.classList.add("dragging");
+      }
+
+      function onMouseMove(event) {
+        mouse.x = (event.clientX / innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+
+        if (isDragging) {
+          const deltaX = event.clientX - previousMousePosition.x;
+          const deltaY = event.clientY - previousMousePosition.y;
+
+          targetAngleH -= deltaX * 0.005;
+          targetAngleV += deltaY * 0.003;
+
+          previousMousePosition = { x: event.clientX, y: event.clientY };
+        } else {
+          // Hover detection
+          raycaster.setFromCamera(mouse, camera);
+          const intersects = raycaster.intersectObjects(steleObjects);
+
+          if (intersects.length > 0) {
+            cur.classList.add("hovering");
+          } else {
+            cur.classList.remove("hovering");
+          }
+        }
+      }
+
+      function onMouseUp() {
+        isDragging = false;
+        cur.classList.remove("dragging");
+      }
+
+      function onMouseWheel(event) {
+        cameraDistance += event.deltaY * 0.01;
+        cameraDistance = Math.max(5, Math.min(15, cameraDistance));
+      }
+
+      // TOUCH CONTROLS 360
+      let touchStartPos = { x: 0, y: 0 };
+
+      function onTouchStart(event) {
+        if (document.getElementById("stele-panel").classList.contains("show"))
+          return;
+        if (event.touches.length === 1) {
+          event.preventDefault();
+          isDragging = true;
+          touchStartPos = {
+            x: event.touches[0].clientX,
+            y: event.touches[0].clientY,
+          };
+        }
+      }
+
+      function onTouchMove(event) {
+        if (isDragging && event.touches.length === 1) {
+          event.preventDefault();
+          const deltaX = event.touches[0].clientX - touchStartPos.x;
+          const deltaY = event.touches[0].clientY - touchStartPos.y;
+
+          targetAngleH -= deltaX * 0.008;
+          targetAngleV += deltaY * 0.005;
+
+          touchStartPos = {
+            x: event.touches[0].clientX,
+            y: event.touches[0].clientY,
+          };
+        }
+      }
+
+      function onTouchEnd() {
+        isDragging = false;
+      }
+
+      function onMouseClick(event) {
+        if (isDragging) return;
+
+        mouse.x = (event.clientX / innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(steleObjects);
+
+        if (intersects.length > 0) {
+          const stele = intersects[0].object;
+          const catId = stele.userData.catastropheId;
+          openStelePanel(catId);
+          playSteleActivation();
+
+          // Highlight stele
+          stele.material.emissiveIntensity = 0.4;
+        }
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const t = clock.getElapsedTime();
+
+        // Update camera position (360 rotation)
+        updateCameraPosition();
+
+        // Animate flame
+        if (flameObject) {
+          flameObject.material.uniforms.uTime.value = t;
+          flameObject.scale.y = 1 + Math.sin(t * 3) * 0.1;
+        }
+
+        // Animate flame light
+        if (window._flameLight) {
+          window._flameLight.intensity = 1.5 + Math.sin(t * 5) * 0.3;
+
+          // Couleur bleue si toutes les steles sont visitees
+          if (visitedSteles.size >= 5) {
+            window._flameLight.color.setHex(0x4488ff);
+            if (flameObject) {
+              flameObject.material.uniforms.uColor1.value.setHex(0x2266ff);
+              flameObject.material.uniforms.uColor2.value.setHex(0x88ccff);
+            }
+          }
+        }
+
+        // Subtle stele glow animation
+        steleObjects.forEach((stele, i) => {
+          const pulse = Math.sin(t * 2 + i) * 0.02;
+          if (!visitedSteles.has(stele.userData.catastropheId)) {
+            stele.material.emissiveIntensity =
+              stele.userData.originalEmissive + pulse;
+          }
+        });
+
+        renderer.render(scene, camera);
+      }
+
+      // ====================================================
+      // PANNEAU STELE
+      // ====================================================
+      function openStelePanel(catId) {
+        const cat = catastrophes.find((c) => c.id === catId);
+        if (!cat) return;
+
+        currentStele = cat;
+
+        // Stop any ongoing speech
+        stopSpeaking();
+        isTestimonyPlaying = false;
+        isGaiaPlaying = false;
+        updateAudioButton();
+        document.getElementById("gaia-speak-btn").classList.remove("playing");
+        document.getElementById("gaia-speak-btn").textContent = "ECOUTER";
+
+        // Update panel content
+        document.getElementById(
+          "panel-title"
+        ).innerHTML = `${cat.icon} ${cat.name}`;
+        document.getElementById("panel-title").style.color = cat.color;
+        document.getElementById(
+          "panel-subtitle"
+        ).textContent = `${cat.date} - ${cat.location}`;
+
+        document.getElementById("info-block").innerHTML = `
+        <h3>FICHE TECHNIQUE</h3>
+        <p><strong>Bilan :</strong> <span class="stat">${cat.deaths}</span> - ${cat.impact}</p>
+        <p><em>"${cat.quote}"</em></p>
+        ${cat.info}
+      `;
+
+        document.getElementById("testimony-content").textContent =
+          cat.testimony;
+        document.getElementById("testimony-text").style.display = "none";
+
+        document.getElementById("gaia-text").textContent = cat.gaia;
+
+        // Mark as visited
+        if (!visitedSteles.has(catId)) {
+          visitedSteles.add(catId);
+          updateCounter();
+
+          // Mark stele visually
+          const stele = steleObjects.find(
+            (s) => s.userData.catastropheId === catId
+          );
+          if (stele) {
+            stele.material.emissiveIntensity = 0.3;
+            stele.userData.originalEmissive = 0.3;
+          }
+
+          checkCompletion();
+        }
+
+        // Show panel
+        document.getElementById("stele-panel").classList.add("show");
+      }
+
+      function closePanel() {
+        document.getElementById("stele-panel").classList.remove("show");
+        stopSpeaking();
+        isTestimonyPlaying = false;
+        isGaiaPlaying = false;
+        currentStele = null;
+      }
+
+      function updateAudioButton() {
+        const playIcon = document.getElementById("play-icon");
+        const pauseIcon = document.getElementById("pause-icon");
+        const audioWave = document.getElementById("audio-wave");
+        const btnText = document.getElementById("audio-btn-text");
+        const btn = document.getElementById("audio-btn");
+        const textDiv = document.getElementById("testimony-text");
+
+        if (isTestimonyPlaying) {
+          playIcon.style.display = "none";
+          pauseIcon.style.display = "block";
+          audioWave.classList.add("active");
+          btnText.textContent = "ARRETER LE TEMOIGNAGE";
+          btn.classList.add("playing");
+          textDiv.style.display = "block";
+        } else {
+          playIcon.style.display = "block";
+          pauseIcon.style.display = "none";
+          audioWave.classList.remove("active");
+          btnText.textContent = "ECOUTER LE TEMOIGNAGE";
+          btn.classList.remove("playing");
+        }
+      }
+
+      function toggleTestimony() {
+        if (!currentStele) return;
+
+        isTestimonyPlaying = !isTestimonyPlaying;
+        updateAudioButton();
+
+        if (isTestimonyPlaying) {
+          // Stop Gaia if playing
+          if (isGaiaPlaying) {
+            isGaiaPlaying = false;
+            document
+              .getElementById("gaia-speak-btn")
+              .classList.remove("playing");
+            document.getElementById("gaia-speak-btn").textContent = "ECOUTER";
+          }
+
+          // Play testimony audio
+          speakText(
+            currentStele.testimony,
+            currentStele.voicePitch || 1,
+            currentStele.voiceRate || 0.9,
+            () => {
+              isTestimonyPlaying = false;
+              updateAudioButton();
+            }
+          );
+
+          // Play audio effect
+          if (audioCtx && !isMuted) {
+            [200, 250, 300].forEach((freq, i) => {
+              setTimeout(() => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "sine";
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(
+                  0.001,
+                  audioCtx.currentTime + 0.3
+                );
+                osc.connect(gain);
+                gain.connect(getMaster());
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+              }, i * 100);
+            });
+          }
+        } else {
+          stopSpeaking();
+        }
+      }
+
+      function playGaiaVoice() {
+        if (!currentStele) return;
+
+        const btn = document.getElementById("gaia-speak-btn");
+
+        isGaiaPlaying = !isGaiaPlaying;
+
+        if (isGaiaPlaying) {
+          // Stop testimony if playing
+          if (isTestimonyPlaying) {
+            isTestimonyPlaying = false;
+            updateAudioButton();
+          }
+
+          btn.classList.add("playing");
+          btn.textContent = "ARRETER";
+
+          // Gaia voice - more ethereal
+          speakText(
+            currentStele.gaia,
+            0.6, // Lower pitch for Gaia
+            0.75, // Slower rate
+            () => {
+              isGaiaPlaying = false;
+              btn.classList.remove("playing");
+              btn.textContent = "ECOUTER";
+            }
+          );
+
+          // Ethereal sound effect for Gaia
+          if (audioCtx && !isMuted) {
+            [150, 225, 300, 375].forEach((freq, i) => {
+              setTimeout(() => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "sine";
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(
+                  0.001,
+                  audioCtx.currentTime + 0.8
+                );
+                osc.connect(gain);
+                gain.connect(getMaster());
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.8);
+              }, i * 150);
+            });
+          }
+        } else {
+          stopSpeaking();
+          btn.classList.remove("playing");
+          btn.textContent = "ECOUTER";
+        }
+      }
+
+      function updateCounter() {
+        document.getElementById("visited-count").textContent =
+          visitedSteles.size;
+      }
+
+      function checkCompletion() {
+        if (visitedSteles.size >= 5) {
+          // Flamme devient bleue
+          document.getElementById("flame-indicator").classList.add("complete");
+
+          // Show exit button
+          document.getElementById("exit-btn").classList.add("show");
+
+          // Afficher message final apres delai
+          setTimeout(() => {
+            showFinalMessage();
+          }, 2000);
+        }
+      }
+
+      function showFinalMessage() {
+        const finalText = `Ne detournez pas le regard.
+
+Leurs noms sont graves dans la pierre.
+Leurs voix sont gravees en vous.
+
+Bhopal. Tchernobyl. Exxon Valdez. La Mer d'Aral. La Grande Barriere de Corail.
+
+Ce ne sont pas que des catastrophes.
+Ce sont des avertissements.
+Des cris que l'humanite a choisi d'ignorer.
+
+Passons maintenant a la carte de vos blessures...
+Pour comprendre l'etendue du mal.`;
+
+        document.getElementById("final-text").textContent = finalText;
+        document.getElementById("final-message").classList.add("show");
+
+        // Speak final Gaia message
+        if (!isMuted) {
+          setTimeout(() => {
+            speakText(finalText, 0.5, 0.7);
+          }, 1500);
+        }
+      }
+
+      // ====================================================
+      // NAVIGATION
+      // ====================================================
+      function goToNextScene() {
+        const curtain = document.getElementById("curtain");
+        curtain.classList.remove("hide");
+
+        stopSpeaking();
+
+        if (audioCtx && window._master) {
+          const gain = audioCtx.createGain();
+          window._master.disconnect();
+          window._master.connect(gain);
+          gain.connect(audioCtx.destination);
+          gain.gain.setValueAtTime(1, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+        }
+
+        setTimeout(() => {
+          window.location.href = "scene24.html";
+        }, 2000);
+      }
+
+      // ====================================================
+      // LOADING & INIT
+      // ====================================================
+      function simulateLoading() {
+        let progress = 0;
+        const fill = document.getElementById("loading-fill");
+
+        const interval = setInterval(() => {
+          progress += Math.random() * 15 + 5;
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(interval);
+
+            setTimeout(() => {
+              document.getElementById("loading").classList.add("hide");
+              startMemorial();
+            }, 500);
+          }
+          fill.style.width = progress + "%";
+        }, 200);
+      }
+
+      function startMemorial() {
+        initAudio();
+
+        // Load voices for speech synthesis
+        if (speechSynth) {
+          speechSynth.getVoices();
+          speechSynth.onvoiceschanged = () => speechSynth.getVoices();
+        }
+
+        setTimeout(() => {
+          document.getElementById("curtain").classList.add("hide");
+        }, 300);
+
+        setTimeout(() => {
+          document.getElementById("header").classList.add("show");
+          document.getElementById("memorial-title").classList.add("show");
+          document.getElementById("flame-indicator").classList.add("show");
+        }, 1500);
+
+        setTimeout(() => {
+          document.getElementById("instructions").classList.add("show");
+          document.getElementById("controls-hint").classList.add("show");
+          playAmbience();
+          playFlameSound();
+        }, 3000);
+      }
+
+      // ====================================================
+      // INIT
+      // ====================================================
+      initBackground();
+      initParticles();
+      initThree();
+      simulateLoading();
+    </script>
+  </body>
+</html>
