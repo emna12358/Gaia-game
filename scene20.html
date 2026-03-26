@@ -3,631 +3,402 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Scène 20 — Centre de Réparation Écologique</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,300&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"
-      rel="stylesheet"
-    />
+    <title>Centre de Réparation Écologique</title>
     <style>
-      /* ═══════════════════════════════════════════
-       RESET & ROOT
-    ═══════════════════════════════════════════ */
+      @import url("https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap");
+
+      :root {
+        --bg: #050d0f;
+        --panel: rgba(0, 255, 180, 0.04);
+        --border: rgba(0, 255, 180, 0.25);
+        --green: #00ffb4;
+        --green2: #00e09a;
+        --cyan: #00e5ff;
+        --red: #ff3e5e;
+        --yellow: #ffd600;
+        --white: #e8fff9;
+        --muted: rgba(0, 255, 180, 0.45);
+        --grid: rgba(0, 255, 180, 0.06);
+      }
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
-      :root {
-        --g: #00ffa3;
-        --g2: #00c97a;
-        --g3: #003d22;
-        --b: #00e5ff;
-        --b2: #0099bb;
-        --p: #d400ff;
-        --r: #ff3355;
-        --o: #ff8c00;
-        --sg: #55ff88;
-        --bg: #020d08;
-        --panel: rgba(3, 22, 14, 0.97);
-        --t: #e8fff2;
-        --t2: #7fcca0;
-        --glass: rgba(0, 255, 160, 0.06);
-        --glass-border: rgba(0, 255, 160, 0.18);
-        --red-glow: rgba(255, 51, 85, 0.25);
-        --amber-glow: rgba(255, 140, 0, 0.25);
-      }
-      html,
+
       body {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
         background: var(--bg);
+        color: var(--white);
         font-family: "Exo 2", sans-serif;
-        color: var(--t);
-        user-select: none;
+        min-height: 100vh;
+        overflow-x: hidden;
       }
 
-      /* ═══════════════════════════════════════════
-       BACKGROUND — HÔPITAL STATIQUE
-    ═══════════════════════════════════════════ */
-      #bg-wrap {
+      /* Animated grid background */
+      body::before {
+        content: "";
         position: fixed;
         inset: 0;
-        overflow: hidden;
+        background-image: linear-gradient(var(--grid) 1px, transparent 1px),
+          linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+        animation: gridMove 20s linear infinite;
+      }
+      @keyframes gridMove {
+        to {
+          background-position: 40px 40px;
+        }
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+            ellipse at 50% 0%,
+            rgba(0, 255, 180, 0.08) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse at 100% 100%,
+            rgba(0, 229, 255, 0.05) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
         z-index: 0;
       }
 
-      /* Mur arrière principal */
-      #bg-wall {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-          180deg,
-          #020f0a 0%,
-          #030e09 55%,
-          #020a06 100%
-        );
+      /* ===== SCREEN SYSTEM ===== */
+      .screen {
+        display: none;
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
       }
-      /* Grille sol */
-      #bg-floor {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 48%;
-        background: repeating-linear-gradient(
-            90deg,
-            rgba(0, 255, 160, 0.06) 0 1px,
-            transparent 1px 90px
-          ),
-          repeating-linear-gradient(
-            0deg,
-            rgba(0, 255, 160, 0.06) 0 1px,
-            transparent 1px 90px
-          ),
-          linear-gradient(180deg, #021008 0%, #010806 100%);
-        transform: perspective(700px) rotateX(45deg);
-        transform-origin: 50% 0%;
-      }
-      /* Plafond lignes néon */
-      #bg-ceil {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 22%;
-        background: repeating-linear-gradient(
-            90deg,
-            rgba(0, 230, 255, 0.05) 0 1px,
-            transparent 1px 120px
-          ),
-          linear-gradient(0deg, transparent 0%, rgba(0, 20, 15, 0.8) 100%);
-      }
-      /* Murs latéraux */
-      #wall-left,
-      #wall-right {
-        position: absolute;
-        top: 0;
-        width: 18%;
-        height: 100%;
-        background: linear-gradient(90deg, #010a06 0%, #020e09 100%);
-      }
-      #wall-left {
-        left: 0;
-        border-right: 1px solid rgba(0, 255, 160, 0.1);
-      }
-      #wall-right {
-        right: 0;
-        border-left: 1px solid rgba(0, 255, 160, 0.1);
-      }
-
-      /* Barres lumineuses plafond */
-      .ceil-strip {
-        position: absolute;
-        top: 0;
-        height: 3px;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(0, 255, 160, 0.9),
-          rgba(0, 230, 255, 0.9),
-          transparent
-        );
-        box-shadow: 0 0 30px rgba(0, 255, 160, 0.5),
-          0 0 60px rgba(0, 255, 160, 0.2);
-        animation: stripPulse 4s ease-in-out infinite;
-      }
-      .ceil-strip:nth-child(1) {
-        left: 10%;
-        width: 80%;
-        animation-delay: 0s;
-      }
-      .ceil-strip:nth-child(2) {
-        left: 5%;
-        width: 90%;
-        top: 6px;
-        opacity: 0.4;
-        animation-delay: 1.5s;
-      }
-      @keyframes stripPulse {
-        0%,
-        100% {
-          opacity: 0.6;
-        }
-        50% {
-          opacity: 1;
-        }
-      }
-
-      /* Rayons lumineux */
-      .beam {
-        position: absolute;
-        top: 0;
-        width: 280px;
-        height: 70%;
-        background: linear-gradient(
-          180deg,
-          rgba(0, 255, 160, 0.07) 0%,
-          transparent 100%
-        );
-        transform-origin: top center;
-        clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
-      }
-      .beam:nth-child(1) {
-        left: 15%;
-      }
-      .beam:nth-child(2) {
-        left: 42%;
-        background: linear-gradient(
-          180deg,
-          rgba(0, 230, 255, 0.05) 0%,
-          transparent 100%
-        );
-      }
-      .beam:nth-child(3) {
-        right: 15%;
-      }
-
-      /* Équipements hôpital fond */
-      .hosp-deco {
-        position: absolute;
-        font-size: 1.2rem;
-        opacity: 0.12;
-        filter: blur(0.5px);
-      }
-
-      /* Particules ambiantes */
-      #particles {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-      }
-      .pt {
-        position: absolute;
-        border-radius: 50%;
-        animation: ptFloat linear infinite;
-      }
-      @keyframes ptFloat {
-        0% {
-          opacity: 0;
-          transform: translateY(100px) scale(0.5);
-        }
-        15% {
-          opacity: 0.7;
-        }
-        85% {
-          opacity: 0.4;
-        }
-        100% {
-          opacity: 0;
-          transform: translateY(-120px) scale(1.2);
-        }
-      }
-
-      /* ═══════════════════════════════════════════
-       HEADER
-    ═══════════════════════════════════════════ */
-      #hdr {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 200;
-        padding: 0 32px;
-        height: 72px;
+      .screen.active {
         display: flex;
+        flex-direction: column;
+      }
+
+      /* ===== HEADER ===== */
+      .hdr {
+        padding: 18px 32px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: center;
-        background: linear-gradient(
-          180deg,
-          rgba(1, 14, 8, 0.98) 0%,
-          rgba(1, 10, 6, 0.85) 70%,
-          transparent
-        );
-        border-bottom: 1px solid rgba(0, 255, 160, 0.12);
+        background: rgba(0, 10, 12, 0.8);
         backdrop-filter: blur(12px);
+        position: sticky;
+        top: 0;
+        z-index: 100;
       }
-      .hdr-left {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-      .hdr-logo {
-        width: 46px;
-        height: 46px;
-        background: linear-gradient(135deg, var(--g), var(--b));
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.6rem;
-        box-shadow: 0 0 20px rgba(0, 255, 160, 0.35);
-        animation: logoPulse 3s ease-in-out infinite;
-      }
-      @keyframes logoPulse {
-        0%,
-        100% {
-          box-shadow: 0 0 20px rgba(0, 255, 160, 0.35);
-        }
-        50% {
-          box-shadow: 0 0 40px rgba(0, 230, 255, 0.5);
-        }
-      }
-      .hdr-titles h1 {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.15rem;
+      .hdr-title {
+        font-size: 1.1rem;
         font-weight: 700;
-        color: var(--g);
-        text-shadow: 0 0 18px rgba(0, 255, 160, 0.5);
+        color: var(--green);
         letter-spacing: 3px;
+        text-transform: uppercase;
       }
-      .hdr-titles .sub {
-        font-size: 0.78rem;
-        color: var(--t2);
-        font-style: italic;
-        opacity: 0.8;
+      .hdr-sub {
+        font-family: "Share Tech Mono";
+        font-size: 0.75rem;
+        color: var(--muted);
         margin-top: 2px;
       }
+      .hdr-score {
+        font-family: "Share Tech Mono";
+        font-size: 1rem;
+        color: var(--cyan);
+      }
+      .progress-bar {
+        height: 3px;
+        background: rgba(0, 255, 180, 0.1);
+        border-bottom: 1px solid var(--border);
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--green), var(--cyan));
+        transition: width 0.8s ease;
+        box-shadow: 0 0 12px var(--green);
+      }
 
-      /* Indicateurs statut hôpital */
-      .hdr-status {
-        display: flex;
+      /* ===== MAIN MENU ===== */
+      #screen-menu {
         align-items: center;
-        gap: 8px;
+        justify-content: center;
+        padding: 40px 20px;
       }
-      .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--g);
-        box-shadow: 0 0 8px var(--g);
-        animation: blink2 2s ease-in-out infinite;
+      .menu-wrap {
+        max-width: 760px;
+        width: 100%;
       }
-      @keyframes blink2 {
+      .menu-logo {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      .menu-logo h1 {
+        font-size: clamp(1.6rem, 4vw, 2.8rem);
+        font-weight: 900;
+        color: var(--green);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        text-shadow: 0 0 30px rgba(0, 255, 180, 0.5);
+        animation: pulse 3s ease-in-out infinite;
+      }
+      @keyframes pulse {
         0%,
         100% {
-          opacity: 1;
+          text-shadow: 0 0 20px rgba(0, 255, 180, 0.4);
         }
         50% {
-          opacity: 0.3;
+          text-shadow: 0 0 50px rgba(0, 255, 180, 0.8),
+            0 0 80px rgba(0, 255, 180, 0.3);
         }
       }
-      .status-txt {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.65rem;
-        color: var(--t2);
-        letter-spacing: 2px;
+      .menu-logo p {
+        font-family: "Share Tech Mono";
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-top: 8px;
+        font-style: italic;
+      }
+      .menu-logo .cross {
+        font-size: 4rem;
+        display: block;
+        margin-bottom: 10px;
+        filter: drop-shadow(0 0 20px rgba(0, 255, 180, 0.6));
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
       }
 
-      /* Progression */
-      .hdr-prog {
-        display: flex;
-        align-items: center;
-        gap: 14px;
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        backdrop-filter: blur(8px);
+        padding: 24px;
+        margin-bottom: 20px;
       }
-      .prog-wrap {
+      .panel-title {
+        font-family: "Share Tech Mono";
+        font-size: 0.8rem;
+        color: var(--green);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 16px;
         display: flex;
         align-items: center;
         gap: 10px;
-        background: rgba(0, 255, 160, 0.05);
-        border: 1px solid var(--glass-border);
-        padding: 8px 18px;
-        border-radius: 30px;
       }
-      .prog-lbl {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.65rem;
-        color: var(--t2);
-        letter-spacing: 2px;
+      .panel-title::before {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
       }
-      .prog-track {
-        width: 150px;
-        height: 8px;
-        background: rgba(0, 0, 0, 0.5);
-        border-radius: 4px;
-        overflow: hidden;
-        border: 1px solid rgba(0, 255, 160, 0.2);
-      }
-      .prog-fill {
-        height: 100%;
-        width: 0%;
-        border-radius: 4px;
-        background: linear-gradient(90deg, var(--g), var(--b));
-        box-shadow: 0 0 10px var(--g);
-        transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .prog-num {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.85rem;
-        color: var(--g);
-      }
-      .score-badge {
-        background: rgba(0, 229, 255, 0.08);
-        border: 1px solid rgba(0, 229, 255, 0.25);
-        padding: 8px 18px;
-        border-radius: 30px;
-        font-family: "Orbitron", sans-serif;
-        font-size: 1rem;
-        color: var(--b);
-        text-shadow: 0 0 12px var(--b);
+      .panel-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
       }
 
-      /* ═══════════════════════════════════════════
-       MONITEURS MURAUX (déco hôpital)
-    ═══════════════════════════════════════════ */
-      .wall-monitor {
-        position: absolute;
-        top: 18%;
-        width: 120px;
-        height: 80px;
-        background: rgba(0, 20, 12, 0.9);
-        border: 1px solid rgba(0, 255, 160, 0.25);
-        border-radius: 6px;
-        overflow: hidden;
-        box-shadow: 0 0 20px rgba(0, 255, 160, 0.08);
-      }
-      .wall-monitor.left {
-        left: 1%;
-      }
-      .wall-monitor.right {
-        right: 1%;
-      }
-      .wm-header {
-        height: 16px;
-        background: rgba(0, 255, 160, 0.1);
-        display: flex;
-        align-items: center;
-        padding: 0 6px;
-        gap: 4px;
-      }
-      .wm-dot {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        background: var(--g);
-        box-shadow: 0 0 4px var(--g);
-      }
-      .wm-line {
-        font-family: "Share Tech Mono", monospace;
-        font-size: 0.5rem;
-        color: var(--g);
-        margin-left: 4px;
-      }
-      .wm-body {
-        padding: 6px;
+      .patient-list {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 10px;
       }
-      .wm-wave {
-        height: 18px;
-        position: relative;
-        overflow: hidden;
-      }
-      .wm-wave svg {
-        position: absolute;
-        top: 0;
-        left: 0;
-        animation: waveSVG 3s linear infinite;
-      }
-      @keyframes waveSVG {
-        0% {
-          transform: translateX(0);
-        }
-        100% {
-          transform: translateX(-50%);
-        }
-      }
-      .wm-data {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 3px;
-      }
-      .wm-val {
-        font-family: "Share Tech Mono", monospace;
-        font-size: 0.55rem;
-        color: var(--b);
-      }
-
-      /* Meubles hôpital latéraux */
-      .side-cabinet {
-        position: absolute;
-        bottom: 32%;
-        width: 90px;
-        height: 130px;
-        background: linear-gradient(
-          180deg,
-          rgba(0, 30, 18, 0.9),
-          rgba(0, 15, 9, 0.95)
-        );
-        border: 1px solid rgba(0, 255, 160, 0.2);
-        border-radius: 8px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      }
-      .side-cabinet.left {
-        left: 2%;
-      }
-      .side-cabinet.right {
-        right: 2%;
-      }
-      .cab-top {
-        height: 12px;
-        background: rgba(0, 255, 160, 0.08);
-        border-radius: 8px 8px 0 0;
-        border-bottom: 1px solid rgba(0, 255, 160, 0.15);
-      }
-      .cab-light {
-        width: 30px;
-        height: 4px;
-        background: var(--g);
-        border-radius: 2px;
-        margin: 4px auto;
-        box-shadow: 0 0 8px var(--g);
-        animation: cabBlink 2s infinite;
-      }
-      @keyframes cabBlink {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.3;
-        }
-      }
-      .cab-screen {
-        margin: 6px;
-        height: 40px;
-        background: rgba(0, 0, 0, 0.5);
-        border-radius: 4px;
-        border: 1px solid rgba(0, 255, 160, 0.15);
+      .patient-item {
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-family: "Share Tech Mono", monospace;
-        font-size: 0.5rem;
-        color: var(--g);
-        text-align: center;
-        line-height: 1.4;
-      }
-
-      /* Robot assistants */
-      .robot {
-        position: absolute;
-        bottom: 30%;
-        font-size: 2.5rem;
-        z-index: 35;
-        filter: drop-shadow(0 0 15px rgba(0, 255, 160, 0.6));
-        animation: robotHover 4s ease-in-out infinite;
-      }
-      .robot.left {
-        left: 6%;
-      }
-      .robot.right {
-        right: 6%;
-        animation-delay: 2s;
-      }
-      @keyframes robotHover {
-        0%,
-        100% {
-          transform: translateY(0) rotate(-2deg);
-        }
-        50% {
-          transform: translateY(-12px) rotate(2deg);
-        }
-      }
-
-      /* ═══════════════════════════════════════════
-       PODS — PATIENTS
-    ═══════════════════════════════════════════ */
-      #pods-area {
-        position: absolute;
-        bottom: 28%;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 18px;
-        z-index: 40;
-        align-items: flex-end;
-      }
-
-      .pod {
-        width: 145px;
-        height: 240px;
-        background: linear-gradient(
-          180deg,
-          rgba(0, 50, 28, 0.3) 0%,
-          rgba(0, 12, 7, 0.92) 100%
-        );
-        border: 1px solid var(--glass-border);
-        border-radius: 20px 20px 12px 12px;
+        gap: 16px;
+        padding: 14px 18px;
+        border: 1px solid rgba(0, 255, 180, 0.15);
+        border-radius: 6px;
+        background: rgba(0, 255, 180, 0.03);
+        cursor: default;
+        transition: all 0.3s;
         position: relative;
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4),
-          0 0 0 1px rgba(0, 255, 160, 0.05);
       }
-      .pod::before {
+      .patient-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: var(--green);
+        opacity: 0.4;
+      }
+      .patient-item.done::before {
+        background: var(--green);
+        opacity: 1;
+      }
+      .patient-item.done {
+        background: rgba(0, 255, 180, 0.08);
+        border-color: rgba(0, 255, 180, 0.3);
+      }
+      .patient-icon {
+        font-size: 1.6rem;
+        flex-shrink: 0;
+        width: 36px;
+        text-align: center;
+      }
+      .patient-info {
+        flex: 1;
+      }
+      .patient-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+      .patient-status {
+        font-family: "Share Tech Mono";
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+      .patient-badge {
+        font-family: "Share Tech Mono";
+        font-size: 0.7rem;
+        padding: 3px 10px;
+        border-radius: 20px;
+        border: 1px solid;
+        flex-shrink: 0;
+      }
+      .badge-critical {
+        color: var(--red);
+        border-color: var(--red);
+        background: rgba(255, 62, 94, 0.1);
+      }
+      .badge-partial {
+        color: var(--yellow);
+        border-color: var(--yellow);
+        background: rgba(255, 214, 0, 0.1);
+      }
+      .badge-ok {
+        color: var(--green);
+        border-color: var(--green);
+        background: rgba(0, 255, 180, 0.1);
+      }
+      .badge-done {
+        color: var(--cyan);
+        border-color: var(--cyan);
+        background: rgba(0, 229, 255, 0.1);
+      }
+
+      .menu-footer {
+        text-align: center;
+        margin-top: 24px;
+      }
+      .prog-text {
+        font-family: "Share Tech Mono";
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+      }
+
+      /* ===== BUTTONS ===== */
+      .btn {
+        display: inline-block;
+        font-family: "Exo 2";
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 14px 36px;
+        border-radius: 4px;
+        cursor: pointer;
+        border: none;
+        outline: none;
+        transition: all 0.2s;
+        position: relative;
+        overflow: hidden;
+      }
+      .btn::after {
         content: "";
         position: absolute;
         inset: 0;
-        border-radius: inherit;
-        background: linear-gradient(
-          135deg,
-          rgba(0, 255, 160, 0.05) 0%,
-          transparent 60%
-        );
+        background: white;
         opacity: 0;
-        transition: opacity 0.4s;
+        transition: opacity 0.2s;
       }
-      .pod:hover {
-        transform: translateY(-16px) scale(1.04);
-        border-color: var(--g);
-        box-shadow: 0 24px 60px rgba(0, 255, 160, 0.25),
-          0 0 40px rgba(0, 255, 160, 0.1), 0 0 0 1px rgba(0, 255, 160, 0.3);
+      .btn:hover::after {
+        opacity: 0.1;
       }
-      .pod:hover::before {
-        opacity: 1;
+      .btn-primary {
+        background: linear-gradient(135deg, var(--green), var(--cyan));
+        color: #000;
+        box-shadow: 0 0 24px rgba(0, 255, 180, 0.4);
+      }
+      .btn-primary:hover {
+        box-shadow: 0 0 40px rgba(0, 255, 180, 0.7);
+        transform: translateY(-2px);
+      }
+      .btn-secondary {
+        background: transparent;
+        color: var(--green);
+        border: 1px solid var(--green);
+      }
+      .btn-secondary:hover {
+        background: rgba(0, 255, 180, 0.1);
+      }
+      .btn-danger {
+        background: linear-gradient(135deg, #ff3e5e, #c00030);
+        color: #fff;
+        box-shadow: 0 0 20px rgba(255, 62, 94, 0.3);
       }
 
-      /* Pod état critique — rouge pulsant */
-      .pod.crit-pod {
-        border-color: rgba(255, 51, 85, 0.4);
+      /* ===== PATIENT SCREEN ===== */
+      #screen-patient {
+        padding: 0;
       }
-      .pod.crit-pod:hover {
-        border-color: var(--r);
-        box-shadow: 0 24px 60px rgba(255, 51, 85, 0.2),
-          0 0 40px rgba(255, 51, 85, 0.1);
-      }
-      .pod.warn-pod {
-        border-color: rgba(255, 140, 0, 0.4);
-      }
-      .pod.recov-pod {
-        border-color: rgba(0, 255, 160, 0.4);
+      .patient-layout {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
       }
 
-      /* Vitrine holographique */
-      .pod-glass {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        right: 10px;
-        height: 120px;
-        background: linear-gradient(
-          180deg,
-          rgba(0, 255, 180, 0.07),
-          rgba(0, 100, 70, 0.02)
-        );
-        border-radius: 14px 14px 50% 50%;
-        border: 1px solid rgba(0, 255, 160, 0.15);
+      .holo-zone {
+        position: relative;
+        height: 260px;
         overflow: hidden;
+        background: radial-gradient(
+          ellipse at 50% 50%,
+          rgba(0, 255, 180, 0.06) 0%,
+          transparent 70%
+        );
+        border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
         justify-content: center;
       }
-      .pod-holo {
-        font-size: 3rem;
-        animation: holoFloat 3.5s ease-in-out infinite;
+      .holo-canvas {
+        position: absolute;
+        inset: 0;
+      }
+      .holo-overlay {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+      }
+      .holo-emoji {
+        font-size: 5rem;
+        display: block;
+        animation: holoFloat 4s ease-in-out infinite;
+        filter: drop-shadow(0 0 30px rgba(0, 255, 180, 0.6));
       }
       @keyframes holoFloat {
         0%,
@@ -635,43 +406,43 @@
           transform: translateY(0) scale(1);
         }
         50% {
-          transform: translateY(-8px) scale(1.05);
+          transform: translateY(-15px) scale(1.05);
         }
       }
-      .pod-rings {
+      .holo-lines {
         position: absolute;
         inset: 0;
-        background: radial-gradient(
-          ellipse at 50% 80%,
-          rgba(0, 255, 160, 0.15) 0%,
-          transparent 65%
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 4px,
+          rgba(0, 255, 180, 0.03) 4px,
+          rgba(0, 255, 180, 0.03) 5px
         );
-        animation: ringPulse2 2s ease-in-out infinite;
+        animation: scanlines 8s linear infinite;
       }
-      @keyframes ringPulse2 {
-        0%,
-        100% {
-          opacity: 0.4;
-        }
-        50% {
-          opacity: 0.9;
+      @keyframes scanlines {
+        to {
+          background-position: 0 100px;
         }
       }
-      .pod-scan {
+
+      .holo-scanbar {
         position: absolute;
         left: 0;
-        width: 100%;
+        right: 0;
         height: 2px;
-        top: 0;
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(0, 255, 160, 0.8),
+          var(--green),
           transparent
         );
-        animation: scanDown 2.5s ease-in-out infinite;
+        animation: scan 3s ease-in-out infinite;
+        box-shadow: 0 0 10px var(--green);
       }
-      @keyframes scanDown {
+      @keyframes scan {
         0% {
           top: 0;
           opacity: 1;
@@ -682,3077 +453,2251 @@
         }
       }
 
-      /* Infos pod */
-      .pod-info {
-        position: absolute;
-        bottom: 10px;
-        left: 8px;
-        right: 8px;
-        text-align: center;
-      }
-      .pod-name {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.55rem;
-        font-weight: 700;
-        color: var(--g);
-        line-height: 1.4;
-        margin-bottom: 6px;
-        text-shadow: 0 0 8px rgba(0, 255, 160, 0.4);
-        letter-spacing: 1px;
-      }
-      .pod-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 0.6rem;
-        font-family: "Share Tech Mono", monospace;
-        padding: 4px 10px;
-        border-radius: 20px;
-      }
-      .pod-status .sdot {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-      }
-      .st-critical {
-        background: rgba(255, 51, 85, 0.15);
-        color: var(--r);
-        border: 1px solid rgba(255, 51, 85, 0.4);
-      }
-      .st-critical .sdot {
-        background: var(--r);
-        box-shadow: 0 0 6px var(--r);
-        animation: blink2 1s infinite;
-      }
-      .st-warning {
-        background: rgba(255, 140, 0, 0.15);
-        color: var(--o);
-        border: 1px solid rgba(255, 140, 0, 0.4);
-      }
-      .st-warning .sdot {
-        background: var(--o);
-        box-shadow: 0 0 6px var(--o);
-      }
-      .st-recovering {
-        background: rgba(0, 255, 160, 0.12);
-        color: var(--sg);
-        border: 1px solid rgba(0, 255, 160, 0.3);
-      }
-      .st-recovering .sdot {
-        background: var(--sg);
-        box-shadow: 0 0 6px var(--sg);
-      }
-      .st-healed {
-        background: rgba(0, 229, 255, 0.12);
-        color: var(--b);
-        border: 1px solid rgba(0, 229, 255, 0.3);
-      }
-      .st-healed .sdot {
-        background: var(--b);
-        box-shadow: 0 0 6px var(--b);
-      }
-
-      /* Numéro patient */
-      .pod-num {
-        position: absolute;
-        top: 8px;
-        left: 10px;
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.6rem;
-        color: rgba(0, 255, 160, 0.4);
-      }
-
-      /* Ligne vitale pod */
-      .pod-vitals {
-        position: absolute;
-        left: 10px;
-        right: 10px;
-        top: 135px;
-        height: 20px;
-      }
-      .pod-vitals svg {
-        width: 100%;
-        height: 100%;
-      }
-
-      /* Pod traité */
-      .pod.done-pod {
-        border-color: rgba(0, 229, 255, 0.5);
-        box-shadow: 0 0 30px rgba(0, 229, 255, 0.12);
-      }
-      .pod-done-badge {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: rgba(0, 229, 255, 0.15);
-        border: 1px solid rgba(0, 229, 255, 0.4);
-        border-radius: 50%;
-        width: 22px;
-        height: 22px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        color: var(--b);
-      }
-
-      /* ═══════════════════════════════════════════
-       SON
-    ═══════════════════════════════════════════ */
-      #snd-btn {
-        position: fixed;
-        bottom: 24px;
-        left: 24px;
-        z-index: 150;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        background: rgba(0, 255, 160, 0.05);
-        border: 1px solid var(--glass-border);
-        padding: 8px 16px;
-        border-radius: 24px;
-        transition: all 0.3s;
-      }
-      #snd-btn:hover {
-        background: rgba(0, 255, 160, 0.1);
-        border-color: var(--g);
-      }
-      .snd-bars {
-        display: flex;
-        gap: 2px;
-        align-items: flex-end;
-        height: 16px;
-      }
-      .snd-bar {
-        width: 3px;
-        background: var(--g);
-        border-radius: 2px;
-        animation: sndWave 0.5s ease-in-out infinite;
-      }
-      .snd-bar:nth-child(1) {
-        height: 6px;
-        animation-delay: 0s;
-      }
-      .snd-bar:nth-child(2) {
-        height: 13px;
-        animation-delay: 0.1s;
-      }
-      .snd-bar:nth-child(3) {
-        height: 8px;
-        animation-delay: 0.2s;
-      }
-      .snd-bar:nth-child(4) {
-        height: 15px;
-        animation-delay: 0.3s;
-      }
-      @keyframes sndWave {
-        0%,
-        100% {
-          transform: scaleY(1);
-        }
-        50% {
-          transform: scaleY(0.4);
-        }
-      }
-      #snd-btn.muted .snd-bar {
-        animation: none;
-        height: 3px;
-        opacity: 0.3;
-      }
-      #snd-btn span {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.65rem;
-        color: var(--g);
-        letter-spacing: 2px;
-      }
-
-      /* ═══════════════════════════════════════════
-       OVERLAY BASE
-    ═══════════════════════════════════════════ */
-      .overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 500;
-        display: none;
-        opacity: 0;
-        transition: opacity 0.35s ease;
-        flex-direction: column;
-        background: rgba(0, 0, 0, 0.96);
-      }
-      .overlay.open {
-        display: flex;
-        opacity: 1;
-      }
-      .ov-close {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        z-index: 10;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: #fff;
-        font-size: 1.1rem;
-        cursor: pointer;
-        transition: all 0.3s;
-      }
-      .ov-close:hover {
-        border-color: var(--g);
-        color: var(--g);
-        transform: rotate(90deg);
-      }
-
-      /* ═══════════════════════════════════════════
-       GUIDE OVERLAY
-    ═══════════════════════════════════════════ */
-      #guide-ov {
-        background: linear-gradient(135deg, #020f09 0%, #010b06 100%);
-        align-items: center;
-        justify-content: center;
-      }
-      .guide-wrap {
-        width: 92%;
-        max-width: 900px;
-        max-height: 94vh;
+      .content-zone {
+        flex: 1;
         overflow-y: auto;
-        padding: 44px 40px;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(0, 255, 160, 0.3) transparent;
-      }
-      .guide-wrap::-webkit-scrollbar {
-        width: 5px;
-      }
-      .guide-wrap::-webkit-scrollbar-thumb {
-        background: rgba(0, 255, 160, 0.3);
-        border-radius: 3px;
+        padding: 24px;
+        max-width: 860px;
+        margin: 0 auto;
+        width: 100%;
       }
 
-      .guide-eyebrow {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.7rem;
-        letter-spacing: 5px;
-        color: var(--b);
-        border: 1px solid rgba(0, 229, 255, 0.25);
-        display: inline-block;
-        padding: 7px 20px;
-        border-radius: 20px;
-        margin-bottom: 22px;
-      }
-      .guide-title {
-        font-family: "Orbitron", sans-serif;
-        font-size: 2rem;
-        font-weight: 900;
-        color: var(--g);
-        text-shadow: 0 0 30px rgba(0, 255, 160, 0.4);
-        margin-bottom: 6px;
-        line-height: 1.2;
-      }
-      .guide-sub {
-        color: var(--t2);
-        font-size: 1.05rem;
-        margin-bottom: 36px;
-        font-weight: 300;
-      }
-
-      .steps-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 16px;
-        margin-bottom: 32px;
-      }
-      .gstep {
-        background: rgba(0, 255, 160, 0.04);
-        border: 1px solid rgba(0, 255, 160, 0.18);
-        border-radius: 16px;
-        padding: 22px;
-        position: relative;
+      /* Diagnosis card */
+      .diag-card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
         overflow: hidden;
+        margin-bottom: 20px;
       }
-      .gstep::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 3px;
-        height: 100%;
-        background: linear-gradient(180deg, var(--g), var(--b));
-      }
-      .gstep-n {
-        font-family: "Orbitron", sans-serif;
-        font-size: 2rem;
-        font-weight: 900;
-        color: rgba(0, 255, 160, 0.1);
-        position: absolute;
-        top: 12px;
-        right: 14px;
-      }
-      .gstep-icon {
-        font-size: 1.8rem;
-        margin-bottom: 10px;
-      }
-      .gstep-title {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.85rem;
-        color: var(--g);
-        margin-bottom: 8px;
-        letter-spacing: 1px;
-      }
-      .gstep p {
-        font-size: 0.88rem;
-        color: var(--t2);
-        line-height: 1.7;
-        font-weight: 300;
-      }
-
-      /* Scoring */
-      .score-section {
-        background: rgba(0, 255, 160, 0.04);
-        border: 1px solid rgba(0, 255, 160, 0.2);
-        border-radius: 16px;
-        padding: 24px 28px;
-        margin-bottom: 28px;
-        text-align: center;
-      }
-      .score-section h3 {
-        font-family: "Orbitron", sans-serif;
-        color: var(--g);
-        margin-bottom: 18px;
-        font-size: 0.95rem;
-        letter-spacing: 2px;
-      }
-      .score-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
+      .diag-header {
+        background: rgba(0, 255, 180, 0.08);
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
         gap: 12px;
       }
-      .sc-item {
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 12px;
-        padding: 14px;
-        border: 1px solid rgba(0, 255, 160, 0.1);
-      }
-      .sc-val {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.4rem;
-      }
-      .sc-lbl {
-        font-size: 0.72rem;
-        color: var(--t2);
-        margin-top: 5px;
-        font-weight: 300;
-      }
-
-      .guide-btn {
-        font-family: "Orbitron", sans-serif;
+      .diag-header h2 {
         font-size: 1rem;
         font-weight: 700;
-        padding: 18px 52px;
-        letter-spacing: 3px;
-        background: linear-gradient(135deg, var(--g), var(--g2));
-        border: none;
-        border-radius: 14px;
-        color: #010d06;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 8px 32px rgba(0, 255, 160, 0.3);
+        color: var(--green);
       }
-      .guide-btn:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 16px 48px rgba(0, 255, 160, 0.45);
-      }
-
-      /* ═══════════════════════════════════════════
-       DIAGNOSTIC OVERLAY
-    ═══════════════════════════════════════════ */
-      #diag-ov {
-        background: rgba(2, 10, 6, 0.99);
+      .diag-body {
+        padding: 16px 20px;
       }
       .diag-grid {
-        width: 100%;
-        height: 100%;
-        display: grid;
-        grid-template-columns: 1fr 1.15fr;
-      }
-
-      /* Section hologramme */
-      .diag-holo {
-        background: linear-gradient(
-          135deg,
-          rgba(0, 35, 20, 0.95),
-          rgba(0, 12, 7, 1)
-        );
-        border-right: 1px solid rgba(0, 255, 160, 0.15);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        position: relative;
-        overflow: hidden;
-      }
-      .h-rings-wrap {
-        position: relative;
-        width: 260px;
-        height: 260px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .h-ring {
-        position: absolute;
-        border-radius: 50%;
-        border: 1px solid;
-        animation: hRing 4s ease-in-out infinite;
-      }
-      .h-ring:nth-child(1) {
-        width: 100%;
-        height: 100%;
-        border-color: rgba(0, 255, 160, 0.25);
-      }
-      .h-ring:nth-child(2) {
-        width: 78%;
-        height: 78%;
-        border-color: rgba(0, 229, 255, 0.2);
-        animation-delay: 0.8s;
-      }
-      .h-ring:nth-child(3) {
-        width: 56%;
-        height: 56%;
-        border-color: rgba(0, 255, 160, 0.35);
-        animation-delay: 1.6s;
-      }
-      @keyframes hRing {
-        0%,
-        100% {
-          transform: scale(1) rotate(0deg);
-          opacity: 0.6;
-        }
-        50% {
-          transform: scale(1.05) rotate(3deg);
-          opacity: 1;
-        }
-      }
-      .h-icon {
-        font-size: 6rem;
-        z-index: 2;
-        position: relative;
-        filter: drop-shadow(0 0 24px var(--g));
-        animation: hIcon 3s ease-in-out infinite;
-      }
-      @keyframes hIcon {
-        0%,
-        100% {
-          filter: drop-shadow(0 0 24px var(--g)) brightness(1);
-        }
-        50% {
-          filter: drop-shadow(0 0 40px var(--b)) brightness(1.15);
-        }
-      }
-      .h-scan-line {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-          180deg,
-          transparent 0%,
-          rgba(0, 255, 160, 0.07) 50%,
-          transparent 100%
-        );
-        animation: hScan 3.5s ease-in-out infinite;
-      }
-      @keyframes hScan {
-        0% {
-          transform: translateY(-100%);
-        }
-        100% {
-          transform: translateY(100%);
-        }
-      }
-      .h-label {
-        margin-top: 28px;
-        text-align: center;
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.95rem;
-        color: var(--g);
-        text-shadow: 0 0 12px rgba(0, 255, 160, 0.4);
-        letter-spacing: 2px;
-      }
-      .h-sub {
-        margin-top: 6px;
-        font-size: 0.8rem;
-        color: var(--t2);
-      }
-
-      /* Coins décoratifs hôpital */
-      .corner-deco {
-        position: absolute;
-        width: 40px;
-        height: 40px;
-      }
-      .corner-deco::before,
-      .corner-deco::after {
-        content: "";
-        position: absolute;
-        background: var(--g);
-        opacity: 0.3;
-      }
-      .corner-deco.tl {
-        top: 20px;
-        left: 20px;
-      }
-      .corner-deco.tl::before {
-        width: 20px;
-        height: 1px;
-        top: 0;
-        left: 0;
-      }
-      .corner-deco.tl::after {
-        width: 1px;
-        height: 20px;
-        top: 0;
-        left: 0;
-      }
-      .corner-deco.br {
-        bottom: 20px;
-        right: 20px;
-      }
-      .corner-deco.br::before {
-        width: 20px;
-        height: 1px;
-        bottom: 0;
-        right: 0;
-      }
-      .corner-deco.br::after {
-        width: 1px;
-        height: 20px;
-        bottom: 0;
-        right: 0;
-      }
-
-      /* Section infos */
-      .diag-info {
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-        padding: 28px;
-        gap: 14px;
-      }
-      .diag-info::-webkit-scrollbar {
-        width: 5px;
-      }
-      .diag-info::-webkit-scrollbar-thumb {
-        background: rgba(0, 255, 160, 0.2);
-        border-radius: 3px;
-      }
-
-      .dcard {
-        background: rgba(0, 18, 10, 0.95);
-        border: 1px solid rgba(0, 255, 160, 0.18);
-        border-radius: 14px;
-        padding: 18px;
-        position: relative;
-        overflow: hidden;
-        flex-shrink: 0;
-      }
-      .dcard.warn-c {
-        border-color: rgba(255, 140, 0, 0.3);
-      }
-      .dcard.crit-c {
-        border-color: rgba(255, 51, 85, 0.3);
-      }
-      .dcard-stripe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 3px;
-        height: 100%;
-        background: var(--g);
-      }
-      .dcard.warn-c .dcard-stripe {
-        background: var(--o);
-      }
-      .dcard.crit-c .dcard-stripe {
-        background: var(--r);
-      }
-
-      .dcard-hdr {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
-      }
-      .dcard-ico {
-        font-size: 1.2rem;
-      }
-      .dcard-lbl {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.78rem;
-        color: var(--g);
-        letter-spacing: 2px;
-      }
-      .dcard.warn-c .dcard-lbl {
-        color: var(--o);
-      }
-      .dcard.crit-c .dcard-lbl {
-        color: var(--r);
-      }
-
-      .patient-name {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.15rem;
-        color: var(--t);
-        margin-bottom: 4px;
-      }
-      .patient-meta {
-        font-size: 0.82rem;
-        color: var(--t2);
-        margin-top: 3px;
-        font-weight: 300;
-      }
-
-      .stat-grid2 {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        gap: 16px;
       }
-      .stat-item {
-        background: rgba(0, 0, 0, 0.35);
-        padding: 10px 12px;
-        border-radius: 8px;
-        border-left: 2px solid rgba(0, 255, 160, 0.3);
+      @media (max-width: 600px) {
+        .diag-grid {
+          grid-template-columns: 1fr;
+        }
       }
-      .stat-lbl {
-        font-size: 0.68rem;
-        color: var(--t2);
-        margin-bottom: 4px;
-        font-weight: 300;
+      .diag-section h3 {
+        font-family: "Share Tech Mono";
+        font-size: 0.72rem;
+        color: var(--cyan);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
       }
-      .stat-val {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.95rem;
-        color: var(--r);
-      }
-      .stat-val.ok {
-        color: var(--sg);
-      }
-
-      .causes-list {
+      .diag-section ul {
         list-style: none;
       }
-      .causes-list li {
-        padding: 7px 0;
-        border-bottom: 1px solid rgba(0, 255, 160, 0.07);
-        font-size: 0.85rem;
-        color: var(--t2);
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-        font-weight: 300;
+      .diag-section li {
+        font-size: 0.84rem;
+        color: rgba(232, 255, 249, 0.8);
+        padding: 3px 0;
+        border-bottom: 1px solid rgba(0, 255, 180, 0.06);
       }
-      .causes-list li::before {
-        content: "▸";
-        color: var(--o);
-        flex-shrink: 0;
-        margin-top: 1px;
+      .diag-section li::before {
+        content: "▸ ";
+        color: var(--green);
       }
 
-      .prog-box-diag {
-        background: rgba(255, 51, 85, 0.06);
-        border: 1px solid rgba(255, 51, 85, 0.2);
-        border-radius: 10px;
-        padding: 14px;
-        text-align: center;
-        font-size: 0.85rem;
-      }
-      .prog-box-diag h4 {
-        color: var(--r);
-        margin-bottom: 7px;
-        font-size: 0.85rem;
-        font-family: "Orbitron", sans-serif;
-      }
-      .prog-box-diag p {
-        color: rgba(255, 150, 150, 0.8);
-        font-weight: 300;
-      }
-
-      .treat-start-btn {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.9rem;
-        font-weight: 700;
-        padding: 15px;
-        background: linear-gradient(135deg, var(--g), var(--g2));
-        border: none;
-        border-radius: 12px;
-        color: #010d06;
-        cursor: pointer;
-        transition: all 0.3s;
-        letter-spacing: 2px;
-        box-shadow: 0 6px 22px rgba(0, 255, 160, 0.25);
-        flex-shrink: 0;
-      }
-      .treat-start-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 36px rgba(0, 255, 160, 0.4);
-      }
-
-      /* ═══════════════════════════════════════════
-       TREATMENT OVERLAY
-    ═══════════════════════════════════════════ */
-      #treat-ov {
-        background: rgba(2, 10, 6, 0.99);
-      }
-      .treat-wrap {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        padding: 28px;
-        gap: 18px;
-        overflow: hidden;
-      }
-      .treat-top {
-        text-align: center;
-        flex-shrink: 0;
-        padding: 8px 0;
-      }
-      .treat-top h2 {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.6rem;
-        color: var(--g);
-        text-shadow: 0 0 20px rgba(0, 255, 160, 0.4);
-        letter-spacing: 3px;
-      }
-      .treat-top p {
-        color: var(--t2);
-        margin-top: 8px;
-        font-weight: 300;
-      }
-
-      .treat-main {
-        flex: 1;
-        display: grid;
-        grid-template-columns: 1.1fr 1fr;
-        gap: 20px;
-        min-height: 0;
-      }
-
-      .opt-panel {
-        background: rgba(0, 14, 8, 0.95);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      .opt-panel h3 {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.85rem;
-        color: var(--g);
-        margin-bottom: 14px;
-        text-align: center;
-        letter-spacing: 2px;
-        flex-shrink: 0;
-      }
-      .opt-scroll {
-        flex: 1;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding-right: 4px;
-      }
-      .opt-scroll::-webkit-scrollbar {
-        width: 4px;
-      }
-      .opt-scroll::-webkit-scrollbar-thumb {
-        background: rgba(0, 255, 160, 0.25);
-        border-radius: 2px;
-      }
-
-      .opt-item {
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(0, 255, 160, 0.15);
-        border-radius: 10px;
-        padding: 12px 14px;
-        cursor: pointer;
-        transition: all 0.25s;
+      .stat-row {
         display: flex;
         align-items: center;
         gap: 10px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(0, 255, 180, 0.06);
+      }
+      .stat-label {
+        font-size: 0.8rem;
+        color: var(--muted);
         flex-shrink: 0;
+        width: 160px;
       }
-      .opt-item:hover {
-        border-color: rgba(0, 255, 160, 0.5);
-        background: rgba(0, 255, 160, 0.07);
-        transform: translateX(3px);
+      .stat-bar {
+        flex: 1;
+        height: 6px;
+        background: rgba(0, 255, 180, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
       }
-      .opt-item.sel {
-        border-color: var(--b);
-        background: rgba(0, 229, 255, 0.1);
-        box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+      .stat-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 1s ease;
       }
-      .opt-check {
-        width: 20px;
-        height: 20px;
-        border: 1.5px solid rgba(0, 255, 160, 0.5);
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        transition: all 0.25s;
+      .fill-red {
+        background: var(--red);
       }
-      .opt-item.sel .opt-check {
-        background: var(--b);
-        border-color: var(--b);
+      .fill-yellow {
+        background: var(--yellow);
       }
-      .opt-item.sel .opt-check::after {
-        content: "✓";
-        color: #010d06;
+      .fill-green {
+        background: var(--green);
+      }
+      .stat-val {
+        font-family: "Share Tech Mono";
         font-size: 0.75rem;
-        font-weight: 700;
+        width: 50px;
+        text-align: right;
+        color: var(--white);
       }
-      .opt-icon {
-        font-size: 1.3rem;
-        flex-shrink: 0;
+
+      .doom-box {
+        background: rgba(255, 62, 94, 0.06);
+        border: 1px solid rgba(255, 62, 94, 0.3);
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-top: 12px;
+        font-size: 0.83rem;
+        color: rgba(255, 180, 180, 0.9);
       }
-      .opt-name {
-        font-size: 0.9rem;
-        font-weight: 600;
-      }
-      .opt-desc {
-        font-size: 0.72rem;
-        color: var(--t2);
-        margin-top: 2px;
-        font-weight: 300;
+      .doom-box strong {
+        color: var(--red);
+        font-family: "Share Tech Mono";
       }
 
       /* Prescription */
-      .rx-panel {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-      }
-      .rx-card {
-        background: rgba(0, 14, 8, 0.95);
-        border: 1px solid rgba(0, 229, 255, 0.25);
-        border-radius: 16px;
-        padding: 20px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      .rx-card h3 {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.85rem;
-        color: var(--b);
+      .rx-title {
+        font-family: "Share Tech Mono";
+        font-size: 0.8rem;
+        color: var(--green);
+        letter-spacing: 2px;
         margin-bottom: 14px;
         text-align: center;
-        letter-spacing: 2px;
-        flex-shrink: 0;
       }
-      .rx-items {
-        flex: 1;
-        overflow-y: auto;
-      }
-      .rx-items::-webkit-scrollbar {
-        width: 4px;
-      }
-      .rx-items::-webkit-scrollbar-thumb {
-        background: rgba(0, 229, 255, 0.2);
-        border-radius: 2px;
-      }
-      .rx-empty {
-        color: var(--t2);
+      .rx-mission {
         text-align: center;
-        padding: 20px;
-        font-size: 0.85rem;
-        font-weight: 300;
-      }
-      .rx-item {
-        background: rgba(0, 229, 255, 0.07);
-        border: 1px solid rgba(0, 229, 255, 0.15);
-        border-radius: 8px;
-        padding: 9px 12px;
-        margin-bottom: 7px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.87rem;
-        animation: slideIn 0.25s ease;
-      }
-      @keyframes slideIn {
-        from {
-          transform: translateX(-12px);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-      .rx-counter {
-        background: rgba(0, 0, 0, 0.35);
-        border-radius: 10px;
-        padding: 12px;
-        text-align: center;
-        font-family: "Orbitron", sans-serif;
-        flex-shrink: 0;
-      }
-      .rx-count-val {
-        font-size: 1.6rem;
-        color: var(--g);
-      }
-      .rx-count-val.maxed {
-        color: var(--o);
-      }
-
-      .apply-btn {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.95rem;
-        font-weight: 700;
-        padding: 16px;
-        background: linear-gradient(135deg, var(--g), var(--g2));
-        border: none;
-        border-radius: 12px;
-        color: #010d06;
-        cursor: pointer;
-        transition: all 0.3s;
-        letter-spacing: 2px;
-        flex-shrink: 0;
-      }
-      .apply-btn:hover:not(:disabled) {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 30px rgba(0, 255, 160, 0.35);
-      }
-      .apply-btn:disabled {
-        background: rgba(80, 80, 80, 0.4);
-        cursor: not-allowed;
-        color: rgba(255, 255, 255, 0.3);
-      }
-
-      /* ═══════════════════════════════════════════
-       ANIMATION OVERLAY
-    ═══════════════════════════════════════════ */
-      #anim-ov {
-        background: linear-gradient(135deg, #020f09 0%, #010b06 100%);
-        align-items: center;
-        justify-content: center;
-      }
-      .anim-wrap {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 40px;
-        width: 100%;
-        max-width: 1000px;
-      }
-      .anim-title {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.5rem;
-        color: var(--g);
-        text-shadow: 0 0 20px rgba(0, 255, 160, 0.4);
-        margin-bottom: 24px;
-        letter-spacing: 3px;
-      }
-      .anim-eco {
-        font-size: 6rem;
-        margin: 16px 0;
-        filter: drop-shadow(0 0 30px var(--g));
-        animation: ecoHeal 3s ease-in-out infinite;
-      }
-      @keyframes ecoHeal {
-        0%,
-        100% {
-          filter: drop-shadow(0 0 30px var(--g)) hue-rotate(0deg);
-        }
-        50% {
-          filter: drop-shadow(0 0 50px var(--b)) hue-rotate(20deg);
-        }
-      }
-
-      /* Timeline */
-      .tl-wrap {
-        width: 88%;
-        max-width: 900px;
-        margin: 20px 0;
-      }
-      .tl {
-        position: relative;
-        padding: 28px 0;
-      }
-      .tl-track {
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: rgba(0, 255, 160, 0.12);
-        transform: translateY(-50%);
-        border-radius: 2px;
-      }
-      .tl-prog {
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 0%;
-        height: 3px;
-        background: linear-gradient(90deg, var(--g), var(--b));
-        transform: translateY(-50%);
-        border-radius: 2px;
-        transition: width 1.8s ease;
-        box-shadow: 0 0 10px var(--g);
-      }
-      .tl-steps {
-        display: flex;
-        justify-content: space-between;
-        position: relative;
-      }
-      .tl-step {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        opacity: 0.25;
-        transition: all 0.5s;
-      }
-      .tl-step.act {
-        opacity: 1;
-      }
-      .tl-step.done {
-        opacity: 1;
-      }
-      .tl-marker {
-        width: 52px;
-        height: 52px;
-        background: rgba(0, 18, 10, 0.95);
-        border: 2px solid rgba(0, 255, 160, 0.2);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        z-index: 5;
-        transition: all 0.5s;
-      }
-      .tl-step.act .tl-marker {
-        border-color: var(--g);
-        box-shadow: 0 0 20px rgba(0, 255, 160, 0.4);
-        animation: markerPulse 1s ease-in-out infinite;
-      }
-      .tl-step.done .tl-marker {
-        background: rgba(0, 255, 160, 0.15);
-        border-color: var(--g);
-      }
-      @keyframes markerPulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.1);
-        }
-      }
-      .tl-info {
-        text-align: center;
-        max-width: 120px;
-      }
-      .tl-year {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.72rem;
-        color: var(--b);
-      }
-      .tl-desc {
-        font-size: 0.68rem;
-        color: var(--t2);
-        margin-top: 3px;
-        line-height: 1.4;
-        font-weight: 300;
-      }
-
-      .anim-stats {
-        display: flex;
-        gap: 22px;
-        margin-top: 24px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      .as-item {
-        text-align: center;
-        padding: 16px 22px;
-        background: rgba(0, 18, 10, 0.9);
-        border: 1px solid rgba(0, 255, 160, 0.25);
-        border-radius: 14px;
-      }
-      .as-val {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.6rem;
-        color: var(--g);
-      }
-      .as-lbl {
-        color: var(--t2);
-        margin-top: 4px;
-        font-size: 0.78rem;
-        font-weight: 300;
-      }
-
-      /* ═══════════════════════════════════════════
-       RÉSULTAT OVERLAY
-    ═══════════════════════════════════════════ */
-      #result-ov {
-        align-items: center;
-        justify-content: center;
-      }
-      .result-card {
-        width: 90%;
-        max-width: 760px;
-        max-height: 92vh;
-        background: linear-gradient(
-          160deg,
-          rgba(0, 20, 12, 0.98),
-          rgba(0, 10, 6, 0.99)
-        );
-        border: 2px solid rgba(0, 255, 160, 0.3);
-        border-radius: 24px;
-        padding: 34px;
-        overflow-y: auto;
-        position: relative;
-        box-shadow: 0 0 80px rgba(0, 255, 160, 0.08);
-      }
-      .result-card::-webkit-scrollbar {
-        width: 5px;
-      }
-      .result-card::-webkit-scrollbar-thumb {
-        background: rgba(0, 255, 160, 0.2);
-        border-radius: 3px;
-      }
-
-      /* Coins carte résultat */
-      .rc-corner {
-        position: absolute;
-        width: 30px;
-        height: 30px;
-      }
-      .rc-corner::before,
-      .rc-corner::after {
-        content: "";
-        position: absolute;
-        background: var(--g);
-        opacity: 0.5;
-      }
-      .rc-corner.tl {
-        top: 14px;
-        left: 14px;
-      }
-      .rc-corner.tl::before {
-        width: 16px;
-        height: 1px;
-        top: 0;
-        left: 0;
-      }
-      .rc-corner.tl::after {
-        width: 1px;
-        height: 16px;
-        top: 0;
-        left: 0;
-      }
-      .rc-corner.tr {
-        top: 14px;
-        right: 14px;
-      }
-      .rc-corner.tr::before {
-        width: 16px;
-        height: 1px;
-        top: 0;
-        right: 0;
-      }
-      .rc-corner.tr::after {
-        width: 1px;
-        height: 16px;
-        top: 0;
-        right: 0;
-      }
-      .rc-corner.bl {
-        bottom: 14px;
-        left: 14px;
-      }
-      .rc-corner.bl::before {
-        width: 16px;
-        height: 1px;
-        bottom: 0;
-        left: 0;
-      }
-      .rc-corner.bl::after {
-        width: 1px;
-        height: 16px;
-        bottom: 0;
-        left: 0;
-      }
-      .rc-corner.br {
-        bottom: 14px;
-        right: 14px;
-      }
-      .rc-corner.br::before {
-        width: 16px;
-        height: 1px;
-        bottom: 0;
-        right: 0;
-      }
-      .rc-corner.br::after {
-        width: 1px;
-        height: 16px;
-        bottom: 0;
-        right: 0;
-      }
-
-      .res-hdr {
-        text-align: center;
-        margin-bottom: 26px;
-      }
-      .res-ico {
-        font-size: 3rem;
-        margin-bottom: 10px;
-      }
-      .res-title {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.6rem;
-        color: var(--sg);
-        text-shadow: 0 0 16px rgba(85, 255, 136, 0.5);
-      }
-      .res-title.partial {
-        color: var(--o);
-        text-shadow: 0 0 16px rgba(255, 140, 0, 0.5);
-      }
-      .res-title.palliative {
-        color: var(--r);
-        text-shadow: 0 0 16px rgba(255, 51, 85, 0.5);
-      }
-
-      .res-stats-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin-bottom: 20px;
-      }
-      .rs-item {
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(0, 255, 160, 0.15);
-        border-radius: 12px;
-        padding: 15px;
-        text-align: center;
-      }
-      .rs-lbl {
-        color: var(--t2);
-        font-size: 0.78rem;
-        margin-bottom: 7px;
-        font-weight: 300;
-      }
-      .rs-val {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.3rem;
-        color: var(--g);
-      }
-      .rs-change {
-        color: var(--sg);
-        font-size: 0.75rem;
-        margin-top: 4px;
-        font-weight: 300;
-      }
-
-      .res-finance {
+        padding: 14px 20px;
         background: rgba(0, 229, 255, 0.05);
         border: 1px solid rgba(0, 229, 255, 0.2);
-        border-radius: 12px;
-        padding: 14px;
-        text-align: center;
-        margin-bottom: 14px;
-      }
-      .res-finance-val {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.2rem;
-        color: var(--b);
-      }
-      .res-finance p {
-        color: var(--t2);
-        font-size: 0.8rem;
-        margin-top: 4px;
-        font-weight: 300;
-      }
-
-      .res-real {
-        background: rgba(0, 255, 160, 0.04);
-        border: 1px solid rgba(0, 255, 160, 0.15);
-        border-radius: 12px;
-        padding: 14px;
-        margin-bottom: 14px;
-      }
-      .res-real-lbl {
-        font-family: "Orbitron", sans-serif;
-        color: var(--g);
-        font-size: 0.78rem;
-        margin-bottom: 7px;
-        letter-spacing: 2px;
-      }
-      .res-real p {
-        color: var(--t2);
-        font-size: 0.85rem;
-        line-height: 1.6;
-        font-weight: 300;
-      }
-
-      .score-wrap {
-        text-align: center;
-        padding: 20px;
-        background: linear-gradient(
-          135deg,
-          rgba(0, 255, 160, 0.08),
-          rgba(0, 100, 50, 0.06)
-        );
-        border: 1px solid rgba(0, 255, 160, 0.25);
-        border-radius: 14px;
+        border-radius: 6px;
         margin-bottom: 18px;
-      }
-      .sw-lbl {
-        color: var(--t2);
-        font-size: 0.82rem;
-        margin-bottom: 6px;
-        font-weight: 300;
-      }
-      .sw-score {
-        font-family: "Orbitron", sans-serif;
-        font-size: 2.5rem;
-        color: var(--g);
-        text-shadow: 0 0 16px rgba(0, 255, 160, 0.4);
-      }
-      .sw-grade {
-        color: var(--sg);
-        font-size: 0.95rem;
-        margin-top: 5px;
-        font-family: "Orbitron", sans-serif;
-      }
-      .sw-pts {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.2rem;
-        color: var(--b);
-        margin-top: 7px;
-        animation: ptsBounce 0.8s ease-in-out;
-      }
-      @keyframes ptsBounce {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.25);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-
-      .res-actions {
-        display: flex;
-        gap: 14px;
-        justify-content: center;
-      }
-      .res-btn {
-        padding: 13px 26px;
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.85rem;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.3s;
-        letter-spacing: 1px;
-      }
-      .rb-back {
-        background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: var(--t2);
-      }
-      .rb-back:hover {
-        border-color: var(--g);
-        color: var(--g);
-      }
-      .rb-next {
-        background: linear-gradient(135deg, var(--g), var(--g2));
-        border: none;
-        color: #010d06;
-        font-weight: 700;
-      }
-      .rb-next:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 28px rgba(0, 255, 160, 0.35);
-      }
-
-      /* ═══════════════════════════════════════════
-       GAÏA DIALOGUE
-    ═══════════════════════════════════════════ */
-      #gaia-dial {
-        position: fixed;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 80%;
-        max-width: 800px;
-        z-index: 900;
-        background: linear-gradient(
-          135deg,
-          rgba(0, 45, 24, 0.99),
-          rgba(0, 18, 10, 1)
-        );
-        border: 1px solid rgba(0, 255, 160, 0.35);
-        border-radius: 20px;
-        padding: 22px 26px;
-        display: none;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6),
-          0 0 30px rgba(0, 255, 160, 0.12);
-      }
-      #gaia-dial.open {
-        display: block;
-        animation: gDial 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      @keyframes gDial {
-        from {
-          transform: translateX(-50%) translateY(30px);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(-50%) translateY(0);
-          opacity: 1;
-        }
-      }
-      .gaia-hdr2 {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-      .gaia-av2 {
-        width: 42px;
-        height: 42px;
-        background: linear-gradient(135deg, var(--g), var(--b));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        flex-shrink: 0;
-        box-shadow: 0 0 16px rgba(0, 255, 160, 0.4);
-        animation: avGlow2 2.5s ease-in-out infinite;
-      }
-      @keyframes avGlow2 {
-        0%,
-        100% {
-          box-shadow: 0 0 16px rgba(0, 255, 160, 0.4);
-        }
-        50% {
-          box-shadow: 0 0 28px rgba(0, 229, 255, 0.5);
-        }
-      }
-      .gaia-name2 {
-        font-family: "Orbitron", sans-serif;
-        color: var(--g);
-        font-size: 1rem;
-        letter-spacing: 2px;
-      }
-      .gaia-txt2 {
-        font-size: 0.95rem;
-        line-height: 1.8;
-        color: var(--t);
-        font-weight: 300;
-      }
-      .gaia-txt2 .hl {
-        color: var(--g);
+        font-size: 0.9rem;
+        color: var(--cyan);
         font-weight: 600;
       }
-      .gaia-close2 {
-        position: absolute;
-        top: 14px;
-        right: 14px;
-        background: none;
-        border: none;
-        color: var(--t2);
-        font-size: 1.1rem;
+      .choices-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+      @media (max-width: 560px) {
+        .choices-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .choice-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 6px;
         cursor: pointer;
-        transition: color 0.3s;
+        border: 1px solid rgba(0, 255, 180, 0.2);
+        background: rgba(0, 255, 180, 0.03);
+        transition: all 0.25s;
+        user-select: none;
       }
-      .gaia-close2:hover {
-        color: var(--g);
+      .choice-item:hover {
+        border-color: rgba(0, 255, 180, 0.5);
+        background: rgba(0, 255, 180, 0.07);
       }
-
-      /* ═══════════════════════════════════════════
-       TOAST FINAL
-    ═══════════════════════════════════════════ */
-      #toast-final {
-        position: fixed;
-        inset: 0;
-        z-index: 1000;
-        display: none;
+      .choice-item.selected {
+        border-color: var(--green);
+        background: rgba(0, 255, 180, 0.12);
+        box-shadow: 0 0 12px rgba(0, 255, 180, 0.2);
+      }
+      .choice-item.wrong {
+        border-color: var(--red);
+        background: rgba(255, 62, 94, 0.1);
+      }
+      .choice-item.correct {
+        border-color: var(--green);
+        background: rgba(0, 255, 180, 0.15);
+      }
+      .choice-check {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(0, 255, 180, 0.4);
+        border-radius: 3px;
+        flex-shrink: 0;
+        display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(0, 0, 0, 0.92);
+        font-size: 0.7rem;
+        transition: all 0.2s;
       }
-      #toast-final.open {
-        display: flex;
+      .choice-item.selected .choice-check {
+        background: var(--green);
+        border-color: var(--green);
+        color: #000;
       }
-      .toast-card {
-        background: linear-gradient(
-          160deg,
-          rgba(0, 22, 13, 0.99),
-          rgba(0, 10, 6, 1)
-        );
-        border: 2px solid var(--g);
-        border-radius: 28px;
-        padding: 44px 52px;
-        text-align: center;
-        max-width: 520px;
-        box-shadow: 0 0 100px rgba(0, 255, 160, 0.2);
-        animation: toastPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      .choice-item.wrong .choice-check {
+        background: var(--red);
+        border-color: var(--red);
+        color: #fff;
       }
-      @keyframes toastPop {
-        from {
-          transform: scale(0.85);
-          opacity: 0;
-        }
-        to {
-          transform: scale(1);
-          opacity: 1;
-        }
+      .choice-item.correct .choice-check {
+        background: var(--green);
+        border-color: var(--green);
+        color: #000;
       }
-      .toast-ico {
-        font-size: 4rem;
-        margin-bottom: 16px;
+      .choice-label {
+        font-size: 0.84rem;
+        flex: 1;
       }
-      .toast-title {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.8rem;
-        color: var(--g);
-        text-shadow: 0 0 24px rgba(0, 255, 160, 0.5);
-        margin-bottom: 10px;
-        letter-spacing: 2px;
-      }
-      .toast-score {
-        font-family: "Orbitron", sans-serif;
-        font-size: 1.3rem;
-        color: var(--b);
-        margin-bottom: 20px;
-      }
-      .toast-msg {
-        color: var(--t2);
-        line-height: 1.8;
-        margin-bottom: 28px;
-        font-weight: 300;
-      }
-      .toast-btn {
-        font-family: "Orbitron", sans-serif;
-        font-size: 0.95rem;
-        font-weight: 700;
-        padding: 15px 38px;
-        letter-spacing: 3px;
-        background: linear-gradient(135deg, var(--g), var(--g2));
-        border: none;
+      .choice-badge {
+        font-size: 0.75rem;
+        padding: 2px 8px;
         border-radius: 12px;
-        color: #010d06;
-        cursor: pointer;
-        transition: all 0.3s;
-      }
-      .toast-btn:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 36px rgba(0, 255, 160, 0.4);
       }
 
-      /* ═══════════════════════════════════════════
-       RESPONSIVE
-    ═══════════════════════════════════════════ */
-      @media (max-width: 860px) {
-        .diag-grid {
-          grid-template-columns: 1fr;
-          overflow-y: auto;
+      .max-info {
+        text-align: center;
+        font-family: "Share Tech Mono";
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
+      .selected-count {
+        color: var(--green);
+      }
+
+      .btn-center {
+        text-align: center;
+        margin-top: 10px;
+      }
+
+      /* Simulation */
+      .sim-zone {
+        padding: 30px 20px;
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .sim-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--green);
+        margin-bottom: 8px;
+      }
+      .sim-sub {
+        font-family: "Share Tech Mono";
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 30px;
+      }
+      .timeline {
+        position: relative;
+        margin: 30px 0;
+      }
+      .timeline-bar {
+        height: 6px;
+        background: rgba(0, 255, 180, 0.1);
+        border-radius: 3px;
+        position: relative;
+        overflow: hidden;
+      }
+      .timeline-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--green), var(--cyan));
+        border-radius: 3px;
+        width: 0%;
+        transition: width 0.5s;
+        box-shadow: 0 0 10px var(--green);
+      }
+      .timeline-label {
+        font-family: "Share Tech Mono";
+        font-size: 0.75rem;
+        color: var(--cyan);
+        margin-top: 8px;
+      }
+      .sim-steps {
+        text-align: left;
+        margin-top: 20px;
+      }
+      .sim-step {
+        padding: 10px 14px;
+        border-radius: 5px;
+        margin-bottom: 8px;
+        border: 1px solid rgba(0, 255, 180, 0.1);
+        background: rgba(0, 255, 180, 0.03);
+        font-size: 0.84rem;
+        opacity: 0.3;
+        transition: all 0.5s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .sim-step.active {
+        opacity: 1;
+        border-color: rgba(0, 255, 180, 0.4);
+        background: rgba(0, 255, 180, 0.08);
+      }
+      .sim-step.done {
+        opacity: 0.7;
+      }
+      .step-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(0, 255, 180, 0.3);
+        flex-shrink: 0;
+      }
+      .sim-step.active .step-dot {
+        background: var(--green);
+        box-shadow: 0 0 8px var(--green);
+        animation: blink 0.8s infinite;
+      }
+      .sim-step.done .step-dot {
+        background: var(--cyan);
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
         }
-        .diag-holo {
-          height: 260px;
-          padding: 20px;
+        50% {
+          opacity: 0.3;
         }
-        .h-icon {
-          font-size: 4rem;
+      }
+
+      /* Result */
+      .result-zone {
+        padding: 24px 20px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .result-card {
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .result-header {
+        padding: 20px;
+        text-align: center;
+      }
+      .result-status {
+        font-size: 2rem;
+        margin-bottom: 8px;
+      }
+      .result-title {
+        font-size: 1.3rem;
+        font-weight: 900;
+        letter-spacing: 2px;
+      }
+      .result-header.excellent {
+        background: rgba(0, 255, 180, 0.1);
+        border-bottom: 1px solid rgba(0, 255, 180, 0.3);
+      }
+      .result-header.partial {
+        background: rgba(255, 214, 0, 0.08);
+        border-bottom: 1px solid rgba(255, 214, 0, 0.3);
+      }
+      .result-header.stabilized {
+        background: rgba(0, 229, 255, 0.06);
+        border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      }
+      .result-body {
+        padding: 20px;
+      }
+      .result-stats {
+        margin-bottom: 16px;
+      }
+      .result-stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 7px 0;
+        border-bottom: 1px solid rgba(0, 255, 180, 0.06);
+        font-size: 0.87rem;
+      }
+      .result-stat-label {
+        color: var(--muted);
+      }
+      .result-stat-val {
+        font-weight: 700;
+        font-weight: 600;
+      }
+      .fact-box {
+        background: rgba(0, 229, 255, 0.05);
+        border: 1px solid rgba(0, 229, 255, 0.2);
+        border-radius: 6px;
+        padding: 12px 14px;
+        margin-top: 12px;
+        font-size: 0.82rem;
+        color: rgba(232, 255, 249, 0.85);
+        line-height: 1.5;
+      }
+      .fact-box strong {
+        color: var(--cyan);
+        font-family: "Share Tech Mono";
+      }
+      .score-big {
+        text-align: center;
+        padding: 20px;
+        font-size: 3rem;
+        font-weight: 900;
+        font-family: "Share Tech Mono";
+      }
+      .score-big.s-excellent {
+        color: var(--green);
+        text-shadow: 0 0 30px rgba(0, 255, 180, 0.6);
+      }
+      .score-big.s-partial {
+        color: var(--yellow);
+        text-shadow: 0 0 30px rgba(255, 214, 0, 0.5);
+      }
+      .score-big.s-stabilized {
+        color: var(--cyan);
+      }
+      .gaia-quote {
+        margin-top: 20px;
+        background: rgba(0, 10, 12, 0.6);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+        font-style: italic;
+        color: rgba(232, 255, 249, 0.85);
+        font-size: 0.88rem;
+        line-height: 1.7;
+      }
+      .gaia-label {
+        font-family: "Share Tech Mono";
+        font-size: 0.7rem;
+        color: var(--green);
+        margin-bottom: 8px;
+      }
+
+      /* Final screen */
+      #screen-final {
+        align-items: center;
+        justify-content: center;
+        padding: 30px 20px;
+      }
+      .final-wrap {
+        max-width: 720px;
+        width: 100%;
+      }
+      .final-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .final-header h1 {
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: var(--green);
+        text-shadow: 0 0 30px rgba(0, 255, 180, 0.5);
+      }
+      .final-header p {
+        color: var(--muted);
+        font-family: "Share Tech Mono";
+        font-size: 0.8rem;
+        margin-top: 6px;
+      }
+      .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      .results-table th {
+        font-family: "Share Tech Mono";
+        font-size: 0.72rem;
+        color: var(--cyan);
+        letter-spacing: 2px;
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      .results-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(0, 255, 180, 0.06);
+        font-size: 0.86rem;
+      }
+      .results-table tr:last-child td {
+        border: none;
+      }
+      .score-cell {
+        font-family: "Share Tech Mono";
+        font-weight: 700;
+      }
+      .score-90 {
+        color: var(--green);
+      }
+      .score-50 {
+        color: var(--yellow);
+      }
+      .score-30 {
+        color: rgba(255, 180, 100, 0.9);
+      }
+      .score-100 {
+        color: var(--cyan);
+        text-shadow: 0 0 10px var(--cyan);
+      }
+      .total-row {
+        background: rgba(0, 255, 180, 0.05);
+      }
+      .total-row td {
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+      .badge-zone {
+        text-align: center;
+        padding: 24px;
+        background: rgba(0, 255, 180, 0.05);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .badge-icon {
+        font-size: 3rem;
+        margin-bottom: 8px;
+      }
+      .badge-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--green);
+      }
+      .badge-rank {
+        font-family: "Share Tech Mono";
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .points-total {
+        font-size: 1.6rem;
+        font-weight: 900;
+        color: var(--cyan);
+        font-family: "Share Tech Mono";
+        margin-top: 10px;
+      }
+      .gaia-final {
+        text-align: center;
+        padding: 24px;
+        background: rgba(0, 10, 12, 0.6);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 24px;
+        font-style: italic;
+        line-height: 1.8;
+        font-size: 0.9rem;
+        color: rgba(232, 255, 249, 0.9);
+      }
+      .gaia-final-label {
+        font-family: "Share Tech Mono";
+        font-size: 0.72rem;
+        color: var(--green);
+        margin-bottom: 12px;
+      }
+      .gaia-final strong {
+        color: var(--green);
+        font-style: normal;
+        font-weight: 700;
+      }
+
+      /* Particles */
+      .particles {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+      .particle {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background: var(--green);
+        border-radius: 50%;
+        opacity: 0;
+        animation: particleFloat var(--dur, 8s) linear var(--delay, 0s) infinite;
+      }
+      @keyframes particleFloat {
+        0% {
+          transform: translateY(100vh) translateX(0);
+          opacity: 0;
         }
-        .treat-main {
-          grid-template-columns: 1fr;
-          overflow-y: auto;
+        10% {
+          opacity: 0.6;
         }
-        #pods-area {
-          gap: 10px;
-          flex-wrap: wrap;
-          bottom: 22%;
-          justify-content: center;
+        90% {
+          opacity: 0.3;
         }
-        .pod {
-          width: 115px;
-          height: 200px;
+        100% {
+          transform: translateY(-100px) translateX(var(--drift, 40px));
+          opacity: 0;
         }
-        .pod-holo {
-          font-size: 2.3rem;
+      }
+
+      /* Notification toast */
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 999;
+        background: rgba(0, 20, 15, 0.95);
+        border: 1px solid var(--green);
+        border-radius: 8px;
+        padding: 14px 20px;
+        font-size: 0.85rem;
+        box-shadow: 0 0 30px rgba(0, 255, 180, 0.3);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        max-width: 320px;
+      }
+      .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      /* Animations */
+      .fade-in {
+        animation: fadeIn 0.5s ease forwards;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
         }
-        .score-grid {
-          grid-template-columns: 1fr 1fr;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .tl-steps {
-          flex-direction: column;
-          gap: 16px;
+      }
+
+      .pulse-border {
+        animation: pulseBorder 2s ease-in-out infinite;
+      }
+      @keyframes pulseBorder {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 255, 180, 0.3);
         }
-        .tl-track {
-          width: 3px;
-          height: 100%;
-          top: 0;
-          left: 26px;
-        }
-        .tl-prog {
-          width: 3px;
-          height: 0%;
-          top: 0;
-          left: 26px;
-          transition: height 1.8s ease;
+        50% {
+          box-shadow: 0 0 0 8px rgba(0, 255, 180, 0);
         }
       }
     </style>
   </head>
   <body>
-    <!-- ═══════════════════════════════════════════ DÉCOR HÔPITAL ═══ -->
-    <div id="bg-wrap">
-      <div id="bg-wall"></div>
-      <div id="bg-floor"></div>
-      <div id="bg-ceil">
-        <div class="ceil-strip"></div>
-        <div class="ceil-strip"></div>
-      </div>
-      <div id="wall-left"></div>
-      <div id="wall-right"></div>
-      <!-- Rayons lumineux -->
-      <div class="beam"></div>
-      <div class="beam"></div>
-      <div class="beam"></div>
-      <!-- Moniteurs muraux -->
-      <div class="wall-monitor left">
-        <div class="wm-header">
-          <div class="wm-dot"></div>
-          <span class="wm-line">BIO-SIG</span>
-        </div>
-        <div class="wm-body">
-          <div class="wm-wave">
-            <svg width="240" height="18" viewBox="0 0 240 18">
-              <polyline
-                points="0,9 15,9 20,3 25,15 30,9 45,9 50,3 55,15 60,9 75,9 80,3 85,15 90,9 105,9 110,3 115,15 120,9 135,9 140,3 145,15 150,9 165,9 170,3 175,15 180,9 195,9 200,3 205,15 210,9 225,9 230,3 235,15 240,9"
-                fill="none"
-                stroke="#00ffa3"
-                stroke-width="1.5"
-              />
-            </svg>
-          </div>
-          <div class="wm-data">
-            <span class="wm-val">72 bpm</span>
-            <span class="wm-val">O₂ 98%</span>
-          </div>
-        </div>
-      </div>
-      <div class="wall-monitor right">
-        <div class="wm-header">
-          <div
-            class="wm-dot"
-            style="background: var(--b); box-shadow: 0 0 4px var(--b)"
-          ></div>
-          <span class="wm-line">ECO-SCAN</span>
-        </div>
-        <div class="wm-body">
-          <div class="wm-wave">
-            <svg width="240" height="18" viewBox="0 0 240 18">
-              <polyline
-                points="0,9 10,9 15,4 20,14 25,9 35,9 40,4 45,14 50,9 60,9 65,4 70,14 75,9 85,9 90,4 95,14 100,9 110,9 115,4 120,14 125,9 135,9 140,4 145,14 150,9 160,9 165,4 170,14 175,9 185,9 190,4 195,14 200,9 210,9 215,4 220,14 225,9 235,9 240,9"
-                fill="none"
-                stroke="#00e5ff"
-                stroke-width="1.5"
-              />
-            </svg>
-          </div>
-          <div class="wm-data">
-            <span class="wm-val" style="color: var(--b)">5 PAT.</span>
-            <span class="wm-val" style="color: var(--o)">URGENT</span>
-          </div>
-        </div>
-      </div>
-      <!-- Armoires latérales -->
-      <div class="side-cabinet left">
-        <div class="cab-top"><div class="cab-light"></div></div>
-        <div class="cab-screen">STOCK<br />MÉDICAL<br />✓ OK</div>
-      </div>
-      <div class="side-cabinet right">
-        <div class="cab-top">
-          <div class="cab-light" style="animation-delay: 0.7s"></div>
-        </div>
-        <div class="cab-screen">PROTO<br />TRAITE<br />✓ PRÊT</div>
-      </div>
-      <!-- Particules -->
-      <div id="particles"></div>
-    </div>
+    <!-- Particles -->
+    <div class="particles" id="particles"></div>
 
-    <!-- ═══════════════════════════════════════════ HEADER ═══ -->
-    <div id="hdr">
-      <div class="hdr-left">
-        <div class="hdr-logo">🏥</div>
-        <div class="hdr-titles">
-          <h1>CENTRE DE RÉPARATION ÉCOLOGIQUE</h1>
-          <p class="sub">"Guérissez mes blessures" — Gaïa · Scène 20</p>
-        </div>
-      </div>
-      <div class="hdr-prog">
-        <div class="hdr-status">
-          <div class="status-dot"></div>
-          <span class="status-txt">EN LIGNE</span>
-        </div>
-        <div class="prog-wrap">
-          <span class="prog-lbl">PATIENTS</span>
-          <div class="prog-track">
-            <div class="prog-fill" id="prog-fill"></div>
-          </div>
-          <span class="prog-num" id="prog-num">0 / 5</span>
-        </div>
-        <div class="score-badge">⚡ <span id="tot-score">0</span> pts</div>
-      </div>
-    </div>
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
 
-    <!-- ═══════════════════════════════════════════ ROBOTS ═══ -->
-    <div class="robot left">🤖</div>
-    <div class="robot right">🦾</div>
-
-    <!-- ═══════════════════════════════════════════ PODS ═══ -->
-    <div id="pods-area">
-      <div class="pod crit-pod" data-pid="coral" onclick="openDiag('coral')">
-        <div class="pod-num">01</div>
-        <div class="pod-glass">
-          <div class="pod-rings"></div>
-          <div class="pod-holo">🪸</div>
-          <div class="pod-scan"></div>
+    <!-- ===== SCREEN: MAIN MENU ===== -->
+    <div class="screen active" id="screen-menu">
+      <div class="hdr">
+        <div>
+          <div class="hdr-title">🏥 Centre de Réparation Écologique</div>
+          <div class="hdr-sub">SYSTÈME GAIA v2.0 // DIAGNOSTIC EN COURS</div>
         </div>
-        <div class="pod-vitals">
-          <svg viewBox="0 0 125 20">
-            <polyline
-              points="0,10 15,10 20,4 24,16 28,10 40,10 45,4 49,16 53,10 65,10 70,4 74,16 78,10 90,10 95,4 99,16 103,10 115,10 120,4 125,10"
-              fill="none"
-              stroke="#ff3355"
-              stroke-width="1.2"
-              opacity=".6"
-            />
-          </svg>
-        </div>
-        <div class="pod-info">
-          <div class="pod-name">GRANDE<br />BARRIÈRE CORAIL</div>
-          <div class="pod-status st-critical">
-            <span class="sdot"></span>CRITIQUE 50%
-          </div>
-        </div>
-      </div>
-
-      <div class="pod crit-pod" data-pid="aral" onclick="openDiag('aral')">
-        <div class="pod-num">02</div>
-        <div class="pod-glass">
-          <div class="pod-rings"></div>
-          <div class="pod-holo">🌊</div>
-          <div class="pod-scan"></div>
-        </div>
-        <div class="pod-vitals">
-          <svg viewBox="0 0 125 20">
-            <polyline
-              points="0,10 15,10 18,3 22,17 26,10 40,10 43,3 47,17 51,10 65,10 68,3 72,17 76,10 90,10 93,3 97,17 101,10 115,10 118,3 122,17 125,10"
-              fill="none"
-              stroke="#ff3355"
-              stroke-width="1.2"
-              opacity=".6"
-            />
-          </svg>
-        </div>
-        <div class="pod-info">
-          <div class="pod-name">MER D'ARAL</div>
-          <div class="pod-status st-critical">
-            <span class="sdot"></span>DÉSERTIFIÉE −90%
-          </div>
-        </div>
-      </div>
-
-      <div class="pod crit-pod" data-pid="forest" onclick="openDiag('forest')">
-        <div class="pod-num">03</div>
-        <div class="pod-glass">
-          <div class="pod-rings"></div>
-          <div class="pod-holo">🌳</div>
-          <div class="pod-scan"></div>
-        </div>
-        <div class="pod-vitals">
-          <svg viewBox="0 0 125 20">
-            <polyline
-              points="0,10 20,10 23,5 27,15 31,10 50,10 53,5 57,15 61,10 80,10 83,5 87,15 91,10 110,10 113,5 117,15 121,10 125,10"
-              fill="none"
-              stroke="#ff3355"
-              stroke-width="1.2"
-              opacity=".6"
-            />
-          </svg>
-        </div>
-        <div class="pod-info">
-          <div class="pod-name">FORÊT<br />ATLANTIQUE</div>
-          <div class="pod-status st-critical">
-            <span class="sdot"></span>FRAGMENTÉE 93%
-          </div>
-        </div>
-      </div>
-
-      <div
-        class="pod warn-pod"
-        data-pid="chernobyl"
-        onclick="openDiag('chernobyl')"
-      >
-        <div class="pod-num">04</div>
-        <div class="pod-glass">
-          <div class="pod-rings" style="animation-delay: 0.5s"></div>
-          <div class="pod-holo">☢️</div>
-          <div class="pod-scan"></div>
-        </div>
-        <div class="pod-vitals">
-          <svg viewBox="0 0 125 20">
-            <polyline
-              points="0,10 25,10 28,6 32,14 36,10 60,10 63,6 67,14 71,10 95,10 98,6 102,14 106,10 125,10"
-              fill="none"
-              stroke="#ff8c00"
-              stroke-width="1.2"
-              opacity=".6"
-            />
-          </svg>
-        </div>
-        <div class="pod-info">
-          <div class="pod-name">ZONE<br />TCHERNOBYL</div>
-          <div class="pod-status st-warning">
-            <span class="sdot"></span>CONTAMINÉE
-          </div>
-        </div>
-      </div>
-
-      <div class="pod recov-pod" data-pid="rhine" onclick="openDiag('rhine')">
-        <div class="pod-num">05</div>
-        <div class="pod-glass">
-          <div class="pod-rings" style="animation-delay: 1s"></div>
-          <div class="pod-holo">🐟</div>
-          <div class="pod-scan"></div>
-        </div>
-        <div class="pod-vitals">
-          <svg viewBox="0 0 125 20">
-            <polyline
-              points="0,10 18,10 21,7 25,13 29,10 47,10 50,7 54,13 58,10 76,10 79,7 83,13 87,10 105,10 108,7 112,13 116,10 125,10"
-              fill="none"
-              stroke="#00ffa3"
-              stroke-width="1.2"
-              opacity=".6"
-            />
-          </svg>
-        </div>
-        <div class="pod-info">
-          <div class="pod-name">FLEUVE<br />RHIN</div>
-          <div class="pod-status st-recovering">
-            <span class="sdot"></span>EN RÉCUPÉRATION
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Son -->
-    <div id="snd-btn" onclick="toggleSound()">
-      <div class="snd-bars">
-        <div class="snd-bar"></div>
-        <div class="snd-bar"></div>
-        <div class="snd-bar"></div>
-        <div class="snd-bar"></div>
-      </div>
-      <span>SON</span>
-    </div>
-
-    <!-- ═══════════════════════════════════════════ GUIDE OVERLAY ═══ -->
-    <div
-      class="overlay"
-      id="guide-ov"
-      style="
-        background: linear-gradient(135deg, #020f09, #010b06);
-        align-items: center;
-        justify-content: center;
-      "
-    >
-      <div class="guide-wrap">
-        <div class="guide-eyebrow">📋 BRIEFING MÉDECIN</div>
-        <h1 class="guide-title">🏥 CENTRE DE RÉPARATION ÉCOLOGIQUE</h1>
-        <p class="guide-sub">
-          Bienvenue, Docteur. Votre mission : soigner 5 écosystèmes en danger
-          critique.
-        </p>
-
-        <div class="steps-grid">
-          <div class="gstep">
-            <div class="gstep-n">01</div>
-            <div class="gstep-icon">🔬</div>
-            <div class="gstep-title">LIRE LE DIAGNOSTIC</div>
-            <p>
-              Cliquez sur un pod médical pour accéder au dossier complet du
-              patient. Analysez les statistiques, causes et pronostics de chaque
-              écosystème.
-            </p>
-          </div>
-          <div class="gstep">
-            <div class="gstep-n">02</div>
-            <div class="gstep-icon">💊</div>
-            <div class="gstep-title">CHOISIR LE TRAITEMENT</div>
-            <p>
-              Sélectionnez les technologies de restauration adaptées. Attention
-              : certaines options sont inefficaces ou contre-productives.
-              Maximum autorisé !
-            </p>
-          </div>
-          <div class="gstep">
-            <div class="gstep-n">03</div>
-            <div class="gstep-icon">⏱️</div>
-            <div class="gstep-title">APPLIQUER & OBSERVER</div>
-            <p>
-              Regardez la timeline de guérison se dérouler sur des années. Les
-              résultats dépendent de la justesse de vos choix thérapeutiques.
-            </p>
-          </div>
-          <div class="gstep">
-            <div class="gstep-n">04</div>
-            <div class="gstep-icon">📊</div>
-            <div class="gstep-title">ÉVALUER LES RÉSULTATS</div>
-            <p>
-              Obtenez votre score selon la qualité du traitement. Guérison
-              complète, partielle ou soins palliatifs — chaque résultat est
-              éducatif.
-            </p>
-          </div>
-          <div class="gstep">
-            <div class="gstep-n">05</div>
-            <div class="gstep-icon">🌍</div>
-            <div class="gstep-title">ÉCOUTER GAÏA</div>
-            <p>
-              Après chaque traitement, Gaïa — la Terre personnifiée — vous parle
-              de ses blessures et de l'espoir qu'elle place en vous.
-            </p>
-          </div>
-        </div>
-
-        <div class="score-section">
-          <h3>🏆 SYSTÈME DE SCORE</h3>
-          <div class="score-grid">
-            <div class="sc-item">
-              <div class="sc-val" style="color: var(--sg)">+60</div>
-              <div class="sc-lbl">Guérison parfaite</div>
-            </div>
-            <div class="sc-item">
-              <div class="sc-val" style="color: var(--g)">+50</div>
-              <div class="sc-lbl">Traitement réussi</div>
-            </div>
-            <div class="sc-item">
-              <div class="sc-val" style="color: var(--o)">+40</div>
-              <div class="sc-lbl">Résultat partiel</div>
-            </div>
-            <div class="sc-item">
-              <div class="sc-val" style="color: var(--r)">+30</div>
-              <div class="sc-lbl">Soins palliatifs</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="text-align: center">
-          <button class="guide-btn" onclick="startGame()">
-            🚀 COMMENCER LA MISSION
+        <div class="hdr-score">
+          <button
+            id="btn-audio"
+            onclick="toggleAudio()"
+            style="
+              background: rgba(0, 255, 180, 0.1);
+              border: 1px solid rgba(0, 255, 180, 0.3);
+              color: var(--green);
+              font-family: 'Share Tech Mono';
+              font-size: 0.72rem;
+              padding: 5px 12px;
+              border-radius: 4px;
+              cursor: pointer;
+              margin-right: 14px;
+            "
+          >
+            🔊 SON
           </button>
+          POINTS: <span id="total-points">0</span>
         </div>
       </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════ DIAGNOSTIC OVERLAY ═══ -->
-    <div class="overlay" id="diag-ov">
-      <button class="ov-close" onclick="closeOv('diag-ov')">✕</button>
-      <div class="diag-grid">
-        <div class="diag-holo">
-          <div class="corner-deco tl"></div>
-          <div class="corner-deco br"></div>
-          <div class="h-rings-wrap">
-            <div class="h-ring"></div>
-            <div class="h-ring"></div>
-            <div class="h-ring"></div>
-            <div class="h-icon" id="diag-icon">🪸</div>
-          </div>
-          <div class="h-scan-line"></div>
-          <div class="h-label" id="diag-pname">GRANDE BARRIÈRE DE CORAIL</div>
-          <div class="h-sub" id="diag-ploc">📍 Australie (Queensland)</div>
-        </div>
-        <div class="diag-info" id="diag-info"></div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="main-progress" style="width: 0%"></div>
       </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════ TRAITEMENT OVERLAY ═══ -->
-    <div class="overlay" id="treat-ov">
-      <button class="ov-close" onclick="closeOv('treat-ov');openOv('diag-ov')">
-        ✕
-      </button>
-      <div class="treat-wrap">
-        <div class="treat-top">
-          <h2>⚕️ PROTOCOLE DE TRAITEMENT</h2>
-          <p id="treat-sub">Sélectionnez les technologies appropriées</p>
-        </div>
-        <div class="treat-main">
-          <div class="opt-panel">
-            <h3>TECHNOLOGIES DISPONIBLES</h3>
-            <div class="opt-scroll" id="opt-list"></div>
+      <div
+        style="
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 20px;
+        "
+      >
+        <div class="menu-wrap fade-in">
+          <div class="menu-logo">
+            <span class="cross">🏥</span>
+            <h1>Centre de Réparation Écologique</h1>
+            <p>"Guérissez mes blessures" — GAIA</p>
           </div>
-          <div class="rx-panel">
-            <div class="rx-card">
-              <h3>📋 PRESCRIPTION</h3>
-              <div class="rx-items" id="rx-list">
-                <p class="rx-empty">
-                  Cliquez sur les technologies pour les ajouter à la
-                  prescription
-                </p>
-              </div>
-              <div class="rx-counter">
-                Sélection : <span class="rx-count-val" id="rx-count">0</span> /
-                <span id="rx-max">5</span>
-              </div>
+          <div class="panel">
+            <div class="panel-title">5 Patients en Attente</div>
+            <div class="patient-list" id="patient-list"></div>
+          </div>
+          <div class="menu-footer">
+            <div class="prog-text" id="prog-text">
+              PROGRESSION : 0/5 patients traités
             </div>
             <button
-              class="apply-btn"
-              id="apply-btn"
-              onclick="applyTreatment()"
-              disabled
+              class="btn btn-primary pulse-border"
+              id="btn-start"
+              onclick="startNextPatient()"
             >
-              💉 APPLIQUER LE TRAITEMENT
+              ▶ ENTRER EN SALLE DE SOINS
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════ ANIMATION OVERLAY ═══ -->
-    <div class="overlay" id="anim-ov">
-      <div class="anim-wrap">
-        <h2 class="anim-title">🔄 TRAITEMENT EN COURS...</h2>
-        <div class="anim-eco" id="anim-eco">🪸</div>
-        <div class="tl-wrap">
-          <div class="tl">
-            <div class="tl-track"></div>
-            <div class="tl-prog" id="tl-prog"></div>
-            <div class="tl-steps" id="tl-steps"></div>
+    <!-- ===== SCREEN: PATIENT ===== -->
+    <div class="screen" id="screen-patient">
+      <div class="hdr">
+        <div>
+          <div class="hdr-title" id="p-header-title">Patient</div>
+          <div class="hdr-sub" id="p-header-sub">Diagnostic en cours...</div>
+        </div>
+        <div class="hdr-score">POINTS: <span id="p-points">0</span></div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="p-progress"></div>
+      </div>
+      <div class="patient-layout">
+        <div class="holo-zone">
+          <canvas class="holo-canvas" id="holo-canvas"></canvas>
+          <div class="holo-lines"></div>
+          <div class="holo-scanbar"></div>
+          <div class="holo-overlay">
+            <span class="holo-emoji" id="holo-emoji">🪸</span>
+            <div
+              style="
+                font-family: 'Share Tech Mono';
+                font-size: 0.75rem;
+                color: var(--green);
+                margin-top: 8px;
+                letter-spacing: 2px;
+              "
+              id="holo-label"
+            >
+              HOLOGRAMME 3D // ANALYSE...
+            </div>
           </div>
         </div>
-        <div class="anim-stats" id="anim-stats"></div>
+        <div class="content-zone" id="patient-content"></div>
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════ RÉSULTAT OVERLAY ═══ -->
-    <div class="overlay" id="result-ov">
-      <div class="result-card">
-        <div class="rc-corner tl"></div>
-        <div class="rc-corner tr"></div>
-        <div class="rc-corner bl"></div>
-        <div class="rc-corner br"></div>
-        <div class="res-hdr">
-          <div class="res-ico" id="res-ico">✅</div>
-          <h2 class="res-title" id="res-title">TRAITEMENT RÉUSSI !</h2>
+    <!-- ===== SCREEN: FINAL ===== -->
+    <div class="screen" id="screen-final">
+      <div class="hdr">
+        <div>
+          <div class="hdr-title">🏆 Bilan Final</div>
+          <div class="hdr-sub">TOUS LES PATIENTS TRAITÉS</div>
         </div>
-        <div class="res-stats-grid" id="res-stats"></div>
-        <div class="res-finance">
-          <div class="res-finance-val" id="res-cost-val">2.5 milliards $</div>
-          <p id="res-funders">Australie + UNESCO + ONG</p>
-        </div>
-        <div class="res-real">
-          <div class="res-real-lbl">📚 CAS RÉEL DOCUMENTÉ</div>
-          <p id="res-case-desc"></p>
-        </div>
-        <div class="score-wrap">
-          <div class="sw-lbl">SCORE PATIENT</div>
-          <div class="sw-score" id="sw-score">90/100</div>
-          <div class="sw-grade" id="sw-grade">EXCELLENT</div>
-          <div class="sw-pts" id="sw-pts">+50 POINTS</div>
-        </div>
-        <div class="res-actions">
-          <button class="res-btn rb-back" onclick="closeResult()">
-            ↩ RETOUR
-          </button>
-          <button class="res-btn rb-next" onclick="continueNext()">
-            PATIENT SUIVANT →
-          </button>
-        </div>
+        <div class="hdr-score">POINTS: <span id="f-points">0</span></div>
       </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════ GAÏA ═══ -->
-    <div id="gaia-dial">
-      <button class="gaia-close2" onclick="closeGaia()">✕</button>
-      <div class="gaia-hdr2">
-        <div class="gaia-av2">🌍</div>
-        <span class="gaia-name2">GAÏA</span>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 100%"></div>
       </div>
-      <p class="gaia-txt2" id="gaia-txt">...</p>
-    </div>
-
-    <!-- ═══════════════════════════════════════════ TOAST FINAL ═══ -->
-    <div id="toast-final">
-      <div class="toast-card">
-        <div class="toast-ico">🌟</div>
-        <div class="toast-title">MISSION ACCOMPLIE !</div>
-        <div class="toast-score">
-          Score total : <span id="toast-score">0</span> points
-        </div>
-        <p class="toast-msg">
-          Vous avez traité tous les patients.<br />Certains ont guéri, d'autres
-          ont été stabilisés.<br />C'est ça, la médecine écologique.
-        </p>
-        <button class="toast-btn" onclick="goNext()">
-          🚀 SALLE SUIVANTE →
-        </button>
+      <div
+        style="
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 30px 20px;
+          overflow-y: auto;
+        "
+      >
+        <div class="final-wrap fade-in" id="final-content"></div>
       </div>
     </div>
 
     <script>
-      // ═══════════════════════════════════════════════════════════
-      // DONNÉES PATIENTS
-      // ═══════════════════════════════════════════════════════════
-      const PD = {
-        coral: {
-          name: "GRANDE BARRIÈRE DE CORAIL",
+      // ========== DATA ==========
+      const PATIENTS = [
+        {
+          id: 0,
           icon: "🪸",
+          name: "Grande Barrière de Corail",
           location: "Australie (Queensland)",
-          size: "344 400 km² — plus grand récif mondial",
+          statusLabel: "CRITIQUE",
+          statusClass: "badge-critical",
+          statusText: "50% morte",
+          holoColor: "#00b4ff",
+          facts: {
+            taille: "344,400 km² (+ grand récif)",
+            etat: [
+              "50% coraux MORTS (blanchis)",
+              "Blanchissements: 2016, 2017, 2020, 2022, 2024",
+              "Biodiversité: -60% (poissons)",
+            ],
+            causes: [
+              "Réchauffement océan (+2°C depuis 1900)",
+              "Acidification (CO2 dissout)",
+              "Pollution agricole (pesticides)",
+              "Surpêche (déséquilibre)",
+              "Tourisme excessif",
+            ],
+            si_rien: "Projection 2050 : 99% morts = Extinction fonctionnelle",
+          },
           stats: [
-            { l: "Coraux morts", v: "50%", bad: true },
-            { l: "Blanchissements", v: "5 en 9 ans", bad: true },
-            { l: "Biodiversité", v: "−60%", bad: true },
-            { l: "Température", v: "+2°C", bad: true },
+            { label: "Coraux vivants", val: 50, fill: "fill-red" },
+            { label: "Biodiversité", val: 40, fill: "fill-red" },
+            { label: "Acidification", val: 70, fill: "fill-yellow" },
           ],
-          causes: [
-            "Réchauffement océan (+2°C depuis 1900)",
-            "Acidification (CO₂ dissout)",
-            "Pollution agricole (pesticides)",
-            "Surpêche (déséquilibre)",
-            "Tourisme excessif",
+          choices: [
+            {
+              id: "a",
+              label: "Récifs coraux 3D (remplacement)",
+              correct: true,
+            },
+            {
+              id: "b",
+              label: "Algae bioreactors (CO2 capture)",
+              correct: true,
+            },
+            { id: "c", label: "Ocean cleanup (pollution)", correct: false },
+            {
+              id: "d",
+              label: "Zones protégées (réglementation)",
+              correct: true,
+            },
+            { id: "e", label: "Repeuplement poissons", correct: true },
+            { id: "f", label: "Refroidissement local (?)", correct: false },
+            { id: "g", label: "Réduction pollution agricole", correct: true },
           ],
-          prognosis: "Projection 2050 : 99% morts = Extinction fonctionnelle",
-          maxT: 5,
-          treats: [
-            {
-              id: "reef3d",
-              name: "Récifs coraux 3D",
-              desc: "Structures de remplacement pour colonisation",
-              icon: "🏗️",
-              ok: true,
-            },
-            {
-              id: "algae",
-              name: "Algae bioréacteurs",
-              desc: "Capture CO₂, réduit acidification",
-              icon: "🧪",
-              ok: true,
-            },
-            {
-              id: "cleanup",
-              name: "Ocean cleanup",
-              desc: "Nettoyage pollution plastique",
-              icon: "🧹",
-              ok: false,
-            },
-            {
-              id: "protected",
-              name: "Zones protégées",
-              desc: "Réglementation tourisme zones fragiles",
-              icon: "🛡️",
-              ok: true,
-            },
-            {
-              id: "fish",
-              name: "Repeuplement poissons",
-              desc: "Restaurer équilibre écosystème",
-              icon: "🐠",
-              ok: true,
-            },
-            {
-              id: "cooling",
-              name: "Refroidissement local",
-              desc: "Technologie expérimentale risquée",
-              icon: "❄️",
-              ok: false,
-            },
-            {
-              id: "pollution",
-              name: "Réduction pollution agricole",
-              desc: "Moins de pesticides en amont",
-              icon: "🚫",
-              ok: true,
-            },
-          ],
-          correct: ["reef3d", "protected", "fish", "pollution", "algae"],
-          timeline: [
-            { y: "An 1–2", d: "Récifs 3D posés (2 000 unités)", i: "🏗️" },
-            { y: "An 2–4", d: "Coraux colonisent récifs artificiels", i: "🪸" },
-            { y: "An 4–6", d: "Poissons reviennent (×3 population)", i: "🐠" },
-            {
-              y: "An 6–8",
-              d: "Algues capturent CO₂ (−40% acidification)",
-              i: "🧪",
-            },
-            {
-              y: "An 8–10",
-              d: "Blanchissement s'arrête, coraux repoussent",
-              i: "✅",
-            },
+          correctIds: ["a", "b", "d", "e", "g"],
+          simSteps: [
+            "An 1-2 : Récifs 3D posés (2,000 unités)",
+            "An 2-4 : Coraux colonisent récifs artificiels",
+            "An 4-6 : Poissons reviennent (×3 population)",
+            "An 6-8 : Algues capturent CO2 (acidification -40%)",
+            "An 8-10 : Blanchissement stoppé, coraux repoussent",
           ],
           result: {
-            status: "success",
-            title: "TRAITEMENT RÉUSSI !",
+            type: "excellent",
+            title: "✅ TRAITEMENT RÉUSSI !",
             stats: [
-              { l: "Coraux vivants", b: "50%", a: "80%", c: "+30%" },
-              { l: "Biodiversité", b: "Base", a: "+150%", c: "🎉" },
-              { l: "Blanchissements", b: "Fréquents", a: "Stoppés", c: "✓" },
-              { l: "Zones protégées", b: "10%", a: "40%", c: "+30%" },
+              { label: "Coraux vivants", val: "50% → 80% 🎉" },
+              { label: "Biodiversité", val: "+150% (vs état 2025)" },
+              { label: "Blanchissements", val: "Stoppés" },
+              { label: "Zones protégées", val: "40% du récif" },
+              { label: "Coût total", val: "2.5 milliards $" },
             ],
-            cost: "2.5 milliards $",
-            funders: "Australie + UNESCO + ONG",
-            realCase:
-              'Projet "Reef Restoration" (2018–2028). Résultats préliminaires : +30% coraux en zones traitées (Moore Reef).',
+            fact: '<strong>📚 CAS RÉEL :</strong> Projet "Reef Restoration" (2018-2028). Résultats préliminaires : +30% coraux en zones traitées (Moore Reef)',
             score: 90,
-            grade: "EXCELLENT",
-            pts: 50,
+            points: 50,
+            gaia: '"Ma Grande Barrière...\n50% morte il y a quelques années.\nMaintenant... 80% VIVANTE.\n\nVous voyez ?\nAvec les bonnes technologies...\nLes bons investissements...\n\nMes écosystèmes PEUVENT guérir.\nCe n\'est pas trop tard. Jamais trop tard.\n\nContinuez."',
           },
-          gaia: `Ma Grande Barrière...<br><span class='hl'>50% morte</span> il y a quelques années.<br>Maintenant... <span class='hl'>80% VIVANTE</span>.<br><br>Avec les bonnes technologies et les bons investissements...<br>Mes écosystèmes <span class='hl'>PEUVENT guérir</span>. Ce n'est pas trop tard. Jamais trop tard.`,
         },
-        aral: {
-          name: "MER D'ARAL",
+        {
+          id: 1,
           icon: "🌊",
+          name: "Mer d'Aral",
           location: "Kazakhstan / Ouzbékistan",
-          size: "Autrefois 68 000 km² — 4e lac mondial",
+          statusLabel: "DÉSERTIFIÉE",
+          statusClass: "badge-critical",
+          statusText: "-90% eau",
+          holoColor: "#ff9f00",
+          facts: {
+            taille: "68,000 km² (1960) → 10% restant",
+            etat: [
+              "-90% volume d'eau (1960→2025)",
+              "Salinité ×10 (poissons morts)",
+              "Climat local perturbé",
+              "Tempêtes toxiques (50M tonnes/an)",
+            ],
+            causes: [
+              "Détournement fleuves Amou-Daria et Syr-Daria (URSS)",
+              "Irrigation massive coton",
+              "Mauvaise gestion eau",
+              "Évaporation extrême (climat sec)",
+            ],
+            si_rien:
+              "Disparition totale → désert toxique + impacts sanitaires graves",
+          },
           stats: [
-            { l: "Volume d'eau", v: "−90%", bad: true },
-            { l: "Salinité", v: "+400%", bad: true },
-            { l: "Faune endémique", v: "95% éteinte", bad: true },
-            { l: "Depuis", v: "1960", bad: true },
+            { label: "Volume eau restant", val: 10, fill: "fill-red" },
+            { label: "Biodiversité aquatique", val: 5, fill: "fill-red" },
+            { label: "Qualité air", val: 30, fill: "fill-red" },
           ],
-          causes: [
-            "Détournement massif des fleuves Amou-Daria et Syr-Daria",
-            "Irrigation intensive (coton soviétique)",
-            "Évaporation extrême (climat aride)",
+          choices: [
+            { id: "a", label: "Barrage Kokaral (retenir eau)", correct: true },
+            { id: "b", label: "Réduction irrigation coton", correct: true },
+            {
+              id: "c",
+              label: "Reforestation Aralkum (fixer sable)",
+              correct: true,
+            },
+            { id: "d", label: "Gestion eau intelligente", correct: true },
+            {
+              id: "e",
+              label: "Aide internationale (financement)",
+              correct: true,
+            },
+            { id: "f", label: "Dessalement massif ❌", correct: false },
           ],
-          prognosis:
-            "Disparition totale. Désertification et maladies respiratoires pour des millions de personnes.",
-          maxT: 4,
-          treats: [
-            {
-              id: "pump",
-              name: "Pompage eau de mer",
-              desc: "Depuis l'océan (très coûteux, irréaliste)",
-              icon: "💧",
-              ok: false,
-            },
-            {
-              id: "dam",
-              name: "Barrage de Kokaral",
-              desc: "Séparer Nord et Sud pour sauver le Nord",
-              icon: "🏗️",
-              ok: true,
-            },
-            {
-              id: "saxaoul",
-              name: "Plantation de saxaouls",
-              desc: "Fixer le sol, empêcher tempêtes toxiques",
-              icon: "🌱",
-              ok: true,
-            },
-            {
-              id: "drip",
-              name: "Irrigation goutte-à-goutte",
-              desc: "Économiser l'eau en amont",
-              icon: "💦",
-              ok: true,
-            },
-            {
-              id: "sharks",
-              name: "Introduction de requins",
-              desc: "Inadapté à l'eau douce/saumâtre",
-              icon: "🦈",
-              ok: false,
-            },
-            {
-              id: "cotton",
-              name: "Réduction cultures coton",
-              desc: "Limiter le pompage des fleuves",
-              icon: "🚫",
-              ok: true,
-            },
-          ],
-          correct: ["dam", "saxaoul", "drip", "cotton"],
-          timeline: [
-            { y: "An 1–2", d: "Construction du barrage de Kokaral", i: "🏗️" },
-            { y: "An 2–5", d: 'Niveau "Petite Mer" remonte (+3m)', i: "📈" },
-            { y: "An 5–8", d: "Millions de saxaouls sur fond sec", i: "🌱" },
-            {
-              y: "An 8–10",
-              d: "Salinité baisse, poissons reviennent",
-              i: "🐟",
-            },
+          correctIds: ["a", "b", "c", "d", "e"],
+          simSteps: [
+            "An 1-2 : Construction barrage Kokaral",
+            "An 2-4 : Niveau eau remonte (+4m)",
+            "An 4-6 : Retour poissons (24 espèces) 🎣",
+            "An 6-8 : Tempêtes toxiques diminuent",
+            "An 8-10 : Microclimat local amélioré",
           ],
           result: {
-            status: "partial",
-            title: "TRAITEMENT PARTIEL",
+            type: "partial",
+            title: "⚠️ TRAITEMENT PARTIEL",
             stats: [
-              { l: "Petite Mer (Nord)", b: "−90%", a: "+40%", c: "🎉" },
-              { l: "Grande Mer (Sud)", b: "Critique", a: "Perdue", c: "🏜️" },
-              { l: "Salinité Nord", b: "+400%", a: "Normale", c: "✓" },
-              { l: "Économie pêche", b: "Morte", a: "Ressuscitée", c: "🐟" },
+              { label: "Petite mer restaurée", val: "+40% eau" },
+              { label: "Poissons revenus", val: "24 espèces" },
+              { label: "Température locale", val: "↓ améliorée" },
+              { label: "Grande mer", val: "irrécupérable ❌" },
+              { label: "Coût", val: "1 milliard $ (Banque Mondiale)" },
             ],
-            cost: "85 millions $",
-            funders: "Banque Mondiale + Kazakhstan",
-            realCase:
-              "Barrage de Kokaral achevé en 2005. Succès majeur au Nord — le Sud reste un désert toxique.",
+            fact: "<strong>📚 CAS RÉEL :</strong> Barrage Kokaral (2005). Niveau monté de 3 → 8 m. Petite mer partiellement restaurée. Grande mer reste un désert.",
             score: 40,
-            grade: "URGENCE STABILISÉE",
-            pts: 40,
+            points: 40,
+            gaia: '"Certaines blessures… ne guérissent qu\'en partie.\nMais même une moitié sauvée… vaut tout."',
           },
-          gaia: `Nous n'avons pas pu tout sauver...<br>L'<span class='hl'>amputation de la partie Sud</span> était inévitable.<br><br>Mais regardez le Nord ! L'eau est revenue. Les pêcheurs sourient à nouveau.<br>Parfois, la médecine écologique consiste à <span class='hl'>accepter une perte</span> pour sauver ce qui peut l'être.`,
         },
-        forest: {
-          name: "FORÊT ATLANTIQUE",
+        {
+          id: 2,
           icon: "🌳",
-          location: "Côte Est du Brésil",
-          size: "1,3 million km² (origine)",
+          name: "Forêt Atlantique (Brésil)",
+          location: "Brésil (côte est)",
+          statusLabel: "FRAGMENTÉE",
+          statusClass: "badge-partial",
+          statusText: "93% détruite",
+          holoColor: "#00ff6a",
+          facts: {
+            taille: "1.3M km² originale → 7% restant",
+            etat: [
+              "93% détruite (déforestation)",
+              "Fragmentation extrême",
+              "70% population humaine dépendante",
+              "Biodiversité unique très menacée",
+            ],
+            causes: [
+              "Agriculture (café, canne à sucre)",
+              "Urbanisation massive",
+              "Déforestation historique",
+              "Exploitation bois",
+            ],
+            si_rien:
+              "Extinction espèces endémiques, perte services écosystémiques majeurs",
+          },
           stats: [
-            { l: "Détruite", v: "93%", bad: true },
-            { l: "Reste", v: "7–12%", bad: true },
-            { l: "Espèces menacées", v: "> 2 000", bad: true },
-            { l: "Fragmentation", v: "Extrême", bad: true },
+            { label: "Couverture forestière", val: 7, fill: "fill-red" },
+            { label: "Connectivité fragments", val: 15, fill: "fill-red" },
+            { label: "Biodiversité endémique", val: 40, fill: "fill-yellow" },
           ],
-          causes: [
-            "Monocultures (canne à sucre, café)",
-            "Expansion urbaine (São Paulo, Rio)",
-            "Exploitation forestière illégale",
+          choices: [
+            { id: "a", label: "Reboisement massif 🌱", correct: true },
+            { id: "b", label: "Corridors écologiques 🐆", correct: true },
+            { id: "c", label: "Lois protection strictes ⚖️", correct: true },
+            { id: "d", label: "Agriculture durable 🚜", correct: true },
+            { id: "e", label: "Réintroduction espèces 🦜", correct: true },
+            { id: "f", label: "Industrie bois ❌", correct: false },
           ],
-          prognosis:
-            "Effondrement génétique (consanguinité). Perte d'eau pour 145 millions de Brésiliens.",
-          maxT: 4,
-          treats: [
-            {
-              id: "fences",
-              name: "Clôtures électriques géantes",
-              desc: "Protection mais isolation accrue des espèces",
-              icon: "⚡",
-              ok: false,
-            },
-            {
-              id: "corridors",
-              name: "Corridors écologiques",
-              desc: "Relier les fragments de forêt",
-              icon: "🌿",
-              ok: true,
-            },
-            {
-              id: "agrofor",
-              name: "Agroforesterie",
-              desc: "Cultiver café sous ombre des arbres",
-              icon: "☕",
-              ok: true,
-            },
-            {
-              id: "drones",
-              name: "Drones lanceurs de graines",
-              desc: "Reboisement massif et rapide",
-              icon: "🚁",
-              ok: true,
-            },
-            {
-              id: "reloc",
-              name: "Relocalisation des villes",
-              desc: "Irréaliste économiquement",
-              icon: "🏙️",
-              ok: false,
-            },
-            {
-              id: "pse",
-              name: "Paiements Services Environ.",
-              desc: "Payer les agriculteurs pour planter",
-              icon: "💰",
-              ok: true,
-            },
-          ],
-          correct: ["corridors", "agrofor", "drones", "pse"],
-          timeline: [
-            {
-              y: "An 1–3",
-              d: "Drones dispersent millions de graines",
-              i: "🚁",
-            },
-            {
-              y: "An 3–6",
-              d: "Ponts de végétation relient les îlots",
-              i: "🌿",
-            },
-            {
-              y: "An 6–10",
-              d: "Jaguars et tamarins traversent corridors",
-              i: "🐆",
-            },
-            {
-              y: "An 10–20",
-              d: "Agriculteurs intègrent arbres aux cultures",
-              i: "🌳",
-            },
+          correctIds: ["a", "b", "c", "d", "e"],
+          simSteps: [
+            "An 1-5 : Plantation de millions d'arbres",
+            "An 5-10 : Connexion des fragments forestiers",
+            "An 10-15 : Retour des espèces endémiques",
+            "An 15-20 : Écosystème progressivement stabilisé",
+            "An 20+ : Objectif 30% de couverture (2045)",
           ],
           result: {
-            status: "progress",
-            title: "TRAITEMENT EN COURS",
+            type: "partial",
+            title: "🟡 PROGRÈS LENT MAIS RÉEL",
             stats: [
-              { l: "Couverture", b: "7%", a: "15%", c: "Cible: 30%" },
-              { l: "Connectivité", b: "Faible", a: "+400%", c: "🌿" },
-              { l: "Source d'eau", b: "Menacée", a: "Sécurisée", c: "💧" },
-              { l: "Jaguars", b: "Isolés", a: "Mobiles", c: "🐆" },
+              { label: "Couverture forestière", val: "7% → 20%" },
+              { label: "Biodiversité", val: "↑ en progression" },
+              { label: "Corridors écologiques", val: "Fonctionnels" },
+              { label: "Espèces réintroduites", val: "+120 espèces" },
+              { label: "Objectif", val: "30% d'ici 2045" },
             ],
-            cost: "~1,5 milliard $",
-            funders: "Gouvernement + ONG + Entreprises",
-            realCase:
-              "\"Pacte pour la Restauration de la Mata Atlântica\" (reconnu ONU). Objectif : restaurer 15 millions d'hectares d'ici 2050.",
+            fact: "<strong>📚 CAS RÉEL :</strong> Pacte pour la Restauration de la Forêt Atlantique. Objectif : planter 1 milliard d'arbres. Programme SOS Mata Atlântica actif depuis 1986.",
             score: 50,
-            grade: "CHRONIQUE STABLE",
-            pts: 50,
+            points: 50,
+            gaia: '"La nature prend du temps…\nmais elle n\'abandonne jamais."',
           },
-          gaia: `La guérison d'une forêt prend des <span class='hl'>décennies</span>.<br>Nous recousons les morceaux, fragment par fragment.<br>La nature est patiente, nous devons l'être aussi.<br><br>Le <span class='hl'>sang vert</span> circule à nouveau dans ces corridors.`,
         },
-        chernobyl: {
-          name: "ZONE DE TCHERNOBYL",
+        {
+          id: 3,
           icon: "☢️",
-          location: "Ukraine",
-          size: "2 600 km² (Zone d'exclusion)",
+          name: "Zone Tchernobyl",
+          location: "Ukraine (Pripyat)",
+          statusLabel: "CONTAMINÉE",
+          statusClass: "badge-critical",
+          statusText: "Zone radioactive",
+          holoColor: "#aaff00",
+          facts: {
+            taille: "2,600 km² contaminés (Zone d'exclusion)",
+            etat: [
+              "Radioactivité persistante (milliers d'ans)",
+              "Zone inhabitable pour humains",
+              "Contamination sol, eau, air",
+              "Animaux mutants observés (anecdotique)",
+            ],
+            causes: [
+              "Explosion réacteur nucléaire n°4 (1986)",
+              "Erreurs humaines + défaut design RBMK",
+              "Sécurité insuffisante (époque soviétique)",
+            ],
+            si_rien:
+              "Contamination étendue, irradiation persistante, impossible à guérir totalement",
+          },
           stats: [
-            { l: "Sols", v: "Hautement radioactifs", bad: true },
-            { l: "Présence humaine", v: "Interdite", bad: true },
-            { l: "Faune sauvage", v: "Prospère !", bad: false },
-            { l: "Contamination", v: ">20 000 ans", bad: true },
+            { label: "Niveau radioactivité", val: 75, fill: "fill-red" },
+            { label: "Zone habitable", val: 5, fill: "fill-red" },
+            { label: "Faune sauvage", val: 55, fill: "fill-yellow" },
           ],
-          causes: [
-            "Explosion nucléaire (1986)",
-            "Retombées radioactives (Césium, Strontium, Plutonium)",
+          choices: [
+            { id: "a", label: "Nouveau sarcophage (2016)", correct: true },
+            { id: "b", label: "Monitoring radiation constant", correct: true },
+            { id: "c", label: "Zone d'exclusion humaine", correct: true },
+            { id: "d", label: "Protection biodiversité", correct: true },
+            { id: "e", label: "Décontamination totale ❌", correct: false },
+            { id: "f", label: "Réhabilitation immédiate ❌", correct: false },
           ],
-          prognosis:
-            "Fuite continue du vieux sarcophage. Contamination nappes phréatiques européennes.",
-          maxT: 3,
-          treats: [
-            {
-              id: "chem",
-              name: "Nettoyage chimique sols",
-              desc: "Impossible à cette échelle",
-              icon: "🧪",
-              ok: false,
-            },
-            {
-              id: "nsc",
-              name: "Nouveau Sarcophage (NSC)",
-              desc: "Bloquer les fuites radioactives à la source",
-              icon: "🏗️",
-              ok: true,
-            },
-            {
-              id: "dome",
-              name: "Dôme en verre géant",
-              desc: "Technologie insuffisante",
-              icon: "🔮",
-              ok: false,
-            },
-            {
-              id: "fire",
-              name: "Gestion feux forêt (drones)",
-              desc: "Empêcher fumée radioactive",
-              icon: "🔥",
-              ok: true,
-            },
-            {
-              id: "sanct",
-              name: "Sanctuaire naturel strict",
-              desc: "Rewilding sans présence humaine",
-              icon: "🦌",
-              ok: true,
-            },
-          ],
-          correct: ["nsc", "fire", "sanct"],
-          timeline: [
-            {
-              y: "An 1–3",
-              d: "Arche métallique géante glisse sur rails",
-              i: "🏗️",
-            },
-            {
-              y: "An 3–6",
-              d: "Capteurs thermiques préviennent incendies",
-              i: "📡",
-            },
-            {
-              y: "An 6–10",
-              d: "Loups, ours, lynx prolifèrent sans humains",
-              i: "🐺",
-            },
+          correctIds: ["a", "b", "c", "d"],
+          simSteps: [
+            "An 1-3 : Construction New Safe Confinement",
+            "An 3-5 : Radiation externe contenue",
+            "An 5-8 : Surveillance long terme établie",
+            "An 8-15 : Animaux réapparaissent (loups, chevaux)",
+            "An 15+ : Zone naturelle protégée paradoxale",
           ],
           result: {
-            status: "palliative",
-            title: "CONFINEMENT (Soins palliatifs)",
+            type: "stabilized",
+            title: "⚠️ STABILISATION, PAS GUÉRISON",
             stats: [
-              { l: "Radiations air", b: "Fuites", a: "100% contenues", c: "✓" },
+              { label: "Radiation externe", val: "Contenue" },
+              { label: "Zone", val: "Toujours dangereuse" },
+              { label: "Faune", val: "↑ (loups, chevaux, oiseaux)" },
               {
-                l: "Sols",
-                b: "Toxiques",
-                a: "Toujours toxiques",
-                c: ">20 000 ans",
-              },
-              { l: "Biodiversité", b: "Menacée", a: "Prospère", c: "🦌" },
-              {
-                l: "Statut",
-                b: "Zone de danger",
-                a: "Réserve naturelle",
-                c: "🌿",
+                label: "Guérison complète",
+                val: "Impossible (milliers d'ans)",
               },
             ],
-            cost: "2,1 milliards €",
-            funders: "Financement international / BERD",
-            realCase:
-              'Le "New Safe Confinement" achevé en 2016. La zone est devenue la plus grande réserve naturelle d\'Europe.',
+            fact: "<strong>📚 PARADOXE TCHERNOBYL :</strong> Moins d'humains = plus de biodiversité. La zone d'exclusion est devenue l'une des plus grandes réserves naturelles d'Europe de l'Est.",
             score: 30,
-            grade: "SOINS PALLIATIFS",
-            pts: 30,
+            points: 30,
+            gaia: '"Parfois… je guéris mieux sans vous."',
           },
-          gaia: `C'est mon patient le plus <span class='hl'>étrange</span>...<br><br>Le poison humain est toujours là.<br>Mais paradoxalement, l'<span class='hl'>absence de l'Homme</span> a été le meilleur remède pour la vie sauvage.<br><br>Je ne peux pas guérir cette blessure, je ne peux que la <span class='hl'>contenir</span>.`,
         },
-        rhine: {
-          name: "FLEUVE RHIN",
+        {
+          id: 4,
           icon: "🐟",
-          location: "Suisse, Allemagne, France, Pays-Bas",
-          size: "1 230 kilomètres de long",
+          name: "Fleuve Rhin",
+          location: "Europe (Suisse → Mer du Nord)",
+          statusLabel: "EN RÉCUPÉRATION",
+          statusClass: "badge-ok",
+          statusText: "Success story !",
+          holoColor: "#00e5ff",
+          facts: {
+            taille: "1,230 km (9 pays traversés)",
+            etat: [
+              '"Mort biologique" (1986 après Sandoz)',
+              "Pollution chimique extrême",
+              "0 espèce de poisson survivante",
+              "Eau non potable sur tout le parcours",
+            ],
+            causes: [
+              "Industrie chimique (rejets non contrôlés)",
+              "Accident Sandoz (1986) : 30 tonnes toxiques",
+              "Agriculture intensive riveraine",
+              "Urbanisation sans traitement eaux usées",
+            ],
+            si_rien:
+              "Mort permanente, contamination Mer du Nord, impact sur millions d'habitants",
+          },
           stats: [
-            { l: "Déclaré", v: "Mort (1986)", bad: true },
-            { l: "Saumons", v: "Disparus 1950", bad: true },
-            { l: "Eau", v: "Toxique", bad: true },
-            { l: "Cause", v: "Incendie Sandoz", bad: true },
+            { label: "Qualité eau (1986)", val: 8, fill: "fill-red" },
+            { label: "Biodiversité poissons (1986)", val: 0, fill: "fill-red" },
+            { label: "Qualité eau (2025)", val: 85, fill: "fill-green" },
           ],
-          causes: [
-            "Incendie usine Sandoz (20t pesticides en une nuit)",
-            "Rejets industriels chroniques",
-            "Bétonisation des berges et barrages",
+          choices: [
+            { id: "a", label: "Traitement eaux usées", correct: true },
+            { id: "b", label: "Lois environnement strictes", correct: true },
+            { id: "c", label: "Surveillance industrielle", correct: true },
+            { id: "d", label: "Restauration habitats", correct: true },
+            { id: "e", label: "Coopération internationale", correct: true },
+            { id: "f", label: "Ignorer le problème ❌", correct: false },
           ],
-          prognosis:
-            "Égout à ciel ouvert traversant l'Europe. Eau inutilisable pour 30 millions de personnes.",
-          maxT: 4,
-          treats: [
-            {
-              id: "divert",
-              name: "Déviation du fleuve",
-              desc: "Impossible géographiquement",
-              icon: "↩️",
-              ok: false,
-            },
-            {
-              id: "filter",
-              name: "Ultra-filtration eau",
-              desc: "Stations d'épuration massives",
-              icon: "🔬",
-              ok: true,
-            },
-            {
-              id: "ladders",
-              name: "Passes à poissons",
-              desc: "Échelles pour franchir les barrages",
-              icon: "🐟",
-              ok: true,
-            },
-            {
-              id: "laws",
-              name: "Accords internationaux (CIPR)",
-              desc: "Réglementation stricte des rejets",
-              icon: "📜",
-              ok: true,
-            },
-            {
-              id: "nature",
-              name: "Renaturation plaines",
-              desc: "Casser le béton, recréer zones humides",
-              icon: "🌿",
-              ok: true,
-            },
-            {
-              id: "chlorine",
-              name: "Ajout chlore massif",
-              desc: "Tuerait toute vie restante",
-              icon: "☠️",
-              ok: false,
-            },
-          ],
-          correct: ["laws", "filter", "ladders", "nature"],
-          timeline: [
-            {
-              y: "An 1–10",
-              d: "Lois votées — −90% pollution chimique",
-              i: "📜",
-            },
-            {
-              y: "An 10–20",
-              d: "Béton cassé, berges redeviennent sauvages",
-              i: "🌿",
-            },
-            {
-              y: "An 20–30",
-              d: "Ascenseurs à poissons sur les barrages",
-              i: "🏗️",
-            },
-            {
-              y: "An 30–40",
-              d: "Saumons remontent jusqu'en Suisse !",
-              i: "🐟",
-            },
+          correctIds: ["a", "b", "c", "d", "e"],
+          simSteps: [
+            "An 1-10 : Réglementation stricte appliquée",
+            "An 5-15 : Pollution industrielle -90%",
+            "An 10-20 : Eau redevient claire",
+            "An 15-30 : Retour progressif des poissons",
+            "An 30-40 : 63 espèces de poissons rétablies !",
           ],
           result: {
-            status: "perfect",
-            title: "GUÉRISON COMPLÈTE ✨",
+            type: "excellent",
+            title: "✅ GUÉRISON COMPLÈTE 🏆",
             stats: [
-              { l: "Toxines", b: "Mortelles", a: "−95%", c: "🎉" },
-              { l: "Espèces poissons", b: "Rares", a: "63 espèces", c: "🐟" },
-              { l: "Eau", b: "Toxique", a: "Potable", c: "💧" },
-              { l: "Saumons", b: "Disparus", a: "De retour !", c: "🎊" },
+              { label: "Espèces poissons", val: "0 → 63 espèces" },
+              { label: "Qualité eau", val: "Potable améliorée" },
+              { label: "Écosystème", val: "Entièrement restauré" },
+              { label: "Coopération", val: "9 pays européens" },
+              { label: "Coût total", val: "25 milliards €" },
             ],
-            cost: "~15 milliards €",
-            funders: "Effort conjoint de 5 pays européens",
-            realCase:
-              'Programme "Saumon 2000" et "Rhin 2020" (CIPR). L\'un des plus grands succès mondiaux de restauration écologique.',
+            fact: "<strong>📚 CAS RÉEL :</strong> Programme d'Action Rhin (PAR 1987-2000). Succès mondial : modèle de référence internationale pour la restauration fluviale. 63 espèces de poissons réhabilitées.",
             score: 100,
-            grade: "PARFAIT ✅",
-            pts: 60,
+            points: 60,
+            gaia: '"Vous voyez…\nQuand vous voulez vraiment…\nVous pouvez réparer même l\'impossible."',
           },
-          gaia: `Le <span class='hl'>miracle du Rhin</span>...<br><br>Mort en 1986, et aujourd'hui la vie y <span class='hl'>grouille à nouveau</span>.<br><br>C'est la preuve ultime :<br>Quand l'humanité s'unit et investit massivement, elle peut ramener un écosystème <span class='hl'>d'entre les morts</span>.`,
         },
+      ];
+
+      // ========== GAME STATE ==========
+      let state = {
+        currentPatient: 0,
+        completed: [],
+        scores: {},
+        points: {},
+        totalPoints: 0,
+        phase: "menu", // menu | diag | rx | sim | result
+        selectedChoices: [],
+        phaseDone: false,
       };
 
-      // ═══════════════════════════════════════════════════════════
-      // ÉTAT — réinitialisé à chaque chargement (pas de localStorage)
-      // ═══════════════════════════════════════════════════════════
-      let curPat = null,
-        selT = [],
-        done = [],
-        totScore = 0,
-        soundOn = true;
-      let audioCtx = null;
-
-      // ═══════════════════════════════════════════════════════════
-      // INIT
-      // ═══════════════════════════════════════════════════════════
-      window.addEventListener("DOMContentLoaded", () => {
-        createParticles();
-        openOv("guide-ov");
-      });
-
-      function startGame() {
-        closeOv("guide-ov");
-        setTimeout(() => {
-          showGaia(
-            "Bienvenue dans mon <span class='hl'>Centre de Réparation Écologique</span>.<br><br>5 patients attendent vos soins. Chaque écosystème a besoin de traitements spécifiques.<br><br>Choisissez judicieusement, Docteur...",
-            false
-          );
-        }, 300);
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // PARTICULES
-      // ═══════════════════════════════════════════════════════════
-      function createParticles() {
-        const c = document.getElementById("particles");
-        const colors = ["#00ffa3", "#00e5ff", "#55ff88"];
-        for (let i = 0; i < 50; i++) {
+      // ========== PARTICLES ==========
+      function initParticles() {
+        const container = document.getElementById("particles");
+        for (let i = 0; i < 25; i++) {
           const p = document.createElement("div");
-          p.className = "pt";
-          const col = colors[Math.floor(Math.random() * colors.length)];
-          const sz = 1.5 + Math.random() * 3;
-          Object.assign(p.style, {
-            left: Math.random() * 100 + "%",
-            top: 30 + Math.random() * 70 + "%",
-            width: sz + "px",
-            height: sz + "px",
-            background: col,
-            animationDelay: Math.random() * 12 + "s",
-            animationDuration: 8 + Math.random() * 8 + "s",
-            boxShadow: `0 0 ${sz * 2}px ${col}`,
-            opacity: "0",
-          });
-          c.appendChild(p);
+          p.className = "particle";
+          p.style.left = Math.random() * 100 + "vw";
+          p.style.setProperty("--dur", 6 + Math.random() * 12 + "s");
+          p.style.setProperty("--delay", Math.random() * 10 + "s");
+          p.style.setProperty("--drift", Math.random() * 80 - 40 + "px");
+          p.style.width = p.style.height = 1 + Math.random() * 3 + "px";
+          container.appendChild(p);
         }
       }
 
-      // ═══════════════════════════════════════════════════════════
-      // OVERLAYS
-      // ═══════════════════════════════════════════════════════════
-      function openOv(id) {
-        const el = document.getElementById(id);
-        el.classList.add("open");
-        el.style.opacity = "0";
-        requestAnimationFrame(() => {
-          el.style.transition = "opacity .35s";
-          el.style.opacity = "1";
+      // ========== TOAST ==========
+      function showToast(msg, duration = 2500) {
+        const t = document.getElementById("toast");
+        t.innerHTML = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), duration);
+      }
+
+      // ========== SCREEN NAV ==========
+      function showScreen(id) {
+        document
+          .querySelectorAll(".screen")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+        window.scrollTo(0, 0);
+      }
+
+      // ========== MENU ==========
+      function renderMenu() {
+        const list = document.getElementById("patient-list");
+        list.innerHTML = "";
+        PATIENTS.forEach((p, i) => {
+          const done = state.completed.includes(i);
+          const sc = state.scores[i];
+          const item = document.createElement("div");
+          item.className = "patient-item" + (done ? " done" : "");
+          item.innerHTML = `
+      <div class="patient-icon">${p.icon}</div>
+      <div class="patient-info">
+        <div class="patient-name">${p.name}</div>
+        <div class="patient-status">${p.location}</div>
+      </div>
+      <div class="patient-badge ${done ? "badge-done" : p.statusClass}">${
+            done ? sc + "/100 ✓" : p.statusLabel
+          }</div>
+    `;
+          list.appendChild(item);
         });
-      }
-      function closeOv(id) {
-        document.getElementById(id).classList.remove("open");
+
+        const n = state.completed.length;
+        document.getElementById(
+          "prog-text"
+        ).textContent = `PROGRESSION : ${n}/5 patients traités`;
+        document.getElementById("total-points").textContent = state.totalPoints;
+        document.getElementById("main-progress").style.width =
+          (n / 5) * 100 + "%";
+
+        const btn = document.getElementById("btn-start");
+        if (n >= 5) {
+          btn.textContent = "🏆 VOIR BILAN FINAL";
+          btn.onclick = showFinal;
+        } else {
+          btn.textContent = "▶ ENTRER EN SALLE DE SOINS";
+          btn.onclick = startNextPatient;
+        }
       }
 
-      // ═══════════════════════════════════════════════════════════
-      // GAÏA
-      // ═══════════════════════════════════════════════════════════
-      function showGaia(msg) {
-        document.getElementById("gaia-txt").innerHTML = msg;
-        document.getElementById("gaia-dial").classList.add("open");
-      }
-      function closeGaia() {
-        document.getElementById("gaia-dial").classList.remove("open");
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // DIAGNOSTIC
-      // ═══════════════════════════════════════════════════════════
-      function openDiag(pid) {
-        if (done.includes(pid)) {
-          showGaia("Ce patient a déjà été traité. Passez au suivant !");
+      // ========== START PATIENT ==========
+      function startNextPatient() {
+        const next = PATIENTS.findIndex((p, i) => !state.completed.includes(i));
+        if (next === -1) {
+          showFinal();
           return;
         }
-        curPat = pid;
-        const p = PD[pid];
-        document.getElementById("diag-icon").textContent = p.icon;
-        document.getElementById("diag-pname").textContent = p.name;
-        document.getElementById("diag-ploc").textContent = "📍 " + p.location;
-
-        document.getElementById("diag-info").innerHTML = `
-    <div class="dcard">
-      <div class="dcard-stripe"></div>
-      <div class="dcard-hdr"><span class="dcard-ico">${
-        p.icon
-      }</span><span class="dcard-lbl">DOSSIER PATIENT</span></div>
-      <div class="patient-name">${p.name}</div>
-      <div class="patient-meta">📍 ${p.location}</div>
-      <div class="patient-meta">📐 ${p.size}</div>
-    </div>
-    <div class="dcard crit-c">
-      <div class="dcard-stripe"></div>
-      <div class="dcard-hdr"><span class="dcard-ico">📊</span><span class="dcard-lbl">ÉTAT ACTUEL</span></div>
-      <div class="stat-grid2">
-        ${p.stats
-          .map(
-            (s) =>
-              `<div class="stat-item"><div class="stat-lbl">${
-                s.l
-              }</div><div class="stat-val${s.bad ? "" : " ok"}">${
-                s.v
-              }</div></div>`
-          )
-          .join("")}
-      </div>
-    </div>
-    <div class="dcard warn-c">
-      <div class="dcard-stripe"></div>
-      <div class="dcard-hdr"><span class="dcard-ico">🔍</span><span class="dcard-lbl">CAUSES IDENTIFIÉES</span></div>
-      <ul class="causes-list">${p.causes
-        .map((c) => `<li>${c}</li>`)
-        .join("")}</ul>
-    </div>
-    <div class="prog-box-diag">
-      <h4>💀 PRONOSTIC SANS INTERVENTION</h4>
-      <p>${p.prognosis}</p>
-    </div>
-    <button class="treat-start-btn" onclick="openTreat()">⚕️ COMMENCER LE TRAITEMENT</button>
-  `;
-        openOv("diag-ov");
-        playBeep(440, 0.07, 0.12);
+        state.currentPatient = next;
+        state.selectedChoices = [];
+        state.phase = "diag";
+        openPatient(next);
       }
 
-      // ═══════════════════════════════════════════════════════════
-      // TRAITEMENT
-      // ═══════════════════════════════════════════════════════════
-      function openTreat() {
-        const p = PD[curPat];
-        selT = [];
+      function openPatient(idx) {
+        const p = PATIENTS[idx];
         document.getElementById(
-          "treat-sub"
-        ).innerHTML = `Sélectionnez les technologies adaptées <strong>(max ${p.maxT})</strong>`;
-        document.getElementById("rx-max").textContent = p.maxT;
-        document.getElementById("rx-count").textContent = "0";
-        document.getElementById("rx-count").className = "rx-count-val";
-        document.getElementById("apply-btn").disabled = true;
-        document.getElementById("opt-list").innerHTML = p.treats
-          .map(
-            (t) => `
-    <div class="opt-item" data-id="${t.id}" onclick="togT('${t.id}')">
-      <div class="opt-check"></div>
-      <span class="opt-icon">${t.icon}</span>
-      <div>
-        <div class="opt-name">${t.name}</div>
-        <div class="opt-desc">${t.desc}</div>
-      </div>
-    </div>
-  `
-          )
-          .join("");
-        document.getElementById("rx-list").innerHTML =
-          '<p class="rx-empty">Cliquez sur les technologies pour les ajouter à la prescription</p>';
-        closeOv("diag-ov");
-        openOv("treat-ov");
-        playBeep(520, 0.07, 0.1);
+          "p-header-title"
+        ).textContent = `${p.icon} ${p.name}`;
+        document.getElementById(
+          "p-header-sub"
+        ).textContent = `${p.location} // ${p.statusLabel}`;
+        document.getElementById("holo-emoji").textContent = p.icon;
+        document.getElementById(
+          "holo-label"
+        ).textContent = `HOLOGRAMME 3D // ${p.name.toUpperCase()}`;
+        document.getElementById("p-points").textContent = state.totalPoints;
+        document.getElementById("p-progress").style.width =
+          (state.completed.length / 5) * 100 + "%";
+        startHoloCanvas(p.holoColor);
+        showScreen("screen-patient");
+        renderDiagnosis(p);
       }
 
-      function togT(tid) {
-        const p = PD[curPat];
-        const el = document.querySelector(`.opt-item[data-id="${tid}"]`);
-        if (selT.includes(tid)) {
-          selT = selT.filter((x) => x !== tid);
-          el.classList.remove("sel");
+      // ========== HOLO CANVAS ==========
+      function startHoloCanvas(color) {
+        const canvas = document.getElementById("holo-canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = canvas.offsetWidth || 800;
+        canvas.height = canvas.offsetHeight || 260;
+        let t = 0;
+        let anim;
+        if (window._holoAnim) cancelAnimationFrame(window._holoAnim);
+
+        function draw() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const cx = canvas.width / 2,
+            cy = canvas.height / 2;
+          // Rings
+          for (let i = 0; i < 5; i++) {
+            const r = 40 + i * 22 + Math.sin(t * 0.03 + i) * 8;
+            const alpha = 0.08 - i * 0.012;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.strokeStyle = color;
+            ctx.globalAlpha = alpha;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+          // Orbiting dots
+          for (let i = 0; i < 8; i++) {
+            const angle = t * 0.02 + i * ((Math.PI * 2) / 8);
+            const r = 60 + Math.sin(t * 0.05 + i) * 15;
+            const x = cx + Math.cos(angle) * r;
+            const y = cy + Math.sin(angle) * r * 0.4;
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.5;
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+          t++;
+          window._holoAnim = requestAnimationFrame(draw);
+        }
+        draw();
+      }
+
+      // ========== DIAGNOSIS ==========
+      function renderDiagnosis(p) {
+        const c = document.getElementById("patient-content");
+        c.innerHTML = `
+    <div class="diag-card fade-in">
+      <div class="diag-header">
+        <span style="font-size:1.5rem">${p.icon}</span>
+        <h2>DIAGNOSTIC — ${p.name.toUpperCase()}</h2>
+        <span class="patient-badge ${p.statusClass}" style="margin-left:auto">${
+          p.statusLabel
+        }</span>
+      </div>
+      <div class="diag-body">
+        <div style="margin-bottom:12px;font-family:'Share Tech Mono';font-size:.75rem;color:var(--muted)">📍 ${
+          p.location
+        } &nbsp;|&nbsp; 📐 ${p.facts.taille}</div>
+        <div class="stat-row"><span class="stat-label">Indice de santé</span>
+          <div class="stat-bar"><div class="stat-fill ${
+            p.stats[0].fill
+          }" style="width:${p.stats[0].val}%"></div></div>
+          <span class="stat-val">${p.stats[0].val}%</span></div>
+        <div class="stat-row"><span class="stat-label">Biodiversité</span>
+          <div class="stat-bar"><div class="stat-fill ${
+            p.stats[1].fill
+          }" style="width:${p.stats[1].val}%"></div></div>
+          <span class="stat-val">${p.stats[1].val}%</span></div>
+        <div class="stat-row"><span class="stat-label">${
+          p.stats[2].label
+        }</span>
+          <div class="stat-bar"><div class="stat-fill ${
+            p.stats[2].fill
+          }" style="width:${p.stats[2].val}%"></div></div>
+          <span class="stat-val">${p.stats[2].val}%</span></div>
+        <div class="diag-grid" style="margin-top:16px">
+          <div class="diag-section">
+            <h3>📊 État actuel</h3>
+            <ul>${p.facts.etat.map((e) => `<li>${e}</li>`).join("")}</ul>
+          </div>
+          <div class="diag-section">
+            <h3>🔍 Causes identifiées</h3>
+            <ul>${p.facts.causes.map((c) => `<li>${c}</li>`).join("")}</ul>
+          </div>
+        </div>
+        <div class="doom-box"><strong>💀 SI RIEN N'EST FAIT :</strong><br>${
+          p.facts.si_rien
+        }</div>
+      </div>
+    </div>
+    <div class="btn-center" style="margin-top:4px">
+      <button class="btn btn-primary" onclick="renderPrescription()">⚕️ PASSER À LA PRESCRIPTION →</button>
+    </div>
+  `;
+      }
+
+      // ========== PRESCRIPTION ==========
+      function renderPrescription() {
+        const p = PATIENTS[state.currentPatient];
+        state.selectedChoices = [];
+        const c = document.getElementById("patient-content");
+        c.innerHTML = `
+    <div class="fade-in">
+      <div class="rx-mission">
+        🎯 Sélectionnez les technologies pour guérir cet écosystème (max 5)
+      </div>
+      <div class="max-info">Sélectionnés : <span class="selected-count" id="sel-count">0</span> / 5</div>
+      <div class="choices-grid" id="choices-grid"></div>
+      <div class="btn-center">
+        <button class="btn btn-primary" id="btn-prescribe" onclick="validate()" disabled>
+          💊 PRESCRIRE TRAITEMENT
+        </button>
+      </div>
+    </div>
+  `;
+
+        const grid = document.getElementById("choices-grid");
+        p.choices.forEach((ch) => {
+          const el = document.createElement("div");
+          el.className = "choice-item";
+          el.id = "choice-" + ch.id;
+          el.innerHTML = `<div class="choice-check" id="check-${ch.id}"></div><span class="choice-label">${ch.label}</span>`;
+          el.onclick = () => toggleChoice(ch.id);
+          grid.appendChild(el);
+        });
+      }
+
+      function toggleChoice(id) {
+        startBackground();
+        const p = PATIENTS[state.currentPatient];
+        const idx = state.selectedChoices.indexOf(id);
+        if (idx !== -1) {
+          state.selectedChoices.splice(idx, 1);
+          document.getElementById("choice-" + id).classList.remove("selected");
+          document.getElementById("check-" + id).textContent = "";
+          playUISound("step");
         } else {
-          if (selT.length >= p.maxT) {
-            playBeep(220, 0.08, 0.15);
+          if (state.selectedChoices.length >= 5) {
+            playUISound("error");
+            showToast("⚠️ Maximum 5 technologies !");
             return;
           }
-          selT.push(tid);
-          el.classList.add("sel");
+          state.selectedChoices.push(id);
+          document.getElementById("choice-" + id).classList.add("selected");
+          document.getElementById("check-" + id).textContent = "✓";
+          playUISound("select");
         }
-        updateRx();
-        playBeep(660, 0.04, 0.07);
+        document.getElementById("sel-count").textContent =
+          state.selectedChoices.length;
+        document.getElementById("btn-prescribe").disabled =
+          state.selectedChoices.length === 0;
       }
 
-      function updateRx() {
-        const p = PD[curPat];
-        const cnt = document.getElementById("rx-count");
-        cnt.textContent = selT.length;
-        cnt.className =
-          "rx-count-val" + (selT.length >= p.maxT ? " maxed" : "");
-        const rxList = document.getElementById("rx-list");
-        if (selT.length === 0) {
-          rxList.innerHTML =
-            '<p class="rx-empty">Cliquez sur les technologies pour les ajouter à la prescription</p>';
-        } else {
-          rxList.innerHTML = selT
-            .map((tid) => {
-              const t = p.treats.find((x) => x.id === tid);
-              return `<div class="rx-item"><span>${t.icon}</span><span>${t.name}</span></div>`;
-            })
-            .join("");
-        }
-        document.getElementById("apply-btn").disabled = selT.length === 0;
-      }
+      // ========== AUDIO SYSTEM ==========
+      let audioCtx = null;
+      let bgGain = null;
+      let bgPlaying = false;
 
-      // ═══════════════════════════════════════════════════════════
-      // APPLICATION
-      // ═══════════════════════════════════════════════════════════
-      function applyTreatment() {
-        const p = PD[curPat];
-        closeOv("treat-ov");
-        openOv("anim-ov");
-        document.getElementById("anim-eco").textContent = p.icon;
-        document.getElementById("tl-steps").innerHTML = p.timeline
-          .map(
-            (s, i) => `
-    <div class="tl-step" id="ts-${i}">
-      <div class="tl-marker">${s.i}</div>
-      <div class="tl-info">
-        <div class="tl-year">${s.y}</div>
-        <div class="tl-desc">${s.d}</div>
-      </div>
-    </div>
-  `
-          )
-          .join("");
-        document.getElementById("tl-prog").style.width = "0%";
-        document.getElementById("anim-stats").innerHTML = p.result.stats
-          .slice(0, 3)
-          .map(
-            (s) => `
-    <div class="as-item">
-      <div class="as-val">${s.a}</div>
-      <div class="as-lbl">${s.l}</div>
-    </div>
-  `
-          )
-          .join("");
-        playBeep(220, 0.04, 2);
-        runTimeline(p.timeline.length);
-      }
-
-      function runTimeline(total) {
-        let cur = 0;
-        const prog = document.getElementById("tl-prog");
-        const id = setInterval(() => {
-          if (cur < total) {
-            document.getElementById(`ts-${cur}`).classList.add("act");
-            prog.style.width = ((cur + 1) / total) * 100 + "%";
-            playBeep(400 + cur * 55, 0.05, 0.12);
-            setTimeout(() => {
-              document
-                .getElementById(`ts-${cur}`)
-                ?.classList.replace("act", "done");
-            }, 1500);
-            cur++;
-          } else {
-            clearInterval(id);
-            setTimeout(showResult, 900);
-          }
-        }, 2000);
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // RÉSULTAT
-      // ═══════════════════════════════════════════════════════════
-      function showResult() {
-        const p = PD[curPat];
-        const r = p.result;
-        closeOv("anim-ov");
-        const icoMap = {
-          perfect: "🌟",
-          success: "✅",
-          partial: "⚠️",
-          progress: "⏳",
-          palliative: "🩹",
-        };
-        document.getElementById("res-ico").textContent =
-          icoMap[r.status] || "✅";
-        const title = document.getElementById("res-title");
-        title.textContent = r.title;
-        title.className =
-          "res-title" +
-          (r.status === "partial" || r.status === "progress"
-            ? " partial"
-            : r.status === "palliative"
-            ? " palliative"
-            : "");
-        document.getElementById("res-stats").innerHTML = r.stats
-          .map(
-            (s) => `
-    <div class="rs-item">
-      <div class="rs-lbl">${s.l}</div>
-      <div class="rs-val">${s.a}</div>
-      <div class="rs-change">${s.b} → ${s.c}</div>
-    </div>
-  `
-          )
-          .join("");
-        document.getElementById("res-cost-val").textContent = r.cost;
-        document.getElementById("res-funders").textContent = r.funders;
-        document.getElementById("res-case-desc").textContent = r.realCase;
-        document.getElementById("sw-score").textContent = r.score + "/100";
-        document.getElementById("sw-grade").textContent = r.grade;
-        document.getElementById("sw-pts").textContent = "+" + r.pts + " POINTS";
-        totScore += r.pts;
-        document.getElementById("tot-score").textContent = totScore;
-        openOv("result-ov");
-        playBeep(523, 0.12, 0.4);
-        setTimeout(() => playBeep(659, 0.12, 0.3), 150);
-        setTimeout(() => playBeep(784, 0.12, 0.35), 300);
-      }
-
-      function closeResult() {
-        closeOv("result-ov");
-        finishPatient();
-      }
-      function continueNext() {
-        closeOv("result-ov");
-        finishPatient();
-      }
-
-      function finishPatient() {
-        if (!done.includes(curPat)) {
-          done.push(curPat);
-          updateProgress();
-          const pod = document.querySelector(`.pod[data-pid="${curPat}"]`);
-          if (pod) {
-            pod.classList.remove("crit-pod", "warn-pod", "recov-pod");
-            pod.classList.add("done-pod");
-            const sd = pod.querySelector(".sdot");
-            if (sd) sd.style.animation = "none";
-            const ps = pod.querySelector(".pod-status");
-            if (ps) {
-              ps.className = "pod-status st-healed";
-              ps.innerHTML = '<span class="sdot"></span>TRAITÉ ✓';
-            }
-            // badge check
-            if (!pod.querySelector(".pod-done-badge")) {
-              const b = document.createElement("div");
-              b.className = "pod-done-badge";
-              b.textContent = "✓";
-              pod.appendChild(b);
-            }
-            // vitals line to green
-            const vl = pod.querySelector(".pod-vitals polyline");
-            if (vl) vl.setAttribute("stroke", "#00ffa3");
-          }
-        }
-        const pat = PD[curPat];
-        showGaia(pat.gaia);
-        curPat = null;
-        if (done.length === 5) setTimeout(showComplete, 3500);
-      }
-
-      function updateProgress() {
-        const pct = (done.length / 5) * 100;
-        document.getElementById("prog-fill").style.width = pct + "%";
-        document.getElementById("prog-num").textContent = done.length + " / 5";
-      }
-
-      function showComplete() {
-        closeGaia();
-        document.getElementById("toast-score").textContent = totScore;
-        const t = document.getElementById("toast-final");
-        t.classList.add("open");
-        playBeep(523, 0.2, 0.4);
-        setTimeout(() => playBeep(659, 0.2, 0.4), 200);
-        setTimeout(() => playBeep(784, 0.2, 0.4), 400);
-        setTimeout(() => playBeep(1047, 0.25, 0.6), 600);
-      }
-
-      function goNext() {
-        window.location.href = "scene21.html";
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // AUDIO
-      // ═══════════════════════════════════════════════════════════
-      function getCtx() {
+      function getAudioCtx() {
         if (!audioCtx)
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         return audioCtx;
       }
-      function playBeep(freq, vol, dur) {
-        if (!soundOn) return;
-        try {
-          const ctx = getCtx();
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.connect(g);
-          g.connect(ctx.destination);
-          o.frequency.value = freq;
-          o.type = "sine";
-          g.gain.setValueAtTime(vol, ctx.currentTime);
-          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-          o.start();
-          o.stop(ctx.currentTime + dur);
-        } catch (e) {}
-      }
-      function toggleSound() {
-        soundOn = !soundOn;
-        document.getElementById("snd-btn").classList.toggle("muted", !soundOn);
+
+      function startBackground() {
+        if (bgPlaying) return;
+        bgPlaying = true;
+        const ctx = getAudioCtx();
+        bgGain = ctx.createGain();
+        bgGain.gain.setValueAtTime(0, ctx.currentTime);
+        bgGain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 3);
+        bgGain.connect(ctx.destination);
+
+        // Drone layer — low pulsing pad
+        function makeDrone(freq, vol, lfoRate) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const lfo = ctx.createOscillator();
+          const lfoGain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          lfo.type = "sine";
+          lfo.frequency.value = lfoRate;
+          lfoGain.gain.value = freq * 0.015;
+          lfo.connect(lfoGain);
+          lfoGain.connect(osc.frequency);
+          gain.gain.value = vol;
+          osc.connect(gain);
+          gain.connect(bgGain);
+          lfo.start();
+          osc.start();
+          return { osc, lfo };
+        }
+
+        // Shimmer layer — high ping
+        function makeShimmer() {
+          const interval = setInterval(() => {
+            if (!bgPlaying) {
+              clearInterval(interval);
+              return;
+            }
+            const ctx2 = getAudioCtx();
+            const osc = ctx2.createOscillator();
+            const g = ctx2.createGain();
+            const freqs = [880, 1100, 1320, 1760, 2200];
+            osc.frequency.value =
+              freqs[Math.floor(Math.random() * freqs.length)];
+            osc.type = "sine";
+            g.gain.setValueAtTime(0, ctx2.currentTime);
+            g.gain.linearRampToValueAtTime(0.04, ctx2.currentTime + 0.05);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime + 1.8);
+            osc.connect(g);
+            g.connect(bgGain);
+            osc.start(ctx2.currentTime);
+            osc.stop(ctx2.currentTime + 1.8);
+          }, 2400 + Math.random() * 1600);
+        }
+
+        // Heartbeat pulse
+        function makeHeartbeat() {
+          const interval = setInterval(() => {
+            if (!bgPlaying) {
+              clearInterval(interval);
+              return;
+            }
+            const ctx2 = getAudioCtx();
+            [0, 0.15].forEach((delay) => {
+              const osc = ctx2.createOscillator();
+              const g = ctx2.createGain();
+              osc.type = "sine";
+              osc.frequency.value = 60;
+              g.gain.setValueAtTime(0, ctx2.currentTime + delay);
+              g.gain.linearRampToValueAtTime(
+                0.12,
+                ctx2.currentTime + delay + 0.02
+              );
+              g.gain.exponentialRampToValueAtTime(
+                0.001,
+                ctx2.currentTime + delay + 0.25
+              );
+              osc.connect(g);
+              g.connect(bgGain);
+              osc.start(ctx2.currentTime + delay);
+              osc.stop(ctx2.currentTime + delay + 0.3);
+            });
+          }, 3200);
+        }
+
+        makeDrone(55, 0.3, 0.08);
+        makeDrone(82.4, 0.2, 0.12);
+        makeDrone(110, 0.15, 0.06);
+        makeDrone(220, 0.08, 0.18);
+        makeShimmer();
+        makeHeartbeat();
       }
 
-      // ═══════════════════════════════════════════════════════════
-      // CLAVIER — ESC uniquement pour fermer
-      // ═══════════════════════════════════════════════════════════
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          ["diag-ov", "treat-ov", "anim-ov", "result-ov"].forEach(closeOv);
-          closeGaia();
+      function stopBackground() {
+        if (bgGain) {
+          bgGain.gain.linearRampToValueAtTime(
+            0,
+            getAudioCtx().currentTime + 1.5
+          );
+        }
+        bgPlaying = false;
+      }
+
+      function playUISound(type) {
+        const ctx = getAudioCtx();
+        const g = ctx.createGain();
+        g.connect(ctx.destination);
+        if (type === "select") {
+          const o = ctx.createOscillator();
+          o.type = "sine";
+          o.frequency.value = 660;
+          g.gain.setValueAtTime(0.12, ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+          o.connect(g);
+          o.start();
+          o.stop(ctx.currentTime + 0.18);
+        } else if (type === "error") {
+          const o = ctx.createOscillator();
+          o.type = "sawtooth";
+          o.frequency.value = 180;
+          g.gain.setValueAtTime(0.1, ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+          o.connect(g);
+          o.start();
+          o.stop(ctx.currentTime + 0.3);
+        } else if (type === "success") {
+          [523, 659, 784].forEach((f, i) => {
+            const o = ctx.createOscillator();
+            const og = ctx.createGain();
+            o.type = "sine";
+            o.frequency.value = f;
+            og.gain.setValueAtTime(0, ctx.currentTime + i * 0.12);
+            og.gain.linearRampToValueAtTime(
+              0.12,
+              ctx.currentTime + i * 0.12 + 0.05
+            );
+            og.gain.exponentialRampToValueAtTime(
+              0.001,
+              ctx.currentTime + i * 0.12 + 0.35
+            );
+            o.connect(og);
+            og.connect(ctx.destination);
+            o.start(ctx.currentTime + i * 0.12);
+            o.stop(ctx.currentTime + i * 0.12 + 0.35);
+          });
+        } else if (type === "step") {
+          const o = ctx.createOscillator();
+          o.type = "sine";
+          o.frequency.value = 440;
+          g.gain.setValueAtTime(0.07, ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+          o.connect(g);
+          o.start();
+          o.stop(ctx.currentTime + 0.1);
+        }
+      }
+
+      // ========== GAIA VOICE ==========
+      function speakGaia(text) {
+        if (!("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const clean = text
+          .replace(/["""'']/g, "")
+          .replace(/\n/g, " ")
+          .trim();
+        const utter = new SpeechSynthesisUtterance(clean);
+        utter.lang = "fr-FR";
+        utter.pitch = 1.1;
+        utter.rate = 0.82;
+        utter.volume = 0.9;
+
+        // Try to use a female voice
+        const trySpeak = () => {
+          const voices = window.speechSynthesis.getVoices();
+          if (voices.length) {
+            const femFR =
+              voices.find(
+                (v) =>
+                  v.lang.startsWith("fr") &&
+                  /female|femme|amelie|thomas|virginie|marie/i.test(v.name)
+              ) ||
+              voices.find((v) => v.lang.startsWith("fr")) ||
+              voices.find((v) => /female/i.test(v.name));
+            if (femFR) utter.voice = femFR;
+          }
+          window.speechSynthesis.speak(utter);
+        };
+
+        if (window.speechSynthesis.getVoices().length) trySpeak();
+        else {
+          window.speechSynthesis.onvoiceschanged = trySpeak;
+          trySpeak();
+        }
+      }
+
+      // ========== VALIDATE ==========
+      function validate() {
+        const p = PATIENTS[state.currentPatient];
+        const correct = p.correctIds;
+        const selected = state.selectedChoices;
+        const bad = selected.filter((s) => !correct.includes(s));
+        const good = selected.filter((s) => correct.includes(s));
+        const hasErrors = bad.length > 0 || good.length < correct.length;
+
+        // Disable interactions
+        document.getElementById("btn-prescribe").disabled = true;
+        document.getElementById("btn-prescribe").textContent =
+          "⏳ Analyse en cours...";
+        p.choices.forEach((ch) => {
+          const el = document.getElementById("choice-" + ch.id);
+          if (el) el.onclick = null;
+        });
+
+        // Show player's choice feedback
+        p.choices.forEach((ch) => {
+          const el = document.getElementById("choice-" + ch.id);
+          const chk = document.getElementById("check-" + ch.id);
+          if (!el) return;
+          const wasSelected = selected.includes(ch.id);
+          if (wasSelected) {
+            if (ch.correct) {
+              el.classList.remove("selected");
+              el.classList.add("correct");
+              chk.textContent = "✓";
+            } else {
+              el.classList.remove("selected");
+              el.classList.add("wrong");
+              chk.textContent = "✗";
+            }
+          } else if (ch.correct) {
+            el.style.opacity = "0.45";
+            el.style.border = "1px dashed rgba(255,214,0,0.4)";
+          }
+        });
+
+        if (hasErrors) {
+          // Player had errors → simulate wrong first, then correct
+          playUISound("error");
+          setTimeout(
+            () =>
+              startSimulation("wrong", selected, () => {
+                // After wrong sim, show correction panel then correct sim
+                showCorrectionPanel(p, () => {
+                  startSimulation("correct", p.correctIds, () => {
+                    showResult(true); // isCorrection = true
+                  });
+                });
+              }),
+            1000
+          );
+        } else {
+          // Perfect → go straight to sim
+          playUISound("success");
+          setTimeout(
+            () =>
+              startSimulation("correct", selected, () => {
+                showResult(false);
+              }),
+            1000
+          );
+        }
+      }
+
+      // ========== CORRECTION PANEL ==========
+      function showCorrectionPanel(p, callback) {
+        const c = document.getElementById("patient-content");
+        const correct = p.correctIds;
+        const selected = state.selectedChoices;
+        const bad = selected.filter((s) => !correct.includes(s)).length;
+        const missed = correct.filter((s) => !selected.includes(s)).length;
+
+        const playerHTML =
+          p.choices
+            .filter((ch) => selected.includes(ch.id))
+            .map(
+              (ch) =>
+                '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,62,94,0.1);font-size:.82rem">' +
+                '<span style="font-size:.85rem">' +
+                (ch.correct ? "✅" : "❌") +
+                "</span>" +
+                '<span style="color:' +
+                (ch.correct
+                  ? "rgba(200,255,230,0.9)"
+                  : "rgba(255,130,130,0.9)") +
+                ";text-decoration:" +
+                (ch.correct ? "none" : "line-through rgba(255,80,80,0.5)") +
+                '">' +
+                ch.label +
+                "</span>" +
+                "</div>"
+            )
+            .join("") ||
+          '<div style="font-size:.8rem;color:var(--muted);text-align:center;padding:8px">Aucune sélection</div>';
+
+        const correctRowsHTML = p.choices
+          .filter((ch) => ch.correct)
+          .map(
+            (ch, i) =>
+              '<div id="corr-row-' +
+              ch.id +
+              '" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,255,180,0.08);font-size:.82rem;opacity:0;transform:translateX(12px);transition:opacity 0.5s ' +
+              i * 0.22 +
+              "s,transform 0.5s " +
+              i * 0.22 +
+              's">' +
+              '<span style="color:var(--green);font-size:.85rem">✅</span>' +
+              '<span style="color:rgba(232,255,249,0.9)">' +
+              ch.label +
+              "</span>" +
+              "</div>"
+          )
+          .join("");
+
+        const badTxt =
+          bad > 0
+            ? '<div style="margin-bottom:5px">• <span style="color:var(--red)">' +
+              bad +
+              " traitement" +
+              (bad > 1 ? "s" : "") +
+              " incorrect" +
+              (bad > 1 ? "s" : "") +
+              "</span> dans votre prescription.</div>"
+            : "";
+        const missedTxt =
+          missed > 0
+            ? '<div style="margin-bottom:5px">• <span style="color:var(--yellow)">' +
+              missed +
+              " traitement" +
+              (missed > 1 ? "s" : "") +
+              " essentiel" +
+              (missed > 1 ? "s" : "") +
+              " oublié" +
+              (missed > 1 ? "s" : "") +
+              "</span>.</div>"
+            : "";
+
+        c.innerHTML =
+          '<div class="fade-in" style="max-width:700px;margin:0 auto;padding:20px">' +
+          '<div style="text-align:center;margin-bottom:24px">' +
+          '<div style="font-size:2.4rem;margin-bottom:8px">🔬</div>' +
+          '<div style="font-size:1.15rem;font-weight:900;color:var(--red);letter-spacing:2px;text-transform:uppercase">Prescription incorrecte</div>' +
+          '<div style="font-family:Share Tech Mono,monospace;font-size:.76rem;color:var(--muted);margin-top:6px">' +
+          bad +
+          " erreur" +
+          (bad > 1 ? "s" : "") +
+          " détectée" +
+          (bad > 1 ? "s" : "") +
+          " · " +
+          missed +
+          " oubli" +
+          (missed > 1 ? "s" : "") +
+          "</div></div>" +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px">' +
+          '<div style="background:rgba(255,62,94,0.07);border:1px solid rgba(255,62,94,0.35);border-radius:8px;padding:14px">' +
+          '<div style="font-family:Share Tech Mono,monospace;font-size:.68rem;color:var(--red);letter-spacing:2px;margin-bottom:12px;text-align:center">❌ VOTRE PRESCRIPTION</div>' +
+          playerHTML +
+          "</div>" +
+          '<div style="background:rgba(0,255,180,0.04);border:1px solid rgba(0,255,180,0.3);border-radius:8px;padding:14px">' +
+          '<div style="font-family:Share Tech Mono,monospace;font-size:.68rem;color:var(--green);letter-spacing:2px;margin-bottom:12px;text-align:center">✅ PRESCRIPTION CORRECTE</div>' +
+          '<div id="corr-correct-list">' +
+          correctRowsHTML +
+          "</div></div>" +
+          "</div>" +
+          '<div style="background:rgba(0,10,12,0.6);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:24px;font-size:.84rem;line-height:1.7;color:rgba(232,255,249,0.8)">' +
+          '<div style="font-family:Share Tech Mono,monospace;font-size:.68rem;color:var(--cyan);letter-spacing:2px;margin-bottom:8px">📋 ANALYSE MÉDICALE</div>' +
+          badTxt +
+          missedTxt +
+          "<div>• Étudiez la prescription correcte avant de relancer l\u2019analyse.</div></div>" +
+          '<div style="text-align:center">' +
+          '<button id="btn-launch-correct" class="btn btn-primary pulse-border" onclick="launchCorrectSim()" style="opacity:0;pointer-events:none;transition:opacity 0.6s">' +
+          "🔬 ANALYSER LE TRAITEMENT CORRECT →</button>" +
+          '<div style="font-family:Share Tech Mono,monospace;font-size:.72rem;color:var(--muted);margin-top:10px" id="corr-ready-label">Lisez la prescription correcte ci-dessus…</div>' +
+          "</div></div>";
+
+        // Reveal correct rows with stagger
+        const numCorrect = p.choices.filter((ch) => ch.correct).length;
+        setTimeout(() => {
+          p.choices
+            .filter((ch) => ch.correct)
+            .forEach((ch, i) => {
+              setTimeout(() => {
+                const row = document.getElementById("corr-row-" + ch.id);
+                if (row) {
+                  row.style.opacity = "1";
+                  row.style.transform = "translateX(0)";
+                }
+                playUISound("select");
+              }, i * 220);
+            });
+          // Unlock button after all revealed + 1.2s pause to let player read
+          const unlockDelay = numCorrect * 220 + 1200;
+          setTimeout(() => {
+            const btn = document.getElementById("btn-launch-correct");
+            const lbl = document.getElementById("corr-ready-label");
+            if (btn) {
+              btn.style.opacity = "1";
+              btn.style.pointerEvents = "auto";
+            }
+            if (lbl)
+              lbl.textContent =
+                "Quand vous êtes prêt(e), lancez la simulation du traitement correct.";
+            playUISound("success");
+          }, unlockDelay);
+        }, 500);
+
+        window._corrCallback = callback;
+      }
+
+      function launchCorrectSim() {
+        const btn = document.getElementById("btn-launch-correct");
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "⏳ Lancement...";
+        }
+        setTimeout(() => {
+          if (window._corrCallback) window._corrCallback();
+        }, 400);
+      }
+
+      // ========== SIMULATION ==========
+      function startSimulation(mode, choiceIds, onComplete) {
+        const p = PATIENTS[state.currentPatient];
+        const c = document.getElementById("patient-content");
+        const isWrong = mode === "wrong";
+        const accentColor = isWrong ? "var(--red)" : "var(--green)";
+        const titleIcon = isWrong ? "⚠️" : "⚡";
+        const titleText = isWrong
+          ? "SIMULATION DE VOTRE TRAITEMENT"
+          : "APPLICATION DU TRAITEMENT OPTIMAL";
+        const subText = isWrong
+          ? "Résultats de votre prescription..."
+          : "Simulation accélérée sur 10 ans";
+
+        // For wrong sim, show degraded steps
+        const wrongSteps = [
+          "An 1-2 : Traitements appliqués (résultats incertains)",
+          "An 2-4 : Dégradation continue malgré interventions",
+          "An 4-6 : Écosystème ne répond pas correctement",
+          "An 6-8 : Effets secondaires négatifs observés",
+          "An 8-10 : Échec — état critique maintenu ❌",
+        ];
+        const steps = isWrong ? wrongSteps : p.simSteps;
+
+        c.innerHTML = `
+    <div class="sim-zone fade-in">
+      <div class="sim-title" style="color:${accentColor}">${titleIcon} ${titleText}</div>
+      <div class="sim-sub">${subText}</div>
+      <div class="timeline">
+        <div class="timeline-bar">
+          <div class="timeline-fill" id="sim-bar" style="background:${
+            isWrong
+              ? "linear-gradient(90deg,var(--red),#ff8c00)"
+              : "linear-gradient(90deg,var(--green),var(--cyan))"
+          }"></div>
+        </div>
+        <div class="timeline-label" id="sim-label">Initialisation...</div>
+      </div>
+      <div class="sim-steps" id="sim-steps">
+        ${steps
+          .map(
+            (s, i) => `
+          <div class="sim-step" id="step-${i}" style="${
+              isWrong ? "--step-color:var(--red)" : ""
+            }">
+            <div class="step-dot"></div>
+            <span>${s}</span>
+          </div>`
+          )
+          .join("")}
+      </div>
+      ${
+        isWrong
+          ? "<div style=\"text-align:center;margin-top:16px;font-family:'Share Tech Mono';font-size:.75rem;color:rgba(255,62,94,0.7)\">⚠️ Correction en cours de préparation...</div>"
+          : ""
+      }
+    </div>
+  `;
+
+        const bar = document.getElementById("sim-bar");
+        const label = document.getElementById("sim-label");
+        let current = 0;
+
+        function nextStep() {
+          if (current > 0) {
+            const prev = document.getElementById("step-" + (current - 1));
+            if (prev) {
+              prev.classList.remove("active");
+              prev.classList.add("done");
+            }
+          }
+          if (current < steps.length) {
+            const el = document.getElementById("step-" + current);
+            if (el) el.classList.add("active");
+            bar.style.width = ((current + 1) / steps.length) * 100 + "%";
+            label.textContent = steps[current];
+            playUISound("step");
+            current++;
+            setTimeout(nextStep, isWrong ? 1400 : 1800);
+          } else {
+            bar.style.width = "100%";
+            label.textContent = isWrong
+              ? "❌ Traitement insuffisant — correction nécessaire"
+              : "✅ Traitement terminé !";
+            if (!isWrong) playUISound("success");
+            setTimeout(() => onComplete(), 1200);
+          }
+        }
+        setTimeout(nextStep, 500);
+      }
+
+      // ========== RESULT ==========
+      function showResult(wasCorrection) {
+        const p = PATIENTS[state.currentPatient];
+        const r = p.result;
+
+        const correct = p.correctIds;
+        const selected = state.selectedChoices;
+        const good = selected.filter((s) => correct.includes(s)).length;
+        const bad = selected.filter((s) => !correct.includes(s)).length;
+        const perfect = bad === 0 && good === correct.length;
+
+        // Score is ALWAYS based on the PLAYER'S choices, never on the corrected ones
+        let finalScore;
+        if (perfect) {
+          finalScore = r.score; // player nailed it → full preset score
+        } else {
+          // Each wrong choice costs 12pts, each missed correct costs 10pts
+          const missed = correct.filter((s) => !selected.includes(s)).length;
+          finalScore = Math.max(
+            5,
+            Math.round(r.score - bad * 12 - missed * 10)
+          );
+        }
+        finalScore = Math.min(100, finalScore);
+        const finalPoints = Math.round((r.points * finalScore) / r.score);
+
+        const needsRetry = finalScore < 60;
+
+        const headerClass =
+          r.type === "excellent"
+            ? "excellent"
+            : r.type === "partial"
+            ? "partial"
+            : "stabilized";
+        const scoreClass =
+          finalScore >= 80
+            ? "s-excellent"
+            : finalScore >= 50
+            ? "s-partial"
+            : "s-stabilized";
+
+        const correctionNote = wasCorrection
+          ? '<div style="background:rgba(255,214,0,0.07);border:1px solid rgba(255,214,0,0.3);border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:.8rem;color:rgba(255,214,0,0.9)">' +
+            "⚠️ Votre prescription initiale comportait des erreurs — ce score reflète vos choix.</div>"
+          : "";
+
+        const retryBox = needsRetry
+          ? '<div style="background:rgba(255,62,94,0.08);border:2px solid rgba(255,62,94,0.5);border-radius:8px;padding:16px;margin:16px 0;text-align:center">' +
+            '<div style="font-size:1.4rem;margin-bottom:6px">🔴</div>' +
+            '<div style="font-weight:900;font-size:1rem;color:var(--red);letter-spacing:2px;margin-bottom:6px">PATIENT NON GUÉRI</div>' +
+            '<div style="font-family:Share Tech Mono,monospace;font-size:.78rem;color:rgba(255,180,180,0.9);margin-bottom:12px">' +
+            "Score " +
+            finalScore +
+            "/100 — minimum requis : 60/100<br>Vous devez recommencer ce patient.</div>" +
+            '<button class="btn btn-danger" onclick="retryPatient()">🔄 RECOMMENCER CE PATIENT</button>' +
+            "</div>"
+          : '<div style="text-align:center;margin:16px 0;font-family:Share Tech Mono,monospace;font-size:1rem;color:var(--cyan)">+' +
+            finalPoints +
+            " POINTS</div>";
+
+        const nextBtn = needsRetry
+          ? ""
+          : '<div class="btn-center" style="margin-top:20px">' +
+            '<button class="btn btn-primary" onclick="completePatient()">' +
+            (state.completed.length + 1 >= 5
+              ? "🏆 VOIR BILAN FINAL"
+              : "▶ PATIENT SUIVANT") +
+            "</button></div>";
+
+        // Only save score if NOT a retry situation (or if passing)
+        if (!needsRetry) {
+          state.scores[state.currentPatient] = finalScore;
+          state.points[state.currentPatient] = finalPoints;
+          state.totalPoints += finalPoints;
+        }
+
+        const gaiaHTML = needsRetry
+          ? "" // don't show GAIA quote if patient not healed
+          : '<div class="gaia-quote" id="gaia-quote-box">' +
+            '<div class="gaia-label">💬 GAIA : <button onclick="speakGaia(gaiaText)" style="background:rgba(0,255,180,0.1);border:1px solid rgba(0,255,180,0.3);border-radius:4px;color:var(--green);font-size:.7rem;padding:2px 8px;cursor:pointer;margin-left:8px;font-family:Share Tech Mono,monospace">🔊 ÉCOUTER</button></div>' +
+            '<div id="gaia-text-content"></div></div>';
+
+        const c = document.getElementById("patient-content");
+        c.innerHTML =
+          '<div class="result-zone fade-in">' +
+          '<div class="result-card">' +
+          '<div class="result-header ' +
+          headerClass +
+          '">' +
+          '<div class="result-status">' +
+          (r.type === "excellent" ? "🏆" : r.type === "partial" ? "⚠️" : "🔒") +
+          "</div>" +
+          '<div class="result-title">' +
+          (needsRetry ? "❌ ÉCHEC — PATIENT NON GUÉRI" : r.title) +
+          "</div>" +
+          "</div>" +
+          '<div class="result-body">' +
+          correctionNote +
+          '<div class="score-big ' +
+          scoreClass +
+          '">' +
+          finalScore +
+          "/100</div>" +
+          retryBox +
+          (needsRetry
+            ? ""
+            : '<div class="result-stats">' +
+              r.stats
+                .map(
+                  (s) =>
+                    '<div class="result-stat"><span class="result-stat-label">' +
+                    s.label +
+                    '</span><span class="result-stat-val">' +
+                    s.val +
+                    "</span></div>"
+                )
+                .join("") +
+              "</div>" +
+              '<div class="fact-box">' +
+              r.fact +
+              "</div>") +
+          gaiaHTML +
+          "</div></div>" +
+          nextBtn +
+          "</div>";
+
+        document.getElementById("p-points").textContent = state.totalPoints;
+
+        if (!needsRetry) {
+          window.gaiaText = r.gaia;
+          // Typewriter + auto-speak
+          const gaiaDom = document.getElementById("gaia-text-content");
+          if (gaiaDom) {
+            const lines = r.gaia.split("\n");
+            let li = 0;
+            function typeNextLine() {
+              if (li >= lines.length) return;
+              const span = document.createElement("div");
+              span.style.cssText =
+                "opacity:0;transform:translateY(6px);transition:all 0.4s;margin-bottom:4px";
+              span.textContent = lines[li] || "\u00A0";
+              gaiaDom.appendChild(span);
+              setTimeout(() => {
+                span.style.opacity = "1";
+                span.style.transform = "translateY(0)";
+              }, 50);
+              li++;
+              setTimeout(typeNextLine, 350);
+            }
+            setTimeout(typeNextLine, 200);
+          }
+          setTimeout(() => speakGaia(r.gaia), 1500);
+        } else {
+          playUISound("error");
+        }
+      }
+
+      function retryPatient() {
+        // Reset only the current patient's state (choices), not score (not saved yet)
+        state.selectedChoices = [];
+        // Re-open the same patient from scratch
+        openPatient(state.currentPatient);
+      }
+
+      // ========== COMPLETE PATIENT ==========
+      function completePatient() {
+        if (!state.completed.includes(state.currentPatient)) {
+          state.completed.push(state.currentPatient);
+        }
+        renderMenu();
+        showScreen("screen-menu");
+
+        if (state.completed.length >= 5) {
+          setTimeout(() => {
+            showToast(
+              "🏆 Tous les patients traités ! Voir le bilan final.",
+              3000
+            );
+          }, 500);
+        }
+      }
+
+      // ========== FINAL SCREEN ==========
+      function showFinal() {
+        const total = Object.values(state.scores).reduce((a, b) => a + b, 0);
+        const avg = Math.round(total / 5);
+        const totalPts = state.totalPoints;
+
+        let rank, badge;
+        if (avg >= 80) {
+          rank = "MÉDECIN EXPERT";
+          badge = "🌟";
+        } else if (avg >= 60) {
+          rank = "MÉDECIN COMPÉTENT";
+          badge = "🦠";
+        } else if (avg >= 40) {
+          rank = "INTERNE EN FORMATION";
+          badge = "🔬";
+        } else {
+          rank = "STAGIAIRE MOTIVÉ";
+          badge = "📋";
+        }
+
+        const scoreColors = {
+          0: "score-30",
+          1: "score-50",
+          2: "score-50",
+          3: "score-30",
+          4: "score-100",
+        };
+        const scoreClasses = PATIENTS.map((p, i) => {
+          const s = state.scores[i] || 0;
+          if (s >= 80) return "score-90";
+          if (s >= 50) return "score-50";
+          return "score-30";
+        });
+
+        document.getElementById("f-points").textContent = totalPts;
+
+        document.getElementById("final-content").innerHTML = `
+    <div class="final-header">
+      <div style="font-size:3rem;margin-bottom:10px">🏥</div>
+      <h1>🏥 TOUS LES PATIENTS TRAITÉS</h1>
+      <p>5/5 ÉCOSYSTÈMES SOIGNÉS ✅</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Résultats</div>
+      <table class="results-table">
+        <tr><th>Écosystème</th><th>Score</th><th>Résultat</th></tr>
+        ${PATIENTS.map(
+          (p, i) => `
+          <tr>
+            <td>${p.icon} ${p.name}</td>
+            <td class="score-cell ${scoreClasses[i]}">${
+            state.scores[i] || 0
+          }/100</td>
+            <td style="font-family:'Share Tech Mono';font-size:.75rem;color:var(--muted)">${PATIENTS[
+              i
+            ].result.title
+              .replace(/[✅⚠️🟡🔒🏆]/g, "")
+              .trim()}</td>
+          </tr>
+        `
+        ).join("")}
+        <tr class="total-row">
+          <td>MOYENNE GÉNÉRALE</td>
+          <td class="score-cell ${
+            avg >= 80 ? "score-90" : avg >= 50 ? "score-50" : "score-30"
+          }">${avg}/100</td>
+          <td style="font-family:'Share Tech Mono';font-size:.75rem;color:var(--cyan)">${rank}</td>
+        </tr>
+      </table>
+    </div>
+    <div class="badge-zone">
+      <div class="badge-icon">${badge}</div>
+      <div class="badge-name">Badge "${rank}"</div>
+      <div class="badge-rank">Rang obtenu basé sur vos décisions médicales</div>
+      <div class="points-total">+${totalPts} POINTS TOTAUX</div>
+    </div>
+    <div class="gaia-final">
+      <div class="gaia-final-label">💬 GAIA : <button onclick="speakGaia('Certains patients guérissent vite. D\'autres lentement. D\'autres restent blessés à jamais. Mais TOUS méritaient qu\'on essaie. Merci, Docteur.')" style="background:rgba(0,255,180,0.1);border:1px solid rgba(0,255,180,0.3);border-radius:4px;color:var(--green);font-size:.7rem;padding:2px 8px;cursor:pointer;font-family:'Share Tech Mono'">🔊 ÉCOUTER</button></div>
+      "Certains patients guérissent vite.<br>
+      D'autres lentement.<br>
+      D'autres... restent blessés à jamais.<br><br>
+      <strong>Mais TOUS méritaient qu'on essaie.</strong><br><br>
+      Merci, Docteur."
+    </div>
+    <div class="btn-center">
+      <button class="btn btn-primary" onclick="restartGame()" style="margin-right:12px">🔄 REJOUER</button>
+      <button class="btn btn-secondary" onclick="showScreen('screen-menu')">📋 REVOIR MENU</button>
+    </div>
+  `;
+
+        showScreen("screen-final");
+      }
+
+      // ========== RESTART ==========
+      function restartGame() {
+        state = {
+          currentPatient: 0,
+          completed: [],
+          scores: {},
+          points: {},
+          totalPoints: 0,
+          phase: "menu",
+          selectedChoices: [],
+          phaseDone: false,
+        };
+        renderMenu();
+        showScreen("screen-menu");
+      }
+
+      // ========== INIT ==========
+      initParticles();
+      renderMenu();
+
+      let audioEnabled = true;
+      function toggleAudio() {
+        audioEnabled = !audioEnabled;
+        const btn = document.getElementById("btn-audio");
+        if (audioEnabled) {
+          startBackground();
+          if (btn) {
+            btn.textContent = "🔊 SON";
+            btn.style.borderColor = "rgba(0,255,180,0.3)";
+          }
+        } else {
+          stopBackground();
+          window.speechSynthesis && window.speechSynthesis.cancel();
+          if (btn) {
+            btn.textContent = "🔇 SON";
+            btn.style.borderColor = "rgba(255,62,94,0.3)";
+          }
+        }
+      }
+
+      // Start audio on first user interaction anywhere
+      document.addEventListener(
+        "click",
+        () => {
+          if (audioEnabled && !bgPlaying) startBackground();
+        },
+        { once: true }
+      );
+
+      // Resize holo canvas on window resize
+      window.addEventListener("resize", () => {
+        const canvas = document.getElementById("holo-canvas");
+        if (canvas && canvas.offsetWidth) {
+          canvas.width = canvas.offsetWidth;
+          canvas.height = canvas.offsetHeight;
         }
       });
     </script>

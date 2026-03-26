@@ -1,0 +1,2347 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Scène 24 — Globe des Catastrophes Écologiques</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --g: #00ffa3;
+        --b: #00e5ff;
+        --r: #ff3355;
+        --o: #ff8c00;
+        --p: #d400ff;
+        --y: #ffdd00;
+        --t: #e8fff2;
+        --t2: #7fcca0;
+        --bg: #020d08;
+        --panel: rgba(2, 18, 11, 0.96);
+        --glass-b: rgba(0, 255, 160, 0.18);
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+        font-family: "Exo 2", sans-serif;
+        color: var(--t);
+        user-select: none;
+      }
+
+      /* ── BACKGROUND STARS ── */
+      #stars {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .star {
+        position: absolute;
+        border-radius: 50%;
+        background: #fff;
+        animation: twinkle linear infinite;
+      }
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.1;
+        }
+        50% {
+          opacity: 0.9;
+        }
+      }
+
+      /* ── GLOBE CANVAS ── */
+      #canvas-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #globe-canvas {
+        cursor: grab;
+        display: block;
+      }
+      #globe-canvas.grabbing {
+        cursor: grabbing;
+      }
+
+      /* ── HEADER ── */
+      #hdr {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 200;
+        padding: 0 24px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 5, 3, 0.98) 0%,
+          rgba(0, 3, 2, 0.8) 70%,
+          transparent
+        );
+        border-bottom: 1px solid rgba(0, 255, 160, 0.1);
+        backdrop-filter: blur(10px);
+      }
+      .hdr-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .hdr-logo {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--g), var(--b));
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        box-shadow: 0 0 18px rgba(0, 255, 160, 0.4);
+        animation: lp 3s ease-in-out infinite;
+      }
+      @keyframes lp {
+        0%,
+        100% {
+          box-shadow: 0 0 18px rgba(0, 255, 160, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 36px rgba(0, 229, 255, 0.5);
+        }
+      }
+      .hdr-title {
+        font-family: "Orbitron", sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--g);
+        letter-spacing: 3px;
+        text-shadow: 0 0 14px rgba(0, 255, 160, 0.5);
+      }
+      .hdr-sub {
+        font-size: 0.7rem;
+        color: var(--t2);
+        margin-top: 2px;
+        font-style: italic;
+      }
+      .hdr-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .hdr-stat {
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 51, 85, 0.3);
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.75rem;
+        color: var(--r);
+        text-shadow: 0 0 10px rgba(255, 51, 85, 0.5);
+      }
+
+      /* ── LEFT PANEL — STATS ── */
+      #panel-left {
+        position: fixed;
+        left: 14px;
+        top: 74px;
+        bottom: 14px;
+        width: 230px;
+        z-index: 150;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+      }
+      .pl-card {
+        background: var(--panel);
+        border: 1px solid var(--glass-b);
+        border-radius: 14px;
+        padding: 14px;
+        pointer-events: auto;
+        backdrop-filter: blur(8px);
+      }
+      .pl-title {
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.58rem;
+        color: var(--g);
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid rgba(0, 255, 160, 0.1);
+        padding-bottom: 6px;
+      }
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.72rem;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(0, 255, 160, 0.04);
+      }
+      .stat-row:last-child {
+        border-bottom: none;
+      }
+      .stat-lbl {
+        color: var(--t2);
+      }
+      .stat-val {
+        font-family: "Share Tech Mono", monospace;
+        font-weight: 700;
+      }
+      .sv-r {
+        color: var(--r);
+      }
+      .sv-o {
+        color: var(--o);
+      }
+      .sv-g {
+        color: var(--g);
+      }
+      .sv-b {
+        color: var(--b);
+      }
+      .sv-y {
+        color: var(--y);
+      }
+
+      /* Type counts */
+      .type-bar-wrap {
+        margin-bottom: 6px;
+      }
+      .type-bar-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 5px;
+        font-size: 0.68rem;
+      }
+      .type-bar-bg {
+        flex: 1;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .type-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.5s;
+      }
+      .type-lbl {
+        color: var(--t2);
+        width: 80px;
+        font-size: 0.65rem;
+      }
+      .type-num {
+        color: var(--t);
+        font-family: "Share Tech Mono", monospace;
+        font-size: 0.65rem;
+        width: 28px;
+        text-align: right;
+      }
+
+      /* ── RIGHT PANEL — FILTERS + TOUR ── */
+      #panel-right {
+        position: fixed;
+        right: 14px;
+        top: 74px;
+        bottom: 14px;
+        width: 220px;
+        z-index: 150;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+      }
+      .pr-card {
+        background: var(--panel);
+        border: 1px solid var(--glass-b);
+        border-radius: 14px;
+        padding: 14px;
+        pointer-events: auto;
+        backdrop-filter: blur(8px);
+      }
+      .pr-title {
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.58rem;
+        color: var(--b);
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+        padding-bottom: 6px;
+      }
+
+      /* Filter chips */
+      .filter-group {
+        margin-bottom: 8px;
+      }
+      .filter-group-lbl {
+        font-size: 0.6rem;
+        color: var(--t2);
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .chip {
+        padding: 4px 9px;
+        border-radius: 20px;
+        font-size: 0.6rem;
+        font-family: "Share Tech Mono", monospace;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.03);
+        cursor: pointer;
+        transition: 0.2s;
+        color: var(--t2);
+      }
+      .chip:hover {
+        border-color: var(--b);
+        color: var(--b);
+      }
+      .chip.active {
+        background: rgba(0, 229, 255, 0.12);
+        border-color: var(--b);
+        color: var(--b);
+        box-shadow: 0 0 8px rgba(0, 229, 255, 0.15);
+      }
+      .chip.type-nuc {
+        border-color: rgba(212, 0, 255, 0.3);
+      }
+      .chip.type-nuc.active {
+        background: rgba(212, 0, 255, 0.12);
+        border-color: var(--p);
+        color: var(--p);
+      }
+      .chip.type-oil {
+        border-color: rgba(40, 30, 10, 0.5);
+      }
+      .chip.type-oil.active {
+        background: rgba(100, 60, 0, 0.2);
+        border-color: #cc8800;
+        color: #cc8800;
+      }
+      .chip.type-chem {
+        border-color: rgba(255, 140, 0, 0.3);
+      }
+      .chip.type-chem.active {
+        background: rgba(255, 140, 0, 0.1);
+        border-color: var(--o);
+        color: var(--o);
+      }
+      .chip.type-def {
+        border-color: rgba(0, 200, 60, 0.3);
+      }
+      .chip.type-def.active {
+        background: rgba(0, 200, 60, 0.1);
+        border-color: #44cc44;
+        color: #44cc44;
+      }
+      .chip.type-pol {
+        border-color: rgba(255, 51, 85, 0.3);
+      }
+      .chip.type-pol.active {
+        background: rgba(255, 51, 85, 0.1);
+        border-color: var(--r);
+        color: var(--r);
+      }
+      .chip.grav-high.active {
+        background: rgba(255, 51, 85, 0.12);
+        border-color: var(--r);
+        color: var(--r);
+      }
+      .chip.grav-med.active {
+        background: rgba(255, 140, 0, 0.1);
+        border-color: var(--o);
+        color: var(--o);
+      }
+
+      /* Tour stops */
+      .tour-stop {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: 9px;
+        cursor: pointer;
+        transition: 0.25s;
+        border: 1px solid transparent;
+        margin-bottom: 4px;
+      }
+      .tour-stop:hover {
+        background: rgba(0, 229, 255, 0.06);
+        border-color: rgba(0, 229, 255, 0.2);
+      }
+      .tour-stop.active-stop {
+        background: rgba(0, 229, 255, 0.1);
+        border-color: var(--b);
+        box-shadow: 0 0 12px rgba(0, 229, 255, 0.12);
+      }
+      .tour-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+      }
+      .tour-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .tour-name {
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.58rem;
+        color: var(--b);
+        line-height: 1.3;
+      }
+      .tour-detail {
+        font-size: 0.6rem;
+        color: var(--t2);
+        margin-top: 1px;
+      }
+      .tour-num {
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.55rem;
+        color: rgba(0, 229, 255, 0.4);
+      }
+
+      /* ── GAIA PANEL ── */
+      #gaia-panel {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 560px;
+        z-index: 160;
+        background: linear-gradient(
+          135deg,
+          rgba(2, 20, 12, 0.97),
+          rgba(0, 8, 5, 0.98)
+        );
+        border: 1px solid rgba(0, 255, 160, 0.2);
+        border-radius: 18px;
+        padding: 16px 22px 14px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7),
+          0 0 40px rgba(0, 255, 160, 0.05);
+        transition: opacity 0.4s, transform 0.4s;
+      }
+      #gaia-panel.hidden {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+        pointer-events: none;
+      }
+      .gaia-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+      }
+      .gaia-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--g), var(--b));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        box-shadow: 0 0 16px rgba(0, 255, 160, 0.3);
+        animation: lp 3s ease-in-out infinite;
+      }
+      .gaia-text {
+        flex: 1;
+      }
+      .gaia-name {
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.6rem;
+        color: var(--g);
+        letter-spacing: 2px;
+        margin-bottom: 4px;
+      }
+      #gaia-msg {
+        font-size: 0.82rem;
+        color: var(--t2);
+        line-height: 1.6;
+      }
+      .gaia-nav {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        justify-content: flex-end;
+      }
+      .btn-tour {
+        padding: 7px 16px;
+        border-radius: 20px;
+        border: 1px solid var(--b);
+        background: rgba(0, 229, 255, 0.08);
+        color: var(--b);
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.6rem;
+        cursor: pointer;
+        letter-spacing: 1px;
+        transition: 0.2s;
+      }
+      .btn-tour:hover {
+        background: rgba(0, 229, 255, 0.18);
+        box-shadow: 0 0 14px rgba(0, 229, 255, 0.2);
+      }
+      .btn-skip {
+        padding: 7px 14px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: transparent;
+        color: var(--t2);
+        font-size: 0.65rem;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .btn-skip:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+        color: var(--t);
+      }
+
+      /* ── TOOLTIP ── */
+      #tooltip {
+        position: fixed;
+        z-index: 300;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        background: rgba(2, 18, 11, 0.97);
+        border: 1px solid rgba(0, 229, 255, 0.35);
+        border-radius: 12px;
+        padding: 12px 16px;
+        min-width: 200px;
+        max-width: 260px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6),
+          0 0 20px rgba(0, 229, 255, 0.08);
+      }
+      #tooltip.show {
+        opacity: 1;
+      }
+      .tt-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .tt-icon {
+        font-size: 1.2rem;
+      }
+      .tt-name {
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.65rem;
+        color: var(--b);
+        letter-spacing: 1px;
+      }
+      .tt-row {
+        font-size: 0.72rem;
+        color: var(--t2);
+        margin-bottom: 3px;
+        padding-left: 6px;
+        border-left: 2px solid rgba(0, 229, 255, 0.2);
+      }
+      .tt-row strong {
+        color: var(--t);
+      }
+      .tt-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.6rem;
+        font-family: "Share Tech Mono", monospace;
+        margin-top: 5px;
+      }
+
+      /* ── ZOOM CONTROLS ── */
+      #zoom-ctrl {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 90px;
+        z-index: 160;
+        display: flex;
+        gap: 8px;
+      }
+      .zoom-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid var(--glass-b);
+        background: var(--panel);
+        color: var(--g);
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(6px);
+        transition: 0.2s;
+      }
+      .zoom-btn:hover {
+        background: rgba(0, 255, 160, 0.1);
+        box-shadow: 0 0 12px rgba(0, 255, 160, 0.2);
+      }
+
+      /* ── PROGRESS BAR (tour) ── */
+      #tour-progress {
+        position: fixed;
+        top: 64px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        z-index: 201;
+        background: rgba(0, 0, 0, 0.4);
+      }
+      #tour-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--g), var(--b));
+        box-shadow: 0 0 10px var(--g);
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* ── BADGE ── */
+      #badge-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 400;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+      }
+      #badge-overlay.open {
+        display: flex;
+      }
+      #badge-box {
+        background: linear-gradient(
+          160deg,
+          rgba(2, 20, 12, 0.99),
+          rgba(0, 8, 5, 1)
+        );
+        border: 1px solid rgba(0, 229, 255, 0.4);
+        border-radius: 24px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 0 100px rgba(0, 229, 255, 0.15),
+          0 40px 100px rgba(0, 0, 0, 0.8);
+        animation: badgeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      @keyframes badgeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .badge-icon {
+        font-size: 4rem;
+        margin-bottom: 16px;
+        animation: badgePulse 2s ease-in-out infinite;
+      }
+      @keyframes badgePulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+      .badge-title {
+        font-family: "Orbitron", sans-serif;
+        font-size: 1.4rem;
+        color: var(--g);
+        letter-spacing: 3px;
+        text-shadow: 0 0 20px rgba(0, 255, 160, 0.6);
+        margin-bottom: 8px;
+      }
+      .badge-sub {
+        font-size: 0.85rem;
+        color: var(--t2);
+        line-height: 1.6;
+        margin-bottom: 24px;
+      }
+      .badge-pts {
+        font-family: "Orbitron", sans-serif;
+        font-size: 1.8rem;
+        color: var(--b);
+        text-shadow: 0 0 20px var(--b);
+        margin-bottom: 20px;
+      }
+      .btn-badge {
+        padding: 14px 32px;
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        background: linear-gradient(90deg, var(--g), var(--b));
+        color: #000;
+        font-family: "Orbitron", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        box-shadow: 0 0 30px rgba(0, 255, 160, 0.3);
+        transition: 0.3s;
+      }
+      .btn-badge:hover {
+        box-shadow: 0 0 50px rgba(0, 255, 160, 0.5);
+        transform: translateY(-2px);
+      }
+
+      /* scrollbar */
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(0, 255, 160, 0.3);
+        border-radius: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- STARS -->
+    <div id="stars"></div>
+
+    <!-- TOUR PROGRESS -->
+    <div id="tour-progress"><div id="tour-fill"></div></div>
+
+    <!-- HEADER -->
+    <div id="hdr">
+      <div class="hdr-left">
+        <div class="hdr-logo">🌍</div>
+        <div>
+          <div class="hdr-title">ATLAS DES CATASTROPHES ÉCOLOGIQUES</div>
+          <div class="hdr-sub">
+            Globe interactif · 1900–2025 · Voyage guidé par Gaïa
+          </div>
+        </div>
+      </div>
+      <div class="hdr-right">
+        <div class="hdr-stat" id="visible-count">847 CATASTROPHES</div>
+        <div
+          class="hdr-stat"
+          style="color: var(--o); border-color: rgba(255, 140, 0, 0.3)"
+        >
+          2.3M MORTS ESTIMÉS
+        </div>
+      </div>
+    </div>
+
+    <!-- GLOBE CANVAS -->
+    <div id="canvas-wrap">
+      <canvas id="globe-canvas"></canvas>
+    </div>
+
+    <!-- LEFT PANEL — GLOBAL STATS -->
+    <div id="panel-left">
+      <div class="pl-card">
+        <div class="pl-title">📊 STATISTIQUES GLOBALES</div>
+        <div class="stat-row">
+          <span class="stat-lbl">Total catastrophes</span
+          ><span class="stat-val sv-r">847</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-lbl">Période</span
+          ><span class="stat-val sv-b">1900–2025</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-lbl">Morts estimés</span
+          ><span class="stat-val sv-r">2 300 000</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-lbl">Surface affectée</span
+          ><span class="stat-val sv-o">15M km²</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-lbl">Coût économique</span
+          ><span class="stat-val sv-y">5 000 Md $</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-lbl">Depuis 1950 ×</span
+          ><span class="stat-val sv-r">×10 accél.</span>
+        </div>
+      </div>
+      <div class="pl-card">
+        <div class="pl-title">🎯 PAR TYPE</div>
+        <div class="type-bar-wrap" id="type-bars"></div>
+      </div>
+      <div class="pl-card">
+        <div class="pl-title">🌐 PAR CONTINENT</div>
+        <div id="continent-bars"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL — FILTERS + TOUR -->
+    <div id="panel-right">
+      <div class="pr-card">
+        <div class="pr-title">🔍 FILTRES</div>
+        <div class="filter-group">
+          <div class="filter-group-lbl">TYPE</div>
+          <div class="chips" id="type-filters">
+            <div
+              class="chip type-nuc active"
+              data-type="nuclear"
+              onclick="toggleFilter(this,'type')"
+            >
+              ☢️ Nucl.
+            </div>
+            <div
+              class="chip type-oil active"
+              data-type="oil"
+              onclick="toggleFilter(this,'type')"
+            >
+              🛢️ Pétrole
+            </div>
+            <div
+              class="chip type-chem active"
+              data-type="chemical"
+              onclick="toggleFilter(this,'type')"
+            >
+              ⚗️ Chimie
+            </div>
+            <div
+              class="chip type-def active"
+              data-type="deforestation"
+              onclick="toggleFilter(this,'type')"
+            >
+              🌳 Déforest.
+            </div>
+            <div
+              class="chip type-pol active"
+              data-type="pollution"
+              onclick="toggleFilter(this,'type')"
+            >
+              🏭 Pollution
+            </div>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group-lbl">DÉCENNIE</div>
+          <div class="chips" id="decade-filters">
+            <div
+              class="chip active"
+              data-decade="1900"
+              onclick="toggleFilter(this,'decade')"
+            >
+              1900s
+            </div>
+            <div
+              class="chip active"
+              data-decade="1950"
+              onclick="toggleFilter(this,'decade')"
+            >
+              1950s
+            </div>
+            <div
+              class="chip active"
+              data-decade="1970"
+              onclick="toggleFilter(this,'decade')"
+            >
+              1970s
+            </div>
+            <div
+              class="chip active"
+              data-decade="1990"
+              onclick="toggleFilter(this,'decade')"
+            >
+              1990s
+            </div>
+            <div
+              class="chip active"
+              data-decade="2000"
+              onclick="toggleFilter(this,'decade')"
+            >
+              2000s
+            </div>
+            <div
+              class="chip active"
+              data-decade="2010"
+              onclick="toggleFilter(this,'decade')"
+            >
+              2010s
+            </div>
+            <div
+              class="chip active"
+              data-decade="2020"
+              onclick="toggleFilter(this,'decade')"
+            >
+              2020+
+            </div>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group-lbl">GRAVITÉ</div>
+          <div class="chips">
+            <div
+              class="chip grav-high active"
+              id="f-high"
+              onclick="toggleGrav('high')"
+            >
+              🔴 Critique
+            </div>
+            <div
+              class="chip grav-med active"
+              id="f-med"
+              onclick="toggleGrav('med')"
+            >
+              🟠 Grave
+            </div>
+            <div class="chip active" id="f-low" onclick="toggleGrav('low')">
+              🟡 Notable
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pr-card" style="flex: 1; overflow-y: auto">
+        <div class="pr-title">🗺️ VOYAGE GUIDÉ GAÏA — 7 ARRÊTS</div>
+        <div id="tour-stops"></div>
+      </div>
+    </div>
+
+    <!-- GAIA PANEL -->
+    <div id="gaia-panel">
+      <div class="gaia-row">
+        <div class="gaia-avatar">🌍</div>
+        <div class="gaia-text">
+          <div class="gaia-name">GAÏA — GUIDE PLANÉTAIRE</div>
+          <div id="gaia-msg">
+            Bienvenue sur mon corps… Chaque point rouge est une blessure.<br />
+            <strong>847 catastrophes majeures</strong> depuis 1900. Laissez-moi
+            vous guider à travers mes cicatrices les plus profondes.
+          </div>
+        </div>
+      </div>
+      <div class="gaia-nav">
+        <button class="btn-skip" onclick="skipTour()">Exploration libre</button>
+        <button class="btn-tour" onclick="startTour()">
+          ▶ COMMENCER LE VOYAGE
+        </button>
+      </div>
+    </div>
+
+    <!-- TOOLTIP -->
+    <div id="tooltip">
+      <div class="tt-header">
+        <span class="tt-icon" id="tt-icon">🔴</span>
+        <span class="tt-name" id="tt-name">—</span>
+      </div>
+      <div class="tt-row">
+        <strong>Type :</strong> <span id="tt-type">—</span>
+      </div>
+      <div class="tt-row">
+        <strong>Date :</strong> <span id="tt-date">—</span>
+      </div>
+      <div class="tt-row">
+        <strong>Localisation :</strong> <span id="tt-loc">—</span>
+      </div>
+      <div class="tt-row">
+        <strong>Impact :</strong> <span id="tt-impact">—</span>
+      </div>
+      <div><span class="tt-badge" id="tt-badge">—</span></div>
+    </div>
+
+    <!-- ZOOM CONTROLS -->
+    <div id="zoom-ctrl">
+      <button class="zoom-btn" onclick="zoomGlobe(1.15)" title="Zoom +">
+        +
+      </button>
+      <button
+        class="zoom-btn"
+        onclick="resetView()"
+        title="Reset"
+        style="font-size: 0.6rem; font-family: 'Orbitron', sans-serif"
+      >
+        RST
+      </button>
+      <button class="zoom-btn" onclick="zoomGlobe(0.87)" title="Zoom −">
+        −
+      </button>
+    </div>
+
+    <!-- BADGE FINAL -->
+    <div id="badge-overlay">
+      <div id="badge-box">
+        <div class="badge-icon">🌍</div>
+        <div class="badge-title">TÉMOIN MONDIAL</div>
+        <div class="badge-sub">
+          Vous avez traversé les 7 zones les plus meurtries de la planète.<br />
+          <strong>847 catastrophes</strong> — réelles, documentées,
+          irréversibles pour certaines.<br /><br />
+          "Ces blessures sont réelles. Mais je n'ai pas dit que c'était fini." —
+          Gaïa
+        </div>
+        <div class="badge-pts">+100 POINTS 🌟</div>
+        <button class="btn-badge" onclick="closeScene()">▶ CONTINUER →</button>
+      </div>
+    </div>
+
+    <script>
+      // ══════════════════════════════════════════════════════════════
+      // TYPE COLORS & ICONS
+      // ══════════════════════════════════════════════════════════════
+      const TYPE_META = {
+        nuclear: {
+          icon: "☢️",
+          label: "Nucléaire",
+          color: "#d400ff",
+          badge: "rgba(212,0,255,.15)",
+          bar: "#d400ff",
+        },
+        oil: {
+          icon: "🛢️",
+          label: "Pétrole",
+          color: "#cc8800",
+          badge: "rgba(200,130,0,.15)",
+          bar: "#cc8800",
+        },
+        chemical: {
+          icon: "⚗️",
+          label: "Chimique",
+          color: "#ff8c00",
+          badge: "rgba(255,140,0,.15)",
+          bar: "#ff8c00",
+        },
+        deforestation: {
+          icon: "🌳",
+          label: "Déforestation",
+          color: "#44cc44",
+          badge: "rgba(60,200,60,.15)",
+          bar: "#44cc44",
+        },
+        pollution: {
+          icon: "🏭",
+          label: "Pollution",
+          color: "#ff3355",
+          badge: "rgba(255,51,85,.15)",
+          bar: "#ff3355",
+        },
+      };
+      const TYPE_COUNTS = {
+        nuclear: 33,
+        oil: 156,
+        chemical: 89,
+        deforestation: 421,
+        pollution: 148,
+      };
+      const CONT_DATA = [
+        { name: "Asie", n: 234, color: "#ff6633" },
+        { name: "Amériques", n: 198, color: "#ffcc00" },
+        { name: "Europe", n: 167, color: "#00aaff" },
+        { name: "Afrique", n: 143, color: "#44cc44" },
+        { name: "Océanie", n: 105, color: "#cc44ff" },
+      ];
+
+      // ══════════════════════════════════════════════════════════════
+      // BUILD SIDE BARS
+      // ══════════════════════════════════════════════════════════════
+      function buildTypeBars() {
+        const el = document.getElementById("type-bars");
+        const total = 847;
+        Object.entries(TYPE_COUNTS).forEach(([k, v]) => {
+          const m = TYPE_META[k];
+          el.innerHTML += `<div class="type-bar-row">
+      <span class="type-lbl">${m.icon} ${m.label}</span>
+      <div class="type-bar-bg"><div class="type-bar-fill" style="width:${(
+        (v / total) *
+        100
+      ).toFixed(1)}%;background:${m.bar}"></div></div>
+      <span class="type-num">${v}</span></div>`;
+        });
+      }
+      function buildContBars() {
+        const el = document.getElementById("continent-bars");
+        const total = 847;
+        CONT_DATA.forEach((c) => {
+          el.innerHTML += `<div class="type-bar-row">
+      <span class="type-lbl" style="width:75px">${c.name}</span>
+      <div class="type-bar-bg"><div class="type-bar-fill" style="width:${(
+        (c.n / total) *
+        100
+      ).toFixed(1)}%;background:${c.color}"></div></div>
+      <span class="type-num">${c.n}</span></div>`;
+        });
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // CATASTROPHE DATABASE (representative sample + generated fill)
+      // ══════════════════════════════════════════════════════════════
+      // Real landmark disasters
+      const LANDMARK = [
+        {
+          id: "tchernobyl",
+          name: "Tchernobyl",
+          lat: 51.39,
+          lon: 30.1,
+          type: "nuclear",
+          year: 1986,
+          grav: "high",
+          loc: "Ukraine",
+          impact: "350 000 évacués, 20 000 ans de contamination",
+        },
+        {
+          id: "fukushima",
+          name: "Fukushima",
+          lat: 37.42,
+          lon: 141.0,
+          type: "nuclear",
+          year: 2011,
+          grav: "high",
+          loc: "Japon",
+          impact: "160 000 déplacés, zone toujours interdite",
+        },
+        {
+          id: "boupal",
+          name: "Bhopal",
+          lat: 23.25,
+          lon: 77.4,
+          type: "chemical",
+          year: 1984,
+          grav: "high",
+          loc: "Inde",
+          impact: "15 000 morts, 500 000 exposés",
+        },
+        {
+          id: "exxon",
+          name: "Exxon Valdez",
+          lat: 61.0,
+          lon: -147.0,
+          type: "oil",
+          year: 1989,
+          grav: "high",
+          loc: "Alaska, USA",
+          impact: "40 900 tonnes, 2 500 km côte polluée",
+        },
+        {
+          id: "aral",
+          name: "Mer d'Aral",
+          lat: 45.0,
+          lon: 59.5,
+          type: "pollution",
+          year: 1960,
+          grav: "high",
+          loc: "Kazakhstan",
+          impact: "−90% eau, désert toxique, extinction faune",
+        },
+        {
+          id: "niger",
+          name: "Delta du Niger",
+          lat: 5.3,
+          lon: 6.0,
+          type: "oil",
+          year: 1956,
+          grav: "high",
+          loc: "Nigeria",
+          impact: "240 000 barils/an, mangroves mortes",
+        },
+        {
+          id: "gpgp",
+          name: "Great Pacific Patch",
+          lat: 38.0,
+          lon: -145.0,
+          type: "pollution",
+          year: 1997,
+          grav: "high",
+          loc: "Pacifique N.",
+          impact: "1,6 M km², 80 000 T plastique",
+        },
+        {
+          id: "mer_morte",
+          name: "Mer Morte",
+          lat: 31.5,
+          lon: 35.5,
+          type: "pollution",
+          year: 1950,
+          grav: "high",
+          loc: "Israël/Jordanie",
+          impact: "−1m/an, −30m depuis 1950",
+        },
+        {
+          id: "amazonie",
+          name: "Amazonie",
+          lat: -5.0,
+          lon: -62.0,
+          type: "deforestation",
+          year: 1970,
+          grav: "high",
+          loc: "Brésil",
+          impact: "65M ha détruits, −17% couvert forêt",
+        },
+        {
+          id: "love_canal",
+          name: "Love Canal",
+          lat: 43.09,
+          lon: -79.0,
+          type: "chemical",
+          year: 1978,
+          grav: "high",
+          loc: "USA",
+          impact: "21 000 T déchets toxiques, ville évacuée",
+        },
+        {
+          id: "times_beach",
+          name: "Times Beach",
+          lat: 38.52,
+          lon: -90.6,
+          type: "chemical",
+          year: 1982,
+          grav: "high",
+          loc: "Missouri, USA",
+          impact: "Dioxine, ville rasée au sol",
+        },
+        {
+          id: "gulf_spill",
+          name: "Deepwater Horizon",
+          lat: 28.7,
+          lon: -88.4,
+          type: "oil",
+          year: 2010,
+          grav: "high",
+          loc: "Golfe Mexique",
+          impact: "780 000 m³ pétrole, 11 morts",
+        },
+        {
+          id: "sandoz",
+          name: "Sandoz/Rhin",
+          lat: 47.6,
+          lon: 7.6,
+          type: "chemical",
+          year: 1986,
+          grav: "high",
+          loc: "Suisse/Europe",
+          impact: "30T pesticides, Rhin déclaré mort",
+        },
+        {
+          id: "minamata",
+          name: "Minamata",
+          lat: 32.2,
+          lon: 130.4,
+          type: "chemical",
+          year: 1956,
+          grav: "high",
+          loc: "Japon",
+          impact: "Mercure, 2 000 morts, maladie chronique",
+        },
+        {
+          id: "seveso",
+          name: "Seveso",
+          lat: 45.7,
+          lon: 9.2,
+          type: "chemical",
+          year: 1976,
+          grav: "high",
+          loc: "Italie",
+          impact: "Dioxine TCDD, 37 km² contaminés",
+        },
+        {
+          id: "prestige",
+          name: "Prestige",
+          lat: 43.0,
+          lon: -9.5,
+          type: "oil",
+          year: 2002,
+          grav: "med",
+          loc: "Espagne",
+          impact: "77 000 T fuel, 3 000 km côte",
+        },
+        {
+          id: "atlantic_fc",
+          name: "Forêt Atlantique",
+          lat: -15.0,
+          lon: -40.0,
+          type: "deforestation",
+          year: 1980,
+          grav: "high",
+          loc: "Brésil",
+          impact: "93% détruite, 8 000 espèces menacées",
+        },
+        {
+          id: "aral2",
+          name: "Aralkum",
+          lat: 44.5,
+          lon: 59.0,
+          type: "pollution",
+          year: 1980,
+          grav: "high",
+          loc: "Ouzbékistan",
+          impact: "Nouveau désert 60 000 km², tempêtes toxiques",
+        },
+        {
+          id: "borneo_def",
+          name: "Bornéo",
+          lat: 1.0,
+          lon: 114.0,
+          type: "deforestation",
+          year: 1990,
+          grav: "high",
+          loc: "Malaisie/Indonésie",
+          impact: "50% forêt primaire perdue",
+        },
+        {
+          id: "murray",
+          name: "Murray-Darling",
+          lat: -34.0,
+          lon: 142.0,
+          type: "pollution",
+          year: 2000,
+          grav: "med",
+          loc: "Australie",
+          impact: "Salinisation massive, poissons morts",
+        },
+      ];
+
+      // Generate 827 more synthetic points covering the globe
+      function seedRandom(seed) {
+        let s = seed;
+        return () => {
+          s = (s * 16807) % 2147483647;
+          return (s - 1) / 2147483646;
+        };
+      }
+      const rng = seedRandom(42);
+      const TYPES = [
+        "nuclear",
+        "oil",
+        "chemical",
+        "deforestation",
+        "pollution",
+      ];
+      const TYPE_W = [33, 156, 89, 421, 148];
+      const DECADE_RANGES = [
+        [1900, 1949],
+        [1950, 1969],
+        [1970, 1989],
+        [1990, 1999],
+        [2000, 2009],
+        [2010, 2019],
+        [2020, 2025],
+      ];
+      // Hotspot regions [lat,lon,weight,radius]
+      const HOTSPOTS = [
+        [40, -100, 0.12, 25],
+        [50, 10, 0.12, 20],
+        [55, 40, 0.08, 20],
+        [35, 105, 0.14, 22],
+        [20, 80, 0.1, 18],
+        [-5, -60, 0.08, 20],
+        [0, 20, 0.07, 25],
+        [60, -95, 0.05, 15],
+        [-25, 135, 0.04, 20],
+        [35, 35, 0.05, 15],
+        [5, 5, 0.06, 18],
+        [55, 65, 0.06, 15],
+      ];
+      function weightedType() {
+        const t = rng() * 847;
+        let acc = 0;
+        for (let i = 0; i < TYPES.length; i++) {
+          acc += TYPE_W[i];
+          if (t < acc) return TYPES[i];
+        }
+        return TYPES[4];
+      }
+      function randDecade() {
+        const d = DECADE_RANGES[Math.floor(rng() * DECADE_RANGES.length)];
+        return Math.floor(rng() * (d[1] - d[0] + 1)) + d[0];
+      }
+      function randGrav() {
+        const r = rng();
+        return r < 0.15 ? "high" : r < 0.5 ? "med" : "low";
+      }
+      function randLatLon() {
+        // bias toward hotspots
+        if (rng() < 0.7) {
+          const hs = HOTSPOTS[Math.floor(rng() * HOTSPOTS.length)];
+          return [
+            hs[0] + (rng() - 0.5) * hs[3] * 2,
+            hs[1] + (rng() - 0.5) * hs[3] * 2,
+          ];
+        }
+        return [(rng() - 0.5) * 160, (rng() - 0.5) * 350];
+      }
+      const DISASTER_NAMES_BY_TYPE = {
+        nuclear: [
+          "Accident réacteur",
+          "Fuite radioactive",
+          "Test nucléaire",
+          "Contamination césium",
+          "Explosion centrale",
+        ],
+        oil: [
+          "Marée noire",
+          "Rupture pipeline",
+          "Naufrage pétrolier",
+          "Fuite puits off-shore",
+          "Déversement raffinerie",
+        ],
+        chemical: [
+          "Fuite usine chimique",
+          "Contamination rivière",
+          "Explosion industrielle",
+          "Déversement pesticides",
+          "Pollution sols",
+        ],
+        deforestation: [
+          "Incendie forêt",
+          "Déforestation agricole",
+          "Exploitation illégale bois",
+          "Brûlis tropical",
+          "Perte biodiversité",
+        ],
+        pollution: [
+          "Pollution industrielle",
+          "Contamination nappe",
+          "Smog urbain",
+          "Dépôt déchets toxiques",
+          "Eutrophisation lac",
+        ],
+      };
+      const COUNTRIES_BY_REGION = {
+        NA: ["USA", "Canada", "Mexique"],
+        EU: ["France", "Allemagne", "Pologne", "UK", "Italie", "Espagne"],
+        AS: ["Chine", "Inde", "Japon", "Corée", "Indonésie"],
+        AF: ["Nigeria", "Congo", "Mozambique"],
+        SA: ["Brésil", "Argentine", "Colombie"],
+        OC: ["Australie"],
+        ME: ["Iran", "Irak", "Arabie"],
+      };
+      function randCountry(lat, lon) {
+        if (lon > -170 && lon < -30 && lat > 10)
+          return COUNTRIES_BY_REGION.NA[Math.floor(rng() * 3)];
+        if (lon > -15 && lon < 35 && lat > 35)
+          return COUNTRIES_BY_REGION.EU[Math.floor(rng() * 6)];
+        if (lon > 60 && lon < 150 && lat > 0)
+          return COUNTRIES_BY_REGION.AS[Math.floor(rng() * 5)];
+        if (lon > -20 && lon < 55 && lat < 15)
+          return COUNTRIES_BY_REGION.AF[Math.floor(rng() * 3)];
+        if (lon > -80 && lon < -35 && lat < 10)
+          return COUNTRIES_BY_REGION.SA[Math.floor(rng() * 3)];
+        return "International";
+      }
+      const SYNTH = [];
+      for (let i = 0; i < 827; i++) {
+        const type = weightedType();
+        const [lat, lon] = randLatLon();
+        const year = randDecade();
+        const grav = randGrav();
+        const names = DISASTER_NAMES_BY_TYPE[type];
+        SYNTH.push({
+          id: "s" + i,
+          name:
+            names[Math.floor(rng() * names.length)] +
+            " " +
+            (1900 + Math.floor(rng() * 125)),
+          lat,
+          lon,
+          type,
+          year,
+          grav,
+          loc: randCountry(lat, lon),
+          impact:
+            grav === "high"
+              ? "Impact majeur documenté"
+              : grav === "med"
+              ? "Impact significatif"
+              : "Impact modéré",
+        });
+      }
+      const ALL_DISASTERS = [...LANDMARK, ...SYNTH];
+
+      // ══════════════════════════════════════════════════════════════
+      // GLOBE STATE
+      // ══════════════════════════════════════════════════════════════
+      const canvas = document.getElementById("globe-canvas");
+      const ctx = canvas.getContext("2d");
+      let W, H, R;
+      let rotX = 0.3,
+        rotY = 0.5,
+        rotTargX = 0.3,
+        rotTargY = 0.5;
+      let zoom = 1,
+        zoomTarg = 1;
+      let dragging = false,
+        lastMX = 0,
+        lastMY = 0;
+      let hoveredDis = null,
+        animFrame = null;
+      let tourActive = false,
+        tourStep = -1;
+      let pulsePoints = []; // {lat,lon,r,maxR,color,alpha}
+      // Visible flags
+      let activeTypes = new Set([
+        "nuclear",
+        "oil",
+        "chemical",
+        "deforestation",
+        "pollution",
+      ]);
+      let activeDecades = new Set([1900, 1950, 1970, 1990, 2000, 2010, 2020]);
+      let activeGravs = new Set(["high", "med", "low"]);
+      let visibleDis = [];
+
+      // ══════════════════════════════════════════════════════════════
+      // GEOMETRY HELPERS
+      // ══════════════════════════════════════════════════════════════
+      function latLonToXYZ(lat, lon) {
+        const φ = (lat * Math.PI) / 180,
+          λ = (lon * Math.PI) / 180;
+        return [
+          Math.cos(φ) * Math.cos(λ),
+          Math.sin(φ),
+          Math.cos(φ) * Math.sin(λ),
+        ];
+      }
+      function rotatePoint([x, y, z], rx, ry) {
+        // rotate around Y axis (longitude)
+        let x1 = x * Math.cos(ry) + z * Math.sin(ry);
+        let z1 = -x * Math.sin(ry) + z * Math.cos(ry);
+        // rotate around X axis (latitude)
+        let y2 = y * Math.cos(rx) - z1 * Math.sin(rx);
+        let z2 = y * Math.sin(rx) + z1 * Math.cos(rx);
+        return [x1, y2, z2];
+      }
+      function project([x, y, z]) {
+        const fov = 2.2 * zoom;
+        const scale = (R * fov) / (fov + z * 0);
+        return [W / 2 + x * R * zoom, H / 2 - y * R * zoom, z];
+      }
+      function isFront(z) {
+        return z > -0.1;
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // RESIZE
+      // ══════════════════════════════════════════════════════════════
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+        R = Math.min(W, H) * 0.34;
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // DRAW GLOBE
+      // ══════════════════════════════════════════════════════════════
+      function drawGlobe() {
+        ctx.clearRect(0, 0, W, H);
+        const cx = W / 2,
+          cy = H / 2;
+        const r = R * zoom;
+
+        // Outer glow
+        const grd = ctx.createRadialGradient(cx, cy, r * 0.7, cx, cy, r * 1.4);
+        grd.addColorStop(0, "rgba(0,255,160,0.04)");
+        grd.addColorStop(1, "transparent");
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, W, H);
+
+        // Earth body
+        const earthGrd = ctx.createRadialGradient(
+          cx - r * 0.2,
+          cy - r * 0.2,
+          0,
+          cx,
+          cy,
+          r
+        );
+        earthGrd.addColorStop(0, "#0a2a1a");
+        earthGrd.addColorStop(0.4, "#061a10");
+        earthGrd.addColorStop(0.85, "#030e08");
+        earthGrd.addColorStop(1, "#010508");
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = earthGrd;
+        ctx.fill();
+
+        // Land masses (simplified)
+        drawLandMasses(cx, cy, r);
+
+        // Grid lines
+        drawGrid(cx, cy, r);
+
+        // Atmosphere
+        const atm = ctx.createRadialGradient(
+          cx,
+          cy,
+          r * 0.96,
+          cx,
+          cy,
+          r * 1.06
+        );
+        atm.addColorStop(0, "rgba(0,200,255,0.12)");
+        atm.addColorStop(0.5, "rgba(0,200,255,0.05)");
+        atm.addColorStop(1, "rgba(0,200,255,0)");
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 1.05, 0, Math.PI * 2);
+        ctx.fillStyle = atm;
+        ctx.fill();
+
+        // Globe border
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(0,229,255,0.18)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Disaster points
+        drawDisasterPoints(cx, cy, r);
+
+        // Pulse animations
+        drawPulses(cx, cy, r);
+      }
+
+      function drawGrid(cx, cy, r) {
+        ctx.save();
+        ctx.globalAlpha = 0.08;
+        ctx.strokeStyle = "#00ffaa";
+        ctx.lineWidth = 0.5;
+        // Latitude lines every 30°
+        for (let lat = -60; lat <= 60; lat += 30) {
+          const φ = (lat * Math.PI) / 180;
+          const [, y0, z0] = rotatePoint(
+            [0, Math.sin(φ), Math.cos(φ) * 0.001],
+            rotX,
+            rotY
+          );
+          if (!isFront(z0)) continue;
+          const ry = Math.cos(φ) * r * zoom;
+          const py = cy - Math.sin(φ) * r * zoom;
+          // simplified — draw as ellipse arc
+          ctx.beginPath();
+          ctx.ellipse(
+            cx,
+            py,
+            ry,
+            ry * Math.abs(Math.sin(rotX + 0.01)) * 0.3 + 1,
+            0,
+            0,
+            Math.PI * 2
+          );
+          ctx.stroke();
+        }
+        // Longitude lines every 30°
+        for (let lon = 0; lon < 360; lon += 30) {
+          const λ = (lon * Math.PI) / 180;
+          ctx.beginPath();
+          for (let lat2 = -90; lat2 <= 90; lat2 += 5) {
+            const φ = (lat2 * Math.PI) / 180;
+            const p = rotatePoint(
+              [
+                Math.cos(φ) * Math.cos(λ),
+                Math.sin(φ),
+                Math.cos(φ) * Math.sin(λ),
+              ],
+              rotX,
+              rotY
+            );
+            if (p[2] < 0) continue;
+            const [px, py] = project(p);
+            lat2 === -90 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Simplified land masses as polygon approximations
+      const LAND_POLYS = [
+        // North America
+        [
+          [70, -140],
+          [55, -130],
+          [50, -125],
+          [45, -90],
+          [40, -82],
+          [30, -85],
+          [25, -80],
+          [20, -87],
+          [15, -85],
+          [10, -84],
+          [8, -77],
+          [9, -80],
+          [15, -90],
+          [20, -105],
+          [27, -110],
+          [32, -117],
+          [38, -122],
+          [48, -124],
+          [55, -130],
+          [60, -140],
+          [68, -140],
+          [70, -135],
+        ],
+        // South America
+        [
+          [12, -72],
+          [10, -62],
+          [8, -60],
+          [5, -52],
+          [0, -50],
+          [-5, -35],
+          [-10, -37],
+          [-20, -40],
+          [-30, -51],
+          [-40, -62],
+          [-55, -68],
+          [-55, -65],
+          [-50, -70],
+          [-45, -65],
+          [-35, -58],
+          [-25, -48],
+          [-15, -39],
+          [-5, -35],
+          [0, -50],
+          [5, -52],
+          [8, -60],
+          [12, -72],
+        ],
+        // Europe
+        [
+          [71, 28],
+          [70, 20],
+          [65, 14],
+          [58, 5],
+          [51, 3],
+          [45, 8],
+          [40, 14],
+          [38, 26],
+          [40, 36],
+          [45, 34],
+          [50, 30],
+          [55, 22],
+          [59, 24],
+          [64, 26],
+          [68, 26],
+          [71, 28],
+        ],
+        // Africa
+        [
+          [37, 10],
+          [32, 12],
+          [25, 15],
+          [15, 15],
+          [5, 2],
+          [0, 10],
+          [-5, 12],
+          [-10, 14],
+          [-20, 15],
+          [-30, 17],
+          [-34, 26],
+          [-30, 30],
+          [-20, 35],
+          [-10, 40],
+          [5, 42],
+          [12, 43],
+          [15, 42],
+          [20, 37],
+          [25, 32],
+          [30, 30],
+          [35, 26],
+          [37, 22],
+          [37, 10],
+        ],
+        // Asia (simplified)
+        [
+          [70, 40],
+          [65, 50],
+          [60, 60],
+          [55, 73],
+          [50, 80],
+          [45, 60],
+          [42, 50],
+          [38, 48],
+          [35, 36],
+          [30, 50],
+          [25, 57],
+          [20, 58],
+          [10, 78],
+          [8, 77],
+          [5, 100],
+          [10, 105],
+          [20, 110],
+          [30, 120],
+          [40, 125],
+          [50, 140],
+          [55, 160],
+          [65, 170],
+          [70, 160],
+          [70, 100],
+          [75, 80],
+          [72, 60],
+          [70, 40],
+        ],
+        // Australia
+        [
+          [-15, 130],
+          [-20, 122],
+          [-32, 115],
+          [-38, 146],
+          [-37, 150],
+          [-29, 153],
+          [-20, 148],
+          [-15, 145],
+          [-13, 136],
+          [-15, 130],
+        ],
+        // Greenland
+        [
+          [83, -42],
+          [82, -25],
+          [77, -18],
+          [72, -22],
+          [68, -50],
+          [70, -55],
+          [76, -66],
+          [80, -62],
+          [83, -42],
+        ],
+      ];
+
+      function drawLandMasses(cx, cy, r) {
+        LAND_POLYS.forEach((poly) => {
+          ctx.beginPath();
+          let first = true;
+          poly.forEach(([lat, lon]) => {
+            const p = rotatePoint(latLonToXYZ(lat, lon), rotX, rotY);
+            if (p[2] < -0.3) {
+              first = true;
+              return;
+            }
+            const [px, py] = project(p);
+            first ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+            first = false;
+          });
+          ctx.closePath();
+          ctx.fillStyle = "rgba(0,80,40,0.5)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(0,180,80,0.2)";
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        });
+      }
+
+      function drawDisasterPoints(cx, cy, r) {
+        visibleDis.forEach((d) => {
+          const p = rotatePoint(latLonToXYZ(d.lat, d.lon), rotX, rotY);
+          if (p[2] < 0) return;
+          const [px, py] = project(p);
+          const m = TYPE_META[d.type];
+          const isHovered = hoveredDis && hoveredDis.id === d.id;
+          const dotR = d.grav === "high" ? 4.5 : d.grav === "med" ? 3 : 2;
+          const scaledR = (dotR + (isHovered ? 3 : 0)) * Math.min(zoom, 2);
+
+          // Glow
+          if (d.grav === "high" || isHovered) {
+            const gl = ctx.createRadialGradient(px, py, 0, px, py, scaledR * 3);
+            gl.addColorStop(
+              0,
+              m.color.replace(")", ",0.3)").replace("rgb", "rgba") ||
+                "rgba(255,51,85,0.3)"
+            );
+            gl.addColorStop(1, "transparent");
+            ctx.beginPath();
+            ctx.arc(px, py, scaledR * 3, 0, Math.PI * 2);
+            ctx.fillStyle = gl;
+            ctx.fill();
+          }
+          // Dot
+          ctx.beginPath();
+          ctx.arc(px, py, scaledR, 0, Math.PI * 2);
+          ctx.fillStyle = isHovered ? "#fff" : m.color;
+          ctx.globalAlpha = isHovered
+            ? 1
+            : d.grav === "high"
+            ? 0.9
+            : d.grav === "med"
+            ? 0.7
+            : 0.5;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        });
+      }
+
+      function drawPulses(cx, cy, r) {
+        pulsePoints.forEach((p, i) => {
+          const pos = rotatePoint(latLonToXYZ(p.lat, p.lon), rotX, rotY);
+          if (pos[2] < 0) return;
+          const [px, py] = project(pos);
+          const cr = ctx.createRadialGradient(px, py, 0, px, py, p.r);
+          cr.addColorStop(0, p.color.replace("1)", `${p.alpha})`));
+          cr.addColorStop(1, "transparent");
+          ctx.beginPath();
+          ctx.arc(px, py, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = cr;
+          ctx.fill();
+          p.r += 1.5;
+          p.alpha -= 0.015;
+          if (p.alpha <= 0) {
+            pulsePoints.splice(i, 1);
+          }
+        });
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // ANIMATION LOOP
+      // ══════════════════════════════════════════════════════════════
+      let autoRotate = true;
+      function loop() {
+        // Smooth rotation
+        if (!dragging && !tourActive) {
+          if (autoRotate) rotTargY += 0.003;
+        }
+        rotX += (rotTargX - rotX) * 0.08;
+        rotY += (rotTargY - rotY) * 0.08;
+        zoom += (zoomTarg - zoom) * 0.1;
+        drawGlobe();
+        animFrame = requestAnimationFrame(loop);
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // MOUSE / TOUCH INTERACTION
+      // ══════════════════════════════════════════════════════════════
+      canvas.addEventListener("mousedown", (e) => {
+        dragging = true;
+        autoRotate = false;
+        lastMX = e.clientX;
+        lastMY = e.clientY;
+        canvas.classList.add("grabbing");
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (dragging) {
+          const dx = e.clientX - lastMX,
+            dy = e.clientY - lastMY;
+          rotTargY += dx * 0.006;
+          rotTargX -= dy * 0.006;
+          rotTargX = Math.max(-1.4, Math.min(1.4, rotTargX));
+          lastMX = e.clientX;
+          lastMY = e.clientY;
+        }
+        checkHover(e.clientX, e.clientY);
+      });
+      window.addEventListener("mouseup", () => {
+        dragging = false;
+        canvas.classList.remove("grabbing");
+      });
+      canvas.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          zoomTarg = Math.max(
+            0.6,
+            Math.min(3.5, zoomTarg + (e.deltaY < 0 ? 0.12 : -0.12))
+          );
+        },
+        { passive: false }
+      );
+      canvas.addEventListener("click", (e) => {
+        if (hoveredDis) {
+          showTooltipFor(hoveredDis, e.clientX, e.clientY);
+        } else {
+          document.getElementById("tooltip").classList.remove("show");
+        }
+      });
+
+      function checkHover(mx, my) {
+        let best = null,
+          bestDist = 12;
+        visibleDis.forEach((d) => {
+          const p = rotatePoint(latLonToXYZ(d.lat, d.lon), rotX, rotY);
+          if (p[2] < 0) return;
+          const [px, py] = project(p);
+          const dist = Math.hypot(mx - px, my - py);
+          const threshold = (d.grav === "high" ? 5 : 3) * Math.min(zoom, 2) + 4;
+          if (dist < threshold && dist < bestDist) {
+            bestDist = dist;
+            best = d;
+          }
+        });
+        hoveredDis = best;
+        canvas.style.cursor = best ? "pointer" : dragging ? "grabbing" : "grab";
+        if (!best) document.getElementById("tooltip").classList.remove("show");
+      }
+
+      function showTooltipFor(d, mx, my) {
+        const m = TYPE_META[d.type];
+        document.getElementById("tt-icon").textContent = m.icon;
+        document.getElementById("tt-name").textContent = d.name;
+        document.getElementById("tt-type").textContent = m.label;
+        document.getElementById("tt-date").textContent = d.year;
+        document.getElementById("tt-loc").textContent = d.loc;
+        document.getElementById("tt-impact").textContent = d.impact;
+        const badge = document.getElementById("tt-badge");
+        badge.textContent =
+          d.grav === "high"
+            ? "🔴 CRITIQUE"
+            : d.grav === "med"
+            ? "🟠 GRAVE"
+            : "🟡 NOTABLE";
+        badge.style.background =
+          d.grav === "high"
+            ? "rgba(255,51,85,.15)"
+            : d.grav === "med"
+            ? "rgba(255,140,0,.12)"
+            : "rgba(255,220,0,.1)";
+        badge.style.color =
+          d.grav === "high"
+            ? "#ff3355"
+            : d.grav === "med"
+            ? "#ff8c00"
+            : "#ffdd00";
+        badge.style.border = `1px solid ${badge.style.color}`;
+        const tt = document.getElementById("tooltip");
+        const ttW = 270,
+          ttH = 160;
+        tt.style.left = (mx + mx > W - ttW - 20 ? -ttW - 12 : 14) + "px";
+        tt.style.top = (my + my > H - ttH - 20 ? -ttH - 12 : 14) + "px";
+        tt.classList.add("show");
+        spawnPulse(d.lat, d.lon, "rgba(0,229,255,1)", 0, 60);
+      }
+
+      function spawnPulse(lat, lon, color, r0, maxR) {
+        for (let i = 0; i < 3; i++) {
+          setTimeout(
+            () =>
+              pulsePoints.push({
+                lat,
+                lon,
+                color,
+                r: r0 + i * 8,
+                maxR,
+                alpha: 0.6,
+              }),
+            i * 200
+          );
+        }
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // FILTERS
+      // ══════════════════════════════════════════════════════════════
+      function toggleFilter(el, group) {
+        el.classList.toggle("active");
+        if (group === "type") {
+          const t = el.dataset.type;
+          activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
+        } else {
+          const d = parseInt(el.dataset.decade);
+          activeDecades.has(d) ? activeDecades.delete(d) : activeDecades.add(d);
+        }
+        applyFilters();
+      }
+      function toggleGrav(g) {
+        const el = document.getElementById("f-" + g);
+        el.classList.toggle("active");
+        activeGravs.has(g) ? activeGravs.delete(g) : activeGravs.add(g);
+        applyFilters();
+      }
+      function applyFilters() {
+        visibleDis = ALL_DISASTERS.filter((d) => {
+          if (!activeTypes.has(d.type)) return false;
+          if (!activeGravs.has(d.grav)) return false;
+          // decade check
+          const decade =
+            d.year < 1950
+              ? 1900
+              : d.year < 1970
+              ? 1950
+              : d.year < 1990
+              ? 1970
+              : d.year < 2000
+              ? 1990
+              : d.year < 2010
+              ? 2000
+              : d.year < 2020
+              ? 2010
+              : 2020;
+          if (!activeDecades.has(decade)) return false;
+          return true;
+        });
+        document.getElementById("visible-count").textContent =
+          visibleDis.length + " CATASTROPHES";
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // ZOOM CONTROLS
+      // ══════════════════════════════════════════════════════════════
+      function zoomGlobe(f) {
+        zoomTarg = Math.max(0.6, Math.min(3.5, zoomTarg * f));
+      }
+      function resetView() {
+        zoomTarg = 1;
+        rotTargX = 0.3;
+        rotTargY = 0.5;
+        autoRotate = true;
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // GUIDED TOUR
+      // ══════════════════════════════════════════════════════════════
+      const TOUR_STOPS = [
+        {
+          id: "tchernobyl",
+          icon: "☢️",
+          name: "TCHERNOBYL",
+          detail: "Ukraine — 1986",
+          lat: 51.39,
+          lon: 30.1,
+          zoom: 2.2,
+          rotDelay: 2000,
+          gaia: "Je suis le réacteur n°4. En 1986, j'ai craché 400 fois Hiroshima dans le ciel de l'Europe. <strong>350 000 personnes</strong> ont fui en quelques heures. La zone restera mortelle pour <strong>20 000 ans</strong>.",
+          pulse: "rgba(212,0,255,1)",
+          type: "nuclear",
+        },
+        {
+          id: "fukushima",
+          icon: "☢️",
+          name: "FUKUSHIMA",
+          detail: "Japon — 2011",
+          lat: 37.42,
+          lon: 141.0,
+          zoom: 2.2,
+          rotDelay: 2000,
+          gaia: "25 ans après Tchernobyl, Fukushima. On n'avait pas retenu la leçon. <strong>160 000 personnes</strong> déplacées. En 2025, certains ne peuvent toujours pas rentrer chez eux.",
+          pulse: "rgba(212,0,255,1)",
+          type: "nuclear",
+        },
+        {
+          id: "gpgp",
+          icon: "🌊",
+          name: "GREAT PACIFIC GARBAGE PATCH",
+          detail: "Pacifique Nord — 1997",
+          lat: 38.0,
+          lon: -145.0,
+          zoom: 1.8,
+          rotDelay: 2500,
+          gaia: "Invisible depuis l'espace, mais réelle. <strong>1,6 million de km²</strong> de plastique concentré — plus grand que la France ×3. 80 000 tonnes dérivent ici depuis les années 50.",
+          pulse: "rgba(0,100,200,1)",
+          type: "pollution",
+        },
+        {
+          id: "aral",
+          icon: "🏜️",
+          name: "MER D'ARAL",
+          detail: "Kazakhstan — 1960-2025",
+          lat: 45.0,
+          lon: 59.5,
+          zoom: 2.0,
+          rotDelay: 2000,
+          gaia: "En 1960, j'étais le 4ème plus grand lac du monde. Aujourd'hui : <strong>10% du volume restant</strong>. Des bateaux rouillent dans le sable que j'ai laissé derrière moi.",
+          pulse: "rgba(210,180,80,1)",
+          type: "pollution",
+        },
+        {
+          id: "amazonie",
+          icon: "🌳",
+          name: "AMAZONIE",
+          detail: "Brésil — 1970-2025",
+          lat: -5.0,
+          lon: -62.0,
+          zoom: 1.9,
+          rotDelay: 2500,
+          gaia: "Mon poumon. <strong>65 millions d'hectares</strong> disparus depuis 1970. Chaque minute : l'équivalent d'un terrain de foot. Des espèces disparaissent sans avoir été nommées.",
+          pulse: "rgba(60,200,60,1)",
+          type: "deforestation",
+        },
+        {
+          id: "niger",
+          icon: "🛢️",
+          name: "DELTA DU NIGER",
+          detail: "Nigeria — 1956-2025",
+          lat: 5.3,
+          lon: 6.0,
+          zoom: 2.2,
+          rotDelay: 2000,
+          gaia: "50 ans de pétrole. <strong>240 000 barils</strong> déversés chaque année dans le delta. Les mangroves sont mortes. Les poissons ont disparu. Les enfants naissent malades.",
+          pulse: "rgba(100,60,0,1)",
+          type: "oil",
+        },
+        {
+          id: "mer_morte",
+          icon: "💀",
+          name: "MER MORTE",
+          detail: "Israël/Jordanie — 1950-2025",
+          lat: 31.5,
+          lon: 35.5,
+          zoom: 2.5,
+          rotDelay: 2000,
+          gaia: "Je baisse de <strong>1 mètre par an</strong>. En 75 ans, j'ai perdu 30 mètres. On me pompe pour l'agriculture. En 2050… je pourrais n'être plus qu'un souvenir.",
+          pulse: "rgba(100,200,200,1)",
+          type: "pollution",
+        },
+      ];
+
+      function buildTourStops() {
+        const el = document.getElementById("tour-stops");
+        TOUR_STOPS.forEach((s, i) => {
+          el.innerHTML += `<div class="tour-stop" id="ts-${i}" onclick="goToStop(${i})">
+      <div class="tour-icon">${s.icon}</div>
+      <div class="tour-info">
+        <div class="tour-name">${s.name}</div>
+        <div class="tour-detail">${s.detail}</div>
+      </div>
+      <div class="tour-num">${i + 1}/7</div>
+    </div>`;
+        });
+      }
+
+      function startTour() {
+        tourActive = true;
+        autoRotate = false;
+        document.getElementById("gaia-panel").classList.remove("hidden");
+        goToStop(0);
+      }
+      function skipTour() {
+        tourActive = false;
+        autoRotate = true;
+        document.getElementById("gaia-panel").classList.add("hidden");
+      }
+
+      let tourAnimTimeout = null;
+      function goToStop(i) {
+        if (tourAnimTimeout) clearTimeout(tourAnimTimeout);
+        tourActive = true;
+        autoRotate = false;
+        tourStep = i;
+        const s = TOUR_STOPS[i];
+
+        // Update tour UI
+        document.querySelectorAll(".tour-stop").forEach((el, j) => {
+          el.classList.toggle("active-stop", j === i);
+        });
+        document.getElementById("tour-fill").style.width =
+          ((i + 1) / 7) * 100 + "%";
+
+        // Animate camera to location
+        const target = rotateForLatLon(s.lat, s.lon);
+        rotTargX = target[0];
+        rotTargY = target[1];
+        zoomTarg = s.zoom;
+
+        // Gaia message
+        document.getElementById("gaia-msg").innerHTML = s.gaia;
+        document.getElementById("gaia-panel").classList.remove("hidden");
+
+        // Nav buttons
+        const nav = document.querySelector(".gaia-nav");
+        nav.innerHTML = "";
+        if (i > 0)
+          nav.innerHTML += `<button class="btn-skip" onclick="goToStop(${
+            i - 1
+          })">← Précédent</button>`;
+        nav.innerHTML += `<button class="btn-skip" onclick="skipTour()">Exploration libre</button>`;
+        if (i < 6)
+          nav.innerHTML += `<button class="btn-tour" onclick="goToStop(${
+            i + 1
+          })">Suivant → (${i + 2}/7)</button>`;
+        else
+          nav.innerHTML += `<button class="btn-tour" onclick="finishTour()">✅ FIN DU VOYAGE</button>`;
+
+        // Spawn pulses at location
+        tourAnimTimeout = setTimeout(() => {
+          spawnPulse(s.lat, s.lon, s.pulse, 0, 80);
+          // Extra pulses for nuclear
+          if (s.type === "nuclear") {
+            for (let r = 0; r < 4; r++)
+              setTimeout(
+                () =>
+                  spawnPulse(
+                    s.lat,
+                    s.lon,
+                    "rgba(212,0,255,0.8)",
+                    0,
+                    60 + r * 15
+                  ),
+                r * 600
+              );
+          }
+        }, 800);
+      }
+
+      function rotateForLatLon(lat, lon) {
+        const rx = ((-lat * Math.PI) / 180) * 0.9;
+        const ry = (-lon * Math.PI) / 180;
+        return [Math.max(-1.3, Math.min(1.3, rx)), ry];
+      }
+
+      function finishTour() {
+        tourActive = false;
+        document.getElementById("gaia-panel").classList.add("hidden");
+        document.getElementById("badge-overlay").classList.add("open");
+        document
+          .querySelectorAll(".tour-stop")
+          .forEach((el) => el.classList.remove("active-stop"));
+        document.getElementById("tour-fill").style.width = "100%";
+        autoRotate = true;
+      }
+
+      function closeScene() {
+        document.getElementById("badge-overlay").classList.remove("open");
+        const base = window.location.href.replace("scene24.html", "");
+        window.location.href = base + "scene25.html";
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // STARS
+      // ══════════════════════════════════════════════════════════════
+      function buildStars() {
+        const el = document.getElementById("stars");
+        for (let i = 0; i < 220; i++) {
+          const d = document.createElement("div");
+          d.className = "star";
+          const s = Math.random() * 2 + 0.5;
+          d.style.cssText = `width:${s}px;height:${s}px;left:${
+            Math.random() * 100
+          }%;top:${Math.random() * 100}%;
+      opacity:${Math.random() * 0.5 + 0.1};animation-duration:${
+            2 + Math.random() * 5
+          }s;
+      animation-delay:${Math.random() * 5}s`;
+          el.appendChild(d);
+        }
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // KEYBOARD SHORTCUTS
+      // ══════════════════════════════════════════════════════════════
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document.getElementById("tooltip").classList.remove("show");
+        }
+        if (e.key === "r") resetView();
+        if (e.key === "t") startTour();
+      });
+
+      // ══════════════════════════════════════════════════════════════
+      // INIT
+      // ══════════════════════════════════════════════════════════════
+      window.addEventListener("resize", () => {
+        resize();
+      });
+      buildStars();
+      buildTypeBars();
+      buildContBars();
+      buildTourStops();
+      applyFilters();
+      resize();
+      loop();
+    </script>
+  </body>
+</html>
